@@ -5,7 +5,7 @@
 ;; Authors: Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Olin Shivers <shivers@cs.cmu.edu>
 ;; URL: http://github.com/clojure-emacs/inf-clojure
-;; Package-Version: 20170330.2134
+;; Package-Version: 20170414.1424
 ;; Keywords: processes, clojure
 ;; Version: 2.0.0-snapshot
 ;; Package-Requires: ((emacs "24.4") (clojure-mode "5.6"))
@@ -76,7 +76,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
   (let ((map (copy-keymap comint-mode-map)))
     (define-key map "\C-x\C-e" #'inf-clojure-eval-last-sexp)
     (define-key map "\C-c\C-l" #'inf-clojure-load-file)
-    (define-key map "\C-c\C-a" #'inf-clojure-show-arglist)
+    (define-key map "\C-c\C-a" #'inf-clojure-show-arglists)
     (define-key map "\C-c\C-v" #'inf-clojure-show-var-documentation)
     (define-key map "\C-c\C-s" #'inf-clojure-show-var-source)
     (define-key map "\C-c\M-o" #'inf-clojure-clear-repl-buffer)
@@ -88,7 +88,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
         "--"
         ["Load file" inf-clojure-load-file t]
         "--"
-        ["Show arglist" inf-clojure-show-arglist t]
+        ["Show arglists" inf-clojure-show-arglists t]
         ["Show documentation for var" inf-clojure-show-var-documentation t]
         ["Show source for var" inf-clojure-show-var-source t]
         "--"
@@ -113,7 +113,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
     (define-key map "\C-c\C-A" #'inf-clojure-apropos)
     (define-key map "\C-c\C-m" #'inf-clojure-macroexpand)
     (define-key map "\C-c\C-l" #'inf-clojure-load-file)
-    (define-key map "\C-c\C-a" #'inf-clojure-show-arglist)
+    (define-key map "\C-c\C-a" #'inf-clojure-show-arglists)
     (define-key map "\C-c\C-v" #'inf-clojure-show-var-documentation)
     (define-key map "\C-c\C-s" #'inf-clojure-show-var-source)
     (define-key map "\C-c\M-n" #'inf-clojure-set-ns)
@@ -131,7 +131,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
         ["Switch to REPL" inf-clojure-switch-to-repl t]
         ["Set REPL ns" inf-clojure-set-ns t]
         "--"
-        ["Show arglist" inf-clojure-show-arglist t]
+        ["Show arglists" inf-clojure-show-arglists t]
         ["Show documentation for var" inf-clojure-show-var-documentation t]
         ["Show source for var" inf-clojure-show-var-source t]
         ["Show vars in ns" inf-clojure-show-ns-vars t]
@@ -216,6 +216,17 @@ It requires a REPL PROC for inspecting the correct type."
       (setq inf-clojure-repl-type (inf-clojure--detect-repl-type proc))
     inf-clojure-repl-type))
 
+(defun inf-clojure--single-linify (string)
+  "Convert a multi-line STRING in a single-line STRING."
+  (replace-regexp-in-string "[[:space:]\\|\n]+" " " string))
+
+(defun inf-clojure--sanitize-command (command)
+  "Sanitize COMMAND for sending it to a process.
+An example of things that this function does is to add a final
+newline at the end of the form."
+  (concat (string-trim-right (inf-clojure--single-linify command))
+          "\n"))
+
 (defun inf-clojure--send-string (proc string)
   "A custom `comint-input-sender` / `comint-send-string`.
 It performs the required side effects on every send for PROC and
@@ -295,7 +306,7 @@ named `*inf-clojure*'.  You can switch between the different process
 buffers with \\[switch-to-buffer].
 
 Commands that send text from source buffers to Clojure processes --
-like `inf-clojure-eval-defun' or `inf-clojure-show-arglist' -- have to choose a
+like `inf-clojure-eval-defun' or `inf-clojure-show-arglists' -- have to choose a
 process to send to, when you have more than one Clojure process around.  This
 is determined by the global variable `inf-clojure-buffer'.  Suppose you
 have three inferior Clojures running:
@@ -468,6 +479,13 @@ of `inf-clojure-*-cmd').  Runs the hooks from
       (pop-to-buffer-same-window "*inf-clojure*")
     (pop-to-buffer "*inf-clojure*")))
 
+;;;###autoload
+(defun inf-clojure-connect (host port)
+  "Connect to a running socket-repl via `inf-clojure'.
+HOST is the host the process is running on, PORT is where it's listening."
+  (interactive "shost: \nnport: ")
+  (inf-clojure (cons host port)))
+
 (defun inf-clojure-eval-region (start end &optional and-go)
   "Send the current region to the inferior Clojure process.
 Prefix argument AND-GO means switch to the Clojure buffer afterwards."
@@ -582,7 +600,7 @@ The prefix argument SWITCH-TO-REPL controls whether to switch to REPL after the 
   (not (null inf-clojure-buffer)))
 
 
-;;; Documentation functions: function doc, var doc, arglist, and
+;;; Documentation functions: function doc, var doc, arglists, and
 ;;; describe symbol.
 ;;; ===========================================================================
 
@@ -647,7 +665,7 @@ If you are using REPL types, it will pickup the most approapriate
        (clojure.core/resolve
         (clojure.core/read-string \"%s\"))))
      (catch Throwable t nil))\n"
-  "Form to query inferior Clojure for a function's arglist."
+  "Form to query inferior Clojure for a function's arglists."
   :type 'string
   :package-version '(inf-clojure . "2.0.0"))
 
@@ -655,14 +673,14 @@ If you are using REPL types, it will pickup the most approapriate
 
 (defcustom inf-clojure-arglists-form-lumo
   "(lumo.repl/get-arglists \"%s\")"
-  "Lumo form to query inferior Clojure for a function's arglist."
+  "Lumo form to query inferior Clojure for a function's arglists."
   :type 'string
   :package-version '(inf-clojure . "2.0.0"))
 
 (defun inf-clojure-arglists-form ()
   "Return the form to query inferior Clojure for arglists of a var.
 If you are using REPL types, it will pickup the most approapriate
-`inf-clojure-arglist-form` variant."
+`inf-clojure-arglists-form` variant."
   (pcase (inf-clojure--set-repl-type (inf-clojure-proc))
     (`lumo inf-clojure-arglists-form-lumo)
     (_ inf-clojure-arglists-form)))
@@ -845,7 +863,7 @@ The value is nil if it can't find one."
   "Return the name of the symbol at point, otherwise nil."
   (or (thing-at-point 'symbol) ""))
 
-;;; Documentation functions: var doc and arglist.
+;;; Documentation functions: var doc and arglists.
 ;;; ======================================================================
 
 (defun inf-clojure-show-var-documentation (prompt-for-symbol)
@@ -872,38 +890,67 @@ prefix argument PROMPT-FOR-SYMBOL, it prompts for a symbol name."
   "Return the arglists match from INPUT-FORM and STRING.
 The output depends on the correct REPL type.  We assume the
 `inf-clojure-repl-type` var is already set, therefore this is
-safe to call only from inside `inf-clojure-arglist`."
+safe to call only from inside `inf-clojure-arglists`."
   (pcase inf-clojure-repl-type
     (`lumo (let ((input-end (and (string-match input-form string) (match-end 0))))
              (and (string-match "(.+)" string input-end) (match-string 0 string))))
     (_ (and (string-match "(.+)" string) (match-string 0 string)))))
 
-(defun inf-clojure-arglist (fn)
-  "Send a query to the inferior Clojure for the arglist for function FN.
-See variable `inf-clojure-arglist-form'."
-  (let* ((proc (inf-clojure-proc))
-         (comint-filt (process-filter proc))
-         (kept "")
-         eldoc)
-    (set-process-filter proc (lambda (_proc string) (setq kept (concat kept string))))
-    (unwind-protect
-        (let ((eldoc-snippet (format (inf-clojure-arglists-form) fn)))
-          (inf-clojure--send-string proc eldoc-snippet)
-          (while (and (not (string-match inf-clojure-prompt kept))
-                      (accept-process-output proc 2)))
-          (setq eldoc (inf-clojure-match-arglists eldoc-snippet kept)))
-      (set-process-filter proc comint-filt))
-    eldoc))
+;; Originally from:
+;;   https://github.com/glycerine/lush2/blob/master/lush2/etc/lush.el#L287
+(defun inf-clojure-results-from-process (process command &optional beg-string end-string)
+  "Send COMMAND to PROCESS.
+Return the result of COMMAND starting with BEG-STRING and ending
+with END-STRING if non-nil.  If BEG-STRING is nil, the result
+string will start from (point) in the results buffer.  If
+END-STRING is nil, the result string will end at (point-max) in
+the results buffer.  It cuts out the output from
+`inf-clojure-prompt` onwards unconditionally."
+  (let ((work-buffer " *Inf-Clojure Redirect Work Buffer*"))
+    (save-excursion
+      (set-buffer (get-buffer-create work-buffer))
+      (erase-buffer)
+      (comint-redirect-send-command-to-process
+       (inf-clojure--sanitize-command command) work-buffer process nil t)
+      ;; Wait for the process to complete
+      (set-buffer (process-buffer process))
+      (while (null comint-redirect-completed)
+        (accept-process-output nil 1))
+      ;; Collect the output
+      (set-buffer work-buffer)
+      (goto-char (point-min))
+      ;; Skip past the command, if it was echoed
+      (and (looking-at command)
+           (forward-line))
+      (let* ((beg (if beg-string
+                      (progn (search-forward beg-string nil t) (match-beginning 0))
+                    (point)))
+             (end (if end-string
+                      (search-forward end-string nil t)
+                    (point-max)))
+             (buffer-string (buffer-substring-no-properties beg end)))
+        (when (and buffer-string (string-match inf-clojure-prompt buffer-string))
+          (substring buffer-string 0 (match-beginning 0)))))))
 
-(defun inf-clojure-show-arglist (prompt-for-symbol)
-  "Show the arglist for function FN in the mini-buffer.
-See variable `inf-clojure-arglist-form'.  When invoked with a
+(defun inf-clojure-arglists (fn)
+  "Send a query to the inferior Clojure for the arglists for function FN.
+See variable `inf-clojure-arglists-form'."
+  (let* ((arglists-snippet (format (inf-clojure-arglists-form) fn))
+         (arglists-result (inf-clojure-results-from-process (inf-clojure-proc) arglists-snippet))
+         (arglists-data (read arglists-result)))
+    (cond
+     ((null arglists-data) nil)
+     ((listp arglists-data) (string-trim (inf-clojure--single-linify arglists-result))))))
+
+(defun inf-clojure-show-arglists (prompt-for-symbol)
+  "Show the arglists for function FN in the mini-buffer.
+See variable `inf-clojure-arglists-form'.  When invoked with a
 prefix argument PROMPT-FOR-SYMBOL, it prompts for a symbol name."
   (interactive "P")
   (let* ((fn (if prompt-for-symbol
-                 (car (inf-clojure-symprompt "Arglist" (inf-clojure-fn-called-at-pt)))
+                 (car (inf-clojure-symprompt "Arglists" (inf-clojure-fn-called-at-pt)))
                (inf-clojure-fn-called-at-pt)))
-         (eldoc (inf-clojure-arglist fn)))
+         (eldoc (inf-clojure-arglists fn)))
     (when eldoc
       (message "%s: %s" fn eldoc))))
 
@@ -1057,18 +1104,18 @@ Return the number of nested sexp the point was over or after."
           nil
         (list (inf-clojure-symbol-at-point) argument-index)))))
 
-(defun inf-clojure-eldoc-arglist (thing)
-  "Return the arglist for THING."
+(defun inf-clojure-eldoc-arglists (thing)
+  "Return the arglists for THING."
   (when (and thing
              (not (string= thing ""))
              (not (string-prefix-p ":" thing)))
     ;; check if we can used the cached eldoc info
     (if (string= thing (car inf-clojure-eldoc-last-symbol))
         (cdr inf-clojure-eldoc-last-symbol)
-      (let ((arglist (inf-clojure-arglist (substring-no-properties thing))))
-        (when arglist
-          (setq inf-clojure-eldoc-last-symbol (cons thing arglist))
-          arglist)))))
+      (let ((arglists (inf-clojure-arglists (substring-no-properties thing))))
+        (when arglists
+          (setq inf-clojure-eldoc-last-symbol (cons thing arglists))
+          arglists)))))
 
 (defun inf-clojure-eldoc ()
   "Backend function for eldoc to show argument list in the echo area."
@@ -1077,7 +1124,7 @@ Return the number of nested sexp the point was over or after."
              (not (member last-command '(next-error previous-error))))
     (let* ((info (inf-clojure-eldoc-info-in-current-sexp))
            (thing (car info))
-           (value (inf-clojure-eldoc-arglist thing)))
+           (value (inf-clojure-eldoc-arglists thing)))
       (when value
         (format "%s: %s"
                 (inf-clojure-eldoc-format-thing thing)
@@ -1139,20 +1186,7 @@ to suppress the usage of the target buffer discovery logic."
   "Return MATCH-P on the result of sending FORM to PROC.
 Note that this function will add a \n to the end of the string
 for evaluation, therefore FORM should not include it."
-  (let* ((kept "")
-         (is-matching nil)
-         (prev-filter (process-filter proc)))
-    (set-process-filter proc (lambda (_ string) (setq kept (concat kept string))))
-    (unwind-protect
-        ;; use the real comind-send-string in order to avoid stack overflows
-        (comint-send-string proc (concat form "\n"))
-      ;; yey, loads of procedural code again
-      (while (and (not is-matching)
-                  (not (string-match inf-clojure-prompt kept))
-                  (accept-process-output proc 2))
-        (setq is-matching (funcall match-p kept)))
-      (set-process-filter proc prev-filter))
-    is-matching))
+  (funcall match-p (inf-clojure-results-from-process proc form nil)))
 
 ;;;; Lumo
 ;;;; ====

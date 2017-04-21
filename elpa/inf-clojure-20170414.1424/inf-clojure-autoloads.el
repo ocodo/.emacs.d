@@ -26,6 +26,12 @@ of `inf-clojure-*-cmd').  Runs the hooks from
 
 \(fn CMD)" t nil)
 
+(autoload 'inf-clojure-connect "inf-clojure" "\
+Connect to a running socket-repl via `inf-clojure'.
+HOST is the host the process is running on, PORT is where it's listening.
+
+\(fn HOST PORT)" t nil)
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "inf-clojure" '("inf-clojure-")))
 
 ;;;***
