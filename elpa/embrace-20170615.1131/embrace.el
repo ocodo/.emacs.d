@@ -4,7 +4,7 @@
 
 ;; Author: Junpeng Qiu <qjpchmail@gmail.com>
 ;; Package-Requires: ((cl-lib "0.5") (expand-region "0.10.0"))
-;; Package-Version: 20170413.1110
+;; Package-Version: 20170615.1131
 ;; Keywords: extensions
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -716,12 +716,12 @@
 ;; funcions & commands ;;
 ;; ------------------- ;;
 (defun embrace-with-tag ()
-  (let* ((input (read-string "Tag: "))
-         (_ (string-match "\\([0-9a-z-]+\\)\\(.*?\\)[>]*$" input))
-         (tag  (match-string 1 input))
-         (rest (match-string 2 input)))
-    (cons (format "<%s%s>" (or tag "") (or rest ""))
-          (format "</%s>" (or tag "")))))
+  (let ((input (read-string "Tag: ")) tag rest)
+    (when (string-match "\\([0-9a-z-]+\\)\\(.*?\\)[>]*$" input)
+      (setq tag (match-string 1 input))
+      (setq rest (match-string 2 input))
+      (cons (format "<%s%s>" (or tag "") (or rest ""))
+            (format "</%s>" (or tag ""))))))
 
 (defun embrace-with-function ()
   (let ((fname (read-string "Function: ")))
@@ -737,12 +737,12 @@
                     (not (and (looking-at open)
                               (save-excursion
                                 (goto-char (region-end))
-                                (looking-back close)))))
+                                (looking-back close nil)))))
           (er/expand-region 1))
         (when (not (and (looking-at open)
                         (save-excursion
                           (goto-char (region-end))
-                          (looking-back close))))
+                          (looking-back close nil))))
           (setq mark-active nil))
         (when (use-region-p)
           (cons (region-beginning) (region-end)))))))
@@ -786,7 +786,7 @@
                (insert "\n"))
           (goto-char (overlay-end overlay))
           (and auto-newline
-               (not (looking-back "\n[[:space:]]*"))
+               (not (looking-back "\n[[:space:]]*" nil))
                (insert "\n"))
           (insert close))
       (delete-overlay overlay))))
@@ -811,10 +811,10 @@
                  (looking-at-p "[[:space:]]*\n")
                  (zap-to-char 1 ?\n))
             (goto-char (overlay-end overlay))
-            (when (looking-back close)
+            (when (looking-back close nil)
               (backward-delete-char (string-width (match-string 0))))
             (and auto-newline
-                 (looking-back "\n[[:space:]]*")
+                 (looking-back "\n[[:space:]]*" nil)
                  (delete-region (match-beginning 0) (point))))
           (when change-p overlay))
       (unless change-p (delete-overlay overlay)))))
@@ -880,7 +880,7 @@
          ((eq char ?d)
           (call-interactively 'embrace-delete))
          (t
-          (error "Unknow command"))))
+          (error "Unknown key"))))
     (embrace--hide-help-buffer)))
 
 ;; -------- ;;
@@ -894,24 +894,50 @@
                  (?* "\\textbf{" . "}")))
     (embrace-add-pair (car lst) (cadr lst) (cddr lst))))
 
+(defvar embrace-org-src-block-modes nil
+  "Completions for `org-mode' source block.")
+
+(defun embrace--get-org-src-block-modes ()
+  (or embrace-org-src-block-modes
+      (setq embrace-org-src-block-modes
+            (delete nil
+                    (cl-remove-duplicates
+                     (append
+                      (mapcar (lambda (x) (car (last x)))
+                              (cdr (plist-get
+                                    (cdr (get 'org-babel-load-languages 'custom-type))
+                                    :key-type)))
+                      (mapcar (lambda (x)
+                                (let ((mode (cdr x)))
+                                  (and (not (consp mode))
+                                       (setq mode (format "%s" mode))
+                                       (string-match "-mode$" mode)
+                                       (intern (substring mode 0 (match-beginning 0))))))
+                              auto-mode-alist)))))))
+
 (defun embrace-with-org-block ()
   (let ((block-type (completing-read
                      "Org block type: "
-                     '(ascii beamer center comment example html
-                             justifyleft justifyright latex quote
-                             src texinfo verse))))
-    (if (string= block-type "src")
-        (cons
-         (concat (format "#+BEGIN_SRC %s"
-                         (completing-read "Language: "
-                                          (mapcar #'car org-babel-load-languages)))
-                 (let ((args (read-string "Arguments: ")))
-                   (unless (string= args "")
-                     (format " %s" args))))
-         "#+END_SRC")
-      (setq block-type (upcase block-type))
-      (cons (format "#+BEGIN_%s" block-type)
-            (format "#+END_%s" block-type)))))
+                     '(center comment example export justifyleft justifyright
+                              quote src verse))))
+    (cond ((string= block-type "src")
+           (cons
+            (concat (format "#+BEGIN_SRC %s"
+                            (completing-read "Language: "
+                                             (embrace--get-org-src-block-modes)))
+                    (let ((args (read-string "Arguments: ")))
+                      (unless (string= args "")
+                        (format " %s" args))))
+            "#+END_SRC"))
+          ((string= block-type "export")
+           (cons (format "#+BEGIN_EXPORT %s"
+                         (completing-read "Format: "
+                                          '(ascii beamer html latex texinfo)))
+                 "#+END_EXPORT"))
+          (t
+           (setq block-type (upcase block-type))
+           (cons (format "#+BEGIN_%s" block-type)
+                 (format "#+END_%s" block-type))))))
 
 ;;;###autoload
 (defun embrace-org-mode-hook ()
