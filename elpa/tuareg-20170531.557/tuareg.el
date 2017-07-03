@@ -198,7 +198,8 @@ show the '|' is aligned with 'match', thus 0 is the default value."
   :group 'tuareg :type 'integer)
 
 (defcustom tuareg-match-clause-indent 1
-  "*How many spaces to indent a clause after a pattern match `| ... ->'.
+  "*How many spaces to indent a clause of match after a pattern `| ... ->'
+or `... ->' (pattern without preceding `|' in the first clause of a matching).
 To respect <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
 the default is 1.")
 
@@ -863,6 +864,10 @@ Regexp match data 0 points to the chars."
 				  'words))
       . font-lock-preprocessor-face)
      ("\\<\\(false\\|true\\)\\>" . font-lock-constant-face)
+     (,(regexp-opt '("true" "false" "__LOC__" "__FILE__" "__LINE__"
+                     "__MODULE__" "__POS__" "__LOC_OF__" "__LINE_OF__"
+                     "__POS_OF__") 'words)
+      . font-lock-constant-face)
      ;; "type" to introduce a local abstract type considered a keyword
      (,(concat "( *\\(type\\) +\\(" lid "\\) *)")
       (1 font-lock-keyword-face)
@@ -957,14 +962,15 @@ Regexp match data 0 points to the chars."
               "lxor" "not" "lnot" "mod"))
           'words))
       . tuareg-font-lock-operator-face)
-     ;;; (lid: t) and (lid :> t)
+     ;;; (expr: t) and (expr :> t)
      ;;; If `t' is longer then one word, require a space before.  Not only
      ;;; this is more readable but it also avoids that `~label:expr var`
      ;;; is taken as a type annotation when surrounded by parentheses.
-     (,(concat "(" balanced-braces-no-end-colon ":>?\\(['_A-Za-z]+\\))")
+     (,(concat "(" balanced-braces-no-end-colon ":>?\\(['_A-Za-z]+"
+               "\\| [ \n'_A-Za-z]" balanced-braces-no-string "\\))")
       1 font-lock-type-face keep)
-     (,(concat "(" balanced-braces-no-end-colon ":>? \\([ \n'_A-Za-z]"
-               balanced-braces-no-string "\\))")
+     ;; (lid: t)
+     (,(concat "(" lid " *:\\(['_A-Za-z]" balanced-braces-no-string "\\))")
       1 font-lock-type-face keep)
      (,(concat "\\<external +\\(" lid "\\)")  1 font-lock-function-name-face)
      (,(concat "\\<exception +\\(" uid "\\)") 1 font-lock-variable-name-face)
@@ -1048,7 +1054,7 @@ Regexp match data 0 points to the chars."
       1 font-lock-function-name-face)
      (,(concat "\\<\\("
                (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "THEN" "ELSE" "ENDIF"
-                             "INCLUDE" "__FILE__" "__LOCATION__"))
+                             "INCLUDE" "__LOCATION__"))
                "\\)\\>")
       . font-lock-preprocessor-face)
      ,@(and tuareg-support-metaocaml
@@ -1953,17 +1959,26 @@ Return values can be
               0))
         ((equal token "->")
          (cond
-          ((and (smie-rule-parent-p "with")
-                ;; Align with "with" but only if it's the only branch (often
-                ;; the case in try..with), since otherwise subsequent
-                ;; branches can't be both indented well and aligned.
-                (save-excursion
-                  (and (not (equal "|" (nth 2 (smie-forward-sexp "|"))))
-                       ;; Since we may misparse "if..then.." we need to
-                       ;; double check that smie-forward-sexp indeed got us
-                       ;; to the right place.
-                       (equal (nth 2 (smie-backward-sexp "|")) "with"))))
-           (smie-rule-parent 2))
+          ((smie-rule-parent-p "with")
+           ;; Align with "with" but only if it's the only branch (often
+           ;; the case in try..with), since otherwise subsequent
+           ;; branches can't be both indented well and aligned.
+           (if (save-excursion
+                 (and (not (equal "|" (nth 2 (smie-forward-sexp "|"))))
+                      ;; Since we may misparse "if..then.." we need to
+                      ;; double check that smie-forward-sexp indeed got us
+                      ;; to the right place.
+                      (equal (nth 2 (smie-backward-sexp "|")) "with")))
+               (smie-rule-parent 2)
+             ;; Align with other clauses, even with no preceding "|"
+             tuareg-match-clause-indent))
+          ((smie-rule-parent-p "function")
+           ;; Similar to the previous rule but for "function"
+           (if (save-excursion
+                 (and (not (equal "|" (nth 2 (smie-forward-sexp "|"))))
+                      (equal (nth 2 (smie-backward-sexp "|")) "function")))
+               (smie-rule-parent tuareg-default-indent)
+             tuareg-match-clause-indent))
           ((smie-rule-parent-p "|") tuareg-match-clause-indent)
           ;; Special case for "CPS style" code.
           ;; https://github.com/ocaml/tuareg/issues/5.
@@ -2785,9 +2800,11 @@ switch is not installed, `nil' is returned."
 	(car (read-from-string opam-env)))))
 
 (defun tuareg-opam-installed-compilers ()
-  (let* ((cmd (concat tuareg-opam " switch -i -s"))
-	 (cpl (tuareg-shell-command-to-string cmd)))
-    (if cpl (split-string cpl) '())))
+  (let* ((cmd1 (concat tuareg-opam " switch list -i -s"))
+         (cmd2 (concat tuareg-opam " switch list -s")); opam2
+	 (cpl (or (tuareg-shell-command-to-string cmd1)
+                  (tuareg-shell-command-to-string cmd2))))
+    (if cpl (split-string cpl "[ \f\t\n\r\v]+" t) '())))
 
 (defun tuareg-opam-current-compiler ()
   (let* ((cmd (concat tuareg-opam " switch show -s"))

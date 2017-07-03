@@ -1,4 +1,4 @@
-(define-package "tuareg" "20170221.1141" "OCaml mode for Emacs."
+(define-package "tuareg" "20170531.557" "OCaml mode for Emacs."
   '((caml "3.12.0.1"))
   :url "https://github.com/ocaml/tuareg" :keywords
   '("ocaml" "languages"))
