@@ -3,13 +3,10 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "hl-line+" "hl-line+.el" (0 0 0 0))
+;;;### (autoloads nil "hl-line+" "hl-line+.el" (22873 40363 0 0))
 ;;; Generated autoloads from hl-line+.el
 
-(defface hl-line '((t (:background "SlateGray3"))) "\
-*Face to use for `hl-line-face'." :group (quote hl-line))
-
-(defvar hl-line-flash-show-period 1 "\
+(defvar hl-line-flash-show-period 1.0 "\
 *Number of seconds for `hl-line-flash' to highlight the line.")
 
 (custom-autoload 'hl-line-flash-show-period "hl-line+" t)
@@ -30,8 +27,7 @@ other overlays that might exist.")
 (defalias 'toggle-hl-line-when-idle 'hl-line-toggle-when-idle)
 
 (autoload 'hl-line-toggle-when-idle "hl-line+" "\
-Turn on or off using `global-hl-line-mode' when Emacs is idle.
-When on, use `global-hl-line-mode' whenever Emacs is idle.
+Toggle highlighting the current line when Emacs is idle.
 With prefix argument, turn on if ARG > 0; else turn off.
 
 In Lisp code, non-nil optional second arg MSGP means display a message
@@ -40,24 +36,21 @@ showing the new value.
 \(fn &optional ARG MSGP)" t nil)
 
 (autoload 'hl-line-when-idle-interval "hl-line+" "\
-Set wait until using `global-hl-line-mode' when Emacs is idle.
-Whenever Emacs is idle for this many seconds, `global-hl-line-mode'
-will be turned on.
+Set the idle wait for highlighting of current line.
+Whenever Emacs is idle for this many seconds, `hl-line-highlight' is
+called to highlight the current line.
 
-To turn on or off using `global-hl-line-mode' when idle,
-use `\\[toggle-hl-line-when-idle].
+Use `\\[toggle-hl-line-when-idle] to toggle this idle highlighting.
 
 \(fn SECS)" t nil)
 
 (defalias 'flash-line-highlight 'hl-line-flash)
 
 (autoload 'hl-line-flash "hl-line+" "\
-Highlight the current line for `hl-line-flash-show-period' seconds.
-With a prefix argument, highlight for that many seconds.
+Flash highlighting of current line for `hl-line-flash-show-period' sec.
+With a prefix argument, flash for that many seconds.
 
-\(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "hl-line+" '("hl-line-")))
+\(fn &optional SECONDS)" t nil)
 
 ;;;***
 
