@@ -1,11 +1,11 @@
 ;;; kill-or-bury-alive.el --- Precise control over buffer killing in Emacs -*- lexical-binding: t; -*-
 ;;
-;; Copyright © 2015–2017 Mark Karpov <markkarpov@openmailbox.org>
+;; Copyright © 2015–2017 Mark Karpov <markkarpov92@gmail.com>
 ;;
-;; Author: Mark Karpov <markkarpov@openmailbox.org>
+;; Author: Mark Karpov <markkarpov92@gmail.com>
 ;; URL: https://github.com/mrkkrp/kill-or-bury-alive
-;; Package-Version: 20170316.509
-;; Version: 0.1.2
+;; Package-Version: 20170518.2358
+;; Version: 0.1.3
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5"))
 ;; Keywords: buffer, killing, convenience
 ;;
@@ -26,19 +26,19 @@
 
 ;;; Commentary:
 
-;; Have you ever killed some buffer that you might want to leave alive?
+;; Have you ever killed a buffer that you might want to leave alive?
 ;; Motivation for killing is usually “get out of my way for now”, and
 ;; killing may be not the best choice in many cases unless your RAM is
-;; very-very limited.  This package allows to teach Emacs which buffers we
-;; want to kill and which ones we prefer to bury alive.
+;; very-very limited.  This package allows to teach Emacs which buffers to
+;; kill and which to bury alive.
 ;;
 ;; When we really want to kill a buffer, it turns out that not all buffers
 ;; would like to die the same way.  The package allows to specify *how* to
 ;; kill various kinds of buffers.  This may be especially useful when you're
 ;; working with some buffer that has an associated process, for example.
 ;;
-;; But sometimes you may want to get rid of most buffers and bring Emacs to
-;; some more or less virgin state.  You probably don't want to kill scratch
+;; Sometimes you may want to get rid of most buffers and bring Emacs to some
+;; more-or-less virgin state.  You probably don't want to kill scratch
 ;; buffer and maybe ERC-related buffers too.  You can specify which buffers
 ;; to purge.
 
@@ -102,7 +102,7 @@ This variable is used by `kill-or-bury-alive-purge-buffers'."
                          (symbol :tag "Major Mode"))))
 
 (defcustom kill-or-bury-alive-killing-function nil
-  "Default function for buffer killing.
+  "The default function for buffer killing.
 
 This is used when nothing is found in
 `kill-or-bury-alive-killing-function-alist'.
@@ -206,19 +206,19 @@ kill BUFFER.  If nothing special is found,
 (defun kill-or-bury-alive--bury-buffer (buffer)
   "Bury buffer BUFFER according to burying preferences.
 
-`kill-or-bury-alive-burying-function' is used to bury the buffer, see its
-description for more information."
+`kill-or-bury-alive-burying-function' is used to bury the buffer,
+see its description for more information."
   (funcall (or kill-or-bury-alive-burying-function
                #'kill-or-bury-alive--bury-buffer*)
            buffer))
 
 ;;;###autoload
 (defun kill-or-bury-alive (&optional arg)
-  "Kill or bury current buffer.
+  "Kill or bury the current buffer.
 
-This is universal killing mechanism.  When argument ARG is given
-and it's not NIL, kill current buffer.  Otherwise behavior of
-this command varies.  If current buffer matches a buffer
+This is a universal killing mechanism.  When argument ARG is
+given and it's not NIL, kill current buffer.  Otherwise behavior
+of this command varies.  If current buffer matches a buffer
 designator listed in `kill-or-bury-alive-must-die-list', kill it
 immediately, otherwise just bury it.
 

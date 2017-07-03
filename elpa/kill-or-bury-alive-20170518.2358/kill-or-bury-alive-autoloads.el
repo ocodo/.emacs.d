@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "kill-or-bury-alive" "kill-or-bury-alive.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (22873 40398 0 0))
 ;;; Generated autoloads from kill-or-bury-alive.el
 
 (defvar kill-or-bury-alive-must-die-list nil "\
@@ -55,11 +55,11 @@ automatically.
 \(fn BUFFER-DESIGNATOR KILLING-FUNCTION &optional SIMPLE)" nil nil)
 
 (autoload 'kill-or-bury-alive "kill-or-bury-alive" "\
-Kill or bury current buffer.
+Kill or bury the current buffer.
 
-This is universal killing mechanism.  When argument ARG is given
-and it's not NIL, kill current buffer.  Otherwise behavior of
-this command varies.  If current buffer matches a buffer
+This is a universal killing mechanism.  When argument ARG is
+given and it's not NIL, kill current buffer.  Otherwise behavior
+of this command varies.  If current buffer matches a buffer
 designator listed in `kill-or-bury-alive-must-die-list', kill it
 immediately, otherwise just bury it.
 
@@ -82,8 +82,6 @@ When ARG is given and it's not NIL, ask to confirm killing of
 every buffer.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "kill-or-bury-alive" '("kill-or-bury-alive-")))
 
 ;;;***
 
