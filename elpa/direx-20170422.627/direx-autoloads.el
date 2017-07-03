@@ -1,9 +1,9 @@
 ;;; direx-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "direx" "direx.el" (22060 27448 472197 506000))
+;;;### (autoloads nil "direx" "direx.el" (22873 40246 0 0))
 ;;; Generated autoloads from direx.el
 
 (autoload 'direx:jump-to-directory "direx" "\
@@ -18,8 +18,8 @@
 
 ;;;***
 
-;;;### (autoloads nil "direx-project" "direx-project.el" (22060 27448
-;;;;;;  472197 506000))
+;;;### (autoloads nil "direx-project" "direx-project.el" (22873 40246
+;;;;;;  0 0))
 ;;; Generated autoloads from direx-project.el
 
 (autoload 'direx-project:jump-to-project-root "direx-project" "\
@@ -34,7 +34,7 @@
 
 ;;;***
 
-;;;### (autoloads nil nil ("direx-pkg.el") (22060 27448 464197 508000))
+;;;### (autoloads nil nil ("direx-pkg.el") (22873 40246 0 0))
 
 ;;;***
 
