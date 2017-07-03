@@ -1,11 +1,11 @@
 ;;; zzz-to-char.el --- Fancy version of `zap-to-char' command -*- lexical-binding: t; -*-
 ;;
-;; Copyright © 2015–2017 Mark Karpov <markkarpov@openmailbox.org>
+;; Copyright © 2015–2017 Mark Karpov <markkarpov92@gmail.com>
 ;;
-;; Author: Mark Karpov <markkarpov@openmailbox.org>
+;; Author: Mark Karpov <markkarpov92@gmail.com>
 ;; URL: https://github.com/mrkkrp/zzz-to-char
-;; Package-Version: 20161231.1557
-;; Version: 0.1.1
+;; Package-Version: 20170519.335
+;; Version: 0.1.2
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5")(avy "0.3.0"))
 ;; Keywords: convenience
 ;;
@@ -35,8 +35,6 @@
 ;; there is only one occurrence of target character (except they
 ;; automatically work in backward direction too). You can also specify how
 ;; many characters to scan from each side of point, see `zzz-to-char-reach'.
-;;
-;; This package uses avy as backend.
 
 ;;; Code:
 
@@ -56,12 +54,12 @@
   :type 'integer)
 
 (defun zzz-to-char--base (char n-shift)
-  "Kill text between the pont and character CHAR.
+  "Kill text between the point and character CHAR.
 
 Boundary of text to kill that doesn't coincide with point
 position can be shifted with help of N-SHIFT argument.
 
-This is internal function, see also `zzz-to-char' and
+This is an internal function, see also `zzz-to-char' and
 `zzz-up-to-char'."
   (let ((p (point))
         (avy-all-windows nil))
