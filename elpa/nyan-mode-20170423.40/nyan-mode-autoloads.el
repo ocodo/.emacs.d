@@ -1,14 +1,15 @@
 ;;; nyan-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "nyan-mode" "nyan-mode.el" (22435 16059 0 0))
+;;;### (autoloads nil "nyan-mode" "nyan-mode.el" (22873 40439 0 0))
 ;;; Generated autoloads from nyan-mode.el
 
 (defvar nyan-mode nil "\
 Non-nil if Nyan mode is enabled.
-See the command `nyan-mode' for a description of this minor mode.
+See the `nyan-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `nyan-mode'.")
@@ -26,8 +27,7 @@ option `scroll-bar-mode'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("nyan-mode-pkg.el") (22435 16059 998280
-;;;;;;  0))
+;;;### (autoloads nil nil ("nyan-mode-pkg.el") (22873 40439 0 0))
 
 ;;;***
 
