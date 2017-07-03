@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "docker" "docker.el" (22653 62782 935425 252000))
+;;;### (autoloads nil "docker" "docker.el" (22873 40248 0 0))
 ;;; Generated autoloads from docker.el
 
 (autoload 'docker-mode "docker" "\
@@ -36,7 +36,7 @@ See `docker-mode' for more information on Docker mode.
 ;;;***
 
 ;;;### (autoloads nil "docker-containers" "docker-containers.el"
-;;;;;;  (22653 62782 891424 295000))
+;;;;;;  (22873 40248 0 0))
 ;;; Generated autoloads from docker-containers.el
 
 (autoload 'docker-start "docker-containers" "\
@@ -104,7 +104,7 @@ Inspect the container named NAME.
 
 \(fn CONTAINER)" t nil)
 
-(autoload 'docker-rename-entry "docker-containers" "\
+(autoload 'docker-containers-rename "docker-containers" "\
 
 
 \(fn)" t nil)
@@ -116,8 +116,8 @@ List docker containers.
 
 ;;;***
 
-;;;### (autoloads nil "docker-images" "docker-images.el" (22653 62782
-;;;;;;  899424 469000))
+;;;### (autoloads nil "docker-images" "docker-images.el" (22873 40248
+;;;;;;  0 0))
 ;;; Generated autoloads from docker-images.el
 
 (autoload 'docker-pull "docker-images" "\
@@ -150,8 +150,8 @@ List docker images.
 
 ;;;***
 
-;;;### (autoloads nil "docker-machine" "docker-machine.el" (22653
-;;;;;;  62782 883424 122000))
+;;;### (autoloads nil "docker-machine" "docker-machine.el" (22873
+;;;;;;  40248 0 0))
 ;;; Generated autoloads from docker-machine.el
 
 (autoload 'docker-machine-config "docker-machine" "\
@@ -221,8 +221,8 @@ List docker machines.
 
 ;;;***
 
-;;;### (autoloads nil "docker-networks" "docker-networks.el" (22653
-;;;;;;  62782 927425 78000))
+;;;### (autoloads nil "docker-networks" "docker-networks.el" (22873
+;;;;;;  40248 0 0))
 ;;; Generated autoloads from docker-networks.el
 
 (autoload 'docker-network-rm "docker-networks" "\
@@ -237,8 +237,8 @@ List docker networks.
 
 ;;;***
 
-;;;### (autoloads nil "docker-volumes" "docker-volumes.el" (22653
-;;;;;;  62782 919424 905000))
+;;;### (autoloads nil "docker-volumes" "docker-volumes.el" (22873
+;;;;;;  40248 0 0))
 ;;; Generated autoloads from docker-volumes.el
 
 (autoload 'docker-volume-rm "docker-volumes" "\
@@ -254,7 +254,7 @@ List docker volumes.
 ;;;***
 
 ;;;### (autoloads nil nil ("docker-pkg.el" "docker-process.el" "docker-utils.el")
-;;;;;;  (22653 62782 907424 643000))
+;;;;;;  (22873 40248 0 0))
 
 ;;;***
 
