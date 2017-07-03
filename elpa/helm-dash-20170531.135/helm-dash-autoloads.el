@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-dash" "helm-dash.el" (0 0 0 0))
+;;;### (autoloads nil "helm-dash" "helm-dash.el" (22873 40348 0 0))
 ;;; Generated autoloads from helm-dash.el
 
 (autoload 'helm-dash-activate-docset "helm-dash" "\
@@ -41,6 +41,11 @@ Asynchronously extract the content of DOCSET-TMP-PATH, move it to `helm-dash-doc
 
 \(fn DOCSET-TMP-PATH)" t nil)
 
+(autoload 'helm-dash-ensure-docset-installed "helm-dash" "\
+Install DOCSET if it is not currently installed.
+
+\(fn DOCSET)" nil nil)
+
 (autoload 'helm-dash "helm-dash" "\
 Bring up a `helm-dash' search interface.
 If INPUT-PATTERN is non-nil, use it as an initial input in helm search.
@@ -51,8 +56,6 @@ If INPUT-PATTERN is non-nil, use it as an initial input in helm search.
 Bring up a `helm-dash' search interface with symbol at point.
 
 \(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-dash" '("helm-")))
 
 ;;;***
 
