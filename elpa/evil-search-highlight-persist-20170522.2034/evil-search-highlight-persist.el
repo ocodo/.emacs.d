@@ -1,6 +1,6 @@
 ;;; evil-search-highlight-persist.el --- Persistent highlights after search
 ;; Version: 20150107.4
-;; Package-Version: 20160912.807
+;; Package-Version: 20170522.2034
 ;; X-Original-Version: 20140918
 
 ;; Author: Juanjo Alvarez <juanjo@juanjoalvarez.net>
@@ -43,14 +43,35 @@
 ;; To only display string whose length is greater than or equal to 3
 ;; (setq evil-search-highlight-string-min-len 3)
 
+;; To change the default highlight face:
+;;
+;; (set-face-background 'evil-ex-lazy-highlight "gold")
+;; (set-face-foreground 'evil-ex-lazy-highlight "black")
+
 
 ;;; Code:
 
 ;;; User Customizable Variables:
+(defcustom evil-search-highlight-string-min-len 1 "min length")
+
+(defcustom evil-search-highlight-persist-all-windows nil
+  "persist highlighting in all windows")
+
+
+;;; highlight face definition
+(defface evil-search-highlight-persist-highlight-face
+  '((((class color))
+     (:background "yellow1")))
+  "Face for the highlighted text."
+  :group 'evil-search-highlight-persist)
+
+
 (require 'advice)
 (require 'highlight)
 (require 'evil-search)
 
+;; TODO: The above code seems like it copied from highlight.el and slightly
+;; modified. This seems like the wrong thing to do, but it works for now.
 (defvar evil-search-highlight-regex-flag t)
 (defun hlt-+/--highlight-regexp-region (unhighlightp start end regexp face msgp mousep nth &optional buffers)
   "Helper for `hlt-(un)highlight-regexp-region'.
@@ -142,18 +163,13 @@ really want to highlight up to %d chars?  "
   :group 'environment)
 
 
-(defface evil-search-highlight-persist-highlight-face
-  '((((class color))
-     (:background "yellow1")))
-  "Face for the highlighted text."
-  :group 'evil-search-highlight-persist)
-
-
 (defun evil-search-highlight-persist-remove-all ()
   (interactive)
-  (hlt-unhighlight-region-in-buffers (list (current-buffer))))
+  (if evil-search-highlight-persist-all-windows
+      (dolist (buf (buffer-list))
+        (hlt-unhighlight-region-in-buffers (list buf)))
+    (hlt-unhighlight-region-in-buffers (list (current-buffer)))))
 
-(defvar evil-search-highlight-string-min-len 1 "min legth")
 (defun evil-search-highlight-persist-mark ()
   (let ((hlt-use-overlays-flag t)
         (hlt-last-face 'evil-search-highlight-persist-highlight-face)
@@ -166,7 +182,11 @@ really want to highlight up to %d chars?  "
         (setq tmp (car-safe search-ring))
         (setq evil-search-highlight-regex-flag nil)))
     (if (>= (length tmp) evil-search-highlight-string-min-len)
-          (hlt-highlight-regexp-region-in-buffers tmp (list (current-buffer)))
+        (if evil-search-highlight-persist-all-windows
+            (progn
+              (dolist (buf (delete-dups (mapcar 'window-buffer (window-list))))
+                (hlt-highlight-regexp-region-in-buffers tmp (list buf))))
+          (hlt-highlight-regexp-region-in-buffers tmp (list (current-buffer))))
       ))
   (setq evil-search-highlight-regex-flag t)
   )
