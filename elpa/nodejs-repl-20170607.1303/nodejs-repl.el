@@ -3,8 +3,8 @@
 ;; Copyright (C) 2012-2017  Takeshi Arabiki
 
 ;; Author: Takeshi Arabiki
-;; Version: 0.1.1
-;; Package-Version: 20170110.940
+;; Version: 0.1.3
+;; Package-Version: 20170607.1303
 
 ;;  This program is free software: you can redistribute it and/or modify
 ;;  it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@
   "Run Node.js REPL and communicate the process."
   :group 'processes)
 
-(defconst nodejs-repl-version "0.1.1"
+(defconst nodejs-repl-version "0.1.3"
   "Node.js mode Version.")
 
 (defcustom nodejs-repl-command "node"
@@ -149,6 +149,11 @@ See also `comint-process-echoes'"
    "'[^'\\]*\\(?:\\\\.[^'\\]*\\)*"                ; single quote
    "\\)"
    "$"))
+
+(defvar nodejs-repl-unary-operator-chars
+  '(?! ?+ ?-))
+(defvar nodejs-repl-unary-operator-words
+  '(void typeof delete))
 
 (defvar nodejs-repl-cache-token "")
 (defvar nodejs-repl-cache-candidates ())
@@ -286,6 +291,29 @@ when receive the output string"
       (when (re-search-forward (concat nodejs-repl-prompt nodejs-repl-prompt) end t)
         (replace-match nodejs-repl-prompt)))))
 
+(defun nodejs-repl--beginning-of-sexp ()
+  (backward-sexp)
+  (while (and (not (bobp))
+              (or
+               (and (eq (char-syntax (char-after)) ?\()
+                    (save-excursion
+                      (search-backward-regexp "[[:graph:]]" nil t)
+                      (and (not (eq (char-after) ?\;))
+                           (not (eq (sexp-at-point) 'return)))))
+               (eq (char-before) ?.)
+               (save-excursion
+                 (backward-char)
+                 (eq (sexp-at-point) 'function))))
+    (backward-sexp))
+  (let ((char-and-sexp (save-excursion
+                         (search-backward-regexp "[[:graph:]]" nil t)
+                         (cons (char-after) (sexp-at-point)))))
+    (cond
+     ((member (car char-and-sexp) nodejs-repl-unary-operator-chars)
+      (search-backward-regexp "[[:graph:]]" nil t))
+     ((member (cdr char-and-sexp) nodejs-repl-unary-operator-words)
+      (backward-sexp))))
+  (point))
 
 ;;;--------------------------
 ;;; Public functions
@@ -324,8 +352,7 @@ when receive the output string"
 (defun nodejs-repl-send-last-sexp ()
   "Send the expression before point to the `nodejs-repl-process'"
   (interactive)
-  (nodejs-repl-send-region (save-excursion (backward-sexp)
-                             (point))
+  (nodejs-repl-send-region (save-excursion (nodejs-repl--beginning-of-sexp))
                            (point)))
 
 ;;;###autoload
@@ -414,7 +441,8 @@ otherwise spawn one."
         (format nodejs-repl-prompt-re-format nodejs-repl-prompt nodejs-repl-prompt))
   (setq nodejs-repl-nodejs-version
         ;; "v7.3.0" => "7.3.0", "v7.x-dev" => "7"
-        (replace-regexp-in-string nodejs-repl--nodejs-version-re "\\1" (shell-command-to-string "node --version")))
+        (replace-regexp-in-string nodejs-repl--nodejs-version-re "\\1"
+                                  (shell-command-to-string (concat nodejs-repl-command " --version"))))
   (let* ((repl-mode (or (getenv "NODE_REPL_MODE") "magic"))
          (nodejs-repl-code (format nodejs-repl-code-format
                                    (window-width) nodejs-repl-prompt repl-mode )))
