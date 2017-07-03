@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dired+" "dired+.el" (0 0 0 0))
+;;;### (autoloads nil "dired+" "dired+.el" (22873 40242 0 0))
 ;;; Generated autoloads from dired+.el
 
 (defvar diff-switches "-c" "\
@@ -21,6 +21,14 @@ This option has no effect if `diredp-image-preview-in-tooltip' is nil.
 It also has no effect for Emacs versions prior to Emacs 22.")
 
 (custom-autoload 'diredp-auto-focus-frame-for-thumbnail-tooltip-flag "dired+" t)
+
+(defvar diredp-bind-problematic-terminal-keys t "\
+*Non-nil means bind some keys that might not work in terminal mode.
+This applies to keys that use modifiers Meta and Shift together.
+If you use Emacs in terminal mode (`emacs -nw') and your terminal does
+not support the use of such keys then customize this option to nil.")
+
+(custom-autoload 'diredp-bind-problematic-terminal-keys "dired+" t)
 
 (defvar diredp-compressed-extensions '(".tar" ".taz" ".tgz" ".arj" ".lzh" ".lzma" ".xz" ".zip" ".z" ".Z" ".gz" ".bz2") "\
 *List of compressed-file extensions, for highlighting.")
@@ -689,6 +697,10 @@ subdirectories are handled recursively in the same way.
 Mark all files matching REGEXP, including those in marked subdirs.
 Like `dired-mark-files-regexp' but act recursively on marked subdirs.
 
+The files included are those that are marked in the current Dired
+buffer, or all files in the directory if none are marked.  Marked
+subdirectories are handled recursively in the same way.
+
 The file names to be matched by this command are always absolute -
 they include the full directory.  Note that this does NOT correspond
 to the default behavior for `dired-mark-files-regexp'.  The other
@@ -712,6 +724,58 @@ Note: If there is more than one Dired buffer for a given subdirectory
 then only the first such is used.
 
 \(fn REGEXP &optional MARKER-CHAR IGNORE-MARKS-P)" t nil)
+
+(autoload 'diredp-mark-autofiles-recursive "dired+" "\
+Mark all autofiles, that is, files that have an autofile bookmark.
+A non-negative prefix arg means to unmark them instead.
+
+A non-positive prefix arg means to ignore subdir markings and act
+instead on ALL subdirs.  That is, mark all in this directory and all
+descendant directories.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'diredp-mark-executables-recursive "dired+" "\
+Mark all executable files, including in marked subdirs.
+The files included are those that are marked in the current Dired
+buffer, or all files in the directory if none are marked.  Marked
+subdirectories are handled recursively in the same way.
+
+A non-negative prefix arg means to unmark them instead.
+
+A non-positive prefix arg means to ignore subdir markings and act
+instead on ALL subdirs.  That is, mark all in this directory and all
+descendant directories.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'diredp-mark-directories-recursive "dired+" "\
+Mark all directories except `.' and `..', including in marked subdirs.
+The directories included are those that are marked in the current
+Dired buffer, or all subdirs in the directory if none are marked.
+Marked subdirectories are handled recursively in the same way.
+
+A non-negative prefix arg means to unmark them instead.
+
+A non-positive prefix arg means to ignore subdir markings and act
+instead on ALL subdirs.  That is, mark all in this directory and all
+descendant directories.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'diredp-mark-symlinks-recursive "dired+" "\
+Mark all symbolic links, including in marked subdirs.
+The symlinks included are those that are marked in the current Dired
+buffer, or all symlinks in the directory if none are marked.  Marked
+subdirectories are handled recursively in the same way.
+
+A non-negative prefix arg means to unmark them instead.
+
+A non-positive prefix arg means to ignore subdir markings and act
+instead on ALL subdirs.  That is, mark all in this directory and all
+descendant directories.
+
+\(fn &optional ARG)" t nil)
 
 (autoload 'diredp-capitalize-recursive "dired+" "\
 Rename marked files, including in marked subdirs, by capitalizing them.
@@ -881,6 +945,10 @@ Same as `diredp-marked', but uses a different window.
 Mark all files with a certain EXTENSION for use in later commands.
 A `.' is not automatically prepended to the string entered.
 Non-nil prefix argument UNMARK-P means unmark instead of mark.
+
+Non-interactively, EXTENSION is the extension (a string).  It can also
+  be a list of extension strings.
+Optional argument UNMARK-P is the prefix arg.
 
 \(fn EXTENSION &optional UNMARK-P)" t nil)
 
@@ -1593,6 +1661,11 @@ for object files--just `.o' might mark more than you might expect.
 
 REGEXP is added to `regexp-search-ring', for regexp search.
 
+Non-interactively:
+ MARKER-CHAR is the marker character - used for `dired-marker-char'.
+ LOCALP is passed to `dired-get-filename'.  It determines the form of
+   filename that is matched against REGEXP.
+
 \(fn REGEXP &optional MARKER-CHAR LOCALP)" t nil)
 
 (autoload 'diredp-capitalize "dired+" "\
@@ -2041,8 +2114,6 @@ Describe Dired+.
 Send a bug report about a Dired+ problem.
 
 \(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dired+" '("dired")))
 
 ;;;***
 
