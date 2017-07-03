@@ -154,6 +154,7 @@
   (let ((map (make-keymap)))
     (define-key map "\t" #'completion-at-point)
     (define-key map (kbd "C-a") #'elm-interactive-mode-beginning)
+    (define-key map (kbd "C-c C-z") #'elm-repl-return-to-origin)
     map)
   "Keymap for Elm interactive mode.")
 
@@ -171,6 +172,9 @@
 
 (defvar elm-oracle--eldoc-cache (make-hash-table :test #'equal)
   "A cache for Eldoc completions.")
+
+(defvar elm-repl--origin nil
+  "Marker for buffer/position from which we jumped to this repl.")
 
 (defcustom elm-sort-imports-on-save nil
   "Controls whether or not imports should be automaticaly reordered on save."
@@ -266,7 +270,8 @@ Stolen from haskell-mode."
   (interactive)
   (elm-interactive-kill-current-session)
   (let* ((default-directory (elm--find-dependency-file-path))
-         (buffer (comint-check-proc elm-interactive--process-name)))
+         (buffer (comint-check-proc elm-interactive--process-name))
+         (origin (point-marker)))
 
     (setq elm-interactive--current-project default-directory)
 
@@ -279,7 +284,18 @@ Stolen from haskell-mode."
     (unless buffer
       (apply #'make-comint-in-buffer elm-interactive--process-name buffer
              elm-interactive-command nil elm-interactive-arguments)
-      (elm-interactive-mode))))
+      (elm-interactive-mode))
+
+    (setq-local elm-repl--origin origin)))
+
+(defun elm-repl-return-to-origin ()
+  "Jump back to the location from which we last jumped to the repl."
+  (interactive)
+  (let* ((pos elm-repl--origin)
+         (buffer (get-buffer (marker-buffer pos))))
+    (when buffer
+      (pop-to-buffer buffer)
+      (goto-char pos))))
 
 ;;;###autoload
 (defun elm-repl-load ()
@@ -335,8 +351,7 @@ of the file specified."
 
 Runs `elm-reactor' first."
   (run-elm-reactor)
-  (let ((qs (if debug "?debug" "")))
-    (browse-url (concat "http://" elm-reactor-address ":" elm-reactor-port "/" path qs))))
+  (browse-url (concat "http://" elm-reactor-address ":" elm-reactor-port "/" path (when debug "?debug"))))
 
 ;;;###autoload
 (defun elm-preview-buffer (debug)
@@ -357,38 +372,49 @@ Runs `elm-reactor' first."
 ;;; Make:
 (defun elm-compile--command (file &optional output json)
   "Generate a command that will compile FILE into OUTPUT, with or without JSON reporting."
-  (let* ((elm-compile-arguments
-          (if output
-              (append (cl-remove-if (apply-partially #'string-prefix-p "--output=") elm-compile-arguments)
-                      (list (concat "--output=" (expand-file-name output))))
-            elm-compile-arguments))
-         (elm-compile-arguments
-          (if json
-              (append elm-compile-arguments (list "--report=json"))
-            elm-compile-arguments)))
-    (s-join " " (cl-list* elm-compile-command file elm-compile-arguments))))
+  (let ((elm-compile-arguments
+         (if output
+             (append (cl-remove-if (apply-partially #'string-prefix-p "--output=") elm-compile-arguments)
+                     (list (concat "--output=" (expand-file-name output))))
+           elm-compile-arguments)))
+    (concat elm-compile-command " "
+            (mapconcat 'shell-quote-argument
+                       (append (list file)
+                               elm-compile-arguments
+                               (when json
+                                 (list "--report=json")))
+                       " "))))
 
-(defun elm-compile--colorize-compilation-buffer ()
-  "Handle ANSI escape sequences in compilation buffer."
-  (read-only-mode)
-  (ansi-color-apply-on-region compilation-filter-start (point))
-  (read-only-mode))
+(defun elm-compile--filter ()
+  "Filter function for compilation output."
+  (message "APPLY! %S %S" compilation-filter-start (point-max))
+  (ansi-color-apply-on-region (point-min) (point-max)))
 
-(add-hook 'compilation-filter-hook #'elm-compile--colorize-compilation-buffer)
+(define-compilation-mode elm-compilation-mode "Elm-Compile"
+  "Elm compilation mode."
+  (progn
+    (add-hook 'compilation-filter-hook 'elm-compile--filter nil t)))
 
 (defun elm-compile--file (file &optional output)
   "Compile FILE into OUTPUT."
-  (let ((default-directory (elm--find-dependency-file-path))
-        (compilation-buffer-name-function (lambda (_) elm-compile--buffer-name)))
-    (compile (elm-compile--command file output))))
+  (let ((default-directory (elm--find-dependency-file-path)))
+    (with-current-buffer
+        (compilation-start
+         (elm-compile--command file output)
+         'elm-compilation-mode
+         (lambda (_) elm-compile--buffer-name)))))
 
 (defun elm-compile--file-json (file &optional output)
-  "Compile FILE into OUTPUT and return the JSON report."
+  "Compile FILE into OUTPUT and return the JSON report.
+The report is a list of elements sorted by their occurrence order
+in the file."
   (let* ((default-directory (elm--find-dependency-file-path))
          (report (shell-command-to-string
                   (elm-compile--command file output t))))
     (if (string-prefix-p "[" report)
-        (json-read-from-string report)
+        (let ((json (json-read-from-string report)))
+          (cl-flet ((start-line (o) (let-alist o .region.start.line)))
+            (cl-sort (append json nil) (lambda (o1 o2) (< (start-line o1) (start-line o2))))))
       (error "Nothing to do"))))
 
 (defun elm-compile--temporary (file)
@@ -428,7 +454,7 @@ Runs `elm-reactor' first."
   (elm-compile--ensure-saved)
   (let* ((report (elm-compile--temporary (elm--buffer-local-file-name)))
          (line-offset 0))
-    (dolist (ob (mapcar #'identity report))
+    (dolist (ob report)
       (let-alist ob
         (when (equal .tag "unused import")
           (save-excursion
@@ -495,12 +521,12 @@ Import consists of the word \"import\", real package name, and optional
     (re-search-forward elm-import--pattern nil t)
     (re-search-backward elm-import--pattern nil t)
     (let* ((beg (point))
-          (_ (while (re-search-forward elm-import--pattern nil t)))
-          (end (point))
-          (old-imports (buffer-substring-no-properties beg end))
-          (imports (mapcar 'first
-                           (s-match-strings-all elm-import--pattern old-imports)))
-          (sorted-imports (s-join "\n" (sort imports 'string<))))
+           (_ (while (re-search-forward elm-import--pattern nil t)))
+           (end (point))
+           (old-imports (buffer-substring-no-properties beg end))
+           (imports (mapcar 'first
+                            (s-match-strings-all elm-import--pattern old-imports)))
+           (sorted-imports (s-join "\n" (sort imports 'string<))))
       (unless (string= old-imports sorted-imports)
         (delete-region beg end)
         (insert sorted-imports)))))
@@ -510,10 +536,9 @@ Import consists of the word \"import\", real package name, and optional
 (defun elm-compile-add-annotations (&optional prompt)
   "Add missing type annotations to the current buffer, PROMPT optionally before inserting."
   (interactive "P")
-  (elm-compile--ensure-saved)
   (let* ((report (elm-compile--temporary (elm--buffer-local-file-name)))
          (line-offset 0))
-    (dolist (ob (mapcar #'identity report))
+    (dolist (ob report)
       (let-alist ob
         (when (equal .tag "missing type annotation")
           ;; Drop the first 2 lines from .details since they contain the warning itself.
