@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "which-key" "which-key.el" (0 0 0 0))
+;;;### (autoloads nil "which-key" "which-key.el" (22873 40588 0 0))
 ;;; Generated autoloads from which-key.el
 
 (defvar which-key-mode nil "\
@@ -52,7 +52,8 @@ may either be a string, as in
 
 a cons of two strings as in
 
-\(which-key-add-key-based-replacements \"C-x 8\" '(\"unicode\" . \"Unicode keys\"))
+\(which-key-add-key-based-replacements \"C-x 8\"
+                                        '(\"unicode\" . \"Unicode keys\"))
 
 or a function that takes a (KEY . BINDING) cons and returns a
 replacement.
@@ -128,8 +129,6 @@ Dispatch C-h commands by looking up key in
 prefix) if `which-key-use-C-h-commands' is non nil.
 
 \(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "which-key" '("which-key-")))
 
 ;;;***
 
