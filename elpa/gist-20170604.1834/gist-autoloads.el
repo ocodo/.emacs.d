@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "gist" "gist.el" (0 0 0 0))
+;;;### (autoloads nil "gist" "gist.el" (22873 40309 0 0))
 ;;; Generated autoloads from gist.el
 
 (autoload 'gist-region "gist" "\
@@ -89,8 +89,6 @@ List your starred gists.
 Fork a gist.
 
 \(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "gist" '("dired-do-gist" "gist-")))
 
 ;;;***
 
