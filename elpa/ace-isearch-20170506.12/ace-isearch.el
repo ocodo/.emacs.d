@@ -1,13 +1,13 @@
-;;; ace-isearch.el --- A seamless bridge between isearch, ace-jump-mode, avy and helm-swoop -*- coding: utf-8; lexical-binding: t -*-
+;;; ace-isearch.el --- A seamless bridge between isearch, ace-jump-mode, avy, helm-swoop and swiper -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2014-2016 by Akira TAMAMORI
 
 ;; Author: Akira Tamamori
 ;; URL: https://github.com/tam17aki/ace-isearch
-;; Package-Version: 20161107.1730
+;; Package-Version: 20170506.12
 ;; Version: 0.1.5
 ;; Created: Sep 25 2014
-;; Package-Requires: ((ace-jump-mode "2.0") (avy "0.3") (helm-swoop "1.4") (emacs "24"))
+;; Package-Requires: ((emacs "24"))
 
 ;; This program is free software; you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free Software
@@ -25,13 +25,13 @@
 ;;; Commentary:
 ;;
 ;; `ace-isearch.el' provides a minor mode which combines `isearch',
-;; `ace-jump-mode', `avy', and `helm-swoop'.
+;; `ace-jump-mode', `avy', `helm-swoop' and `swiper'.
 ;;
 ;; The "default" behavior can be summrized as:
 ;;
 ;; L = 1     : `ace-jump-mode' or `avy'
 ;; 1 < L < 6 : `isearch'
-;; L >= 6    : `helm-swoop'
+;; L >= 6    : `helm-swoop' or `swiper'
 ;;
 ;; where L is the input string length during `isearch'.  When L is 1, after a
 ;; few seconds specified by `ace-isearch-jump-delay', `ace-jump-mode' or `avy'
@@ -46,14 +46,36 @@
 
 ;;; Code:
 
-(require 'helm-swoop)
-(require 'ace-jump-mode)
-(require 'avy)
-
 (defgroup ace-isearch nil
   "Group of ace-isearch."
   :group 'convenience
   :prefix "ace-isearch-")
+
+(defcustom ace-isearch-function 'ace-jump-word-mode
+  "Function name in invoking ace-jump-mode or avy."
+  :type '(choice (const :tag "Use ace-jump-word-mode." ace-jump-word-mode)
+                 (const :tag "Use ace-jump-char-mode." ace-jump-char-mode)
+                 (const :tag "Use avy-goto-word-1." avy-goto-word-1)
+                 (const :tag "Use avy-goto-subword-1." avy-goto-subword-1)
+                 (const :tag "Use avy-goto-char." avy-goto-char))
+  :group 'ace-isearch)
+
+(if (not (require 'ace-jump-mode nil 'noerror))
+    (if (require 'avy nil 'noerror)
+	(setq ace-isearch-function 'avy-goto-word-1)
+      (user-error "You need to install either ace-jump-mode or avy.")))
+
+(defcustom ace-isearch-function-from-isearch 'ace-isearch-helm-swoop-from-isearch
+  "Symbol name of function which is invoked when the length of `isearch-string'
+is longer than or equal to `ace-isearch-input-length'."
+  :type 'symbol
+  :group 'ace-isearch)
+
+
+(if (not (require 'helm-swoop nil 'noerror))
+    (if (require 'swiper nil 'noerror)
+	(setq ace-isearch-function-from-isearch 'ace-isearch-swiper-from-isearch)
+	(user-error "You need to install either helm-swoop or swiper.")))
 
 (defcustom ace-isearch-lighter " AceI"
   "Lighter of ace-isearch-mode."
@@ -76,15 +98,6 @@ during isearch."
   :type 'integer
   :group 'ace-isearch)
 
-(defcustom ace-isearch-function 'ace-jump-word-mode
-  "Function name in invoking ace-jump-mode or avy."
-  :type '(choice (const :tag "Use ace-jump-word-mode." ace-jump-word-mode)
-                 (const :tag "Use ace-jump-char-mode." ace-jump-char-mode)
-                 (const :tag "Use avy-goto-word-1." avy-goto-word-1)
-                 (const :tag "Use avy-goto-subword-1." avy-goto-subword-1)
-                 (const :tag "Use avy-goto-char." avy-goto-char))
-  :group 'ace-isearch)
-
 (defcustom ace-isearch-use-jump t
   "If `nil', `ace-jump-mode' or `avy' is never invoked.
 
@@ -99,12 +112,6 @@ character."
   :type '(choice (const :tag "Always" t)
                  (const :tag "Only after a printing character is input" printing-char)
                  (const :tag "Never" nil))
-  :group 'ace-isearch)
-
-(defcustom ace-isearch-function-from-isearch 'ace-isearch-helm-swoop-from-isearch
-  "Symbol name of function which is invoked when the length of `isearch-string'
-is longer than or equal to `ace-isearch-input-length'."
-  :type 'symbol
   :group 'ace-isearch)
 
 (defcustom ace-isearch-use-function-from-isearch t
@@ -227,6 +234,16 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
       (ignore-errors (isearch-exit)))
     (helm-swoop :$query $query)))
 
+(defun ace-isearch-swiper-from-isearch ()
+  "Invoke `swiper' from ace-isearch."
+  (interactive)
+  (let (($query (if isearch-regexp
+                    isearch-string
+                  (regexp-quote isearch-string))))
+    (let (search-nonincremental-instead)
+      (ignore-errors (isearch-exit)))
+    (swiper $query)))
+
 ;;;###autoload
 (defun ace-isearch-jump-during-isearch ()
   "Jump to the one of the current isearch candidates."
@@ -242,7 +259,7 @@ of `isearch-string' is longer than or equal to `ace-isearch-input-length'."
 
 ;;;###autoload
 (define-minor-mode ace-isearch-mode
-  "Minor-mode which combines isearch, ace-jump-mode, avy, and helm-swoop seamlessly."
+  "Minor-mode which combines isearch, ace-jump-mode, avy, helm-swoop and swiper seamlessly."
   :group      'ace-isearch
   :init-value nil
   :global     nil
