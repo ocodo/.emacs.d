@@ -264,7 +264,7 @@ USERSTRING is a typical nick!user@host prefix as used by IRC."
       (condition-case err
           (apply handler args)
         (error
-         (message "Error running event %S handler %S: %s (args were %S)"
+         (message "Error running event %S handler %S: %S (args were %S)"
                   event handler err args))))))
 
 ;;;;;;;;;;;
@@ -1342,7 +1342,8 @@ The substitutions are identified by braces ('{' and '}')."
     (insert format)
     (goto-char (point-min))
     (while (re-search-forward "{\\([^}]*\\)}" nil t)
-      (replace-match (format "%s" (plist-get args (intern (match-string 1))))))
+      (replace-match (format "%s" (plist-get args (intern (match-string 1))))
+                     t t))
     (buffer-string)))
 
 ;;;;;;;;;;;;;;;;;;;;;;
