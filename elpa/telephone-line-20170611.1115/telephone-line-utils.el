@@ -1,6 +1,6 @@
-;;; telephone-line-utils.el --- Functions for defining segparators and segments
+;;; telephone-line-utils.el --- Functions for defining segparators and segments -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2016 Daniel Bordak
+;; Copyright (C) 2015-2017 Daniel Bordak
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@
 (require 'cl-generic)
 (require 'color)
 (require 'eieio)
-
 (require 'seq)
+(require 'subr-x)
 
 (defcustom telephone-line-height nil
   "Override the mode-line height."
@@ -41,29 +41,25 @@
   :type 'boolean
   :group 'telephone-line-evil)
 
-(defun telephone-line-trim (string)
-  "Ad-hoc string trim which removes spaces and up to the first brace from STRING."
-  (let ((s (if (string-match "[\])]?[ ]*\\'" string)
-               (replace-match "" t t string)
-             string)))
-    (if (string-match "\\`[ ]*[\[(]?" s)
-        (replace-match "" t t s)
-      s)))
+(if (fboundp #'alist-get)
+    (defalias 'telephone-line-alist-get #'alist-get)
+  (defun telephone-line-alist-get (key alist &optional default remove)
+    "Backport of alist-get for Emacs<25"
+    (ignore remove)
+    (let ((x (assq key alist)))
+      (if x (cdr x) default))))
 
 (defun telephone-line-create-axis (length)
-  "Create an axis of length LENGTH.
-For odd lengths, this is a sequence from -floor(LENGTH/2) to
-+floor(LENGTH/2), so for instance a LENGTH of 9 produces:
+  "Create an axis of length LENGTH from -((LENGTH-1)/2) to +((LENGTH-1)/2).
+For instance a LENGTH of 9 produces:
 
   -4 -3 -2 -1 0 +1 +2 +3 +4
 
-For even lengths, the 0 is duplicated to preserve symmetry.
-For instance, a LENGTH of 10 produces:
+...And a LENGTH of 10 produces:
 
-  -4 -3 -2 -1 0 0 +1 +2 +3 +4"
-  (let ((middle (1- (ceiling length 2))))
-    (append (number-sequence (- middle) 0)
-            (number-sequence (if (cl-oddp length) 1 0) middle))))
+  -4.5 -3.5 -2.5 -1.5 -0.5 +0.5 +1.5 +2.5 +3.5 +4.5"
+  (let ((bound (/ (1- length) 2.0)))
+    (number-sequence (- bound) bound)))
 
 (defun telephone-line-create-trig-axis (length)
   "Create a trig axis with LENGTH steps, ranging from -pi to +pi.
@@ -91,7 +87,7 @@ color1 and color2."
          (mapcar (lambda (n)
                    (+ (* ratio (nth n (color-name-to-rgb color1)))
                       (* (- 1 ratio) (nth n (color-name-to-rgb color2)))))
-         '(0 1 2))))
+                 '(0 1 2))))
 
 (defun telephone-line-color-to-bytestring (color)
   "Return an RGB bytestring for a given COLOR."
@@ -157,19 +153,24 @@ color1 and color2."
   (or telephone-line-height (frame-char-height)))
 
 (cl-defmethod telephone-line-separator-width ((obj telephone-line-separator))
-  (or (oref obj forced-width) (ceiling (telephone-line-separator-height obj) 2)))
+  (or (oref obj forced-width)
+      (ceiling (telephone-line-separator-height obj) 2)))
 
 (defclass telephone-line-subseparator (telephone-line-separator)
-  ((pattern-func :initarg :pattern-func :initform #'telephone-line-row-pattern-hollow)))
+  ((pattern-func :initarg :pattern-func
+                 :initform #'telephone-line-row-pattern-hollow)))
+
+(defclass telephone-line-nil-separator (telephone-line-separator) ())
 
 (cl-defmethod telephone-line-separator-create-body ((obj telephone-line-separator))
   "Create a bytestring of a PBM image body of dimensions WIDTH and HEIGHT, and shape created from AXIS-FUNC and PATTERN-FUNC."
   (let* ((height (telephone-line-separator-height obj))
          (width (telephone-line-separator-width obj))
          (normalized-axis (telephone-line--normalize-axis
-                           (mapcar (oref obj axis-func) (telephone-line-create-axis height))))
-         (range (1+ (seq-max normalized-axis)))
-         (scaling-factor (/ width (float range))))
+                           (mapcar (oref obj axis-func)
+                                   (telephone-line-create-trig-axis height))))
+         (range (seq-max normalized-axis))
+         (scaling-factor (/ (1- width)(float range))))
     (mapcar (lambda (x)
               (funcall (oref obj pattern-func)
                        (* x scaling-factor) width))
@@ -186,25 +187,31 @@ color1 and color2."
             body)))
 
 (cl-defmethod telephone-line-separator-create-body ((obj telephone-line-subseparator))
-  (telephone-line--pad-body (cl-call-next-method)
-              (+ (ceiling (telephone-line-separator-width obj)
-                          (frame-char-width))
-                 telephone-line-separator-extra-padding)))
+  "Create a bytestring of a PBM image body of dimensions WIDTH and HEIGHT, and shape created from AXIS-FUNC and PATTERN-FUNC.
 
-(cl-defmethod telephone-line-separator--arg-handler (arg) :static
+Includes padding."
+  (telephone-line--pad-body (cl-call-next-method)
+                            (+ (ceiling (telephone-line-separator-width obj)
+                                        (frame-char-width))
+                               telephone-line-separator-extra-padding)))
+
+(cl-defmethod telephone-line-separator--arg-handler (arg)
   "Translate ARG into an appropriate color for a separator."
   (if (facep arg)
       (face-attribute arg :background)
     arg))
 
 (cl-defmethod telephone-line-separator-render-image ((obj telephone-line-separator) foreground background)
+  "Find cached pbm of OBJ in FOREGROUND and BACKGROUND.
+If it doesn't exist, create and cache it."
   (let ((hash-key (concat background "_" foreground)))
     ;; Return cached image if we have it.
     (or (gethash hash-key (oref obj image-cache))
         (puthash hash-key
                  (telephone-line-propertize-image
-                  (telephone-line--create-pbm-image (telephone-line-separator-create-body obj)
-                                      background foreground))
+                  (telephone-line--create-pbm-image
+                   (telephone-line-separator-create-body obj)
+                   background foreground))
                  (oref obj image-cache)))))
 
 (cl-defmethod telephone-line-separator-render-unicode ((obj telephone-line-separator) foreground background)
@@ -220,40 +227,42 @@ color1 and color2."
         (telephone-line-separator-render-image obj fg-color bg-color)
       (telephone-line-separator-render-unicode obj fg-color bg-color))))
 
+(cl-defmethod telephone-line-separator-render ((obj telephone-line-nil-separator) foreground background)
+  nil)
+
 (cl-defmethod telephone-line-separator-clear-cache ((obj telephone-line-separator))
   (clrhash (oref obj image-cache)))
 
-:autoload
-(defmacro telephone-line-defsegment (name body)
-  "Create function NAME by wrapping BODY with telephone-line padding and propertization."
-  (declare (indent defun))
-  `(defun ,name (face)
-     (telephone-line-raw ,body face)))
+;;;###autoload
+(defmacro telephone-line-defsegment* (name &rest body)
+  "Define NAME as a segment function.
 
-:autoload
-(defmacro telephone-line-defsegment* (name body)
-  "Create function NAME by wrapping BODY with telephone-line padding and propertization.
-Segment is not precompiled."
-  (declare (indent defun))
-  `(defun ,name (face)
-     (telephone-line-raw ,body)))
+Does not check if segment is empty; will always display on non-nil result."
+  (declare (doc-string 3) (indent defun))
+  `(defun ,name
+     ,@(butlast body)
+     (lambda (face)
+       ,(car (last body)))))
 
-:autoload
-(defmacro telephone-line-defsegment-plist (name plists)
-  (declare (indent defun))
-  `(defun ,name (face)
-     (telephone-line-raw
-      (mapcar (lambda (plist)
-                (plist-put plist 'face face))
-              ,plists))))
+;;;###autoload
+(defmacro telephone-line-defsegment (name &rest body)
+  "Define NAME as a segment function.
 
-:autoload
-(defun telephone-line-raw (str &optional compiled)
-  "Conditionally render STR as mode-line data, or just verify output if not COMPILED.
+Empty strings will not render."
+  (declare (doc-string 3) (indent defun))
+  `(telephone-line-defsegment* ,name
+     ,@(butlast body)
+     (telephone-line-raw ,(car (last body)))))
+
+;;;###autoload
+(defun telephone-line-raw (str &optional preformatted)
+  "Conditionally render STR as mode-line data, or just verify output if not PREFORMATTED.
 Return nil for blank/empty strings."
-  (let ((trimmed-str (telephone-line-trim (format-mode-line str))))
+  (let ((trimmed-str (string-trim (format-mode-line str))))
     (unless (seq-empty-p trimmed-str)
-      (if compiled
+      (if preformatted
+          ; format-mode-line will condense all escaped %s, so we need
+          ; to re-escape them.
           (replace-regexp-in-string "%" "%%" trimmed-str)
         str))))
 
@@ -261,9 +270,8 @@ Return nil for blank/empty strings."
 (defun telephone-line--activate-font-lock-keywords ()
   "Activate font-lock keywords for some symbols defined in telephone-line."
   (font-lock-add-keywords 'emacs-lisp-mode
-                          '("\\<telephone-line-defsegment*\\>"
-                            "\\<telephone-line-defsegment-plist\\>"
-                            "\\<telephone-line-defsegment\\>")))
+                  '("\\<telephone-line-defsegment*\\>"
+                    "\\<telephone-line-defsegment\\>")))
 
 (unless (fboundp 'elisp--font-lock-flush-elisp-buffers)
   ;; In Emacs≥25, (via elisp--font-lock-flush-elisp-buffers and a few others)

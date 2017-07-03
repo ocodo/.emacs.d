@@ -1,10 +1,10 @@
 ;;; telephone-line.el --- Rewrite of Powerline -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2016 Daniel Bordak
+;; Copyright (C) 2015-2017 Daniel Bordak
 
 ;; Author: Daniel Bordak <dbordak@fastmail.fm>
 ;; URL: https://github.com/dbordak/telephone-line
-;; Version: 0.3
+;; Version: 0.4
 ;; Keywords: mode-line
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5") (cl-generic "0.2") (seq "1.8"))
 
@@ -56,17 +56,17 @@
   :group 'telephone-line-evil)
 
 (defface telephone-line-evil-insert
-  '((t (:background "green" :inherit telephone-line-evil)))
+  '((t (:background "forest green" :inherit telephone-line-evil)))
   "Face used in evil color-coded segments when in Insert state."
   :group 'telephone-line-evil)
 
 (defface telephone-line-evil-normal
-  '((t (:background "red" :inherit telephone-line-evil)))
+  '((t (:background "red3" :inherit telephone-line-evil)))
   "Face used in evil color-coded segments when in Normal state."
   :group 'telephone-line-evil)
 
 (defface telephone-line-evil-visual
-  '((t (:background "orange" :inherit telephone-line-evil)))
+  '((t (:background "dark orange" :inherit telephone-line-evil)))
   "Face used in evil color-coded segments when in Visual{,-Block,-Line} state."
   :group 'telephone-line-evil)
 
@@ -76,7 +76,7 @@
   :group 'telephone-line-evil)
 
 (defface telephone-line-evil-motion
-  '((t (:background "blue" :inherit telephone-line-evil)))
+  '((t (:background "dark blue" :inherit telephone-line-evil)))
   "Face used in evil color-coded segments when in Motion state."
   :group 'telephone-line-evil)
 
@@ -89,6 +89,31 @@
   '((t (:background "dark violet" :inherit telephone-line-evil)))
   "Face used in evil color-coded segments when in Emacs state."
   :group 'telephone-line-evil)
+
+(defcustom telephone-line-faces
+  '((evil . telephone-line-modal-face)
+    (modal . telephone-line-modal-face)
+    (ryo . telephone-line-ryo-modal-face)
+    (accent . (telephone-line-accent-active . telephone-line-accent-inactive))
+    (nil . (mode-line . mode-line-inactive)))
+  "Alist providing all the available face symbols.
+
+Symbols can either map to a pair of faces (ACTIVE . INACTIVE) or
+to a function which takes ACTIVE as a parameter."
+  :group 'telephone-line
+  :type '(alist :key-type color-symbol :value-type pair-or-function))
+
+(defcustom telephone-line-subseparator-faces
+  '((evil . nil)
+    (accent . nil)
+    (nil . accent))
+  "Alist pairing segment color-syms to subseparator color-syms.
+
+If any sym is paired to itself, the subseparator will use the
+foreground color for that segment. Otherwise, it will use the
+background color from the paired sym."
+  :group 'telephone-line
+  :type '(alist :key-type color-symbol :value-type color-symbol))
 
 (defcustom telephone-line-primary-left-separator 'telephone-line-abs-left
   "The primary separator to use on the left-hand side."
@@ -118,7 +143,8 @@ Secondary separators do not incur a background color change."
   "Return RESERVE empty space on the right, optionally with a FACE."
   (propertize " "
               'display `((space :align-to (- (+ right right-fringe right-margin)
-                                             ,reserve)))))
+                                             ,reserve)))
+              'face face))
 
 (defvar telephone-line-selected-window nil)
 
@@ -145,22 +171,32 @@ Secondary separators do not incur a background color change."
 
 (defun telephone-line--face-map (sym active)
   "Return the face corresponding to SYM for the given ACTIVE state."
-  (cond ((eq sym 'evil) (telephone-line-evil-face active))
-        ((eq sym 'accent) (if active 'telephone-line-accent-active
-                            'telephone-line-accent-inactive))
-        (active 'mode-line)
-        (t 'mode-line-inactive)))
+  (let ((pair-or-func (telephone-line-alist-get sym telephone-line-faces)))
+    (cond ((functionp pair-or-func) (funcall pair-or-func active))
+          (active (car pair-or-func))
+          (t (cdr pair-or-func)))))
 
-(defun telephone-line-opposite-face-sym (sym)
-  "Return the 'opposite' of the given SYM."
-  (cdr (assoc
-        sym '((evil . nil)
-              (accent . nil)
-              (nil . accent)))))
+(defun telephone-line-subseparator-foreground (sym)
+  "Get the foreground color for a subseparator on a given SYM."
+  (let ((subseparator-sym (telephone-line-alist-get sym telephone-line-subseparator-faces)))
+    (if (equal sym subseparator-sym)
+        (face-attribute (telephone-line-face-map sym) :foreground)
+      (face-attribute (telephone-line-face-map subseparator-sym) :background))))
 
-(defun telephone-line-evil-face (active)
-  "Return an appropriate face for the current evil mode, given whether the frame is ACTIVE."
+(defun telephone-line-ryo-modal-face (active)
+  "Return an appropriate face depending whether ryo-modal is activated, given whether frame is ACTIVE."
   (cond ((not active) 'mode-line-inactive)
+        ((not (boundp 'ryo-modal-mode)) 'mode-line)
+        ((not ryo-modal-mode) 'telephone-line-evil-insert)
+        (t 'telephone-line-evil-normal)))
+
+(defun telephone-line-modal-face (active)
+  "Return an appropriate face for the current mode, given whether the frame is ACTIVE."
+  (cond ((not active) 'mode-line-inactive)
+        ((bound-and-true-p xah-fly-keys)
+         (if xah-fly-insert-state-q
+             'telephone-line-evil-insert
+           'telephone-line-evil-normal))
         ((not (boundp 'evil-state)) 'mode-line)
         (t (intern (concat "telephone-line-evil-" (symbol-name evil-state))))))
 
@@ -185,7 +221,7 @@ Secondary separators do not incur a background color change."
        cur-color-sym))))
 
 (defun telephone-line-propertize-segment (pred face segment)
-  (unless (seq-empty-p (telephone-line-trim (format-mode-line segment)))
+  (unless (seq-empty-p (string-trim (format-mode-line segment)))
     (if pred
         `(:propertize (" " ,segment " ") face ,face)
       `(" " ,segment " "))))
@@ -193,9 +229,8 @@ Secondary separators do not incur a background color change."
 ;;TODO: Clean this up
 (defun telephone-line-add-subseparators (subsegments sep-func color-sym)
   (let* ((cur-face (telephone-line-face-map color-sym))
-         (opposite-face (telephone-line-face-map
-                         (telephone-line-opposite-face-sym color-sym)))
-         (subseparator (telephone-line-separator-render sep-func cur-face opposite-face)))
+         (subseparator-foreground (telephone-line-subseparator-foreground color-sym))
+         (subseparator (telephone-line-separator-render sep-func cur-face subseparator-foreground)))
     (telephone-line-propertize-segment
      color-sym cur-face
      (cdr (seq-mapcat
@@ -204,6 +239,26 @@ Secondary separators do not incur a background color change."
                (list subseparator subseg)))
            (mapcar (lambda (f) (funcall f cur-face))
                    subsegments))))))
+
+(defun telephone-line-preprocess-subsegments (subsegments)
+  "Normalize SUBSEGMENTS to create a strict list of functions."
+  (mapcar (lambda (subsegment)
+            (if (functionp subsegment)
+                (funcall subsegment)
+              (seq-let (segment-func &rest modifiers) subsegment
+                (cond
+                 ((seq-contains modifiers ':active)
+                  `(lambda (face)
+                     (if (telephone-line-selected-window-active)
+                         (funcall (,segment-func) face)
+                       nil)))
+                 ((seq-contains modifiers ':inactive)
+                  `(lambda (face)
+                     (if (not (telephone-line-selected-window-active))
+                         (funcall (,segment-func) face)
+                       nil)))
+                 (t segment-func)))))
+          subsegments))
 
 ;;TODO: Clean this up
 (defun telephone-line-add-separators (segments primary-sep secondary-sep)
@@ -218,12 +273,14 @@ separators, as they are conditional, are evaluated on-the-fly."
                     (cons color-sym
                           `(:eval
                             (telephone-line-add-subseparators
-                             ',subsegments ,secondary-sep ',color-sym)))))
+                             ',(telephone-line-preprocess-subsegments subsegments)
+                             ,secondary-sep
+                             ',color-sym)))))
                 (seq-reverse segments))
         '(nil . nil))))
 
 (defun telephone-line-width (values num-separators separator)
-  "Get the column-length of VALUES, with NUM-SEPARATORS interposed."
+  "Get the column-length of VALUES, with NUM-SEPARATORS SEPARATORs interposed."
   (let ((base-width (string-width (format-mode-line values)))
         (separator-width (/ (telephone-line-separator-width separator)
                             (float (frame-char-width)))))
@@ -236,16 +293,18 @@ separators, as they are conditional, are evaluated on-the-fly."
            (* num-separators (- separator-width (ceiling separator-width))))
       base-width)))
 
-(defcustom telephone-line-lhs '((accent . (telephone-line-vc-segment))
-                  (nil    . (telephone-line-minor-mode-segment
-                             telephone-line-buffer-segment)))
+(defcustom telephone-line-lhs
+  '((accent . (telephone-line-vc-segment))
+    (nil    . (telephone-line-minor-mode-segment
+               telephone-line-buffer-segment)))
   "Left hand side segment alist."
   :type '(alist :key-type segment-color :value-type subsegment-list)
   :group 'telephone-line)
 
-(defcustom telephone-line-rhs '((nil    . (telephone-line-misc-info-segment
-                             telephone-line-major-mode-segment))
-                  (accent . (telephone-line-position-segment)))
+(defcustom telephone-line-rhs
+  '((nil    . (telephone-line-misc-info-segment
+               telephone-line-major-mode-segment))
+    (accent . (telephone-line-airline-position-segment)))
   "Right hand side segment alist."
   :type '(alist :key-type segment-color :value-type subsegment-list)
   :group 'telephone-line)
@@ -266,7 +325,8 @@ separators, as they are conditional, are evaluated on-the-fly."
             (telephone-line-width
              ',(telephone-line--generate-mode-line-rhs)
              ,(- (length telephone-line-rhs) 1)
-             ,telephone-line-primary-right-separator)))
+             ,telephone-line-primary-right-separator)
+            (telephone-line-face-map (caar telephone-line-rhs))))
     ,@(telephone-line--generate-mode-line-rhs)))
 
 (defvar telephone-line--default-mode-line mode-line-format)

@@ -1,6 +1,6 @@
 ;;; telephone-line-separators.el --- Separators for Telephone Line
 
-;; Copyright (C) 2015-2016 Daniel Bordak
+;; Copyright (C) 2015-2017 Daniel Bordak
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -24,6 +24,16 @@
 
 (require 'color)
 (require 'telephone-line-utils)
+
+(defun telephone-line-row-pattern-solid-block (_ width)
+  "Create a block of 1s of WIDTH. _ is disregarded."
+  (make-list width 1))
+
+(defvar telephone-line-flat
+  (make-instance 'telephone-line-separator
+                 :axis-func #'identity
+                 :forced-width 1
+                 :pattern-func #'telephone-line-row-pattern-solid-block))
 
 (defun telephone-line-row-pattern-fixed-gradient (_ width)
   "Create a gradient bytestring of WIDTH.  _ is disregarded."
@@ -66,6 +76,51 @@
   (make-instance 'telephone-line-subseparator
                  :axis-func (lambda (x) (- (expt x 3)))))
 
+(defvar telephone-line-sin-right
+  (make-instance 'telephone-line-separator :axis-func (telephone-line-complement sin)))
+(defvar telephone-line-sin-left
+  (make-instance 'telephone-line-separator :axis-func #'sin))
+(defvar telephone-line-sin-hollow-right
+  (make-instance 'telephone-line-subseparator :axis-func (telephone-line-complement sin)))
+(defvar telephone-line-sin-hollow-left
+  (make-instance 'telephone-line-subseparator :axis-func #'sin))
+
+(defvar telephone-line-halfsin-right
+  (make-instance 'telephone-line-separator :axis-func (lambda (x) (- (sin (/ x 2))))))
+(defvar telephone-line-halfsin-left
+  (make-instance 'telephone-line-separator :axis-func (lambda (x) (sin (/ x 2)))))
+(defvar telephone-line-halfsin-hollow-right
+  (make-instance 'telephone-line-subseparator :axis-func (lambda (x) (- (sin (/ x 2))))))
+(defvar telephone-line-halfsin-hollow-left
+  (make-instance 'telephone-line-subseparator :axis-func (lambda (x) (sin (/ x 2)))))
+
+(defvar telephone-line-cos-right
+  (make-instance 'telephone-line-separator :axis-func (telephone-line-complement cos)))
+(defvar telephone-line-cos-left
+  (make-instance 'telephone-line-separator :axis-func #'cos))
+(defvar telephone-line-cos-hollow-right
+  (make-instance 'telephone-line-subseparator :axis-func (telephone-line-complement cos)))
+(defvar telephone-line-cos-hollow-left
+  (make-instance 'telephone-line-subseparator :axis-func #'cos))
+
+(defvar telephone-line-halfcos-right
+  (make-instance 'telephone-line-separator :axis-func (lambda (x) (- (cos (/ x 2))))))
+(defvar telephone-line-halfcos-left
+  (make-instance 'telephone-line-separator :axis-func (lambda (x) (cos (/ x 2)))))
+(defvar telephone-line-halfcos-hollow-right
+  (make-instance 'telephone-line-subseparator :axis-func (lambda (x) (- (cos (/ x 2))))))
+(defvar telephone-line-halfcos-hollow-left
+  (make-instance 'telephone-line-subseparator :axis-func (lambda (x) (cos (/ x 2)))))
+
+(defvar telephone-line-tan-right
+  (make-instance 'telephone-line-separator :axis-func (lambda (x) (- (tan (/ x 2.2))))))
+(defvar telephone-line-tan-left
+  (make-instance 'telephone-line-separator :axis-func (lambda (x) (tan (/ x 2.2)))))
+(defvar telephone-line-tan-hollow-right
+  (make-instance 'telephone-line-subseparator :axis-func (lambda (x) (- (tan (/ x 2.2))))))
+(defvar telephone-line-tan-hollow-left
+  (make-instance 'telephone-line-subseparator :axis-func (lambda (x) (tan (/ x 2.2)))))
+
 (defvar telephone-line-identity-right
   (make-instance 'telephone-line-separator :axis-func #'identity))
 (defvar telephone-line-identity-left
@@ -76,7 +131,7 @@
   (make-instance 'telephone-line-subseparator :axis-func #'-))
 
 (defvar telephone-line-nil
-  (make-instance 'telephone-line-separator :axis-func (lambda (c1 c2) nil)))
+  (make-instance 'telephone-line-nil-separator :forced-width 0))
 
 (provide 'telephone-line-separators)
 ;;; telephone-line-separators.el ends here
