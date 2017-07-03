@@ -44,6 +44,7 @@ IPQoS
 IdentitiesOnly
 IdentityAgent
 IdentityFile
+Ignore
 IgnoreUnknown
 IgnoredUnknownOption
 Include
@@ -52,6 +53,7 @@ KbdInteractiveDevices
 KexAlgorithms
 LocalCommand
 LocalForward
+LogFacility
 LogLevel
 Macs
 Match
@@ -62,7 +64,6 @@ PasswordAuthentication
 PermitLocalCommand
 Port
 PreferredAuthentications
-Protocol
 ProxyCommand
 ProxyJump
 ProxyUseFdpass
@@ -70,6 +71,7 @@ PubkeyAcceptedKeyTypes
 PubkeyAuthentication
 RSAAuthentication
 RekeyLimit
+RemoteCommand
 RemoteForward
 RequestTTY
 RevokedHostKeys
