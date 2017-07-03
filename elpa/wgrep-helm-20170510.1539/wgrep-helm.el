@@ -2,11 +2,11 @@
 
 ;; Author: Masahiro Hayashi <mhayashi1120@gmail.com>
 ;; Keywords: grep edit extensions
+;; Package-Version: 20170510.1539
 ;; Package-Requires: ((wgrep "2.1.1"))
 ;; URL: http://github.com/mhayashi1120/Emacs-wgrep/raw/master/wgrep-helm.el
 ;; Emacs: GNU Emacs 22 or later
-;; Version: 20140528.1427
-;; X-Original-Version: 0.1.4
+;; Version: 0.1.5
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -73,7 +73,8 @@
              (namelen (length dispname)))
         (let* ((value (get-text-property (point) 'helm-realvalue))
                (data  (helm-grep-split-line value))
-               (fn    (get-text-property (point) 'help-echo))
+               (fn    (or (get-text-property (point) 'buffer-name)
+                          (get-text-property (point) 'helm-grep-fname)))
                (line  (string-to-number (nth 1 data)))
                (fprop (wgrep-construct-filename-property fn)))
           (put-text-property start end 'wgrep-line-filename fn)

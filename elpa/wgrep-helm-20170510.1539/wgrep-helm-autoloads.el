@@ -1,10 +1,10 @@
 ;;; wgrep-helm-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "wgrep-helm" "wgrep-helm.el" (21575 7774 642547
-;;;;;;  72000))
+;;;### (autoloads nil "wgrep-helm" "wgrep-helm.el" (22873 40587 0
+;;;;;;  0))
 ;;; Generated autoloads from wgrep-helm.el
 
 (autoload 'wgrep-helm-setup "wgrep-helm" "\
