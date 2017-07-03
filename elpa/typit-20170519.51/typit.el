@@ -1,10 +1,10 @@
 ;;; typit.el --- Typing game similar to tests on 10 fast fingers -*- lexical-binding: t; -*-
 ;;
-;; Copyright © 2016–2017 Mark Karpov <markkarpov@openmailbox.org>
+;; Copyright © 2016–2017 Mark Karpov <markkarpov92@gmail.com>
 ;;
-;; Author: Mark Karpov <markkarpov@openmailbox.org>
+;; Author: Mark Karpov <markkarpov92@gmail.com>
 ;; URL: https://github.com/mrkkrp/typit
-;; Version: 0.2.0
+;; Version: 0.2.1
 ;; Package-Requires: ((emacs "24.4") (f "0.18") (mmt "0.1.1"))
 ;; Keywords: games
 ;;
@@ -27,9 +27,9 @@
 
 ;; This is a typing game for Emacs.  In this game, you type words that are
 ;; picked randomly from N most frequent words in language you're practicing,
-;; until time is up (by default it's one minute).  It's mostly quite similar
-;; to the “10 fast fingers” tests, with the difference that it's playable
-;; and fully configurable inside your Emacs.
+;; until time is up (by default it's one minute).  Typit is quite similar to
+;; the “10 fast fingers” tests, with the difference that it's playable and
+;; fully configurable inside your Emacs.
 
 ;;; Code:
 
@@ -42,7 +42,7 @@
 ;; Settings & variables
 
 (defgroup typit nil
-  "Cool typing game similar to tests on 10 fast fingers."
+  "Typing game similar to the tests on 10 fast fingers."
   :group  'games
   :tag    "Typit"
   :prefix "typit-"
@@ -185,7 +185,7 @@ rendered with `typit--render-line'."
 
 OFFSET specifies position where word starts.  CURRENT-WORD is the
 word to highlight.  By default the word is selected, unless
-UNSELECT is not NIL — in this case it's unselected."
+UNSELECT is not NIL—in this case it's unselected."
   (if unselect
       (dolist (v (overlays-at offset))
         (when (eq (overlay-get v 'type) 'typit-current-word)

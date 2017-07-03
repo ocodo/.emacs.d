@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "typit" "typit.el" (0 0 0 0))
+;;;### (autoloads nil "typit" "typit.el" (22873 40546 0 0))
 ;;; Generated autoloads from typit.el
 
 (autoload 'typit-test "typit" "\
@@ -30,11 +30,9 @@ See `typit-test' for more information.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "typit" '("typit-")))
-
 ;;;***
 
-;;;### (autoloads nil nil ("typit-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("typit-pkg.el") (22873 40546 0 0))
 
 ;;;***
 
