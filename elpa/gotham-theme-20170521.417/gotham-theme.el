@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; URL: https://github.com/wasamasa/gotham-theme
-;; Package-Version: 20170414.1046
+;; Package-Version: 20170521.417
 ;; Version: 1.1.7
 
 ;; This file is NOT part of GNU Emacs.
@@ -157,7 +157,7 @@ depending on DISPLAY for keys which are either :foreground or
    (warning :foreground orange)
 
    ;; search and highlighting
-   (match :background base5)
+   (match :background base4)
    (isearch :inverse-video t)
    (isearch-fail :foreground red)
    (lazy-highlight :foreground base2 :background yellow)
@@ -530,6 +530,26 @@ depending on DISPLAY for keys which are either :foreground or
    (bmkp-url :foreground orange)
    (bmkp-variable-list :foreground base5)
 
+   ;; cfw-calendar
+   (cfw:face-annotation :background base1 :foreground violet)
+   (cfw:face-day-title :background base1)
+   (cfw:face-default-content :foreground yellow)
+   (cfw:face-default-day :background base1 :weight bold)
+   (cfw:face-disable :background base1 :foreground violet)
+   (cfw:face-grid :foreground violet)
+   (cfw:face-header :foreground yellow :weight bold)
+   (cfw:face-holiday :background green :foreground base7)
+   (cfw:face-periods :foreground cyan)
+   (cfw:face-select :background base3 :foreground yellow)
+   (cfw:face-saturday :foreground violet :weight bold)
+   (cfw:face-sunday :foreground magenta :weight bold)
+   (cfw:face-title :background base0 :foreground magenta :weight bold)
+   (cfw:face-today :background base1 :foreground cyan)
+   (cfw:face-today-title :background red :foreground base7)
+   (cfw:face-toolbar :background base1)
+   (cfw:face-toolbar-button-off :foreground yellow)
+   (cfw:face-toolbar-button-on :foreground violet)
+
    ;; circe
    (circe-fool-face :inherit shadow)
    (circe-highlight-nick-face :foreground base5 :weight bold)
@@ -608,14 +628,16 @@ depending on DISPLAY for keys which are either :foreground or
    (ecb-type-tag-group-face :foreground magenta)
 
    ;; elfeed
+   (elfeed-log-debug-level-face :foreground base4)
    (elfeed-log-error-level-face :inherit error)
    (elfeed-log-info-level-face :inherit success)
    (elfeed-log-warn-level-face :inherit warning)
+   (elfeed-search-date-face :foreground violet)
    (elfeed-search-feed-face :foreground orange)
    (elfeed-search-tag-face :foreground green)
-   (elfeed-search-title-face :foreground base6)
-   (elfeed-search-title-unread-face :foreground base6 :weight bold)
-   (elfeed-search-date-face :foreground violet)
+   (elfeed-search-title-face :foreground base5)
+   (elfeed-search-unread-count-face :foreground orange)
+   (elfeed-search-unread-title-face :foreground base6 :weight bold)
 
    ;; emms
    (emms-playlist-track-face :foreground blue)
@@ -639,6 +661,9 @@ depending on DISPLAY for keys which are either :foreground or
    (enh-ruby-string-delimiter-face :foreground green)
    (erm-syn-errline :foreground red)
    (erm-syn-warnline :foreground orange)
+
+   ;; flx
+   (flx-highlight-face :foreground yellow)
 
    ;; flycheck
    (flycheck-error :underline (:style wave :color red))
@@ -1031,6 +1056,13 @@ depending on DISPLAY for keys which are either :foreground or
    (web-mode-param-name-face :foreground base5)
    (web-mode-symbol-face :foreground yellow)
    (web-mode-whitespace-face :foreground base7 :background red)
+
+   ;; wgrep
+   (wgrep-delete-face :foreground red)
+   (wgrep-done-face :foreground blue)
+   (wgrep-face :foreground yellow)
+   (wgrep-file-face :foreground green)
+   (wgrep-reject-face :foreground violet :weight bold)
 
    ;; undo-tree
    (undo-tree-visualizer-default-face :inherit shadow)
