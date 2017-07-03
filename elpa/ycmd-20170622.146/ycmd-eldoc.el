@@ -5,7 +5,7 @@
 ;; Author: Peter Vasil <mail@petervasil.net>
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Version: 0.2
-;; Package-Requires: ((ycmd "0.1") (deferred "0.2.0") (s "1.9.0") (dash "2.12.1") (let-alist "1.0.4"))
+;; Package-Requires: ((ycmd "1.2") (deferred "0.5.1") (s "1.11.0") (dash "2.13.0") (let-alist "1.0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ is only semantic after a semantic trigger."
 
 (defvar-local ycmd-eldoc--cache (make-vector 2 nil))
 
-(defvar-local ycmd-eldoc--get-type-supported-p t)
+(defvar-local ycmd-eldoc--cached-get-type-command 'none)
 
 (defun ycmd-eldoc--documentation-function ()
   "Eldoc function for `ycmd-mode'."
@@ -123,8 +123,7 @@ is only semantic after a semantic trigger."
                (symbol-name symbol) candidates))))
         (deferred:nextc it
           (lambda (text)
-            (or text (and ycmd-eldoc--get-type-supported-p
-                          (ycmd-eldoc--get-type)))))
+            (or text (ycmd-eldoc--get-type))))
         (deferred:nextc it
           (lambda (text)
             (when text
@@ -173,15 +172,34 @@ foo(bar, |baz); -> foo|(bar, baz);"
 
 (defun ycmd-eldoc--get-type ()
   "Get type at current position."
-  (let ((data (ycmd--get-request-data)))
+  (when ycmd-eldoc--cached-get-type-command
     (deferred:$
-      (ycmd--send-subcommand-request "GetType" data)
+      (ycmd-eldoc--get-type-command-deferred)
+      (deferred:nextc it
+        (lambda (cmd)
+          (when cmd
+            (ycmd--command-request cmd))))
       (deferred:nextc it
         (lambda (response)
-          (if (ycmd--unsupported-subcommand? response)
-              (setq ycmd-eldoc--get-type-supported-p nil)
-            (--when-let (ycmd--get-parent-or-type response)
+          (unless (ycmd--exception? response)
+            (--when-let (ycmd--get-message response)
               (when (cdr it) (car it)))))))))
+
+(defun ycmd-eldoc--get-type-command-deferred ()
+  "Return a deferred object with the chached GetType command.
+REQUEST-DATA is plist returned from `ycmd--get-request-data'."
+  (if (eq ycmd-eldoc--cached-get-type-command 'none)
+      (deferred:$
+        (ycmd--request (make-ycmd-request-data
+                        :handler "defined_subcommands"))
+        (deferred:nextc it
+          (lambda (response)
+            (setq ycmd-eldoc--cached-get-type-command
+                  ;; If GetTypeImprecise exists, use it in favor of GetType
+                  ;; because it doesn't reparse the file
+                  (car (-intersection '("GetTypeImprecise" "GetType")
+                                      response))))))
+    (deferred:next nil ycmd-eldoc--cached-get-type-command)))
 
 ;;;###autoload
 (defun ycmd-eldoc-setup ()
@@ -193,24 +211,30 @@ foo(bar, |baz); -> foo|(bar, baz);"
 (defun ycmd-eldoc--teardown ()
   "Reset `ycmd-eldoc--cache'."
   (ycmd-eldoc--cache-store nil nil)
-  (setq ycmd-eldoc--get-type-supported-p t))
+  (setq ycmd-eldoc--cached-get-type-command 'none))
 
 ;;;###autoload
 (define-minor-mode ycmd-eldoc-mode
   "Toggle ycmd eldoc mode."
   :lighter ""
-  (if ycmd-eldoc-mode
-      (progn
-        (set (make-local-variable 'eldoc-documentation-function)
-             'ycmd-eldoc--documentation-function)
-        (eldoc-mode +1)
-        (add-hook 'ycmd-after-teardown-hook
-                  #'ycmd-eldoc--teardown nil 'local))
+  (cond
+   (ycmd-eldoc-mode
+    ;; For emacs < 25.1 where `eldoc-documentation-function' defaults to
+    ;; nil. See also https://github.com/abingham/emacs-ycmd/issues/409
+    (or eldoc-documentation-function
+        (setq-local eldoc-documentation-function #'ignore))
+    (add-function :before-until (local 'eldoc-documentation-function)
+                  #'ycmd-eldoc--documentation-function)
+    (eldoc-mode +1)
+    (add-hook 'ycmd-after-teardown-hook
+              #'ycmd-eldoc--teardown nil 'local))
+   (t
     (eldoc-mode -1)
-    (kill-local-variable 'eldoc-documentation-function)
+    (remove-function (local 'eldoc-documentation-function)
+                     #'ycmd-eldoc--documentation-function)
     (remove-hook 'ycmd-after-teardown-hook
                  #'ycmd-eldoc--teardown 'local)
-    (ycmd-eldoc--teardown)))
+    (ycmd-eldoc--teardown))))
 
 (provide 'ycmd-eldoc)
 

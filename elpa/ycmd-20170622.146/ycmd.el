@@ -4,9 +4,9 @@
 ;;
 ;; Authors: Austin Bingham <austin.bingham@gmail.com>
 ;;          Peter Vasil <mail@petervasil.net>
-;; Version: 1.2-cvs
+;; Version: 1.3-cvs
 ;; URL: https://github.com/abingham/emacs-ycmd
-;; Package-Requires: ((emacs "24.3") (dash "2.12.1") (s "1.10.0") (deferred "0.3.2") (cl-lib "0.5") (let-alist "1.0.4") (request "0.2.0") (request-deferred "0.2.0") (pkg-info "0.4"))
+;; Package-Requires: ((emacs "24.4") (dash "2.13.0") (s "1.11.0") (deferred "0.5.1") (cl-lib "0.6.1") (let-alist "1.0.5") (request "0.3.0") (request-deferred "0.3.0") (pkg-info "0.6"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -407,6 +407,17 @@ This variable is a normal hook.  See Info node `(elisp)Hooks'."
   :type 'hook
   :risky t)
 
+(defcustom ycmd-completing-read-function #'completing-read
+  "Function to read from minibuffer with completion.
+
+The function must be compatible to the built-in `completing-read'
+function."
+  :type '(choice (const :tag "Default" completing-read)
+                 (const :tag "IDO" ido-completing-read)
+                 (function :tag "Custom function"))
+  :risky t
+  :package-version '(ycmd . "1.2"))
+
 (defconst ycmd--file-types-with-diagnostics
   '("c"
     "cpp"
@@ -545,6 +556,9 @@ and `delete-process'.")
 (defvar-local ycmd--last-status-change 'unparsed
   "The last status of the current buffer.")
 
+(defvar-local ycmd--last-modified-tick nil
+  "The BUFFER's last FileReadyToParse tick counter.")
+
 (defvar-local ycmd--buffer-visit-flag nil)
 
 (defvar ycmd--available-completers (make-hash-table :test 'eq))
@@ -586,6 +600,7 @@ and `delete-process'.")
     (define-key map "T" 'ycmd-get-parent)
     (define-key map "f" 'ycmd-fixit)
     (define-key map "r" 'ycmd-refactor-rename)
+    (define-key map "x" 'ycmd-completer)
     map)
   "Keymap for `ycmd-mode' interactive commands.")
 
@@ -803,7 +818,10 @@ If FORCE-DEFERRED is non-nil perform parse notification later."
           (deferred:nextc it
             (lambda ()
               (with-current-buffer buffer
-                (ycmd-notify-file-ready-to-parse)))))))))
+                (let ((tick (buffer-chars-modified-tick)))
+                  (unless (equal tick ycmd--last-modified-tick)
+                    (setq ycmd--last-modified-tick tick)
+                    (ycmd-notify-file-ready-to-parse)))))))))))
 
 (defun ycmd--on-save ()
   "Function to run when the buffer has been saved."
@@ -859,25 +877,28 @@ _LEN is ununsed."
   "If `ycmd--buffer-visit-flag' is nil send BufferVisit event."
   (when (and (not ycmd--buffer-visit-flag)
              (ycmd-is-server-alive?))
-    (let ((data (ycmd--get-request-data)))
-      (ycmd--event-notification
-       "BufferVisit" (plist-get data :content)
-       (lambda (response)
-         ;; The request is successful if response is nil
-         (unless response
-           (with-current-buffer (plist-get data :buffer)
-             (setq ycmd--buffer-visit-flag t))))))))
+    (let ((buffer (current-buffer)))
+      (deferred:$
+        (ycmd--event-notification "BufferVisit" nil
+          (lambda (response)
+            (unless (ycmd--exception? response)
+              (with-current-buffer buffer
+                (setq ycmd--buffer-visit-flag t)))))))))
 
 (defun ycmd--on-close-buffer ()
   "Notify server that the current buffer is no longer open, and cleanup emacs-ycmd variables."
   (when (ycmd-is-server-alive?)
-    (ycmd--notify-server "BufferUnload"))
+    (ycmd--event-notification "BufferUnload"))
   (ycmd--teardown))
+
+(defun ycmd--reset-parse-status ()
+  (ycmd--report-status 'unparsed)
+  (setq ycmd--last-modified-tick nil))
 
 (defun ycmd--teardown ()
   "Teardown ycmd in current buffer."
   (ycmd--kill-timer ycmd--notification-timer)
-  (setq ycmd--last-status-change 'unparsed)
+  (ycmd--reset-parse-status)
   (setq ycmd--deferred-parse nil)
   (run-hooks 'ycmd-after-teardown-hook))
 
@@ -906,6 +927,43 @@ diagnostics) for MODE."
    (--filter (member (cadr it) ycmd--file-types-with-diagnostics)
              ycmd-file-type-map)
    (--map (car it))))
+
+(defun ycmd-deferred:sync! (d)
+  "Wait for the given deferred task.
+Error is raised if it is not processed within deferred chain D.
+This is a slightly modified version of the original
+`deferred:sync!' function, with using `accept-process-output'
+wrapped with `with-current-buffer' for waiting instead of a
+combination of `sit-for' and `sleep-for' and with a shorter wait
+time."
+  (progn
+    (let ((last-value 'deferred:undefined*)
+          uncaught-error)
+      (deferred:try
+        (deferred:nextc d
+          (lambda (x) (setq last-value x)))
+        :catch
+        (lambda (err) (setq uncaught-error err)))
+      (with-local-quit
+        (while (and (eq 'deferred:undefined* last-value)
+                    (not uncaught-error))
+          (accept-process-output nil 0.01))
+        (when uncaught-error
+          (deferred:resignal uncaught-error))
+        last-value))))
+
+(defmacro ycmd-deferred:timeout (timeout-sec d)
+  "Time out macro on a deferred task.
+If the deferred task does not complete within TIMEOUT-SEC, this
+macro cancels the deferred task D and returns nil. This is a
+slightly modified version of the original `deferred:timeout'
+macro, which takes the timeout var in seconds and the timeout
+form returns the symbol `timeout'."
+  (declare (indent 1) (debug t))
+  `(deferred:earlier
+     (deferred:nextc (deferred:wait (* ,timeout-sec 1000))
+       (lambda () 'timeout))
+     ,d))
 
 (defun ycmd-open ()
   "Start a new ycmd server.
@@ -939,7 +997,10 @@ timeout specified by `ycmd-delete-process-delay', then kill the
 process with `delete-process'."
   (when (ycmd-is-server-alive?)
     (let ((start-time (float-time)))
-      (ycmd--request "/shutdown" nil :sync t :timeout 0.1)
+      (ycmd-deferred:sync!
+       (ycmd-deferred:timeout 0.1
+         (ycmd--request (make-ycmd-request-data
+                         :handler "shutdown" :content nil))))
       (while (and (ycmd-running?)
                   (> ycmd-delete-process-delay
                      (- (float-time) start-time)))
@@ -968,7 +1029,9 @@ process with `delete-process'."
 
 This is simply for keepalive functionality."
   (ycmd--ignore-errors
-   (ycmd--request "/healthy" nil :type "GET")))
+   (ycmd--request (make-ycmd-request-data
+                   :handler "healthy" :content nil)
+                  :type "GET")))
 
 (defun ycmd--server-ready? (&optional include-subserver)
   "Send request for server ready state.
@@ -981,12 +1044,24 @@ semantic subserver."
                 (car-safe (ycmd-major-mode-to-file-types
                            major-mode)))))
       (ycmd--ignore-errors
-       (eq (ycmd--request
-            "/ready" nil
-            :params (and file-type
-                         (list (cons "subserver" file-type)))
-            :type "GET" :sync t)
+       (eq (ycmd-deferred:sync!
+            (ycmd--request
+             (make-ycmd-request-data :handler "ready" :content nil)
+             :params (and file-type
+                          (list (cons "subserver" file-type)))
+             :type "GET"))
            t)))))
+
+(defun ycmd--extra-conf-request (filename &optional ignore-p)
+  "Send extra conf request.
+FILENAME is the path to a ycm_extra_conf file. If optional
+IGNORE-P is non-nil ignore the ycm_extra_conf."
+  (ycmd-deferred:sync!
+   (ycmd--request (make-ycmd-request-data
+                   :handler (if ignore-p
+                                "ignore_extra_conf_file"
+                              "load_extra_conf_file")
+                   :content (list (cons "filepath" filename))))))
 
 (defun ycmd-load-conf-file (filename)
   "Tell the ycmd server to load the configuration file FILENAME."
@@ -994,9 +1069,7 @@ semantic subserver."
    (list
     (read-file-name "Filename: ")))
   (let ((filename (expand-file-name filename)))
-    (ycmd--request
-     "/load_extra_conf_file"
-     `(("filepath" . ,filename)))))
+    (ycmd--extra-conf-request filename)))
 
 (defun ycmd-display-completions ()
   "Get completions at the current point and display them in a buffer.
@@ -1016,7 +1089,9 @@ it might be interesting for some users."
 
 (defun ycmd-complete (&optional _ignored)
   "Completion candidates at point."
-  (-when-let* ((completions (ycmd-get-completions :sync))
+  (-when-let* ((completions (ycmd-deferred:sync!
+                             (ycmd-deferred:timeout 0.5
+                               (ycmd-get-completions))))
                (candidates (cdr (assq 'completions completions))))
     (--map (let* ((text (cdr (assq 'insertion_text it)))
                   (anno (cdr (assq 'menu_text it))))
@@ -1088,7 +1163,7 @@ Returns the new value of `ycmd-force-semantic-completion'."
         symbols
       (cdr (assq symbols ycmd-keywords-alist)))))
 
-(defun ycmd-get-completions (&optional sync)
+(defun ycmd-get-completions ()
   "Get completions in current buffer from the ycmd server.
 
 Returns a deferred object which yields the HTTP message
@@ -1113,15 +1188,13 @@ structure looks like this:
     (TYPE . \"RuntimeError\")))
 
 To see what the returned structure looks like, you can use
-`ycmd-display-completions'.
-
-If SYNC is non-nil the function does not return a deferred object
-and blocks until the request has finished."
-  (let ((content
-         (append (plist-get (ycmd--get-request-data) :content)
-                 (and ycmd-force-semantic-completion
-                      (list (cons "force_semantic" t))))))
-    (ycmd--request "/completions" content :sync sync)))
+`ycmd-display-completions'."
+  (let ((extra-data (and ycmd-force-semantic-completion
+                         (list (cons "force_semantic" t)))))
+    (ycmd--request (make-ycmd-request-data
+                    :handler "completions"
+                    :content (append (ycmd--get-basic-request-data)
+                                     extra-data)))))
 
 (defun ycmd--handle-exception (response)
   "Handle exception in completion RESPONSE.
@@ -1140,42 +1213,43 @@ This function handles `UnknownExtraConf', `ValueError' and
   "Check whether RESPONSE is an exception."
   (assq 'exception response))
 
-(defun ycmd--send-subcommand-request (subcommand request-data)
-  "Send SUBCOMMAND request for REQUEST-DATA.
-Run HANDLER with reponse."
+(defun ycmd--command-request (subcommand)
+  "Send a command request for SUBCOMMAND."
   (let* ((subcommand (if (listp subcommand)
                          subcommand
                        (list subcommand)))
          (content (cons (append (list "command_arguments")
                                 subcommand)
-                        (plist-get request-data :content))))
-    (ycmd--request "/run_completer_command" content)))
+                        (ycmd--get-basic-request-data))))
+    (ycmd--request (make-ycmd-request-data
+                    :handler "run_completer_command"
+                    :content content))))
 
 (defun ycmd--run-completer-command (subcommand success-handler)
   "Send SUBCOMMAND to the `ycmd' server.
 
 SUCCESS-HANDLER is called when for a successful response."
+  (declare (indent 1))
   (when ycmd-mode
-    (let ((data (ycmd--get-request-data)))
+    (let ((cmd (or (car-safe subcommand) subcommand)))
       (if (ycmd-parsing-in-progress-p)
-          (message "Can't send \"%s\" request while parsing is in progress!"
-                   subcommand)
-        (deferred:$
-          (ycmd--send-subcommand-request subcommand data)
-          (deferred:nextc it
-            (lambda (response)
-              (when response
-                (cond
-                 ((ycmd--exception? response)
-                  (if (ycmd--unsupported-subcommand? response)
-                      (message "%s is not supported by current Completer"
-                               subcommand)
-                    (ycmd--handle-exception response)
-                    (run-hook-with-args 'ycmd-after-exception-hook
-                                        subcommand (plist-get data :buffer)
-                                        (plist-get data :pos) response)))
-                 (success-handler
-                  (funcall success-handler response)))))))))))
+          (message "Can't send \"%s\" request while parsing is in progress!" cmd)
+        (let ((pos (point))
+              (buffer (current-buffer)))
+          (deferred:$
+            (ycmd--command-request subcommand)
+            (deferred:nextc it
+              (lambda (response)
+                (when response
+                  (cond
+                   ((ycmd--exception? response)
+                    (if (ycmd--unsupported-subcommand? response)
+                        (message "%s is not supported by current Completer" cmd)
+                      (ycmd--handle-exception response)
+                      (run-hook-with-args 'ycmd-after-exception-hook
+                                          cmd buffer pos response)))
+                   (success-handler
+                    (funcall success-handler response))))))))))))
 
 (defun ycmd--unsupported-subcommand? (response)
   "Return t if RESPONSE is an unsupported subcommand exception."
@@ -1184,6 +1258,57 @@ SUCCESS-HANDLER is called when for a successful response."
          (or (string-prefix-p "Supported commands are:\n" .message)
              (string= "This Completer has no supported subcommands."
                       .message)))))
+
+(defun ycmd--get-defined-subcommands ()
+  "Get available subcommands for current completer.
+This is a blocking request."
+  (let* ((data (make-ycmd-request-data
+                :handler "defined_subcommands"))
+         (response (ycmd-deferred:sync!
+                    (ycmd--request data))))
+    (if (ycmd--exception? response)
+        (progn (ycmd--handle-exception response) nil)
+      response)))
+
+(defun ycmd--get-prompt-for-subcommand (subcommand)
+  "Return promp for SUBCOMMAND that requires arguments."
+  (pcase subcommand
+    (`"RefactorRename"
+     "New name: ")
+    ((pred (and "RestartServer" (eq major-mode 'python-mode)))
+     "Python binary: ")))
+
+(defun ycmd--read-subcommand ()
+  "Read subcommand from minibuffer."
+  (--when-let (ycmd--get-defined-subcommands)
+    (funcall ycmd-completing-read-function
+             "Subcommand: " it nil t)))
+
+(defun ycmd-completer (subcommand)
+  "Run SUBCOMMAND for current completer."
+  (interactive
+   (list (-when-let (cmd (ycmd--read-subcommand))
+           (--when-let (ycmd--get-prompt-for-subcommand cmd)
+             (let ((arg (read-string it)))
+               (unless (s-blank-str? arg)
+                 (setq cmd (list cmd arg)))))
+           cmd)))
+  (when subcommand
+    (ycmd--run-completer-command subcommand
+      (lambda (response)
+        (cond ((not (listp response))
+               ;; If not a list, the response is necessarily a scalar:
+               ;; boolean, number, string, etc. In this case, we print it to
+               ;; the user.
+               (message "%s" response))
+              ((assq 'fixits response)
+               (ycmd--handle-fixit-response response))
+              ((assq 'message response)
+               (ycmd--handle-message-response response))
+              ((assq 'detailed_info response)
+               (ycmd--handle-detailed-info-response response))
+              (t
+               (ycmd--handle-goto-response response)))))))
 
 (defun ycmd-goto ()
   "Go to the definition or declaration of the symbol at current position."
@@ -1240,7 +1365,7 @@ Useful in case compile-time is considerable."
        (assq 'line_num response)
        (assq 'column_num response)))
 
-(defun ycmd--handle-goto-success (response)
+(defun ycmd--handle-goto-response (response)
   "Handle a successfull GoTo RESPONSE."
   (ycmd--save-marker)
   (if (ycmd--location-data? response)
@@ -1252,7 +1377,7 @@ Useful in case compile-time is considerable."
   (save-excursion
     (--when-let (bounds-of-thing-at-point 'symbol)
       (goto-char (car it)))
-    (ycmd--run-completer-command type 'ycmd--handle-goto-success)))
+    (ycmd-completer type)))
 
 (defun ycmd--goto-location (location find-function)
   "Move cursor to LOCATION with FIND-FUNCTION.
@@ -1288,19 +1413,20 @@ Use BUFFER if non-nil or `current-buffer'."
 (defun ycmd-clear-compilation-flag-cache ()
   "Clear the compilation flags cache."
   (interactive)
-  (ycmd--run-completer-command "ClearCompilationFlagCache" nil))
+  (ycmd-completer "ClearCompilationFlagCache"))
 
 (defun ycmd-restart-semantic-server (&optional arg)
   "Send request to restart the semantic completion backend server.
 If ARG is non-nil and current `major-mode' is `python-mode',
 prompt for the Python binary."
-  (interactive "P")
-  (let ((subcommand "RestartServer")
-        (args (and arg (eq major-mode 'python-mode)
-                   (read-string "Python binary: "))))
-    (when (not (s-blank? args))
-      (setq subcommand (list subcommand args)))
-    (ycmd--run-completer-command subcommand nil)))
+  (interactive
+   (list (and current-prefix-arg
+              (eq major-mode 'python-mode)
+              (read-string "Python binary: "))))
+  (let ((subcommand "RestartServer"))
+    (unless (s-blank-str? arg)
+      (setq subcommand (list subcommand arg)))
+    (ycmd-completer subcommand)))
 
 (cl-defun ycmd--fontify-code (code &optional (mode major-mode))
   "Fontify CODE."
@@ -1318,8 +1444,8 @@ prompt for the Python binary."
          (point-min) (point-max) nil))
       (buffer-string))))
 
-(defun ycmd--get-parent-or-type (response)
-  "Extract type or parent from RESPONSE.
+(defun ycmd--get-message (response)
+  "Extract message from RESPONSE.
 Return a cons cell with the type or parent as car. If cdr is
 non-nil, the result is a valid type or parent."
   (--when-let (cdr (assq 'message response))
@@ -1331,9 +1457,9 @@ non-nil, the result is a valid type or parent."
        (cons it nil))
       (_ (cons it t)))))
 
-(defun ycmd--handle-get-parent-or-type-success (response)
+(defun ycmd--handle-message-response (response)
   "Handle a successful GetParent or GetType RESPONSE."
-  (--when-let (ycmd--get-parent-or-type response)
+  (--when-let (ycmd--get-message response)
     (message "%s" (if (cdr it)
                       (ycmd--fontify-code (car it))
                     (car it)))))
@@ -1341,63 +1467,88 @@ non-nil, the result is a valid type or parent."
 (defun ycmd-get-parent ()
   "Get semantic parent for symbol at point."
   (interactive)
-  (ycmd--run-completer-command
-   "GetParent" 'ycmd--handle-get-parent-or-type-success))
+  (ycmd-completer "GetParent"))
 
 (defun ycmd-get-type (&optional arg)
   "Get type for symbol at point.
 If optional ARG is non-nil, get type without reparsing buffer."
   (interactive "P")
-  (ycmd--run-completer-command
-   (if arg "GetTypeImprecise" "GetType")
-   #'ycmd--handle-get-parent-or-type-success))
+  (ycmd-completer (if arg "GetTypeImprecise" "GetType")))
 
 ;;; FixIts
 
-(defun ycmd--show-fixits (fixit)
-  "Select a buffer and display FIXIT."
-  (let ((fixit-num 1)
-        (title
-         (and (> (length fixit) 1)
-              (concat
-               "Multiple FixIts are available for the current context. "
-               "Which one would you like to apply?\n")))
-        (fixits-buffer (get-buffer-create "*ycmd-fixits*")))
+(defmacro ycmd--loop-chunks-by-filename (spec &rest body)
+  "Loop over an alist of fixit chunks grouped by filepath.
+Evaluate BODY with `it' bound to each car from FIXIT-CHUNKS, in
+turn. The structure of `it' is a cons cell (FILEPATH CHUNK-LIST).
+Then evaluate RESULT to get return value, default nil.
+
+\(fn (FIXIT-CHUNKS [RESULT]) BODY...)"
+  (declare (indent 1) (debug ((form &optional form) body)))
+  `(let ((chunks-by-filepath
+          (--group-by (let-alist it .range.start.filepath)
+                      ,(car spec))))
+     (dolist (it chunks-by-filepath)
+       ,@body)
+     ,@(cdr spec)))
+
+(defun ycmd--show-fixits (fixits &optional title)
+  "Select a buffer and display FIXITS.
+Optional TITLE is shown on first line."
+  (let ((fixits-buffer (get-buffer-create "*ycmd-fixits*"))
+        (fixit-num 1))
     (with-current-buffer fixits-buffer
       (setq buffer-read-only nil)
       (erase-buffer)
       (when title (insert (propertize title 'face 'bold)))
-      (mapc (lambda (it)
-              (let-alist it
-                (ycmd--insert-fixit-button
-                 (format "%d: %s\n" fixit-num .text) .chunks .location)
-                (setq fixit-num (1+ fixit-num))
-                (let* ((buffer (find-file-noselect .location.filepath))
-                       (buffertext (with-current-buffer buffer (buffer-string)))
-                       diff)
-                  (with-temp-buffer
-                    (insert buffertext)
-                    (ycmd--replace-chunk-list .chunks (current-buffer))
-                    (with-current-buffer
-                        (diff-no-select .location.filepath (current-buffer)
-                                        "-U0 --strip-trailing-cr" t)
-                      (goto-char (point-min))
-                      (unless (eobp)
-                        (ignore-errors
-                          (diff-beginning-of-hunk t))
-                        (when (looking-at diff-hunk-header-re-unified)
-                          (forward-line)
-                          (let ((beg (point))
-                                (end (diff-end-of-hunk)))
-                            (setq diff (buffer-substring-no-properties beg end)))))))
-                  (when diff
-                    (insert (format "%s\n" (ycmd--fontify-code diff 'diff-mode)))))))
-            fixit)
+      (dolist (fixit fixits)
+        (let-alist fixit
+          (let (button-diff)
+            (-when-let (diffs (ycmd--get-fixit-diff .chunks))
+              (dolist (diff diffs)
+                (let ((diff-text (ycmd--fontify-code (nth 0 diff) 'diff-mode))
+                      (diff-path (nth 1 diff))
+                      (show-path (nth 2 diff)))
+                  (setq button-diff
+                        (concat button-diff (when (or (s-blank-str? .text)
+                                                      show-path)
+                                              (format "%s\n" diff-path))
+                                diff-text "\n")))))
+            (ycmd--insert-fixit-button
+             (concat (format "%d: %s\n" fixit-num .text) button-diff)
+             .chunks .location.filepath)
+            (cl-incf fixit-num))))
       (goto-char (point-min))
       (when title (forward-line 1))
       (ycmd-fixit-mode))
     (pop-to-buffer fixits-buffer)
     (setq next-error-last-buffer fixits-buffer)))
+
+(defun ycmd--get-fixit-diff (chunks)
+  "Return diff string for CHUNKS."
+  (let (diffs)
+    (ycmd--loop-chunks-by-filename (chunks (nreverse diffs))
+      (let* ((filepath (car it))
+             (chunk (cdr it))
+             (buffer (find-file-noselect filepath))
+             (buffertext (with-current-buffer buffer (buffer-string))))
+        (with-temp-buffer
+          (insert buffertext)
+          (ycmd--replace-chunk-list chunk (current-buffer))
+          (let ((diff-buffer (diff-no-select filepath (current-buffer)
+                                             "-U0 --strip-trailing-cr" t)))
+            (with-current-buffer diff-buffer
+              (goto-char (point-min))
+              (unless (eobp)
+                (ignore-errors
+                  (diff-beginning-of-hunk t))
+                (while (looking-at diff-hunk-header-re-unified)
+                  (let* ((beg (point))
+                         (end (diff-end-of-hunk))
+                         (diff (buffer-substring-no-properties beg end)))
+                    (setq diffs (cons (list diff filepath
+                                            (> (length chunks-by-filepath) 1))
+                                      diffs))))))))))))
 
 (define-button-type 'ycmd--fixit-button
   'action #'ycmd--apply-fixit
@@ -1413,8 +1564,9 @@ If optional ARG is non-nil, get type without reparsing buffer."
 
 (defun ycmd--apply-fixit (button)
   "Apply BUTTON's FixIt chunk."
-  (-when-let* ((chunk (button-get button 'fixit)))
-    (ycmd--replace-chunk-list chunk)
+  (-when-let* ((chunks (button-get button 'fixit)))
+    (ycmd--loop-chunks-by-filename (chunks)
+      (ycmd--replace-chunk-list (cdr it)))
     (quit-window t (get-buffer-window "*ycmd-fixits*"))))
 
 (define-derived-mode ycmd-fixit-mode ycmd-view-mode "ycmd-fixits"
@@ -1509,47 +1661,53 @@ specified in fixit chunk."
         (when (> (length (cdr f)) 1)
           (throw 'done t))))))
 
-(defun ycmd--handle-fixit-success (response)
-  "Handle a successful FixIt RESPONSE."
+(defun ycmd--handle-fixit-response (response)
+  "Handle a fixit RESPONSE."
   (-if-let (fixits (cdr (assq 'fixits response)))
-      (if (and (not ycmd-confirm-fixit)
-               (not (ycmd--fixits-have-same-location-p fixits)))
-          (dolist (fixit fixits)
-            (--when-let (cdr (assq 'chunks fixit))
-              (ycmd--replace-chunk-list it)))
-        (save-current-buffer
-          (ycmd--show-fixits fixits)))
-    (message "No FixIts available")))
+      (let ((multiple-fixits-p
+             (and (> (length fixits) 1)
+                  (ycmd--fixits-have-same-location-p fixits))))
+        (if (and (not ycmd-confirm-fixit)
+                 (not multiple-fixits-p))
+            (let ((num-changes-applied 0)
+                  files-changed)
+              (dolist (fixit fixits)
+                (-when-let (chunks (cdr (assq 'chunks fixit)))
+                  (ycmd--loop-chunks-by-filename (chunks)
+                    (let ((chunk-path (car it))
+                          (chunk (cdr it)))
+                      (ycmd--replace-chunk-list chunk)
+                      (cl-incf num-changes-applied (length chunk))
+                      (unless (member chunk-path files-changed)
+                        (setq files-changed (append (list chunk-path)
+                                                    files-changed)))))))
+              (when (> num-changes-applied 0)
+                (let* ((num-files-changed (length files-changed))
+                       (text
+                        (concat (format "Applied %d changes" num-changes-applied)
+                                (when (> num-files-changed 1)
+                                  (format " in %d files" num-files-changed)))))
+                  (message text))))
+          (save-current-buffer
+            (ycmd--show-fixits
+             fixits (and multiple-fixits-p
+                         (concat
+                          "Multiple FixIt suggestions are available at this location."
+                          "Which one would you like to apply?\n"))))))
+    (message "No fixits found for current line")))
 
 (defun ycmd-fixit()
   "Get FixIts for current line."
   (interactive)
-  (ycmd--run-completer-command "FixIt" 'ycmd--handle-fixit-success))
-
-(defun ycmd--handle-refactor-rename-success (response &optional no-confirm)
-  "Handle a successful RenameRefactor RESPONSE.
-If NO-CONFIRM is non-nil, don't ask the user to confirm the rename."
-  (-if-let (fixits (cdr (assq 'fixits response)))
-      (dolist (fixit fixits)
-        (-when-let (chunks (cdr (assq 'chunks fixit)))
-          (let ((chunks-by-filepath
-                 (--group-by (let-alist it .range.start.filepath)
-                             chunks)))
-            (when (or no-confirm
-                      (y-or-n-p (format "Apply %d renames in %d files? "
-                                        (length chunks)
-                                        (length chunks-by-filepath))))
-              (dolist (file-chunks chunks-by-filepath)
-                (ycmd--replace-chunk-list (cdr file-chunks)))))))
-    (message "No candidates available to rename.")))
+  (ycmd-completer "FixIt"))
 
 (defun ycmd-refactor-rename (new-name)
   "Refactor current context with NEW-NAME."
   (interactive "MNew variable name: ")
-  (when (not (s-blank? new-name))
-    (ycmd--run-completer-command
-     (list "RefactorRename" new-name)
-     'ycmd--handle-refactor-rename-success)))
+  (let ((subcommand "RefactorRename"))
+    (unless (s-blank-str? new-name)
+      (setq subcommand (list subcommand new-name)))
+    (ycmd-completer subcommand)))
 
 (defun ycmd-show-documentation (&optional arg)
   "Show documentation for current point in buffer.
@@ -1557,11 +1715,9 @@ If NO-CONFIRM is non-nil, don't ask the user to confirm the rename."
 If optional ARG is non-nil do not reparse buffer before getting
 the documentation."
   (interactive "P")
-  (ycmd--run-completer-command
-   (if arg "GetDocImprecise" "GetDoc")
-   'ycmd--handle-get-doc-success))
+  (ycmd-completer (if arg "GetDocImprecise" "GetDoc")))
 
-(defun ycmd--handle-get-doc-success (response)
+(defun ycmd--handle-detailed-info-response (response)
   "Handle successful GetDoc RESPONSE."
   (let ((documentation (cdr (assq 'detailed_info response))))
     (if (not (s-blank? documentation))
@@ -1758,10 +1914,18 @@ This is suitable as an entry in `ycmd-file-parse-result-hook'."
 (defun ycmd-parse-buffer ()
   "Parse buffer."
   (interactive)
-  (if (not (ycmd-is-server-alive?))
-      (ycmd--parse-deferred)
-    (ycmd--report-status 'unparsed)
-    (ycmd--conditional-parse)))
+  (if (not (ycmd-semantic-completer-available?))
+      (message "Native filetype completion not supported for current file, \
+cannot send parse request")
+    (when (ycmd-is-server-alive?)
+      (deferred:$
+        (deferred:next
+          (lambda ()
+            (message "Parsing buffer...")
+            (ycmd--reset-parse-status)
+            (ycmd--conditional-parse)))
+        (deferred:nextc it
+          (lambda () (message "Parsing buffer done")))))))
 
 (defun ycmd--handle-extra-conf-exception (conf-file)
   "Handle an exception of type `UnknownExtraConf'.
@@ -1770,13 +1934,11 @@ Handle CONF-FILE according the value of `ycmd-extra-conf-handler'."
   (if (not conf-file)
       (warn "No extra_conf_file included in UnknownExtraConf exception. \
 Consider reporting this.")
-    (let (location)
-      (if (and (not (eq ycmd-extra-conf-handler 'ignore))
-               (y-or-n-p (format "Load YCMD extra conf %s? " conf-file)))
-          (setq location "/load_extra_conf_file")
-        (setq location "/ignore_extra_conf_file"))
-      (ycmd--request location `((filepath . ,conf-file)) :sync t)
-      (ycmd--report-status 'unparsed)
+    (let ((ignore-p (or (eq ycmd-extra-conf-handler 'ignore)
+                        (not (y-or-n-p (format "Load YCMD extra conf %s? "
+                                               conf-file))))))
+      (ycmd--extra-conf-request conf-file ignore-p)
+      (ycmd--reset-parse-status)
       (ycmd-notify-file-ready-to-parse))))
 
 (defun ycmd--handle-error-exception (msg)
@@ -1804,27 +1966,27 @@ Consider reporting this.")
     (ycmd--report-status 'parsed)
     (run-hook-with-args 'ycmd-file-parse-result-hook response)))
 
-(defun ycmd--event-notification (event-name content-alist &optional handler)
+(defun ycmd--event-notification (event-name &optional extra-data handler)
   "Send a event notification for EVENT-NAME.
-CONTENT-ALIST cotains the request data.  Optional third argument
-HANDLER is the callback function for the response."
-  (let ((content (append `(("event_name" . ,event-name))
-                         content-alist)))
+Optional EXTRA-DATA contains additional data for the request.
+Optional third argument HANDLER is the callback function for the
+response."
+  (declare (indent 2))
+  (let ((content (append (list (cons "event_name" event-name))
+                         (ycmd--get-basic-request-data)
+                         extra-data)))
     (deferred:$
       ;; try
       (deferred:$
-        (ycmd--request "/event_notification" content)
+        (ycmd--request (make-ycmd-request-data
+                        :handler "event_notification"
+                        :content content))
         (deferred:nextc it handler))
+      ;; catch
       (deferred:error it
         (lambda (err)
           (message "Error sending %s request: %s" event-name err)
           (ycmd--report-status 'errored))))))
-
-(defun ycmd--notify-server (event-name)
-  "Send a simple event notification for EVENT-NAME, ignoring response."
-  (let* ((data (ycmd--get-request-data))
-         (content (plist-get data :content)))
-    (ycmd--event-notification event-name content)))
 
 (defun ycmd-notify-file-ready-to-parse ()
   "Send a notification to ycmd that the buffer is ready to be parsed.
@@ -1835,22 +1997,19 @@ function enforces that constraint.
 The response of the notification are passed to all of the
 functions in `ycmd-file-parse-result-hook'."
   (when (and ycmd-mode (not (ycmd-parsing-in-progress-p)))
-    (let* ((data (ycmd--get-request-data))
-           (buff (plist-get data :buffer))
-           (content
-            (append (plist-get data :content)
-                    (--when-let (and ycmd-tag-files
+    (let* ((buff (current-buffer))
+           (extra-data
+            (append (--when-let (and ycmd-tag-files
                                      (ycmd--get-tag-files buff))
                       (list (cons "tag_files" it)))
                     (--when-let (and ycmd-seed-identifiers-with-keywords
                                      (ycmd--get-keywords buff))
                       (list (cons "syntax_keywords" it))))))
       (ycmd--report-status 'parsing)
-      (ycmd--event-notification
-       "FileReadyToParse" content
-       (lambda (response)
-         (with-current-buffer buff
-           (ycmd--handle-notify-response response)))))))
+      (ycmd--event-notification "FileReadyToParse" extra-data
+        (lambda (response)
+          (with-current-buffer buff
+            (ycmd--handle-notify-response response)))))))
 
 (defun ycmd-major-mode-to-file-types (mode)
   "Map a major mode MODE to a list of file-types suitable for ycmd.
@@ -2010,7 +2169,7 @@ the name of the newly created file."
     (setq ycmd--server-actual-port
           (string-to-number (match-string 1 string)))
     (ycmd--with-all-ycmd-buffers
-      (ycmd--report-status 'unparsed))
+      (ycmd--reset-parse-status))
     (ycmd--perform-deferred-parse)))
 
 (defun ycmd--start-server ()
@@ -2044,9 +2203,9 @@ See the docstring of the variable for an example"))
       (set-process-filter proc #'ycmd--server-process-filter)
       proc)))
 
-(defun ycmd-wait-until-server-is-ready ()
+(defun ycmd-wait-until-server-is-ready (&optional include-subserver)
   "Wait until server is ready.
-
+If INCLUDE-SUBSERVER is non-nil wait until subserver is ready.
 Return t when server is ready.  Signal error in case of timeout.
 The timeout can be set with the variable
 `ycmd-startup-timeout'."
@@ -2055,10 +2214,10 @@ The timeout can be set with the variable
       (ycmd--kill-timer ycmd--server-timeout-timer)
       (while (ycmd-running?)
         (sit-for 0.1)
-        (if (ycmd--server-ready? :include-subserver)
+        (if (ycmd--server-ready? include-subserver)
             (progn
               (ycmd--with-all-ycmd-buffers
-                (ycmd--report-status 'unparsed))
+                (ycmd--reset-parse-status))
               (throw 'ready t))
           ;; timeout after specified period
           (when (< ycmd-startup-timeout
@@ -2070,34 +2229,29 @@ The timeout can be set with the variable
   (- (position-bytes (point))
      (position-bytes (line-beginning-position))))
 
-(defun ycmd--encode-string (s)
-  "Encode string S."
+;; https://github.com/abingham/emacs-ycmd/issues/165
+(eval-and-compile
   (if (version-list-< (version-to-list emacs-version) '(25))
-      s
-    (encode-coding-string s 'utf-8 t)))
+      (defun ycmd--encode-string (s) s)
+    (defun ycmd--encode-string (s) (encode-coding-string s 'utf-8 t))))
 
-(defun ycmd--get-request-data ()
-  "Generate the 'standard' content for ycmd posts.
-
-This extracts a bunch of information from BUFFER at POS which
-will be passed to the ycmd server."
-  (let* ((buffer (current-buffer))
-         (pos (point))
-         (column-num (+ 1 (ycmd--column-in-bytes)))
-         (line-num (line-number-at-pos pos))
+(defun ycmd--get-basic-request-data ()
+  "Build the basic request data alist for a server request."
+  (let* ((column-num (+ 1 (ycmd--column-in-bytes)))
+         (line-num (line-number-at-pos (point)))
          (full-path (ycmd--encode-string (or (buffer-file-name) "")))
          (file-contents (ycmd--encode-string
                          (buffer-substring-no-properties
                           (point-min) (point-max))))
          (file-types (or (ycmd-major-mode-to-file-types major-mode)
-                         '("generic")))
-         (data `(("file_data" .
-                  ((,full-path . (("contents" . ,file-contents)
-                                  ("filetypes" . ,file-types)))))
-                 ("filepath" . ,full-path)
-                 ("line_num" . ,line-num)
-                 ("column_num" . ,column-num))))
-    (list :content data :buffer buffer :pos pos)))
+                         '("generic"))))
+    `(("file_data" .
+       ((,full-path . (("contents" . ,file-contents)
+                       ("filetypes" . ,file-types)))))
+      ("filepath" . ,full-path)
+      ("line_num" . ,line-num)
+      ("column_num" . ,column-num))))
+
 
 (defvar ycmd--log-enabled nil
   "If non-nil, http content will be logged.
@@ -2123,8 +2277,8 @@ This is useful for debugging.")
 (defun ycmd-show-debug-info ()
   "Show debug information."
   (interactive)
-  (let* ((data (ycmd--get-request-data))
-         (buffer (plist-get data :buffer)))
+  (let ((data (make-ycmd-request-data :handler "debug_info"))
+        (buffer (current-buffer)))
     (with-help-window (get-buffer-create " *ycmd-debug-info*")
       (with-current-buffer standard-output
         (princ "Ycmd debug information for buffer ")
@@ -2136,10 +2290,9 @@ This is useful for debugging.")
                          'help-args (list mode)))
         (princ ":\n\n")
         (--if-let (and (ycmd-is-server-alive?)
-                       (deferred:sync!
+                       (ycmd-deferred:sync!
                          (deferred:$
-                           (ycmd--request "/debug_info"
-                                          (plist-get data :content))
+                           (ycmd--request data)
                            (deferred:nextc it
                              (lambda (result)
                                result)))))
@@ -2186,30 +2339,32 @@ The request data should be something like:
 If candidates is a list with identifiers, sort_property should be
 and empty string, however when candidates is a more complex
 structure it is used to specify the sort key."
-  (ycmd--request "/filter_and_sort_candidates" request-data :sync t))
+  (let ((data (make-ycmd-request-data
+               :handler "filter_and_sort_candidates"
+               :content request-data)))
+    (ycmd-deferred:sync! (ycmd--request data))))
 
-(defun ycmd--send-completer-available-request (&optional mode sync)
+(defun ycmd--send-completer-available-request (&optional mode)
   "Send request to check if a semantic completer exists for MODE.
-Response is non-nil if semantic complettion is available. If
-optional SYNC is non-nil, send a synchronous request."
-  (let* ((data (ycmd--get-request-data))
-         (request-data (plist-get data :content)))
+Response is non-nil if semantic complettion is available."
+  (let ((data (make-ycmd-request-data
+               :handler "semantic_completion_available")))
     (when mode
-      (let* ((buffer (plist-get data :buffer))
+      (let* ((buffer (current-buffer))
              (full-path (ycmd--encode-string (or (buffer-file-name buffer) "")))
-             (file-types (assoc "filetypes" (assoc full-path
-                                                   (assoc "file_data"
-                                                          request-data)))))
+             (content (ycmd-request-data-content data))
+             (file-types (assoc "filetypes"
+                                (assoc full-path
+                                       (assoc "file_data" content)))))
         (when (consp file-types)
-          (setcdr file-types (ycmd-major-mode-to-file-types mode))))
-    (ycmd--request "/semantic_completion_available"
-                   request-data :sync sync))))
+          (setcdr file-types (ycmd-major-mode-to-file-types mode)))))
+    (ycmd-deferred:sync! (ycmd--request data))))
 
 (defun ycmd-semantic-completer-available? ()
   "Return t if a semantic completer is available for current `major-mode'."
   (let ((mode major-mode))
     (or (gethash mode ycmd--available-completers)
-        (--when-let (ycmd--send-completer-available-request mode 'sync)
+        (--when-let (ycmd--send-completer-available-request mode)
           (puthash mode (or (eq it t) 'none) ycmd--available-completers)))))
 
 (defun ycmd--get-request-hmac (method path body)
@@ -2221,13 +2376,26 @@ optional SYNC is non-nil, send a synchronous request."
               `(,method ,path ,(or body "")) "")
    ycmd--hmac-secret))
 
-(cl-defun ycmd--request (location
-                         content
+(cl-defstruct ycmd-request-data
+  "Structure for storing the ycmd server request data.
+
+Slots:
+
+`handler'
+     Specifies the the path portion of the URL. For example, if
+     HANDLER is 'feed_llama', the request URL is
+     'http://host:port/feed_llama'.
+
+`content'
+     An alist that will be JSON-encoded and sent over at the
+     content of the HTTP message."
+  handler
+  (content (ycmd--get-basic-request-data)))
+
+(cl-defun ycmd--request (request-data
                          &key
                          (type "POST")
-                         (params nil)
-                         (sync nil)
-                         (timeout request-timeout))
+                         (params nil))
   "Send an asynchronous HTTP request to the ycmd server.
 
 This starts the server if necessary.
@@ -2235,12 +2403,7 @@ This starts the server if necessary.
 Returns a deferred object which resolves to the content of the
 response message.
 
-LOCATION specifies the location portion of the URL. For example,
-if LOCATION is '/feed_llama', the request URL is
-'http://host:port/feed_llama'.
-
-CONTENT will be JSON-encoded and sent over at the content of the
-HTTP message.
+REQUEST-DATA is a `ycmd-request-data' structure.
 
 PARSER specifies the function that will be used to parse the
 response to the message. Typical values are buffer-string and
@@ -2249,42 +2412,33 @@ unmodified contents of the response (i.e. not JSON-decoded or
 anything like that)."
   (unless (ycmd-is-server-alive?)
     (message "Ycmd server is not running. Can't send `%s' request!"
-             location)
-    (cl-return-from ycmd--request (unless sync (deferred:next))))
+             (ycmd-request-data-handler request-data))
+    (cl-return-from ycmd--request (deferred:next)))
 
   (let* ((url-show-status (not ycmd-hide-url-status))
          (url-proxy-services (unless ycmd-bypass-url-proxy-services
                                url-proxy-services))
-         (content (json-encode content))
-         (hmac (ycmd--get-request-hmac type location content))
+         (path (concat "/" (ycmd-request-data-handler request-data)))
+         (content (json-encode (ycmd-request-data-content request-data)))
+         (hmac (ycmd--get-request-hmac type path content))
          (encoded-hmac (base64-encode-string hmac 't))
          (url (format "http://%s:%s%s"
-                      ycmd-host ycmd--server-actual-port location))
+                      ycmd-host ycmd--server-actual-port path))
          (headers `(("Content-Type" . "application/json")
                     ("X-Ycm-Hmac" . ,encoded-hmac)))
-         (response-fn (lambda (response)
-                        (let ((data (request-response-data response)))
-                          (ycmd--log-content "HTTP RESPONSE CONTENT" data)
-                          data)))
          (parser (lambda ()
                    (let ((json-array-type 'list))
-                     (json-read))))
-         (request-args (list :type type :params params :data content
-                             :parser parser :headers headers
-                             :timeout timeout)))
+                     (json-read)))))
     (ycmd--log-content "HTTP REQUEST CONTENT" content)
 
-    (if sync
-        (let* (result
-               (cb (cl-function
-                    (lambda (&key response &allow-other-keys)
-                      (setq result (funcall response-fn response))))))
-          (with-local-quit
-            (apply #'request url :sync t :complete cb request-args))
-          result)
-      (deferred:$
-        (apply #'request-deferred url request-args)
-        (deferred:nextc it response-fn)))))
+    (deferred:$
+      (request-deferred url :type type :params params :data content
+                        :parser parser :headers headers)
+      (deferred:nextc it
+        (lambda (response)
+          (let ((data (request-response-data response)))
+            (ycmd--log-content "HTTP RESPONSE CONTENT" data)
+            data))))))
 
 (provide 'ycmd)
 
