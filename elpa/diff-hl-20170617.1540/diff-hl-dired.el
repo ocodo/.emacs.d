@@ -1,6 +1,6 @@
 ;;; diff-hl-dired.el --- Highlight changed files in Dired -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2015  Free Software Foundation, Inc.
+;; Copyright (C) 2012-2017  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -124,7 +124,7 @@ status indicators."
                                 (value (cdr (assoc dir dirs-alist))))
                            (unless (eq value type)
                              (cond
-                              ((eq type 'up-to-date))
+                              ((eq state 'up-to-date))
                               ((null value)
                                (push (cons dir type) dirs-alist))
                               ((not (eq type 'ignored))
@@ -132,7 +132,9 @@ status indicators."
                        (push (cons file type) files-alist)))))
                (unless more-to-come
                  (diff-hl-dired-highlight-items
-                  (append dirs-alist files-alist))))))
+                  (append dirs-alist files-alist))))
+             (unless more-to-come
+               (kill-buffer diff-hl-dired-process-buffer))))
          )))))
 
 (defun diff-hl-dired-status-files (backend dir files update-function)
