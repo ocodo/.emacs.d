@@ -1,16 +1,16 @@
-;;; inf-groovy.el --- inferior Groovy mode -- groovy process in a buffer
+;;; inf-groovy.el — inferior Groovy mode – groovy process in a buffer
 
-;;; Inferior Groovy Mode - groovy process in a buffer.
+;;; Inferior Groovy Mode – groovy process in a buffer.
 ;;;                      adapted from cmuscheme.el and inf-haskell.el
 
 ;; Copyright (c) 2006, 2010 Stuart Clayman
-;; Copyright © 2015, 2016 Russel WInder
+;; Copyright © 2015–2017 Russel WInder
 
 ;; Author: Stuart Clayman  <sclayman@ee.ucl.ac.uk>
 ;;; 2006-08-01       v1
 ;;; 2010-04-07       v2 fixes for new groovy-mode
 ;; Maintainer: Russel Winder <russel@winder.org.uk>
-;; Version: 201605040857
+;; Version: 201705161954
 ;; Keywords: languages
 
 ;;;; NB Version number is date and time yyyymmddhhMM UTC.
@@ -90,6 +90,9 @@
 (require 'comint)
 (require 'compile)
 (require 'groovy-mode)
+
+
+(defvar groovysh (executable-find "groovysh"))
 
 ;;;; for groovy
 (defvar groovy-home (getenv "GROOVY_HOME"))
@@ -257,7 +260,9 @@ of `groovy-program-name').  Runs the hooks `inferior-groovy-mode-hook'
 
   (interactive (list (if current-prefix-arg
 			 (read-string "Run Groovy: " groovy-program-name)
-		       (concat groovy-home "/bin/" groovy-program-name))))
+                       (if groovysh
+                           (concat groovysh " --color=false")
+                         (concat groovy-home "/bin/" groovy-program-name)))))
   (if (not (comint-check-proc "*groovy*"))
       (let ((cmdlist (groovy-args-to-list cmd)))
 	(set-buffer (apply 'make-comint "groovy" (car cmdlist)
@@ -418,6 +423,7 @@ next one.")
   (comint-send-string (groovy-proc) (concat "\\i "
 					    file-name
 					    "\n")))
+
 ;;; Do the user's customisation...
 
 (defvar inf-groovy-load-hook nil
