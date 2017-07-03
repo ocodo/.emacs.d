@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("stream.el") (22533 41870 0 0))
+;;;### (autoloads nil nil ("stream-pkg.el" "stream-x.el" "stream.el")
+;;;;;;  (22873 40512 0 0))
 
 ;;;***
 

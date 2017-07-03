@@ -1,0 +1,140 @@
+2017-04-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add file "stream-x.el" to the stream package
+
+2016-10-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Some details in the documentation
+
+2016-09-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix errors detected by tests added in last commit
+
+2016-09-16  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add systematic tests against bogus element generation
+
+	Also add a note about this problem in the header and how to avoid it.
+
+2016-09-13  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Pinpoint semantics of `seq-subseq's implementation for streams
+
+	- Make argument END optional.
+
+	- Forbid negative index arguments.
+
+	- Add tests.
+
+2016-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* stream/stream.el (stream--generalizer): Accept more arguments
+
+	(streamp): Use car-safe.
+
+2016-08-02  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Avoid recursive stream-append in stream-concatenate
+
+	This fix prevents exceeding `max-lisp-eval-depth' for streams returned 
+	by stream-concatenate.
+
+2016-07-11  Paul Eggert	 <eggert@cs.ucla.edu>
+
+	Fix some quoting problems in doc strings
+
+	Most of these are minor issues involving, e.g., quoting `like this' 
+	instead of 'like this'.	 A few involve escaping ` and ' with a preceding
+	\= when the characters should not be turned into curved single quotes.
+
+2016-06-08  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add some more basic stream operations
+
+2016-03-03  Nicolas Petton  <nicolas@petton.fr>
+
+	* packages/stream/stream.el: Bump version number.
+
+2016-03-03  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add stream stream-delay and stream-of-directory-files
+
+	* packages/stream/stream.el (stream-delay, stream-of-directory-files): 
+	New functions.
+	* packages/stream/tests/stream-tests.el: Add test for stream-delay.
+
+2016-02-14  Nicolas Petton  <nicolas@petton.fr>
+
+	update stream.el to the latest version
+
+	* packages/stream/stream.el:
+	* packages/stream/tests/stream-tests.el: Add latest changes from the
+	 github repository.
+
+2016-02-13  Nicolas Petton  <nicolas@petton.fr>
+
+	Fix compliler warnings in stream-tests.el
+
+	* packages/stream/tests/stream-tests.el: Require cl-lib, use seqp,
+	cl-oddp and
+	 cl-evenp instead of seq-p, oddp and evenp.
+
+2015-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* packages/stream/stream.el (streamp): Tiny optimization.
+
+2015-11-11  Nicolas Petton  <nicolas@petton.fr>
+
+	* stream.el: Implement `seqp' instead of `seq-p'
+
+2015-11-04  Nicolas Petton  <nicolas@petton.fr>
+
+	Update stream.el to v2.0.5
+
+	* packages/stream/stream.el: Update.
+
+2015-11-04  Nicolas Petton  <nicolas@petton.fr>
+
+	Update stream.el to v2.0.2.
+
+	* packages/stream/stream.el:
+	* packages/stream/tests/stream-tests.el: Update.
+
+2015-10-30  Nicolas Petton  <nicolas@petton.fr>
+
+	* packages/stream/stream.el: Update to version 2.0.2.
+
+2015-10-26  Nicolas Petton  <nicolas@petton.fr>
+
+	* packages/stream/stream.el: Update stream.el to version 2.0.1.
+
+2015-10-26  Nicolas Petton  <nicolas@petton.fr>
+
+	Update stream.el to version 2.0.0
+
+	* packages/stream/stream.el:
+	* packages/stream/tests/stream-tests.el: Update.
+
+2015-10-26  Nicolas Petton  <nicolas@petton.fr>
+
+	* packages/stream/tests/stream-tests.el: New tests.
+
+2015-10-26  Nicolas Petton  <nicolas@petton.fr>
+
+	* packages/stream/stream.el: Update stream.el to v 1.1.0.
+
+2015-10-26  Nicolas Petton  <nicolas@petton.fr>
+
+	* packages/stream/stream.el: Update stream to v 1.0.1.
+
+2015-10-19  Nicolas Petton  <nicolas@petton.fr>
+
+	* packages/stream/stream.el: Require Emacs 25
+
+2015-10-14  Nicolas Petton  <nicolas@petton.fr>
+
+	Add stream.el to ELPA
+
+	* packages/stream/stream.el:
+	* packages/stream/tests/stream-tests.el: New files.
+
