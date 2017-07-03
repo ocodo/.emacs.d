@@ -4,8 +4,21 @@
 
 ;; Author: Jonas Gorauskas <jgorauskas@gmail.com>
 ;; URL: http://github.com/gorauskas/darkburn-theme
-;; Package-Version: 20170414.18
+;; Package-Version: 20170423.952
 ;; Version: 0.5
+
+;; # ATTENTION: This fork is no lorger maintained !!!
+
+;; On February of 2016 a patch was merged into the original Zenburn theme that
+;; makes this fork obsolete. See commit
+;; https://github.com/bbatsov/zenburn-emacs/commit/b057fa5b2e0ad3a10d15709a3748156dd5282909
+
+;; The original Zenburn theme now has an easy customization feature. To make the
+;; changes from this theme on the original, use the following:
+
+;;     (defvar zenburn-override-colors-alist
+;;       '(("zenburn-bg" . "#111111")))
+;;     (load-theme 'zenburn t)
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -230,12 +243,17 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(avy-background-face
      ((t (:foreground ,darkburn-fg-1 :background ,darkburn-bg :inverse-video nil))))
    `(avy-lead-face-0
-     ((t (:foreground ,darkburn-green+3 :background ,darkburn-bg :inverse-video nil))))
+     ((t (:foreground ,darkburn-green+3 :background ,darkburn-bg :inverse-video nil :weight bold))))
+   `(avy-lead-face-1
+     ((t (:foreground ,darkburn-yellow :background ,darkburn-bg :inverse-video nil :weight bold))))
+   `(avy-lead-face-2
+     ((t (:foreground ,darkburn-red+1 :background ,darkburn-bg :inverse-video nil :weight bold))))
    `(avy-lead-face
-     ((t (:foreground ,darkburn-green+2 :background ,darkburn-bg :inverse-video nil))))
+     ((t (:foreground ,darkburn-green+2 :background ,darkburn-bg :inverse-video nil :weight bold))))
 ;;;;; company-mode
    `(company-tooltip ((t (:foreground ,darkburn-fg :background ,darkburn-bg+1))))
    `(company-tooltip-annotation ((t (:foreground ,darkburn-orange :background ,darkburn-bg+1))))
+   `(company-tooltip-annotation-selection ((t (:foreground ,darkburn-orange :background ,darkburn-bg-1))))
    `(company-tooltip-selection ((t (:foreground ,darkburn-fg :background ,darkburn-bg-1))))
    `(company-tooltip-mouse ((t (:background ,darkburn-bg-1))))
    `(company-tooltip-common ((t (:foreground ,darkburn-green+2))))
@@ -290,10 +308,9 @@ Also bind `class' to ((class color) (min-colors 89))."
      ((,class (:background ,darkburn-bg+2 :foreground ,darkburn-fg :bold t))
       (t (:background ,darkburn-fg :foreground ,darkburn-bg :bold t))))
 ;;;;; diff-hl
-   `(diff-hl-change ((,class (:foreground ,darkburn-blue-2 :background ,darkburn-bg-05))))
-   `(diff-hl-delete ((,class (:foreground ,darkburn-red+1 :background ,darkburn-bg-05))))
-   `(diff-hl-insert ((,class (:foreground ,darkburn-green+1 :background ,darkburn-bg-05))))
-   `(diff-hl-unknown ((,class (:foreground ,darkburn-yellow :background ,darkburn-bg-05))))
+   `(diff-hl-change ((,class (:foreground ,darkburn-blue :background ,darkburn-blue-2))))
+   `(diff-hl-delete ((,class (:foreground ,darkburn-red+1 :background ,darkburn-red-1))))
+   `(diff-hl-insert ((,class (:foreground ,darkburn-green+1 :background ,darkburn-green-1))))
 ;;;;; dim-autoload
    `(dim-autoload-cookie-line ((t :foreground ,darkburn-bg+1)))
 ;;;;; dired+
@@ -402,15 +419,15 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(erc-current-nick-face ((t (:foreground ,darkburn-blue :weight bold))))
    `(erc-dangerous-host-face ((t (:inherit font-lock-warning-face))))
    `(erc-default-face ((t (:foreground ,darkburn-fg))))
-   `(erc-direct-msg-face ((t (:inherit erc-default))))
+   `(erc-direct-msg-face ((t (:inherit erc-default-face))))
    `(erc-error-face ((t (:inherit font-lock-warning-face))))
-   `(erc-fool-face ((t (:inherit erc-default))))
+   `(erc-fool-face ((t (:inherit erc-default-face))))
    `(erc-highlight-face ((t (:inherit hover-highlight))))
    `(erc-input-face ((t (:foreground ,darkburn-yellow))))
    `(erc-keyword-face ((t (:foreground ,darkburn-blue :weight bold))))
    `(erc-nick-default-face ((t (:foreground ,darkburn-yellow :weight bold))))
    `(erc-my-nick-face ((t (:foreground ,darkburn-red :weight bold))))
-   `(erc-nick-msg-face ((t (:inherit erc-default))))
+   `(erc-nick-msg-face ((t (:inherit erc-default-face))))
    `(erc-notice-face ((t (:foreground ,darkburn-green))))
    `(erc-pal-face ((t (:foreground ,darkburn-orange :weight bold))))
    `(erc-prompt-face ((t (:foreground ,darkburn-orange :background ,darkburn-bg-15 :weight bold))))  ;; DB
@@ -454,7 +471,7 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(gnus-group-news-6 ((t (:bold t :inherit gnus-group-news-6-empty))))
    `(gnus-group-news-low ((t (:bold t :inherit gnus-group-news-low-empty))))
    `(gnus-header-content ((t (:inherit message-header-other))))
-   `(gnus-header-from ((t (:inherit message-header-from))))
+   `(gnus-header-from ((t (:inherit message-header-to))))
    `(gnus-header-name ((t (:inherit message-header-name))))
    `(gnus-header-newsgroups ((t (:inherit message-header-other))))
    `(gnus-header-subject ((t (:inherit message-header-subject))))
@@ -543,6 +560,7 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(helm-grep-lineno ((t (:foreground ,darkburn-fg-1 :background ,darkburn-bg-15))))                 ;; DB
    `(helm-grep-match ((t (:foreground nil :background nil :inherit helm-match))))
    `(helm-grep-running ((t (:foreground ,darkburn-red :background ,darkburn-bg-15))))                 ;; DB
+   `(helm-match ((t (:foreground ,darkburn-orange :background ,darkburn-bg-1 :weight bold))))
    `(helm-moccur-buffer ((t (:foreground ,darkburn-cyan :background ,darkburn-bg-15))))               ;; DB
    `(helm-mu-contacts-address-face ((t (:foreground ,darkburn-fg-1 :background ,darkburn-bg-15))))    ;; DB
    `(helm-mu-contacts-name-face ((t (:foreground ,darkburn-fg :background ,darkburn-bg-15))))         ;; DB
@@ -586,8 +604,18 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(js2-jsdoc-tag ((t (:foreground ,darkburn-green-1))))
    `(js2-jsdoc-type ((t (:foreground ,darkburn-green+2))))
    `(js2-jsdoc-value ((t (:foreground ,darkburn-green+3))))
-   `(js2-function-param ((t (:foreground, darkburn-green+3))))
+   `(js2-function-param ((t (:foreground, darkburn-orange))))
    `(js2-external-variable ((t (:foreground ,darkburn-orange))))
+;;;;; additional js2 mode attributes for better syntax highlighting
+   `(js2-instance-member ((t (:foreground ,darkburn-green-1))))
+   `(js2-jsdoc-html-tag-delimiter ((t (:foreground ,darkburn-orange))))
+   `(js2-jsdoc-html-tag-name ((t (:foreground ,darkburn-red-1))))
+   `(js2-object-property ((t (:foreground ,darkburn-blue+1))))
+   `(js2-magic-paren ((t (:foreground ,darkburn-blue-5))))
+   `(js2-private-function-call ((t (:foreground ,darkburn-cyan))))
+   `(js2-function-call ((t (:foreground ,darkburn-cyan))))
+   `(js2-private-member ((t (:foreground ,darkburn-blue-1))))
+   `(js2-keywords ((t (:foreground ,darkburn-magenta))))
 ;;;;; jabber-mode
    `(jabber-roster-user-away ((t (:foreground ,darkburn-green+2))))
    `(jabber-roster-user-online ((t (:foreground ,darkburn-blue-1))))
@@ -658,15 +686,15 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(magit-diff-file-heading           ((t (:weight bold))))
    `(magit-diff-file-heading-highlight ((t (:background ,darkburn-bg+05  :weight bold))))
    `(magit-diff-file-heading-selection ((t (:background ,darkburn-bg+05
-                                            :foreground ,darkburn-orange :weight bold))))
+                                                        :foreground ,darkburn-orange :weight bold))))
    `(magit-diff-hunk-heading           ((t (:background ,darkburn-bg+1))))
    `(magit-diff-hunk-heading-highlight ((t (:background ,darkburn-bg+2))))
    `(magit-diff-hunk-heading-selection ((t (:background ,darkburn-bg+2
-                                            :foreground ,darkburn-orange))))
+                                                        :foreground ,darkburn-orange))))
    `(magit-diff-lines-heading          ((t (:background ,darkburn-orange
-                                            :foreground ,darkburn-bg+2))))
+                                                        :foreground ,darkburn-bg+2))))
    `(magit-diff-context-highlight      ((t (:background ,darkburn-bg+05
-                                            :foreground "grey70"))))
+                                                        :foreground "grey70"))))
    `(magit-diffstat-added   ((t (:foreground ,darkburn-green+4))))
    `(magit-diffstat-removed ((t (:foreground ,darkburn-red))))
 ;;;;;; popup
@@ -743,7 +771,6 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(message-header-name ((t (:foreground ,darkburn-green+1))))
    `(message-header-other ((t (:foreground ,darkburn-green))))
    `(message-header-to ((t (:foreground ,darkburn-yellow :weight bold))))
-   `(message-header-from ((t (:foreground ,darkburn-yellow :weight bold))))
    `(message-header-cc ((t (:foreground ,darkburn-yellow :weight bold))))
    `(message-header-newsgroups ((t (:foreground ,darkburn-yellow :weight bold))))
    `(message-header-subject ((t (:foreground ,darkburn-orange :weight bold))))
@@ -851,6 +878,16 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(org-mode-line-clock-overrun ((t (:foreground ,darkburn-bg :background ,darkburn-red-1))))
    `(org-ellipsis ((t (:foreground ,darkburn-yellow-1 :underline t))))
    `(org-footnote ((t (:foreground ,darkburn-cyan :underline t))))
+   `(org-document-title ((t (:foreground ,darkburn-blue))))
+   `(org-document-info ((t (:foreground ,darkburn-blue))))
+   `(org-habit-ready-face ((t :background ,darkburn-green)))
+   `(org-habit-alert-face ((t :background ,darkburn-yellow-1 :foreground ,darkburn-bg)))
+   `(org-habit-clear-face ((t :background ,darkburn-blue-3)))
+   `(org-habit-overdue-face ((t :background ,darkburn-red-3)))
+   `(org-habit-clear-future-face ((t :background ,darkburn-blue-4)))
+   `(org-habit-ready-future-face ((t :background ,darkburn-green-1)))
+   `(org-habit-alert-future-face ((t :background ,darkburn-yellow-2 :foreground ,darkburn-bg)))
+   `(org-habit-overdue-future-face ((t :background ,darkburn-red-4)))
 ;;;;; outline
    `(outline-1 ((t (:foreground ,darkburn-orange))))
    `(outline-2 ((t (:foreground ,darkburn-green+4))))
@@ -1018,17 +1055,17 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(term-color-black ((t (:foreground ,darkburn-bg
                                        :background ,darkburn-bg-1))))
    `(term-color-red ((t (:foreground ,darkburn-red-2
-                                       :background ,darkburn-red-4))))
+                                     :background ,darkburn-red-4))))
    `(term-color-green ((t (:foreground ,darkburn-green
                                        :background ,darkburn-green+2))))
    `(term-color-yellow ((t (:foreground ,darkburn-orange
-                                       :background ,darkburn-yellow))))
+                                        :background ,darkburn-yellow))))
    `(term-color-blue ((t (:foreground ,darkburn-blue-1
                                       :background ,darkburn-blue-4))))
    `(term-color-magenta ((t (:foreground ,darkburn-magenta
                                          :background ,darkburn-red))))
    `(term-color-cyan ((t (:foreground ,darkburn-cyan
-                                       :background ,darkburn-blue))))
+                                      :background ,darkburn-blue))))
    `(term-color-white ((t (:foreground ,darkburn-fg
                                        :background ,darkburn-fg-1))))
    '(term-default-fg-color ((t (:inherit term-color-white))))
@@ -1126,6 +1163,12 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(wl-highlight-summary-displaying-face ((t (:underline t :weight bold))))
 ;;;;; which-func-mode
    `(which-func ((t (:foreground ,darkburn-green+4))))
+;;;;; xcscope
+   `(cscope-file-face ((t (:foreground ,darkburn-yellow :weight bold))))
+   `(cscope-function-face ((t (:foreground ,darkburn-cyan :weight bold))))
+   `(cscope-line-number-face ((t (:foreground ,darkburn-red :weight bold))))
+   `(cscope-mouse-face ((t (:foreground ,darkburn-bg :background ,darkburn-blue+1))))
+   `(cscope-separator-face ((t (:foreground ,darkburn-red :weight bold :underline t :overline t))))
 ;;;;; yascroll
    `(yascroll:thumb-text-area ((t (:background ,darkburn-bg-1))))
    `(yascroll:thumb-fringe ((t (:background ,darkburn-bg-1 :foreground ,darkburn-bg-1))))
