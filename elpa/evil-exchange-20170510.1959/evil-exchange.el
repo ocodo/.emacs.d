@@ -1,11 +1,11 @@
 ;;; evil-exchange.el --- Exchange text more easily within Evil
 
-;; Copyright (C) 2013-2016 by Dewdrops
+;; Copyright (C) 2013-2017 by Dewdrops
 
 ;; Author: Dewdrops <v_v_4474@126.com>
 ;; URL: http://github.com/Dewdrops/evil-exchange
-;; Package-Version: 20160812.843
-;; Version: 0.40
+;; Package-Version: 20170510.1959
+;; Version: 0.41
 ;; Keywords: evil, plugin
 ;; Package-Requires: ((evil "1.2.8") (cl-lib "0.3"))
 
@@ -122,7 +122,7 @@
                                   #'delete-and-extract-region #'insert
                                   t))))))
   ;; place cursor on beginning of line
-  (when (and (evil-called-interactively-p) (eq type 'line))
+  (when (and (called-interactively-p 'any) (eq type 'line))
     (evil-first-non-blank)))
 
 (defun evil-exchange--do-swap (curr-buffer orig-buffer curr-beg curr-end orig-beg
