@@ -3,8 +3,15 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("keymap-utils.el") (22613 12847 224337
-;;;;;;  86000))
+;;;### (autoloads nil "keymap-utils" "keymap-utils.el" (22873 40397
+;;;;;;  0 0))
+;;; Generated autoloads from keymap-utils.el
+
+(autoload 'kmu-current-local-mapvar "keymap-utils" "\
+Return the variable bound to the current local keymap.
+Interactively also show the variable in the echo area.
+
+\(fn)" t nil)
 
 ;;;***
 

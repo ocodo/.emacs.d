@@ -1,10 +1,10 @@
 ;;; keymap-utils.el --- keymap utilities
 
-;; Copyright (C) 2008-2016  Jonas Bernoulli
+;; Copyright (C) 2008-2017  Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Package-Requires: ((cl-lib "0.3"))
-;; Package-Version: 20161212.957
+;; Package-Version: 20170614.1134
 ;; Homepage: https://github.com/tarsius/keymap-utils
 ;; Keywords: convenience, extensions
 
@@ -131,6 +131,7 @@ the parent keymap of any keymap a key in KEYMAP is bound to."
 
 ;;; Keymap Variables
 
+;;;###autoload
 (defun kmu-current-local-mapvar ()
   "Return the variable bound to the current local keymap.
 Interactively also show the variable in the echo area."
@@ -567,56 +568,6 @@ The last event in an event sequence may be a character range."
 (defun kmu-map-keymap-definitions (function keymap &optional nomenu nomouse)
   (mapc (lambda (e) (apply function e))
         (kmu-keymap-definitions keymap nomenu nomouse)))
-
-;;; Vanilla Keymaps
-
-(defvar kmu-save-vanilla-keymaps-mode-lighter " vanilla")
-
-(define-minor-mode kmu-save-vanilla-keymaps-mode
-  "Minor mode for saving vanilla keymaps.
-
-When this mode is turned on a copy of the values of all loaded
-keymap variables are saved.  While the mode is on all keymap
-variables that haven't been saved yet are saved whenever a new
-library is loaded.
-
-This mode is useful when you want to compare the vanilla bindings
-with your modifications.  To make sure you really get the vanilla
-bindings turn on this mode as early as possible."
-  :global t
-  :keymap nil
-  :lighter kmu-save-vanilla-keymaps-mode-lighter
-  (if kmu-save-vanilla-keymaps-mode
-      (progn
-        (kmu-save-vanilla-keymaps)
-        (add-hook 'after-load-functions 'kmu-save-vanilla-keymaps))
-    (remove-hook  'after-load-functions 'kmu-save-vanilla-keymaps)))
-
-(defvar kmu-vanilla-keymaps nil)
-
-(defun kmu-save-vanilla-keymaps (&optional filename)
-  (interactive)
-  (mapc 'kmu-save-vanilla-keymap (kmu-mapvar-list)))
-
-(defun kmu-save-vanilla-keymap (mapvar)
-  (interactive (list (kmu-read-mapvar "Save keymap: ")))
-  (unless (assoc mapvar kmu-vanilla-keymaps)
-    (push (cons mapvar (copy-keymap (symbol-value mapvar)))
-          kmu-vanilla-keymaps)))
-
-(defun kmu-restore-vanilla-keymap (mapvar)
-  (let ((vanilla (assoc mapvar kmu-vanilla-keymaps)))
-    (if vanilla
-        (setcdr (symbol-value mapvar)
-                (cdr (copy-keymap vanilla)))
-      (error "Vanilla state of %s hasn't been saved" mapvar))))
-
-(defun kmu-vanilla-keymap (mapvar)
-  (cdr (assq mapvar kmu-vanilla-keymaps)))
-
-(defun kmu-vanilla-mapvar-p (mapvar)
-  (equal (symbol-value mapvar)
-         (assoc mapvar kmu-vanilla-keymaps)))
 
 (provide 'keymap-utils)
 ;; Local Variables:
