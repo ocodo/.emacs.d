@@ -1,13 +1,13 @@
 ;;; company-ycmd.el --- company-mode backend for ycmd -*- lexical-binding: t -*-
 ;;
-;; Copyright (c) 2014-2016 Austin Bingham, Peter Vasil
+;; Copyright (c) 2014-2017 Austin Bingham, Peter Vasil
 ;;
 ;; Authors: Austin Bingham <austin.bingham@gmail.com>
 ;;          Peter Vasil <mail@petervasil.net>
-;; version: 0.1
-;; Package-Version: 20161026.2337
+;; version: 0.2
+;; Package-Version: 20170622.146
 ;; URL: https://github.com/abingham/emacs-ycmd
-;; Package-Requires: ((ycmd "0.1") (company "0.9.0") (deferred "0.2.0") (s "1.9.0") (dash "2.12.1") (let-alist "1.0.4") (f "0.18.2"))
+;; Package-Requires: ((ycmd "1.2") (company "0.9.3") (deferred "0.5.1") (s "1.11.0") (dash "2.13.0") (let-alist "1.0.5") (f "0.19.0"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -196,11 +196,11 @@ overloaded functions."
                             (company-ycmd--extract-params-clang it)))
                (return-type (or (and overloads
                                      (let ((case-fold-search nil))
-                                       (string-match
-                                        (concat "\\(.*\\) "
-                                                (regexp-quote .insertion_text))
-                                        it)
-                                       (match-string 1 it)))
+                                       (and (string-match
+                                             (concat "\\(.*\\) [^ ]*"
+                                                     (regexp-quote .insertion_text))
+                                             it)
+                                            (match-string 1 it))))
                                 .extra_menu_info))
                (doc .extra_data.doc_string))
           (setq candidates
@@ -283,7 +283,7 @@ with spaces."
   "Construct completion string from a CANDIDATE for python file-types."
   (company-ycmd--with-destructured-candidate candidate
     (let* ((kind (s-replace "\n" " " .extra_menu_info))
-           (params (and (s-prefix-p "function" kind)
+           (params (and (s-prefix-p "def" kind)
                         (company-ycmd--extract-params-python
                          .detailed_info .insertion_text)))
            (meta (company-ycmd--extract-meta-python .detailed_info))
@@ -407,12 +407,12 @@ candidates list."
   (let* ((prefix-start-col (- (+ 1 (ycmd--column-in-bytes)) (length prefix)))
          (prefix-size (- start-col prefix-start-col))
          (prefix-diff (substring-no-properties prefix 0 prefix-size))
+         (prefix-diff-p (s-present? prefix-diff))
          candidates)
     (dolist (candidate completions (nreverse candidates))
-      (when (s-present? prefix-diff)
-        (let ((it (assq 'insertion_text candidate)))
-          (setcdr it (concat prefix-diff
-                             (substring-no-properties (cdr it))))))
+      (when prefix-diff-p
+        (let ((it (cdr (assq 'insertion_text candidate))))
+          (setf it (s-prepend prefix-diff it))))
       (when (or company-ycmd-enable-fuzzy-matching
                 (company-ycmd--prefix-candidate-p candidate prefix))
         (let ((result (funcall construct-candidate-fn candidate)))
@@ -446,11 +446,6 @@ If CB is non-nil, call it with candidates."
        (company-ycmd--construct-candidates
         .completions prefix .completion_start_column
         (company-ycmd--get-construct-candidate-fn))))))
-
-(defun company-ycmd--get-candidates-synchronously (prefix)
-  "Get completion candidates with PREFIX synchronously."
-  (--when-let (ycmd-get-completions :sync)
-    (company-ycmd--get-candidates it prefix)))
 
 (defun company-ycmd--get-candidates-deferred (prefix cb)
   "Get completion candidates with PREFIX and call CB deferred."
@@ -520,16 +515,15 @@ If CB is non-nil, call it with candidates."
 
 (defun company-ycmd--candidates (prefix)
   "Candidates-command handler for the company backend for PREFIX."
-  (let ((async-fetcher
-         (cons :async
-               (lambda (cb)
-                 (company-ycmd--get-candidates-deferred prefix cb)))))
+  (let ((fetcher (cons :async
+                       (lambda (cb)
+                         (company-ycmd--get-candidates-deferred prefix cb)))))
     (if (> company-ycmd-request-sync-timeout 0)
-        (with-timeout
-            (company-ycmd-request-sync-timeout
-             async-fetcher)
-          (company-ycmd--get-candidates-synchronously prefix))
-      async-fetcher)))
+        (let ((result (ycmd-deferred:sync!
+                       (ycmd-deferred:timeout company-ycmd-request-sync-timeout
+                         (funcall (cdr fetcher) nil)))))
+          (if (eq result 'timeout) fetcher result))
+      fetcher)))
 
 (defun company-ycmd--post-completion (candidate)
   "Insert function arguments after completion for CANDIDATE."
