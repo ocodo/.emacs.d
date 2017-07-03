@@ -10,7 +10,7 @@
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/voxpupuli/puppet-mode
-;; Package-Version: 20170415.2259
+;; Package-Version: 20170614.2215
 ;; Keywords: languages
 ;; Version: 0.4-cvs
 ;; Package-Requires: ((emacs "24.1") (pkg-info "0.4"))
@@ -528,41 +528,34 @@ When called interactively, prompt for COMMAND."
 block (the line containing the opening brace).  Used to set the indentation
 of the closing brace of a block."
   (save-excursion
-    (save-match-data
-      (let ((opoint (point))
-            (apoint (search-backward "{" nil t)))
-        (when apoint
-          ;; This is a bit of a hack and doesn't allow for strings.  We really
-          ;; want to parse by sexps at some point.
-          (let ((close-braces (count-matches "}" apoint opoint))
-                (open-braces 0))
-            (while (and apoint (> close-braces open-braces))
-              (setq apoint (search-backward "{" nil t))
-              (when apoint
-                (setq close-braces (count-matches "}" apoint opoint))
-                (setq open-braces (1+ open-braces)))))
-          (if apoint
-              (current-indentation)
-            nil))))))
+    (let ((opoint (nth 1 (syntax-ppss))))
+      (when (and opoint
+                 (progn
+                   (goto-char opoint)
+                   (looking-at-p "{")))
+        (current-indentation)))))
+
+(defun puppet-in-argument-list ()
+  "If point is in an argument list, return the position of the opening '('.
+If point is not in an argument list, return nil."
+  (puppet--in-listlike "("))
 
 (defun puppet-in-array ()
   "If point is in an array, return the position of the opening '[' of
 that array, else return nil."
+  (puppet--in-listlike "\\["))
+
+(defun puppet--in-listlike (openstring)
+  "If point is in a listlike, return the position of the opening character of
+it, else return nil.
+OPENSTRING is a regexp string matching the opening character."
   (save-excursion
-    (save-match-data
-      (let ((opoint (point))
-            (apoint (search-backward "[" nil t)))
-        (when apoint
-          ;; This is a bit of a hack and doesn't allow for strings.  We really
-          ;; want to parse by sexps at some point.
-          (let ((close-brackets (count-matches "]" apoint opoint))
-                (open-brackets 0))
-            (while (and apoint (> close-brackets open-brackets))
-              (setq apoint (search-backward "[" nil t))
-              (when apoint
-                (setq close-brackets (count-matches "]" apoint opoint))
-                (setq open-brackets (1+ open-brackets)))))
-          apoint)))))
+    (let ((opoint (nth 1 (syntax-ppss))))
+      (when (and opoint
+                 (progn
+                   (goto-char opoint)
+                   (looking-at-p openstring)))
+        opoint))))
 
 (defun puppet-in-include ()
   "If point is in a continued list of include statements, return the position
@@ -660,15 +653,9 @@ of the initial include plus puppet-include-indent."
        ;; Class argument list ends with a closing paren and needs to be
        ;; indented to the level of the class token.
        ((looking-at "^\s*\).*?{\s*$")
-        ;; Find the indentation level of the opening line.
-        (let ((prev-class-indentation nil))
-          (save-excursion
-            (while (not prev-class-indentation)
-              (forward-line -1)
-              (when (looking-at "\s?class\s+.*?\($")
-                (setq prev-class-indentation (current-indentation)))))
-          (setq cur-indent prev-class-indentation))
-        (setq not-indented nil))
+        (save-excursion
+          (goto-char (puppet-in-argument-list))
+          (setq cur-indent (current-indentation))))
        (t
         ;; Otherwise, we did not start on a block-ending-only line.
         (save-excursion
@@ -979,7 +966,11 @@ Used as `syntax-propertize-function' in Puppet Mode."
   "Align rules for Puppet Mode.")
 
 (defconst puppet-mode-align-exclude-rules
-  '((puppet-comment
+  '((puppet-nested
+     (regexp . "\\s-*=>\\s-*\\({[^}]*}\\)")
+     (modes  . '(puppet-mode))
+     (separate . entire))
+    (puppet-comment
      (regexp . "^\\s-*\#\\(.*\\)")
      (modes . '(puppet-mode))))
   "Rules for excluding lines from alignment for Puppet Mode.")
@@ -988,14 +979,10 @@ Used as `syntax-propertize-function' in Puppet Mode."
   "Align the current block."
   (interactive)
   (save-excursion
-    (save-match-data
-      (let ((beg (search-backward "{" nil 'no-error)))
-        ;; Skip backwards over strings and comments
-        (while (and beg (puppet-in-string-or-comment-p beg))
-          (setq beg (search-backward "{" nil 'no-error)))
-        (when beg
-          (forward-list)
-          (align beg (point)))))))
+    (backward-up-list)
+    (let ((beg (point)))
+      (forward-list)
+      (align beg (point)))))
 
 
 ;;; Dealing with strings
