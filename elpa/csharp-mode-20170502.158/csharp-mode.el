@@ -5,7 +5,7 @@
 ;; Created    : Feburary 2005
 ;; Modified   : 2016
 ;; Version    : 0.9.1
-;; Package-Version: 20170203.1122
+;; Package-Version: 20170502.158
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : 2017-Jan-11
@@ -299,7 +299,6 @@
 ;;          - Fix indentation for generic type-initializers.
 ;;          - Fix fontification of using and namespace-statements with
 ;;            underscores in them.
-;;          - Derive csharp-mode-map from prog-mode-map.
 ;;          - Fixes for indentation for many kinds of type-initializers.
 ;;
 ;;; Code:
@@ -1056,7 +1055,7 @@ to work properly with code that includes attributes."
                                          (save-excursion
                                            (c-beginning-of-statement-1)
                                            (looking-at
-                                            "#\\(pragma\\|endregion\\|region\\|if\\|else\\|endif\\)"))
+                                            "#\\s *\\(pragma\\|endregion\\|region\\|if\\|else\\|endif\\)"))
                                          )))
 
                         (if is-attr
@@ -1157,9 +1156,11 @@ Currently handled:
                   (setq done t)))))))))
 
     (goto-char beg)
-    (while (re-search-forward "^\\s-*#\\(region\\|pragma\\) " end t)
-      (when (looking-at "\\w")
-        (put-text-property (point) (1+ (point))
+    (while (re-search-forward "^\\s *#\\s *\\(region\\|pragma\\)\\s " end t)
+      (when (looking-at "\\s *\\S ")
+        ;; mark the whitespace separating the directive from the comment
+        ;; text as comment starter to allow correct word movement
+        (put-text-property (1- (point)) (point)
                            'syntax-table (string-to-syntax "< b"))))))
 
 ;; C# does generics.  Setting this to t tells the parser to put
@@ -1403,7 +1404,7 @@ This regexp is assumed to not match any non-operator identifier."
           ;; Use the eval form for `font-lock-keywords' to be able to use
           ;; the `c-preprocessor-face-name' variable that maps to a
           ;; suitable face depending on the (X)Emacs version.
-          '(eval . (list "^\\s *\\(#pragma\\|undef\\|define\\)\\>\\(.*\\)"
+          '(eval . (list "^\\s *#\\s *\\(pragma\\|undef\\|define\\)\\>\\(.*\\)"
                          (list 1 c-preprocessor-face-name)
                          '(2 font-lock-string-face)))
           ;; There are some other things in `c-cpp-matchers' besides the
@@ -1451,7 +1452,6 @@ This regexp is assumed to not match any non-operator identifier."
     ("finally" "finally" c-electric-continued-statement 0)))
 
 (defvar csharp-mode-map (let ((map (c-make-inherited-keymap)))
-                          (set-keymap-parent map prog-mode-map)
                           ;; Add bindings which are only useful for C#
                           map)
   "Keymap used in ‘csharp-mode’ buffers.")
@@ -2975,7 +2975,7 @@ Key bindings:
   (unless (or c-file-style
               (stringp c-default-style)
               (assq 'csharp-mode c-default-style))
-    (c-set-style "C#"))
+    (c-set-style "C#" 'do-not-override-customized-values))
 
   ;; `c-common-init' initializes most of the components of a CC Mode
   ;; buffer, including setup of the mode menu, font-lock, etc.
