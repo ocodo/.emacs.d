@@ -4,7 +4,7 @@
 ;; Copyright (C) 2011,2012, Joseph(纪秀峰), all rights reserved.
 ;; Created: 2011-03-26
 ;; Version: 1.2
-;; Package-Version: 20170321.2201
+;; Package-Version: 20170524.346
 ;; X-URL:https://github.com/jixiuf/helm-dired-history
 ;; Keywords: helm, dired history
 ;; Package-Requires: ((helm "1.9.8")(cl-lib "0.5"))
@@ -143,13 +143,14 @@
 
 (defun helm-dired-history-read-file-name
     (prompt &optional dir default-filename mustmatch initial predicate)
-  (if dir
+  (let ((helm-mode-reverse-history nil))
+    (if dir
+        (helm-read-file-name prompt
+                             :name dir
+                             :initial-input dir
+                             :history helm-dired-history-variable)
       (helm-read-file-name prompt
-                           :name dir
-                           :initial-input dir
-                           :history helm-dired-history-variable)
-    (helm-read-file-name prompt
-                         :history helm-dired-history-variable)))
+                           :history helm-dired-history-variable))))
 
 
 (provide 'helm-dired-history)
