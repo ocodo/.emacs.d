@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2013-2017 Skye Shaw and others
 ;; Author: Skye Shaw <skye.shaw@gmail.com>
-;; Version: 0.5.0 (unreleased)
-;; Package-Version: 20170301.1618
+;; Version: 0.5.1
+;; Package-Version: 20170603.1026
 ;; Keywords: git, vc, github, bitbucket, gitlab, convenience
 ;; URL: http://github.com/sshaw/git-link
 ;; Package-Requires: ((cl-lib "0.6.1"))
@@ -36,6 +36,20 @@
 
 ;;; Change Log:
 
+;; 2017-06-03 - v0.5.1
+;; * Add support for more magit modes
+;;
+;; 2017-06-01 - v0.5.0
+;; * Add support for linking in dired and magit modes
+;; * Add support for defcustom
+;; * Change git-link-remote-regex to support more remote URL formats (Thanks Kaushal Modi)
+;; * Change git-link-remote-alist to use regex matching (Thanks Kaushal Modi)
+;; * Fix point on commit hash regex and support uppercase SHAs (Thanks Kaushal Modi!)
+;; * Fix git-link-commit message so that SHA text is displayed without properties
+;; * Enabled lexical-binding (Thanks Kaushal Modi!!)
+;;
+;; -- Note that v0.5.0 was released as "v0.5.0 (unreleased)"
+;;
 ;; 2016-10-19 - v0.4.5
 ;; * Fix for branches containing reserved URLs characters (Issue #36)
 ;;
@@ -94,22 +108,35 @@
 (require 'thingatpt)
 (require 'url-util)
 
+(defgroup git-link nil
+  "Get the GitHub/Bitbucket/GitLab URL for a buffer location"
+  :prefix "git-link-"
+  :link '(url-link :tag "Report a Bug" "https://github.com/sshaw/git-link/issues")
+  :link '(url-link :tag "Homepage" "https://github.com/sshaw/git-link")
+  :group 'convenience)
+
 (eval-when-compile
   (defvar git-timemachine-revision))    ;silence reference to free variable warning
 
-(defvar git-link-default-remote nil
-  "Name of the remote to link to.")
+(defcustom git-link-default-remote nil
+  "Name of the remote to link to."
+  :group 'git-link)
 
-(defvar git-link-default-branch nil
-  "Name of the branch to link to.")
+(defcustom git-link-default-branch nil
+  "Name of the branch to link to."
+  :group 'git-link)
 
-(defvar git-link-open-in-browser nil
-  "If non-nil also open link in browser via `browse-url'.")
+(defcustom git-link-open-in-browser nil
+  "If non-nil also open link in browser via `browse-url'."
+  :type 'boolean
+  :group 'git-link)
 
-(defvar git-link-use-commit nil
-  "If non-nil use the latest commit's hash in the link instead of the branch name.")
+(defcustom git-link-use-commit nil
+  "If non-nil use the latest commit's hash in the link instead of the branch name."
+  :type 'boolean
+  :group 'git-link)
 
-(defvar git-link-remote-alist
+(defcustom git-link-remote-alist
   '(("github" git-link-github)
     ("bitbucket" git-link-bitbucket)
     ("gitorious" git-link-gitorious)
@@ -120,9 +147,11 @@ match the remote's host name and FUNCTION is used to generate a link
 to the file on remote host.
 
 As an example, \"gitlab\" will match with both \"gitlab.com\" and
-\"gitlab.example.com\".")
+\"gitlab.example.com\"."
+  :type '(alist :key-type string :value-type (group function))
+  :group 'git-link)
 
-(defvar git-link-commit-remote-alist
+(defcustom git-link-commit-remote-alist
   '(("github" git-link-commit-github)
     ("bitbucket" git-link-commit-bitbucket)
     ("gitorious" git-link-commit-gitorious)
@@ -133,7 +162,9 @@ match the remote's host name and FUNCTION is used to generate a link
 to the commit on remote host.
 
 As an example, \"gitlab\" will match with both \"gitlab.com\" and
-\"gitlab.example.com\".")
+\"gitlab.example.com\"."
+  :type '(alist :key-type string :value-type (group function))
+  :group 'git-link)
 
 ;; Matches traditional URL and scp style:
 ;; https://example.com/ruby/ruby.git
@@ -216,7 +247,19 @@ Return nil,
 (defun git-link--relative-filename ()
   (let* ((filename (buffer-file-name))
 	 (dir      (git-link--repo-root)))
-    (if (and dir filename)
+
+    (when (and (null filename)
+               (or (eq major-mode 'dired-mode)
+                   (and
+                    (string-match-p "^magit-" (symbol-name major-mode))
+                    (functionp 'magit-file-at-point))))
+
+      (setq filename (or (dired-file-name-at-point)
+                         (magit-file-at-point))))
+
+    (if (and dir filename
+             ;; Make sure filename is not above dir, e.g. "/foo/repo-root/.."
+             (< (length dir) (length (file-truename filename))))
 	(substring (file-truename filename)
 		   (1+ (length dir))))))
 
@@ -281,24 +324,28 @@ Return nil,
     (browse-url link)))
 
 (defun git-link-gitlab (hostname dirname filename branch commit start end)
-  (format "https://%s/%s/blob/%s/%s#%s"
+  (format "https://%s/%s/blob/%s/%s"
 	  hostname
 	  dirname
 	  (or branch commit)
-	  filename
-	  (if end
-	      (format "L%s-%s" start end)
-	    (format "L%s" start))))
+          (concat filename
+                  (when start
+                    (concat "#"
+                            (if end
+                                (format "L%s-%s" start end)
+                              (format "L%s" start)))))))
 
 (defun git-link-github (hostname dirname filename branch commit start end)
-  (format "https://%s/%s/blob/%s/%s#%s"
+  (format "https://%s/%s/blob/%s/%s"
 	  hostname
 	  dirname
 	  (or branch commit)
-	  filename
-	  (if end
-	      (format "L%s-L%s" start end)
-	    (format "L%s" start))))
+	  (concat filename
+                  (when start
+                    (concat "#"
+                            (if end
+                                (format "L%s-L%s" start end)
+                              (format "L%s" start)))))))
 
 (defun git-link-commit-github (hostname dirname commit)
   (format "https://%s/%s/commit/%s"
@@ -322,15 +369,19 @@ Return nil,
 
 (defun git-link-bitbucket (hostname dirname filename _branch commit start end)
   ;; ?at=branch-name
-  (format "https://%s/%s/src/%s/%s#%s-%s"
-	  hostname
-	  dirname
-	  commit
-	  filename
-	  (file-name-nondirectory filename)
-	  (if end
-	      (format "%s:%s" start end)
-	    start)))
+  (format "https://%s/%s/src/%s/%s"
+          hostname
+          dirname
+          commit
+          (if (string-blank-p (file-name-nondirectory filename))
+              filename
+            (concat filename
+                    "#"
+                    (file-name-nondirectory filename)
+                    (when start
+                      (if end
+                          (format "-%s:%s" start end)
+                        (format "-%s" start)))))))
 
 (defun git-link-commit-bitbucket (hostname dirname commit)
   ;; ?at=branch-name
@@ -354,7 +405,7 @@ or active region. The URL will be added to the kill ring. If
 With a prefix argument prompt for the remote's name.
 Defaults to \"origin\"."
   (interactive (let* ((remote (git-link--select-remote))
-                      (region (git-link--get-region)))
+                      (region (when buffer-file-name (git-link--get-region))))
                  (list remote (car region) (cadr region))))
   (let* ((remote-host (git-link--remote-host remote))
 	 (filename (git-link--relative-filename))
@@ -362,7 +413,7 @@ Defaults to \"origin\"."
 	 (commit (git-link--commit))
 	 (handler (git-link--handler git-link-remote-alist remote-host)))
     (cond ((null filename)
-	   (message "Not in a git repository with a working tree"))
+	   (message "Can't figure out what to link to"))
 	  ((null remote-host)
 	   (message "Remote `%s' is unknown or contains an unsupported URL" remote))
 	  ((not (functionp handler))
@@ -404,7 +455,7 @@ Defaults to \"origin\"."
 	    (funcall handler
 		     remote-host
 		     (git-link--remote-dir remote)
-		     commit))))))
+		     (substring-no-properties commit)))))))
 
 ;;;###autoload
 (defun git-link-homepage (remote)

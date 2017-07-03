@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "git-link" "git-link.el" (0 0 0 0))
+;;;### (autoloads nil "git-link" "git-link.el" (22873 40313 0 0))
 ;;; Generated autoloads from git-link.el
 
 (autoload 'git-link "git-link" "\
@@ -33,8 +33,6 @@ The URL will be added to the kill ring.  If `git-link-open-in-browser'
 is non-nil also call `browse-url'.
 
 \(fn REMOTE)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "git-link" '("git-link-")))
 
 ;;;***
 
