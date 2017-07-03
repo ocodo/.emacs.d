@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "sudo-edit" "sudo-edit.el" (0 0 0 0))
+;;;### (autoloads nil "sudo-edit" "sudo-edit.el" (22873 40513 0 0))
 ;;; Generated autoloads from sudo-edit.el
 
 (autoload 'sudo-edit "sudo-edit" "\
@@ -13,8 +13,6 @@ With a prefix ARG prompt for a file to visit.  Will also prompt
 for a file to visit if current buffer is not visiting a file.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "sudo-edit" '("sudo-edit-")))
 
 ;;;***
 
