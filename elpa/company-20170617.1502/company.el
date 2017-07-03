@@ -341,7 +341,7 @@ of the following:
 `prefix': The backend should return the text to be completed.  It must be
 text immediately before point.  Returning nil from this command passes
 control to the next backend.  The function should return `stop' if it
-should complete but cannot (e.g. if it is in the middle of a string).
+should complete but cannot (e.g. when in the middle of a symbol).
 Instead of a string, the backend may return a cons (PREFIX . LENGTH)
 where LENGTH is a number used in place of PREFIX's length when
 comparing against `company-minimum-prefix-length'.  LENGTH can also
@@ -1509,8 +1509,9 @@ prefix match (same case) will be prioritized."
       (setq company-prefix new-prefix)
       (company-update-candidates c)
       c)
-     ((company-auto-complete-p (buffer-substring-no-properties
-                                (point) company-point))
+     ((and (> (point) company-point)
+           (company-auto-complete-p (buffer-substring-no-properties
+                                     (point) company-point)))
       ;; auto-complete
       (save-excursion
         (goto-char company-point)
@@ -2339,6 +2340,7 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
   "Pop a buffer with information about completions at point."
   (interactive)
   (let* ((bb company-backends)
+         (mode (symbol-name major-mode))
          backend
          (prefix (cl-loop for b in bb
                           thereis (let ((company-backend b))
@@ -2363,6 +2365,8 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
     (insert "company-backends: " (pp-to-string bb))
     (insert "\n")
     (insert "Used backend: " (pp-to-string backend))
+    (insert "\n")
+    (insert "Major mode: " mode)
     (insert "\n")
     (insert "Prefix: " (pp-to-string prefix))
     (insert "\n")
@@ -2567,11 +2571,6 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
   (concat (company-safe-substring old 0 offset)
           new
           (company-safe-substring old (+ offset (length new)))))
-
-(defsubst company--length-limit (lst limit)
-  (if (nthcdr limit lst)
-      limit
-    (length lst)))
 
 (defsubst company--window-height ()
   (if (fboundp 'window-screen-lines)
