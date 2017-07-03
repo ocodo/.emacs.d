@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "alert" "alert.el" (0 0 0 0))
+;;;### (autoloads nil "alert" "alert.el" (22873 40174 0 0))
 ;;; Generated autoloads from alert.el
 
 (autoload 'alert-add-rule "alert" "\
@@ -81,8 +81,6 @@ Here are some more typical examples of usage:
          :category \\='some-category-or-other)
 
 \(fn MESSAGE &key (severity (quote normal)) TITLE ICON CATEGORY BUFFER MODE DATA STYLE PERSISTENT NEVER-PERSIST)" nil nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "alert" '("alert-")))
 
 ;;;***
 
