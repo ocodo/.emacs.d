@@ -3,7 +3,7 @@
 ;; Author: Sarah Iovan <sarah@hwaetageek.com>
 ;;         Campbell Barton <ideasman42@gmail.com>
 ;; URL: https://github.com/ideasman42/emacs-inkpot-theme
-;; Package-Version: 20170413.120
+;; Package-Version: 20170602.1000
 ;; Version: 0.1
 ;; Keywords: color, theme
 
@@ -28,6 +28,19 @@
 ;; The original emacs color-theme version is found at http://www.emacswiki.org/emacs/ColorThemeInkpot.
 
 ;;; Code:
+
+;; Colors from original Vim theme (for reference)
+;; as of https://github.com/ciaranm/inkpot (Feb 11, 2013)
+;; #000000 #00ff8b #1e1e27 #2e2e2e #2e2e37 #2e2e3f
+;; #303030 #306b8f #306d30 #3b205d #3e3e5e #404040
+;; #409090 #4a2a4a #4b208f #4e4e8f #66cccc #6d3030
+;; #6e2e2e #6e6eaf #7070a0 #7e7eae #808bed #8b8bcd
+;; #8b8bff #8fff8b #ad600b #ad7b20 #ad7b57 #af4f4b
+;; #b9b9b9 #c080d0 #cc6666 #cc66cc #cccc66 #cd8b00
+;; #cd8b60 #ce4e4e #ce8e4e #cfbfad #cfcfcd #d0a060
+;; #df9f2d #eeeeee #f0ad6d #fdab60 #fdd090 #ff8bff
+;; #ffcd00 #ffcd8b #ffffcd #ffffff
+
 
 (deftheme inkpot "Dark color scheme with bright easily identifiable colors.")
 
@@ -213,7 +226,7 @@
  '(neo-banner-face ((t (:foreground "#cd8b00"))))
  '(neo-header-face ((t (:foreground "#cd8b00"))))
  '(neo-root-dir-face ((t (:foreground "#808bed"))))
- '(neo-dir-link-face ((t (:foreground "#808bed"))))
+ '(neo-dir-link-face ((t (:foreground "#00ff8b"))))
  '(neo-expand-btn-face ((t (:foreground "#808bed"))))
  '(neo-file-link-face ((t (:foreground "#cfbfad"))))
 
