@@ -8,10 +8,10 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;;         Kyle Hargraves <pd@krh.me>
 ;; URL: http://github.com/nonsequitur/inf-ruby
-;; Package-Version: 20170212.1444
+;; Package-Version: 20170615.335
 ;; Created: 8 April 1998
 ;; Keywords: languages ruby
-;; Version: 2.5.0
+;; Version: 2.5.1
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -105,7 +105,7 @@ Also see the description of `ielm-prompt-read-only'."
 If the value is not a string, ask the user to choose from the
 available ones.  Otherwise, just use the value.
 
-Currently only affects `inf-ruby-console-rails'."
+Currently only affects Rails and Hanami consoles."
   :type '(choice
           (const ask :tag "Ask the user")
           (string :tag "Environment name")))
@@ -709,6 +709,8 @@ keymaps to bind `inf-ruby-switch-from-compilation' to `С-x C-q'."
 (defvar inf-ruby-console-patterns-alist
   '((".zeus.sock" . zeus)
     (inf-ruby-console-rails-p . rails)
+    (inf-ruby-console-hanami-p . hanami)
+    (inf-ruby-console-script-p . script)
     ("*.gemspec" . gem)
     (inf-ruby-console-racksh-p . racksh)
     ("Gemfile" . default))
@@ -756,10 +758,10 @@ automatically."
   (or
    (let ((predicate (car (rassq type inf-ruby-console-patterns-alist))))
      (locate-dominating-file (read-directory-name "" nil nil t)
-                             (if (stringp predicate)
-                                 predicate
-                               (lambda (dir)
-                                 (let ((default-directory dir))
+                             (lambda (dir)
+                               (let ((default-directory dir))
+                                 (if (stringp predicate)
+                                     (file-expand-wildcards predicate)
                                    (funcall predicate))))))
    (error "No matching directory for %s console found"
           (capitalize (symbol-name type)))))
@@ -804,6 +806,32 @@ automatically."
         (error "No files in %s" (expand-file-name "config/environments/"))
       (mapcar #'file-name-base files))))
 
+(defun inf-ruby-console-hanami-p ()
+  (and (file-exists-p "config.ru")
+       (inf-ruby-file-contents-match "config.ru" "\\_<run Hanami.app\\_>")))
+
+(defun inf-ruby-console-hanami (dir)
+  "Run Hanami console in DIR."
+  (interactive (list (inf-ruby-console-read-directory 'hanami)))
+  (let* ((default-directory (file-name-as-directory dir))
+         (env (inf-ruby-console-hanami-env))
+         (with-bundler (file-exists-p "Gemfile"))
+         (process-environment (cons (format "HANAMI_ENV=%s" env)
+                                    process-environment)))
+    (inf-ruby-console-run
+     (concat (when with-bundler "bundle exec ")
+             "hanami console")
+     "hanami")))
+
+(defun inf-ruby-console-hanami-env ()
+  (if (stringp inf-ruby-console-environment)
+      inf-ruby-console-environment
+    (let ((envs '("development" "test" "production")))
+      (completing-read "Hanami environment: "
+                       envs
+                       nil t
+                       nil nil (car (member "development" envs))))))
+
 ;;;###autoload
 (defun inf-ruby-console-gem (dir)
   "Run IRB console for the gem in DIR.
@@ -839,7 +867,9 @@ Gemfile, it should use the `gemspec' instruction."
                  (concat " -r " (file-name-sans-extension file)))
                files
                ""))))
-    (inf-ruby-console-run (concat base-command args) "gem")))
+    (inf-ruby-console-run (concat base-command args
+                                  " -r irb/completion")
+                          "gem")))
 
 (defun inf-ruby-console-racksh-p ()
   (and (file-exists-p "Gemfile.lock")
@@ -885,18 +915,34 @@ Gemfile, it should use the `gemspec' instruction."
   (interactive)
   (remove-hook 'compilation-filter-hook 'inf-ruby-auto-enter))
 
+(defun inf-ruby-console-script-p ()
+  (and (file-exists-p "Gemfile.lock")
+       (or
+        (file-exists-p "bin/console")
+        (file-exists-p "console")
+        (file-exists-p "console.rb"))))
+
+;;;###autoload
+(defun inf-ruby-console-script (dir)
+  "Run custom bin/console, console or console.rb in DIR."
+  (interactive (list (inf-ruby-console-read-directory 'script)))
+  (let ((default-directory (file-name-as-directory dir)))
+    (cond
+     ((file-exists-p "bin/console")
+      (inf-ruby-console-run "bundle exec bin/console" "bin/console"))
+     ((file-exists-p "console.rb")
+      (inf-ruby-console-run "bundle exec ruby console.rb" "console.rb"))
+     ((file-exists-p "console")
+      (inf-ruby-console-run "bundle exec console" "console.rb")))))
+
 ;;;###autoload
 (defun inf-ruby-console-default (dir)
-  "Run custom console.rb, Pry, or bundle console, in DIR."
+  "Run Pry, or bundle console, in DIR."
   (interactive (list (inf-ruby-console-read-directory 'default)))
   (let ((default-directory (file-name-as-directory dir)))
     (unless (file-exists-p "Gemfile")
       (error "The directory must contain a Gemfile"))
     (cond
-     ((file-exists-p "console.rb")
-      (inf-ruby-console-run "bundle exec ruby console.rb" "console.rb"))
-     ((file-executable-p "console")
-      (inf-ruby-console-run "bundle exec console" "console.rb"))
      ((inf-ruby-file-contents-match "Gemfile" "[\"']pry[\"']")
       (inf-ruby-console-run "bundle exec pry" "pry"))
      (t
