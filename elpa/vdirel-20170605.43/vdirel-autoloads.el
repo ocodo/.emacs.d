@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "vdirel" "vdirel.el" (0 0 0 0))
+;;;### (autoloads nil "vdirel" "vdirel.el" (22873 40553 0 0))
 ;;; Generated autoloads from vdirel.el
 
 (autoload 'vdirel-switch-repository "vdirel" "\
@@ -25,8 +25,6 @@ without further argument.
 Let user choose an email address from (REFRESH'ed) REPOSITORY.
 
 \(fn &optional REFRESH REPOSITORY)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "vdirel" '("vdirel-")))
 
 ;;;***
 

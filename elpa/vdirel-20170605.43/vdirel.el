@@ -4,11 +4,10 @@
 
 ;; Author: Damien Cassou <damien@cassou.me>
 ;; Version: 0.1.0
-;; Package-Version: 20161009.224
+;; Package-Version: 20170605.43
 ;; GIT: https://github.com/DamienCassou/vdirel
 ;; Package-Requires: ((emacs "24.4") (org-vcard "0.1.0") (helm "1.7.0") (seq "1.11"))
 ;; Created: 09 Dec 2015
-;; Keywords: vdirsyncer vdir vCard carddav contact addressbook helm
 
 ;; This file is not part of GNU Emacs.
 
@@ -96,7 +95,7 @@ Return nil if PROPERTY is not in CONTACT."
 
 (defun vdirel--repository ()
   "Return the path to the vdir folder.
-This is an expantion of the variable `vdirel-repository'."
+This is an expansion of the variable `vdirel-repository'."
   (expand-file-name vdirel-repository))
 
 ;;;###autoload
@@ -226,4 +225,4 @@ CANDIDATE is ignored."
 
 ;;; vdirel.el ends here
 
-;;  LocalWords:  vCard
+;;  LocalWords:  vCard alist vdirsyncer
