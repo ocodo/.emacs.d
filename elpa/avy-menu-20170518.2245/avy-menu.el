@@ -1,11 +1,11 @@
 ;;; avy-menu.el --- Library providing avy-powered popup menu -*- lexical-binding: t; -*-
 ;;
-;; Copyright © 2016–2017 Mark Karpov <markkarpov@openmailbox.org>
+;; Copyright © 2016–2017 Mark Karpov <markkarpov92@gmail.com>
 ;;
-;; Author: Mark Karpov <markkarpov@openmailbox.org>
+;; Author: Mark Karpov <markkarpov92@gmail.com>
 ;; URL: https://github.com/mrkkrp/avy-menu
-;; Package-Version: 20161231.1554
-;; Version: 0.1.0
+;; Package-Version: 20170518.2245
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "24.3") (avy "0.3.0"))
 ;; Keywords: popup, menu
 ;;
@@ -27,10 +27,12 @@
 ;;; Commentary:
 
 ;; The library provides Avy-powered popup menu that allows to quickly choose
-;; from available options.  This is used in the following packages:
+;; from available options.  This is used in (at least) the following
+;; packages:
 ;;
 ;; * `ace-popup-menu'
 ;; * `char-menu'
+;; * `hasky-extensions'
 ;;
 ;; You can use it directly for your custom needs as well.
 
@@ -60,15 +62,15 @@
 
 ;;;###autoload
 (defun avy-menu (buffer-or-name menu &optional show-pane-header)
-  "Show popup menu in a temporary window and return user's selection.
+  "Show a popup menu in a temporary window and return user's selection.
 
 BUFFER-OR-NAME specifies name of the buffer (or buffer itself)
 that hosts menu options.  MENU itself should be a list of the
 form (TITLE PANE1 PANE2 …), where each pane is a list of
 form (TITLE ITEM1 ITEM2 …).  Each item is normally a cons
-cell (STRING . VALUE), but a string can appear as an item — that
+cell (STRING . VALUE), but a string can appear as an item—that
 makes a non-selectable item in the menu.  Also, empty strings
-start new sub-section.
+start a new sub-section.
 
 If SHOW-PANE-HEADER is not NIL, show pane headers (titles),
 otherwise hide them.
