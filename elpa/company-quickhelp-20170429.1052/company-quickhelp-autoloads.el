@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "company-quickhelp" "company-quickhelp.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (22873 40224 0 0))
 ;;; Generated autoloads from company-quickhelp.el
 
 (autoload 'company-quickhelp-local-mode "company-quickhelp" "\
@@ -33,8 +33,6 @@ Company-Quickhelp-Local mode is enabled in all buffers where
 See `company-quickhelp-local-mode' for more information on Company-Quickhelp-Local mode.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-quickhelp" '("company-quickhelp-")))
 
 ;;;***
 
