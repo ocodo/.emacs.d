@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "plain-theme" "plain-theme.el" (22653 62677
-;;;;;;  661193 461000))
+;;;### (autoloads nil "plain-theme" "plain-theme.el" (22873 40481
+;;;;;;  0 0))
 ;;; Generated autoloads from plain-theme.el
 
 (when load-file-name (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
