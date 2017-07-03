@@ -1,10 +1,11 @@
-;;; smartparens-javascript.el --- Additional configuration for JavaScript based modes.
+;;; smartparens-markdown.el --- Additional configuration for Markdown based modes.
 
-;; Copyright (c) 2017 Marinin Tim
-;; Author: Tim Marinin <mt@marinin.xyz>
-;; Maintainer: Tim Marinin <mt@marinin.xyz>
-;; Created: 2017-03-03
-;; Keywords: abbrev convenience editing javascript
+;; Copyright (C) 2017 Matus Goljer
+
+;; Author: Matus Goljer <matus.goljer@gmail.com>
+;; Maintainer: Matus Goljer <matus.goljer@gmail.com>
+;; Created: 11th May 2017
+;; Keywords: abbrev convenience editing
 ;; URL: https://github.com/Fuco1/smartparens
 
 ;; This file is not part of GNU Emacs.
@@ -28,10 +29,10 @@
 
 ;;; Commentary:
 
-;; This file provides some additional configuration for JavaScript based
+;; This file provides some additional configuration for Markdown based
 ;; modes.  To use it, simply add:
 ;;
-;; (require 'smartparens-javascript)
+;; (require 'smartparens-markdown)
 ;;
 ;; into your configuration.  You can use this in conjunction with the
 ;; default config or your own configuration.
@@ -45,11 +46,21 @@
 ;;; Code:
 
 (require 'smartparens)
+(require 'markdown-mode)
 
-;; (|sys).path.append---the dot should not travel with the closing
-;; paren
-(--each '(js-mode javascript-mode js2-mode)
-  (add-to-list 'sp-sexp-suffix (list it 'regexp "")))
 
-(provide 'smartparens-javascript)
-;;; smartparens-javasript.el ends here
+(defun sp-gfm-electric-backquote-p (_id action _context)
+  "Do not insert ```...``` pair if that would be handled by `markdown-electric-backquote'."
+  (and (eq action 'insert)
+       markdown-gfm-use-electric-backquote
+       (sp--looking-back-p "^```")))
+
+(sp-with-modes 'markdown-mode
+  (sp-local-pair "```" "```"))
+
+(sp-with-modes 'gfm-mode
+  (sp-local-pair "`" "`" :unless '(:add sp-gfm-electric-backquote-p))
+  (sp-local-pair "```" "```" :unless '(:add sp-gfm-electric-backquote-p)))
+
+(provide 'smartparens-markdown)
+;;; smartparens-markdown.el ends here

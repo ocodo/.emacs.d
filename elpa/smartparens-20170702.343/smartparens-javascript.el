@@ -1,11 +1,10 @@
-;;; smartparens-scala.el --- Additional configuration for Scala based modes.
+;;; smartparens-javascript.el --- Additional configuration for JavaScript based modes.
 
-;; Copyright (C) 2015 Greg Nwosu
-
-;; Author: Greg Nwosu <greg.nwosu@gmail.com>
-;; Maintainer: Greg Nwosu <greg.nwosu@gmail.com>
-;; Created: 8 July 2015
-;; Keywords: abbrev convenience editing
+;; Copyright (c) 2017 Marinin Tim
+;; Author: Tim Marinin <mt@marinin.xyz>
+;; Maintainer: Tim Marinin <mt@marinin.xyz>
+;; Created: 2017-03-03
+;; Keywords: abbrev convenience editing javascript
 ;; URL: https://github.com/Fuco1/smartparens
 
 ;; This file is not part of GNU Emacs.
@@ -29,10 +28,10 @@
 
 ;;; Commentary:
 
-;; This file provides some additional configuration for Scala based
+;; This file provides some additional configuration for JavaScript based
 ;; modes.  To use it, simply add:
 ;;
-;; (require 'smartparens-scala)
+;; (require 'smartparens-javascript)
 ;;
 ;; into your configuration.  You can use this in conjunction with the
 ;; default config or your own configuration.
@@ -47,11 +46,10 @@
 
 (require 'smartparens)
 
-;; Scala has no sexp suffices.  This fixes slurping
-;; import scala.mutable{|} ListBuffer, Set ---the comma should not travel with the closing
+;; (|sys).path.append---the dot should not travel with the closing
 ;; paren
-(--each '(scala-mode inferior-scala-mode)
+(--each '(js-mode javascript-mode js2-mode typescript-mode)
   (add-to-list 'sp-sexp-suffix (list it 'regexp "")))
 
-(provide 'smartparens-scala)
-;;; smartparens-scala.el ends here
+(provide 'smartparens-javascript)
+;;; smartparens-javasript.el ends here
