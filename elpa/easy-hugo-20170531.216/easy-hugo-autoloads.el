@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "easy-hugo" "easy-hugo.el" (0 0 0 0))
+;;;### (autoloads nil "easy-hugo" "easy-hugo.el" (22873 40250 0 0))
 ;;; Generated autoloads from easy-hugo.el
 
 (autoload 'easy-hugo-article "easy-hugo" "\
@@ -18,7 +18,7 @@ Adapt local change to the server with hugo.
 
 (autoload 'easy-hugo-newpost "easy-hugo" "\
 Create a new post with hugo.
-POST-FILE needs to have and extension '.md' or '.org'.
+POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mmark' or '.html'.
 
 \(fn POST-FILE)" t nil)
 
@@ -27,8 +27,28 @@ Preview hugo at localhost.
 
 \(fn)" t nil)
 
-(autoload 'easy-hugo-deploy "easy-hugo" "\
+(autoload 'easy-hugo-github-deploy "easy-hugo" "\
 Execute deploy.sh script locate at 'easy-hugo-basedir'.
+
+\(fn)" t nil)
+
+(autoload 'easy-hugo-amazon-s3-deploy "easy-hugo" "\
+Deploy hugo source at Amazon S3.
+
+\(fn)" t nil)
+
+(autoload 'easy-hugo-google-cloud-storage-deploy "easy-hugo" "\
+Deploy hugo source at Google Cloud Storage.
+
+\(fn)" t nil)
+
+(autoload 'easy-hugo-helm-ag "easy-hugo" "\
+Search for blog article with helm-ag.
+
+\(fn)" t nil)
+
+(autoload 'easy-hugo-open-config "easy-hugo" "\
+Open Hugo's config file.
 
 \(fn)" t nil)
 
@@ -36,8 +56,6 @@ Execute deploy.sh script locate at 'easy-hugo-basedir'.
 Easy hugo.
 
 \(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "easy-hugo" '("easy-hugo-")))
 
 ;;;***
 
