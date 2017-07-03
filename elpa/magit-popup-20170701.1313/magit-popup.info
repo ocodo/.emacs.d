@@ -1,11 +1,6 @@
 This is magit-popup.info, produced by makeinfo version 5.2 from
 magit-popup.texi.
 
-Taking inspiration from regular prefix commands and prefix arguments,
-this library implements a similar abstraction; a new kind of prefix
-command that is associated with a specific set of infix arguments and
-suffix commands.
-
      Copyright (C) 2015-2017 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
@@ -217,8 +212,7 @@ popup buffer.
 
    It is also possible to add additional arguments and commands to an
 existing popup, but that cannot be done directly from the popup (or the
-Custom interface).  See *note Customizing Existing Popups: Customizing
-Existing Popups.
+Custom interface).  See *note Customizing Existing Popups::.
 
    Documentation about a popup’s arguments and commands can be shown
 directly from the popup.
@@ -376,9 +370,9 @@ to an existing popup using the following functions.
      which is to be unbound.
 
    It is also possible to change other aspects of a popup by setting a
-property using ‘plist-put’.  See *note Defining Prefix Commands:
-Defining Prefix Commands. for valid properties.  The most likely change
-Magit users might want to make is:
+property using ‘plist-put’.  See *note Defining Prefix Commands:: for
+valid properties.  The most likely change Magit users might want to make
+is:
 
      (plist-put magit-show-refs-popup :use-prefix nil)
 
@@ -409,8 +403,7 @@ File: magit-popup.info,  Node: Other Options,  Prev: Customizing Existing Popups
      This option can be overridden for individual popups.
      ‘magit-show-refs-popup’ for example defaults to invoking the
      default action directly.  It only shows the popup buffer when a
-     prefix argument is used.  See *note Customizing Existing Popups:
-     Customizing Existing Popups.
+     prefix argument is used.  See *note Customizing Existing Popups::.
 
  -- User Option: magit-popup-manpage-package
 
@@ -692,14 +685,14 @@ directly.
 
 
 Tag Table:
-Node: Top994
-Node: Introduction2170
-Node: Usage4870
-Node: Customizing Existing Popups9594
-Node: Other Options15122
-Node: Defining Prefix and Suffix Commands16696
-Node: Defining Prefix Commands18848
-Node: Defining Suffix Commands25823
+Node: Top768
+Node: Introduction1944
+Node: Usage4644
+Node: Customizing Existing Popups9341
+Node: Other Options14844
+Node: Defining Prefix and Suffix Commands16386
+Node: Defining Prefix Commands18538
+Node: Defining Suffix Commands25513
 
 End Tag Table
 
