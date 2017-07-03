@@ -7,12 +7,11 @@
   (case command
     (interactive (company-begin-backend 'company-robe))
     (prefix (and (boundp 'robe-mode)
-                 robe-mode robe-running
+                 robe-mode (robe-running-p)
                  (company-robe--prefix)))
     (candidates (robe-complete-thing arg))
     (duplicates t)
-    (meta (let ((spec (car (robe-cached-specs arg))))
-            (when spec (robe-signature spec))))
+    (meta (company-robe--meta arg))
     (location (let ((spec (company-robe--choose-spec arg)))
                 (cons (robe-spec-file spec)
                       (robe-spec-line spec))))
@@ -23,6 +22,12 @@
                       (robe-show-doc spec)
                       (message nil)
                       (get-buffer "*robe-doc*")))))))
+
+(defun company-robe--meta (completion)
+  (or
+   (get-text-property 0 'robe-type completion)
+   (let ((spec (car (robe-cached-specs completion))))
+     (when spec (robe-signature spec)))))
 
 (defun company-robe--prefix ()
   (let ((bounds (robe-complete-bounds)))
@@ -35,7 +40,7 @@
   (let ((specs (robe-cached-specs thing)))
     (when specs
       (if (cdr specs)
-          (let ((alist (loop for spec in specs
+          (let ((alist (cl-loop for spec in specs
                              for module = (robe-spec-module spec)
                              when module
                              collect (cons module spec))))
