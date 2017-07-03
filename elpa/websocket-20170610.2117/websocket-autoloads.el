@@ -3,10 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "websocket" "websocket.el" (0 0 0 0))
-;;; Generated autoloads from websocket.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "websocket" '("websocket")))
+;;;### (autoloads nil nil ("websocket.el") (22873 40585 0 0))
 
 ;;;***
 
