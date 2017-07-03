@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (22873 40294 0 0))
 ;;; Generated autoloads from find-file-in-project.el
 
 (autoload 'ffip-diff-backend-git-show-commit "find-file-in-project" "\
@@ -139,6 +139,14 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 
 \(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
 
+(autoload 'find-file-with-similar-name "find-file-in-project" "\
+Use base name of current file as keyword which could be further stripped
+by `ffip-strip-file-name-regex'.
+
+If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
+
+\(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
+
 (autoload 'find-file-in-current-directory-by-selected "find-file-in-project" "\
 Like `find-file-in-project-by-selected'.  But search only in current directory.
 
@@ -184,11 +192,24 @@ File file(s) in current hunk.
 (autoload 'ffip-show-diff "find-file-in-project" "\
 Show the diff output by excuting selected `ffip-diff-backends'.
 NUM is the index selected backend from `ffip-diff-backends'.
-NUM is zero based.  Its default value is zero.
+NUM is zero based whose default value is zero.
 
 \(fn &optional NUM)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "find-file-in-project" '("ffip-")))
+(autoload 'ffip-show-diff-by-description "find-file-in-project" "\
+Show the diff output by excuting selected `ffip-diff-backends.
+
+\(fn)" t nil)
+
+(autoload 'ffip-diff-apply-hunk "find-file-in-project" "\
+Apply current hunk in `diff-mode'. Try to locate the file to patch
+from `recentf-list'. If nothing is found in `recentf-list', user need
+specify the file path.
+It's same as `diff-apply-hunk' except it can find file in `recentf-list'.
+So `diff-apply-hunk' can be replaced by `ffip-diff-apply-hunk'.
+Please read documenation of `diff-apply-hunk' to get more details.
+
+\(fn &optional REVERSE)" t nil)
 
 ;;;***
 

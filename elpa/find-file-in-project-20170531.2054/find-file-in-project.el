@@ -1,10 +1,10 @@
-;;; find-file-in-project.el --- Find files in a project quickly, on any OS
+;;; find-file-in-project.el --- Find file/directory and review Diff/Patch/Commit efficiently everywhere
 
 ;; Copyright (C) 2006-2009, 2011-2012, 2015, 2016, 2017
 ;;   Phil Hagelberg, Doug Alcorn, Will Farrington, Chen Bin
 ;;
-;; Version: 5.2.7
-;; Package-Version: 20170402.2100
+;; Version: 5.3.2
+;; Package-Version: 20170531.2054
 ;; Author: Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/technomancy/find-file-in-project
@@ -65,17 +65,36 @@
 ;; When file basename `helloWorld' provided, `HelloWorld', `hello-world'
 ;; are added as the file name search patterns.
 ;; `C-h v ffip-filename-rules' to see its default value.
+;; `find-file-with-similar-name' find file with similar name to current
+;; opened file. The regular expression `ffip-strip-file-name-regex' is
+;; also used by `find-file-with-similar-name'.
 ;;
-;; All these variables may be overridden on a per-directory basis in
+;; all these variables may be overridden on a per-directory basis in
 ;; your .dir-locals.el.  See (info "(Emacs) Directory Variables") for
 ;; details.
-
+;;
+;; Sample .dir-locals.el,
+;;
+;; ((nil . ((ffip-project-root . "~/projs/PROJECT_DIR")
+;;          ;; ingore files bigger than 64k and directory "dist/"
+;;          (ffip-find-options . "-not -size +64k -not -iwholename '*/dist/*'")
+;;          ;; only search files with following extensions
+;;          (ffip-patterns . ("*.html" "*.js" "*.css" "*.java" "*.xml" "*.js"))
+;;          (eval . (progn
+;;                    (require 'find-file-in-project)
+;;                    ;; ingore directory ".tox/"
+;;                    (setq ffip-prune-patterns `("*/.tox/*" ,@ffip-prune-patterns))
+;;                    ;; Do NOT ignore directory "bin/"
+;;                    (setq ffip-prune-patterns `(delete "*/bin/*" ,@ffip-prune-patterns))))
+;;          )))
+;;
 ;; To find in *current directory*, use `find-file-in-current-directory'
 ;; and `find-file-in-current-directory-by-selected'.
 
-;; `ffip-show-diff' execute the backend from `ffip-diff-backends'.
-;; The selected index is the parameter passed to `ffip-show-diff'
-;; whose default value in one.
+;; `ffip-show-diff-by-description' and `ffip-show-diff' execute the
+;; backend from `ffip-diff-backends'.
+;; `ffip-show-diff-by-description' has more friendly UI.
+;; `ffip-show-diff' has optional parameter as index of selected backend.
 ;; The output of execution is expected be in Unified Diff Format.
 ;; The output is inserted into *ffip-diff* buffer.
 ;; In the buffer, press "o/C-c C-c"/ENTER" or `M-x ffip-diff-find-file'
@@ -83,7 +102,13 @@
 ;;
 ;; `ffip-diff-find-file-before-hook' is called before `ffip-diff-find-file'.
 ;;
-;; If you use evil-mode, insert below code into ~/.emacs,
+;; `ffip-diff-apply-hunk' applies current hunk in `diff-mode' (please note
+;; `ffip-diff-mode' inherits from `diff-mode') to the target.
+;; file. The target file could be located by searching `recentf-list'.
+;; Except this extra feature, `ffip-diff-apply-hunk' is same as `diff-apply-hunk'.
+;; So `diff-apply-hunk' can be replaced by `ffip-diff-apply-hunk'.
+
+;; If you use `evil-mode', insert below code into ~/.emacs,
 ;;   (defun ffip-diff-mode-hook-setup ()
 ;;       (evil-local-set-key 'normal "K" 'diff-hunk-prev)
 ;;       (evil-local-set-key 'normal "J" 'diff-hunk-next)
@@ -136,8 +161,16 @@
     (ffip-filename-dashes-to-camelcase ffip-filename-camelcase-to-dashes))
   "Rules to create extra file names for GNU Find.")
 
+(defvar ffip-strip-file-name-regex
+  "\\(\\.mock\\|\\.test\\|\\.mockup\\)"
+  "Strip file name to get minimum keyword with this regex.
+It's used by `find-file-with-similar-name'.")
+
 (defvar ffip-diff-find-file-before-hook nil
   "Hook run before `ffip-diff-find-file' move focus out of *ffip-diff* buffer.")
+
+(defvar ffip-read-file-name-hijacked-p nil
+  "Internal flag used by `ffip-diff-apply-hunk'.")
 
 ;;;###autoload
 (defun ffip-diff-backend-git-show-commit ()
@@ -159,9 +192,9 @@
 
 (defvar ffip-diff-backends
   '(ffip-diff-backend-git-show-commit
-    "cd $(git rev-parse --show-toplevel) && git diff"
-    "cd $(git rev-parse --show-toplevel) && git diff --cached"
-    (car kill-ring)
+    ("git diff" . "cd $(git rev-parse --show-toplevel) && git diff")
+    ("git diff --cached" . "cd $(git rev-parse --show-toplevel) && git diff --cached")
+    ("Diff from `kill-ring'" . (car kill-ring))
     ffip-diff-backend-hg-show-commit
     "cd $(hg root) && hg diff"
     "svn diff")
@@ -689,6 +722,21 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
     (ffip-find-files keyword open-another-window)))
 
 ;;;###autoload
+(defun find-file-with-similar-name (&optional open-another-window)
+  "Use base name of current file as keyword which could be further stripped
+by `ffip-strip-file-name-regex'.
+
+If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
+  (interactive "P")
+  (when buffer-file-name
+    (let* ((keyword (concat (file-name-base buffer-file-name) ".*") ))
+      (if ffip-strip-file-name-regex
+          (setq keyword (replace-regexp-in-string ffip-strip-file-name-regex
+                                                  ""
+                                                  keyword)))
+      (ffip-find-files keyword open-another-window))))
+
+;;;###autoload
 (defun find-file-in-current-directory-by-selected (&optional open-another-window)
   "Like `find-file-in-project-by-selected'.  But search only in current directory."
   (interactive "P")
@@ -823,20 +871,9 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
    (t
     (message "Output is empty!"))))
 
-;;;###autoload
-(defun ffip-show-diff (&optional num)
-  "Show the diff output by excuting selected `ffip-diff-backends'.
-NUM is the index selected backend from `ffip-diff-backends'.
-NUM is zero based.  Its default value is zero."
-  (interactive "P")
-  (cond
-   ((or (not num) (< num 0))
-    (setq num 0))
-   ((> num (length ffip-diff-backends))
-    (setq num (1- (length ffip-diff-backends)))))
 
-  (let* ((backend (nth num ffip-diff-backends)))
-    (if backend
+(defun ffip-diff-execute-backend (backend)
+  (if backend
       (cond
        ;; shell command
        ((stringp backend)
@@ -846,7 +883,87 @@ NUM is zero based.  Its default value is zero."
         (ffip-show-content-in-diff-mode (funcall backend)))
        ;; lisp exipression
        ((consp backend)
-        (ffip-show-content-in-diff-mode (funcall `(lambda () ,backend))))))))
+        (ffip-show-content-in-diff-mode (funcall `(lambda () ,backend)))))))
+
+(defun ffip-backend-description (backend)
+  (let* (rlt)
+    (cond
+     ;; shell command
+     ((stringp backend)
+      (setq rlt backend))
+     ;; command
+     ((functionp backend)
+      (setq rlt (symbol-name backend)))
+     ;; lisp exipression
+     ((consp backend)
+      ;; (cons "description" actual-backend)
+      (if (stringp (car backend))
+          (setq rlt (car backend))
+        (setq rlt "unknown"))))
+    rlt))
+
+;;;###autoload
+(defun ffip-show-diff (&optional num)
+  "Show the diff output by excuting selected `ffip-diff-backends'.
+NUM is the index selected backend from `ffip-diff-backends'.
+NUM is zero based whose default value is zero."
+  (interactive "P")
+  (cond
+   ((or (not num) (< num 0))
+    (setq num 0))
+   ((> num (length ffip-diff-backends))
+    (setq num (1- (length ffip-diff-backends)))))
+
+  (let* ((backend (nth num ffip-diff-backends)))
+    (if (and (consp backend)
+             (stringp (car backend)))
+        (setq backend (cdr backend)))
+    (ffip-diff-execute-backend backend)))
+
+;;;###autoload
+(defun ffip-show-diff-by-description ()
+  "Show the diff output by excuting selected `ffip-diff-backends. "
+  (interactive)
+  (let* (descriptions
+         (i 0))
+    ;; format backend descriptions
+    (dolist (b ffip-diff-backends)
+      (add-to-list 'descriptions
+                   (format "%s: %s"
+                           i
+                           (ffip-backend-description b)) t)
+      (setq i (+ 1 i)))
+    (ffip-completing-read
+     "Run diff backend:"
+     descriptions
+     `(lambda (d)
+        (if (string-match "^\\([0-9]+\\): " d)
+            (ffip-show-diff (string-to-number (match-string 1 d))))))))
+
+;;;###autoload
+(defun ffip-diff-apply-hunk (&optional reverse)
+  "Apply current hunk in `diff-mode'. Try to locate the file to patch
+from `recentf-list'. If nothing is found in `recentf-list', user need
+specify the file path.
+It's same as `diff-apply-hunk' except it can find file in `recentf-list'.
+So `diff-apply-hunk' can be replaced by `ffip-diff-apply-hunk'.
+Please read documenation of `diff-apply-hunk' to get more details."
+  (interactive "P")
+  (unless recentf-mode (recentf-mode 1))
+  (setq ffip-read-file-name-hijacked-p t)
+  (defadvice read-file-name (around ffip-read-file-name-hack activate)
+    (cond
+     (ffip-read-file-name-hijacked-p
+      (let* ((args (ad-get-args 0))
+             (file-name (file-name-nondirectory (nth 2 args)))
+             (cands (remove nil (mapcar (lambda (s) (if (string-match-p (format "%s$" file-name) s) s))
+                                        (mapcar #'substring-no-properties recentf-list))))
+             (rlt (ivy-read "Recentf: " cands)))
+        (if rlt (setq ad-return-value rlt) rlt ad-doit)))
+     (t
+      ad-do-it)))
+  (diff-apply-hunk reverse)
+  (setq ffip-read-file-name-hijacked-p nil))
 
 ;; safe locals
 (progn
@@ -856,6 +973,7 @@ NUM is zero based.  Its default value is zero."
   (put 'ffip-filename-rules 'safe-local-variable 'listp)
   (put 'ffip-match-path-instead-of-filename 'safe-local-variable 'booleanp)
   (put 'ffip-project-file 'safe-local-variable 'stringp)
+  (put 'ffip-strip-file-name-regex 'safe-local-variable 'stringp)
   (put 'ffip-project-root 'safe-local-variable 'stringp))
 
 (provide 'find-file-in-project)
