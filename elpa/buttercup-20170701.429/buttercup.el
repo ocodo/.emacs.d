@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2015  Jorgen Schaefer <contact@jorgenschaefer.de>
 
-;; Version: 1.6
+;; Version: 1.7
 ;; Author: Jorgen Schaefer <contact@jorgenschaefer.de>
 
 ;; This program is free software; you can redistribute it and/or
@@ -39,7 +39,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 (require 'buttercup-compat)
 
 ;;;;;;;;;;
@@ -162,7 +162,8 @@ MATCHER is either a matcher defined with
     (cons nil (format "Expected %S to `equal' %S" a b))))
 
 (buttercup-define-matcher :to-have-same-items-as (a b)
-  (if (cl-every (lambda (x) (member x b)) a)
+  (if (and (cl-subsetp a b :test #'equal)
+           (cl-subsetp b a :test #'equal))
       (cons t (format "Expected %S not to have same items as %S" a b))
     (cons nil (format "Expected %S to have same items as %S" a b))))
 
@@ -563,7 +564,7 @@ KEYWORD can have one of the following values:
 
 (defvar buttercup--cleanup-functions nil)
 
-(defmacro buttercup--with-cleanup (&rest body)
+(defmacro buttercup-with-cleanup (&rest body)
   `(let ((buttercup--cleanup-functions nil))
      (unwind-protect (progn ,@body)
        (dolist (fun buttercup--cleanup-functions)
@@ -615,6 +616,18 @@ KEYWORD can have one of the following values:
                                ", "))))
      (t
       t))))
+
+(buttercup-define-matcher :to-have-been-called-times (spy number)
+  (let* ((call-count (length (spy-calls-all spy))))
+    (cond
+     ((= number call-count)
+      t)
+     (t
+      (cons nil
+            (format "Expected `%s' to have been called %s %s, but it was called %s %s"
+                    spy
+                    number (if (= number 1) "time" "times")
+                    call-count (if (= call-count 1) "time" "times")))))))
 
 (defun spy-calls-any (spy)
   "Return t iff SPY has been called at all, nil otherwise."
@@ -764,7 +777,7 @@ Do not change the global value.")
 
 (defun buttercup--run-spec (spec)
   (funcall buttercup-reporter 'spec-started spec)
-  (buttercup--with-cleanup
+  (buttercup-with-cleanup
    (dolist (f buttercup--before-each)
      (buttercup--update-with-funcall spec f))
    (buttercup--update-with-funcall spec (buttercup-spec-function spec))
@@ -1108,6 +1121,30 @@ failed -- The second value is the description of the expectation
       (setq n (1+ n)
             frame (backtrace-frame n)))
     frame-list))
+
+;;;###autoload
+(define-minor-mode buttercup-minor-mode
+  "Activate buttercup minor mode.
+
+With buttercup minor mode active the following is activated:
+
+- `describe' and `it' forms are fontified with
+  `font-lock-keyword-face'.
+- `describe' and `it' forms are available from `imenu' for
+  quicker access."
+  :lighter " ❀"
+  (let ((font-lock-form '(("(\\(describe\\|buttercup-define-matcher\\|it\\) "
+                           1 'font-lock-keyword-face)))
+        (imenu-forms '(("Test Suites" "\\((describe\\_> +\\)\"\\(\\_<.+\\_>\\)\"" 2)
+                       ("Spec" "\\((it\\_> +\\)\"\\(\\_<.+\\_>\\)\"" 2))))
+    (if buttercup-minor-mode
+        (progn
+          (font-lock-add-keywords nil font-lock-form)
+          (cl-dolist (form imenu-forms)
+            (add-to-list 'imenu-generic-expression form)))
+      (font-lock-remove-keywords nil font-lock-form)
+      (cl-dolist (form imenu-forms)
+        (setq imenu-generic-expression (delete form imenu-generic-expression))))))
 
 (provide 'buttercup)
 ;;; buttercup.el ends here

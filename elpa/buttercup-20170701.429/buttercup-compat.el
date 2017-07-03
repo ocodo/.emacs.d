@@ -30,15 +30,6 @@
 ;;; Code:
 
 ;;;;;;;;;;;;;;;;;;;;;
-;; Introduced in 24.3
-
-(when (not (fboundp 'cl-defstruct))
-  (defalias 'cl-defstruct 'defstruct))
-
-(when (not (fboundp 'cl-every))
-  (defalias 'cl-every 'every))
-
-;;;;;;;;;;;;;;;;;;;;;
 ;; Introduced in 24.4
 
 (when (not (fboundp 'define-error))
