@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "el-search" "el-search.el" (0 0 0 0))
+;;;### (autoloads nil "el-search" "el-search.el" (22873 40256 0 0))
 ;;; Generated autoloads from el-search.el
 
 (autoload 'el-search-install-shift-bindings "el-search" "\
@@ -117,18 +117,10 @@ Reuse already given input.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "el-search" '("el-search-" "copy-el-search-object")))
-
 ;;;***
 
-;;;### (autoloads nil "el-search-x" "el-search-x.el" (0 0 0 0))
-;;; Generated autoloads from el-search-x.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "el-search-x" '("el-search-")))
-
-;;;***
-
-;;;### (autoloads nil nil ("el-search-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("el-search-pkg.el" "el-search-x.el") (22873
+;;;;;;  40256 0 0))
 
 ;;;***
 

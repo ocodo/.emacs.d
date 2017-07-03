@@ -7,7 +7,7 @@
 ;; Created: 29 Jul 2015
 ;; Keywords: lisp
 ;; Compatibility: GNU Emacs 25
-;; Version: 1.3.1
+;; Version: 1.3.2
 ;; Package-Requires: ((emacs "25") (stream "2.2.3"))
 
 
@@ -356,6 +356,7 @@
   (require 'subr-x))
 
 (require 'cl-lib)
+(require 'pcase)
 (require 'elisp-mode)
 (require 'thingatpt)
 (require 'thunk)
