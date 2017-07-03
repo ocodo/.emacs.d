@@ -1,13 +1,13 @@
 ;;; gitconfig-mode.el --- Major mode for editing .gitconfig files -*- lexical-binding: t; -*-
 
 ;; Copyright (c) 2012-2013  Sebastian Wiesner
-;; Copyright (C) 2012-2016  The Magit Project Contributors
+;; Copyright (C) 2012-2017  The Magit Project Contributors
 
 ;; Author: Sebastian Wiesner <lunaryorn@gmail.com>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 ;; Homepage: https://github.com/magit/git-modes
 ;; Keywords: convenience vc git
-;; Package-Version: 20160710.1913
+;; Package-Version: 20170627.854
 
 ;; This file is not part of GNU Emacs.
 
@@ -95,7 +95,7 @@
                     (group (syntax string-quote)
                            (minimal-match (one-or-more not-newline))
                            (syntax string-quote)))
-          "]" (zero-or-more (syntax whitespace)) line-end)
+          "]" (zero-or-more not-newline) line-end)
      (1 'font-lock-type-face t nil)
      (2 'font-lock-function-name-face t t))
     (,(rx line-start (zero-or-more (syntax whitespace)) symbol-start
