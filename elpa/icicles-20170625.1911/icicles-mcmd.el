@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 1996-2017, Drew Adams, all rights reserved.
 ;; Created: Mon Feb 27 09:25:04 2006
-;; Last-Updated: Fri Mar  3 14:52:20 2017 (-0800)
+;; Last-Updated: Sun Jun 25 10:49:26 2017 (-0700)
 ;;           By: dradams
-;;     Update #: 19780
+;;     Update #: 19821
 ;; URL: https://www.emacswiki.org/emacs/download/icicles-mcmd.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: internal, extensions, help, abbrev, local, minibuffer,
@@ -130,6 +130,7 @@
 ;;    (+)`icicle-isearch-history-insert',
 ;;    `icicle-keep-only-buffer-cands-for-derived-mode',
 ;;    `icicle-keep-only-buffer-cands-for-mode',
+;;    `icicle-keep-buffer-cands-for-modified',
 ;;    `icicle-keep-only-buffer-cands-for-visible',
 ;;    `icicle-keep-only-past-inputs', `icicle-kill-line',
 ;;    `icicle-kill-paragraph', `icicle-kill-region',
@@ -187,6 +188,7 @@
 ;;    `icicle-regexp-quote-input', `icicle-remove-candidate',
 ;;    `icicle-remove-buffer-cands-for-derived-mode',
 ;;    `icicle-remove-buffer-cands-for-mode',
+;;    `icicle-remove-buffer-cands-for-modified',
 ;;    `icicle-remove-buffer-cands-for-visible',
 ;;    `icicle-remove-Completions-window', `icicle-resolve-file-name',
 ;;    `icicle-retrieve-last-input', `icicle-retrieve-next-input',
@@ -218,6 +220,7 @@
 ;;    `icicle-toggle-alternative-sorting',
 ;;    `icicle-toggle-angle-brackets', `icicle-toggle-annotation',
 ;;    `icicle-toggle-case-sensitivity', `icicle-toggle-C-for-actions',
+;;    `icicle-toggle-completion-mode-keys',
 ;;    `icicle-toggle-completions-format', `icicle-toggle-dot',
 ;;    `icicle-toggle-expand-directory',
 ;;    `icicle-toggle-expand-to-common-match',
@@ -256,6 +259,7 @@
 ;;    `toggle-icicle-alternative-sorting',
 ;;    `toggle-icicle-angle-brackets', `toggle-icicle-annotation',
 ;;    `toggle-icicle-case-sensitivity', `toggle-icicle-C-for-actions',
+;;    `toggle-icicle-completion-mode-keys',
 ;;    `toggle-icicle-completions-format', `toggle-icicle-dot',
 ;;    `toggle-icicle-expand-directory',
 ;;    `toggle-icicle-expand-to-common-match',
@@ -309,6 +313,7 @@
 ;;    `icicle-input-is-a-completion-p',
 ;;    `icicle-insert-candidate-action', `icicle-insert-dot',
 ;;    `icicle-insert-input', `icicle-insert-thing',
+;;    `icicle-keep/remove-buffer-cands-for-modified',
 ;;    `icicle-keep/remove-buffer-cands-for-visible',
 ;;    `icicle-looking-at-p', `icicle-markers-to-readable',
 ;;    `icicle-maybe-multi-completion-completing-p',
@@ -453,8 +458,8 @@
   ;; icicle-thing-at-pt-fns-pointer, icicle-universal-argument-map, icicle-use-candidates-only-once-alt-p,
   ;; icicle-whole-candidate-as-text-prop-p
 (require 'icicles-fn)
-  ;; icicle-minibuf-input-sans-dir, icicle-mru-window-for-buffer, icicle-read-regexp, icicle-scan-fn-or-regexp,
-  ;; icicle-string-match-p, icicle-toggle-icicle-mode-twice, icicle-unlist
+  ;; icicle-custom-rogue-p, icicle-minibuf-input-sans-dir, icicle-mru-window-for-buffer, icicle-read-regexp,
+  ;; icicle-scan-fn-or-regexp, icicle-string-match-p, icicle-toggle-icicle-mode-twice, icicle-unlist
 
 (require 'doremi nil t) ;; (no error if not found):
                         ;; doremi, doremi(-boost)-(up|down)-keys, doremi-limit, doremi-wrap
@@ -2830,6 +2835,7 @@ These are the main Icicles actions and their minibuffer key bindings:
      Hiding common match in `*Completions*'  \\[icicle-dispatch-C-x.]\t%S
      Hiding no-match lines in `*Completions*' C-u \\[icicle-dispatch-C-x.]\t%s
      Horizontal/vertical candidate layout    \\[icicle-toggle-completions-format]\t%s
+     Completion-mode keys                    \\[icicle-toggle-completion-mode-keys]\t%s
      S-TAB completion method                 \\[icicle-next-S-TAB-completion-method]\t%s
      TAB completion method                   \\[icicle-next-TAB-completion-method]\t%s
      Vanilla completion style set (E23+)     C-M-(\t%s
@@ -2869,6 +2875,16 @@ These are the main Icicles actions and their minibuffer key bindings:
              (if icicle-hide-common-match-in-Completions-flag 'yes 'no)
              (if icicle-hide-non-matching-lines-flag 'yes 'no)
              icicle-completions-format
+             (let ((var-pairs  '((icicle-apropos-complete-no-display-keys
+                                  icicle-prefix-complete-no-display-keys)
+                                 (icicle-apropos-complete-keys
+                                  icicle-prefix-complete-keys)))
+                   (changedp   nil))
+               (dolist (vars  var-pairs)
+                 (setq changedp  (or changedp
+                                     (icicle-custom-rogue-p (car vars))
+                                     (icicle-custom-rogue-p (cadr vars)))))
+               (if changedp "changed" "unchanged"))             
              (car (rassq icicle-apropos-complete-match-fn icicle-S-TAB-completion-methods-alist))
              (icicle-current-TAB-method)
              (if (and (boundp 'icicle-completion-style-sets)  (eq (icicle-current-TAB-method) 'vanilla))
@@ -8912,6 +8928,68 @@ Bound to `S-pause' in the minibuffer."
 
 ;; Top-level commands.  Could instead be in `icicles-cmd2.el'.
 ;;
+
+(defalias 'toggle-icicle-completion-mode-keys
+    'icicle-toggle-completion-mode-keys)
+(defun icicle-toggle-completion-mode-keys (save-result-p &optional msgp)
+  "Toggle the completion mode keys.
+The keys for prefix completion become the keys for apropos completion,
+and vice versa.
+
+These user-option values are modified:
+
+  `icicle-apropos-complete-keys' is swapped with
+  `icicle-prefix-complete-keys'
+
+  `icicle-apropos-complete-no-display-keys' is swapped with
+  `icicle-prefix-complete-no-display-keys'
+
+  `icicle-default-cycling-mode' is switched to the other mode
+
+With a prefix arg, save the new option values.
+
+Otherwise, interactively you are prompted to save them if they now
+differ from their persistent or customized-but-not-saved values.
+
+When called from Lisp:
+ Non-nil SAVE-RESULT-P means save changes.
+ Non-nil MSGP means display status messages."
+  (interactive "P\np")
+  (let ((var-pairs  '((icicle-apropos-complete-keys            icicle-prefix-complete-keys)
+                      (icicle-apropos-complete-no-display-keys icicle-prefix-complete-no-display-keys)))
+        (changedp   nil)
+        msg)
+    (dolist (vars  var-pairs)
+      (set (car vars) (prog1 (symbol-value (cadr vars)) (set (cadr vars) (symbol-value (car vars)))))
+      (setq changedp  (and (interactive-p)
+                           (not save-result-p)
+                           (or changedp
+                               (icicle-custom-rogue-p (car vars))
+                               (icicle-custom-rogue-p (cadr vars))))))
+    (when msgp (setq msg  (message "Prefix now: %s.  Apropos now: %s."
+                                   (mapconcat #'key-description icicle-prefix-complete-keys ", ")
+                                   (mapconcat #'key-description icicle-apropos-complete-keys ", "))))
+    (when (or save-result-p  (and changedp  (y-or-n-p (format "%s  SAVE these keys? " msg))))
+      (dolist (vars  var-pairs)
+        (setq save-result-p  t)
+        (customize-save-variable (car vars)  (symbol-value (car vars)))
+        (customize-save-variable (cadr vars) (symbol-value (cadr vars)))))
+    (dolist (map  `(,minibuffer-local-completion-map
+                    ,@(and (not (eq minibuffer-local-completion-map ; Emacs < 22
+                                    (keymap-parent minibuffer-local-must-match-map)))
+                           `(,minibuffer-local-must-match-map))))
+      (dolist (key  icicle-apropos-complete-keys) (define-key map key 'icicle-apropos-complete))
+      (dolist (key  icicle-prefix-complete-keys)  (define-key map key 'icicle-prefix-complete))
+      (dolist (key  icicle-apropos-complete-no-display-keys)
+        (define-key map key 'icicle-apropos-complete-no-display))
+      (dolist (key  icicle-prefix-complete-no-display-keys)
+        (define-key map key 'icicle-prefix-complete-no-display)))
+    (setq icicle-default-cycling-mode  (if (eq icicle-default-cycling-mode 'prefix) 'apropos 'prefix))
+    (when (and msgp  (or save-result-p  changedp))
+      (message (format "%s  %s"
+                       (if save-result-p "Changed and SAVED." (if changedp "Changed but NOT saved." ""))
+                       msg)))))
+
 (defalias 'toggle-icicle-completions-format
     'icicle-toggle-completions-format)
 (defun icicle-toggle-completions-format () ; Bound to `C-M-^' in minibuffer.
@@ -9377,7 +9455,28 @@ This includes buffers in iconified frames."
   (interactive)
   (icicle-keep/remove-buffer-cands-for-visible 'KEEP-P))
 
+(defun icicle-keep/remove-buffer-cands-for-modified (&optional keep-p)
+  "Keep/remove buffer-name candidates for modified buffers.
+Non-nil KEEP-P means keep only such candidates.  Else remove them."
+  (let ((new-pred  (if keep-p
+                       `(lambda (buf) (icicle-buffer-modified-p buf))
+                     `(lambda (buf) (not (icicle-buffer-modified-p buf))))))
+    (setq icicle-must-pass-after-match-predicate
+          (if icicle-must-pass-after-match-predicate
+              (lexical-let ((curr-pred  icicle-must-pass-after-match-predicate))
+                `(lambda (buf) (and (funcall ',curr-pred buf)  (funcall ',new-pred buf))))
+            new-pred)))
+  (icicle-complete-again-update))
 
+(defun icicle-remove-buffer-cands-for-modified ()
+  "Remove buffer-name candidates for modified buffers."
+  (interactive)
+  (icicle-keep/remove-buffer-cands-for-modified))
+
+(defun icicle-keep-only-buffer-cands-for-modified ()
+  "Keep only buffer-name candidates for modified buffers."
+  (interactive)
+  (icicle-keep/remove-buffer-cands-for-modified 'KEEP-P))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

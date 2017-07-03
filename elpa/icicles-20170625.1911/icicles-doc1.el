@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 1996-2017, Drew Adams, all rights reserved.
 ;; Created: Tue Aug  1 14:21:16 1995
-;; Last-Updated: Fri Mar  3 14:46:57 2017 (-0800)
+;; Last-Updated: Sun Jun 25 11:05:52 2017 (-0700)
 ;;           By: dradams
-;;     Update #: 28535
+;;     Update #: 28572
 ;; URL: https://www.emacswiki.org/emacs/download/icicles-doc1.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: internal, extensions, help, abbrev, local, minibuffer,
@@ -1249,7 +1249,7 @@
 ;;
 ;;  You will become acquainted with a few of these toggle keys and
 ;;  remember them, but you will forget others.  What is important to
-;;  point out here is that `M-?'  (`icicle-minibuffer-help') is your
+;;  point out here is that `M-?' (`icicle-minibuffer-help') is your
 ;;  friend in the minibuffer.  During completion, the help it displays
 ;;  includes, near the top, a list of the toggle keys and the
 ;;  corresponding current values of their options.
@@ -1336,7 +1336,24 @@
 ;;
 ;;  You can get the standard Emacs "prefix" completion, instead of the
 ;;  "apropos" completion just described, by using `TAB' instead of
-;;  `S-TAB'.  You can cycle prefix-completion candidates by using the
+;;  `S-TAB'.
+;;
+;;  Icicles documentation always refers to the key that does this as
+;;  `TAB'.  But actually it is only `TAB' by default.  You can
+;;  customize it, using option `icicle-prefix-complete-keys'.
+;;  Similarly, you can customize which keys perform apropos completion
+;;  using option `icicle-apropos-complete-keys' (`S-TAB' by default).
+;;
+;;  You can also swap the keys used for these two modes of completion
+;;  dynamically, using command `icicle-toggle-completion-mode-keys',
+;;  which is bound to `C-S-TAB' during completion.  This also toggles
+;;  the value of option `icicle-default-cycling-mode' (see next).
+;;  When it switches away from whatever persistent values you have for
+;;  the completion-mode key options, it asks you whether you want to
+;;  save the new values.  (That means that using `C-S-TAB' is an easy
+;;  way to customize all five of these options.)
+;;
+;;  You can cycle prefix-completion candidates by using the
 ;;  `end' and `home' keys instead of `next' and `prior'.  (All four of
 ;;  these keys are typically together in a central keypad to the right
 ;;  of the main keyboard.)
@@ -8252,39 +8269,45 @@
 ;;    `icicle-buffer-include-recent-files-nflag'.  A prefix argument
 ;;    sets the option value to the numeric prefix value.
 ;;
-;;  * `C-x m' (`icicle-bookmark-non-file-other-window') to visit a
+;;  * `C-x m' (`icicle-bookmark-non-file-other-window') Visit a
 ;;    bookmarked buffer.  This is available only if you use library
 ;;    `bookmark+.el'.  This too is a multi-command, so you can
 ;;    actually visit any number of buffer bookmarks with one use of
 ;;    `C-x m'.  When finished, you can continue with non-bookmark
 ;;    buffer-name completion.
 ;;
-;;  * `C-x C-m -' (`icicle-remove-buffer-cands-for-derived-mode') to
-;;    remove the buffer-name candidates with a major mode that is
+;;  * `C-x C-m -' (`icicle-remove-buffer-cands-for-derived-mode')
+;;    Remove the buffer-name candidates with a major mode that is
 ;;    derived from a given mode.  You are prompted for the mode.  You
 ;;    can repeat this key to narrow buffer candidates by mode.  (`C-m'
 ;;    is the same key as `RET'.)
 ;;
 ;;  * `C-x C-m +' (`icicle-keep-only-buffer-cands-for-derived-mode')
-;;    to keep only the buffer-name candidates with a major mode that
-;;    is derived from a given mode.  You are prompted for the mode.
+;;    Keep only the buffer-name candidates with a major mode that is
+;;    derived from a given mode.  You are prompted for the mode.
 ;;    (`C-m' is the same key as `RET'.)
 ;;
-;;  * `C-x M -' (`icicle-remove-buffer-cands-for-mode') - same as
+;;  * `C-x M -' (`icicle-remove-buffer-cands-for-mode') Same as
 ;;    `C-x C-m -', but excludes ancestor modes.
 ;;
-;;  * `C-x M +' (`icicle-keep-only-buffer-cands-for-mode') - same as
+;;  * `C-x M +' (`icicle-keep-only-buffer-cands-for-mode') Same as
 ;;    `C-x C-m +', but excludes ancestor modes.
 ;;
-;;  * `C-x v -' (`icicle-remove-buffer-cands-for-visible') to remove
-;;    the candidate buffers that are visible.  This includes buffers
-;;    that are in iconified frames.
+;;  * `C-x * -' (`icicle-remove-buffer-cands-for-modified') Remove the
+;;    buffer-name candidates for modified buffers.
 ;;
-;;  * `C-x v +' (`icicle-keep-only-buffer-cands-for-visible') to keep
+;;  * `C-x * +' (`icicle-keep-buffer-cands-for-modified') Keep only
+;;    the buffer-name candidates for modified buffers.
+;;
+;;  * `C-x v -' (`icicle-remove-buffer-cands-for-visible') Remove the
+;;    candidate buffers that are visible.  This includes buffers that
+;;    are in iconified frames.
+;;
+;;  * `C-x v +' (`icicle-keep-only-buffer-cands-for-visible') Keep
 ;;    only the candidate buffers that are visible.  This includes
 ;;    buffers that are in iconified frames.
 ;;
-;;  * `S-delete' to kill the buffer named by the current completion
+;;  * `S-delete' Kill the buffer named by the current completion
 ;;    candidate.
 ;;
 ;;  When cached or recently used file names are included as
@@ -8665,11 +8688,19 @@
 ;;
 ;;  You can use option `icicle-file-skip-functions' to specify
 ;;  patterns for file names to exclude from content-searching when you
-;;  provide a content-matching pattern.
+;;  provide a content-matching pattern.  By default, image files and
+;;  byte-compiled Emacs-Lisp files are ignored for content-searching.
 ;;
-;;  In Dired, there are related content-matching multi-commands that
-;;  you can use to visit marked files and subdirectories whose content
-;;  matches a regexp.
+;;  If your input contains a content-matching part then, by default,
+;;  it is ignored for completion of a directory-name candidate.  The
+;;  behavior is governed by options `find-file-run-dired' and
+;;  `icicle-file-search-dir-as-dired-flag'.  If both of these options
+;;  are non-`nil' then the directory is visited in Dired mode during
+;;  completion, and the Dired listing is searched as the content.
+;;
+;;  In a Dired buffer, there are related content-matching
+;;  multi-commands that you can use to visit marked files and
+;;  subdirectories whose content matches a regexp.
 ;;
 ;;  * `icicle-visit-marked-file-of-content', bound to `C-S-f', aka
 ;;    `C-F', and `C-M-S-f', aka `C-M-F', for other-window

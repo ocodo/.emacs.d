@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 1996-2017, Drew Adams, all rights reserved.
 ;; Created: Mon Feb 27 09:25:04 2006
-;; Last-Updated: Fri Mar  3 14:43:30 2017 (-0800)
+;; Last-Updated: Sun Jun 25 19:01:59 2017 (-0700)
 ;;           By: dradams
-;;     Update #: 27508
+;;     Update #: 27516
 ;; URL: https://www.emacswiki.org/emacs/download/icicles-cmd1.el
 ;; Doc URL: http://www.emacswiki.org/Icicles
 ;; Keywords: extensions, help, abbrev, local, minibuffer,
@@ -4672,7 +4672,7 @@ If ABBREV-OR-CMD is not an abbreviation or a command, raise an error."
    (icicle-all-candidates-list-alt-action-fn ; `M-|'
     (or icicle-all-candidates-list-alt-action-fn  alt-fn  (icicle-alt-act-fn-for-type "command")))))
 
-(when (locate-library "kmacro")
+(when (require 'kmacro nil t)           ; Emacs 22+
   (icicle-define-command icicle-kmacro  ; Bound to `S-f4' in Icicle mode (Emacs 22+).
     "Execute a keyboard macro according to its position in `kmacro-ring'.
 Macros in the keyboard macro ring are given names `1', `2', and so on,
@@ -9602,10 +9602,10 @@ Return non-nil if the current multi-completion INPUT matches FILE-NAME."
            ;; Do this to ensure we visit only the `icicle-completion-candidates' already determined so far.
            (or (not icicle-narrow-regexp)  (icicle-string-match-p icicle-narrow-regexp file))
            (or (not date-pat)  (not date)  (icicle-string-match-p date-pat date))
-           (or find-file-run-dired  (not (file-directory-p file)))
+           (or (and find-file-run-dired  icicle-file-search-dir-as-dired-flag)  (not (file-directory-p file)))
            (or (equal "" content-pat)
-               (and (not (run-hook-with-args-until-success 'icicle-file-skip-functions file))
-                    (let* ((dir-p   (file-directory-p file))
+               (run-hook-with-args-until-success 'icicle-file-skip-functions file)
+               (and (let* ((dir-p   (file-directory-p file))
                            (exists  nil)
                            (buf     (if dir-p
                                         (find-file-noselect file)
