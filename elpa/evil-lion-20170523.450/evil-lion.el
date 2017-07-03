@@ -4,9 +4,9 @@
 
 ;; Author: edkolev <evgenysw@gmail.com>
 ;; URL: http://github.com/edkolev/evil-lion
-;; Package-Version: 20170420.1028
+;; Package-Version: 20170523.450
 ;; Package-Requires: ((emacs "24") (evil "1.0.0"))
-;; Version: 0.0.1
+;; Version: 0.0.2
 ;; Keywords: emulations, evil, vim
 
 ;; This file is NOT part of GNU Emacs.
@@ -68,7 +68,7 @@ Must be set before the minor mode is enabled."
             'sexp)
   :group 'evil-lion)
 
-(defcustom evil-lion-squeeze-spaces nil
+(defcustom evil-lion-squeeze-spaces t
   "If non-nil, aligning will remove extra spaces."
   :group 'evil-lion
   :type  'boolean)
@@ -179,7 +179,7 @@ REGEX is the regex that must follow or preceed the spaces."
   (save-excursion
     (let ((line-count (count-lines beg end)))
       (goto-char beg)
-      (dotimes (var line-count)
+      (dotimes (_var line-count)
         (evil-lion--squeeze-spaces-on-current-line type count regex)
         (forward-line 1)))))
 
@@ -201,7 +201,7 @@ before the spaces."
                              ;; for type 'right, match spaces after the regex
                              (and (eq type 'right) (looking-at spaces-regex))
                              ;; for type 'left, match spaces before the regex
-                             (and (eq type 'left) (goto-char (match-beginning 0)) (looking-back spaces-regex))))
+                             (and (eq type 'left) (goto-char (match-beginning 0)) (looking-back spaces-regex (line-beginning-position)))))
         (replace-match " "))
       ;; if COUNT is 1, exit the loop after the first match of REGEX
       (when (eq count 1)

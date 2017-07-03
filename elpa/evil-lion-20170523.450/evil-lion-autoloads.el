@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "evil-lion" "evil-lion.el" (0 0 0 0))
+;;;### (autoloads nil "evil-lion" "evil-lion.el" (22873 40281 0 0))
 ;;; Generated autoloads from evil-lion.el
 (autoload 'evil-lion-left "evil-lion" nil t)
 (autoload 'evil-lion-right "evil-lion" nil t)
@@ -30,8 +30,6 @@ evil-lion global mode, defines align operators 'gl' and 'gL'.
   specific for the current major mode.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-lion" '("evil-lion-")))
 
 ;;;***
 
