@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "exec-path-from-shell" "exec-path-from-shell.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (22873 40286 0 0))
 ;;; Generated autoloads from exec-path-from-shell.el
 
 (autoload 'exec-path-from-shell-copy-envs "exec-path-from-shell" "\
@@ -33,8 +33,6 @@ The values of all the environment variables named in
 values used in the user's shell.
 
 \(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "exec-path-from-shell" '("exec-path-from-shell-")))
 
 ;;;***
 
