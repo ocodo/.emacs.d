@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "evil-snipe" "evil-snipe.el" (0 0 0 0))
+;;;### (autoloads nil "evil-snipe" "evil-snipe.el" (22873 40285 0
+;;;;;;  0))
 ;;; Generated autoloads from evil-snipe.el
 
 (autoload 'evil-snipe-def "evil-snipe" "\
@@ -93,8 +94,6 @@ Evil-Snipe-Override-Local mode is enabled in all buffers where
 See `evil-snipe-override-local-mode' for more information on Evil-Snipe-Override-Local mode.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-snipe" '("evil-snipe-")))
 
 ;;;***
 
