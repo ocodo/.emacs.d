@@ -1,9 +1,9 @@
 ;;; nlinum-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "nlinum" "nlinum.el" (22337 3041 776020 831000))
+;;;### (autoloads nil "nlinum" "nlinum.el" (22873 40435 0 0))
 ;;; Generated autoloads from nlinum.el
 
 (autoload 'nlinum-mode "nlinum" "\
@@ -17,8 +17,9 @@ Linum mode is a buffer-local minor mode.
 \(fn &optional ARG)" t nil)
 
 (defvar global-nlinum-mode nil "\
-Non-nil if Global-Nlinum mode is enabled.
-See the command `global-nlinum-mode' for a description of this minor mode.
+Non-nil if Global Nlinum mode is enabled.
+See the `global-nlinum-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `global-nlinum-mode'.")
@@ -27,7 +28,7 @@ or call the function `global-nlinum-mode'.")
 
 (autoload 'global-nlinum-mode "nlinum" "\
 Toggle Nlinum mode in all buffers.
-With prefix ARG, enable Global-Nlinum mode if ARG is positive;
+With prefix ARG, enable Global Nlinum mode if ARG is positive;
 otherwise, disable it.  If called from Lisp, enable the mode if
 ARG is omitted or nil.
 
