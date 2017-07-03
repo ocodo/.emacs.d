@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "http" "http.el" (0 0 0 0))
+;;;### (autoloads nil "http" "http.el" (22873 40364 0 0))
 ;;; Generated autoloads from http.el
 
 (defvar-local http-hostname nil "\
@@ -43,8 +43,6 @@ Major mode for HTTP responses from `http-mode'
 \(fn)" t nil)
 
 (add-to-list 'auto-mode-alist '("\\.http\\'" . http-mode))
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "http" '("http-")))
 
 ;;;***
 

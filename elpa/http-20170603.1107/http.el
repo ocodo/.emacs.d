@@ -4,7 +4,7 @@
 
 ;; Author: Mario Rodas <marsam@users.noreply.github.com>
 ;; URL: https://github.com/emacs-pe/http.el
-;; Package-Version: 20161127.1449
+;; Package-Version: 20170603.1107
 ;; Keywords: convenience
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "24.4") (request "0.2.0") (edit-indirect "0.1.4"))
@@ -29,7 +29,7 @@
 ;;; Commentary:
 ;;
 ;; `http.el' provides an easy way to interact with the HTTP protocol.
-;;
+
 ;; Usage:
 ;;
 ;; Create a file with the following contents, and set `http-mode' as major mode.
@@ -50,7 +50,7 @@
 ;;
 ;; ![http.el screenshot](misc/screenshot.png)
 ;;
-;; More examples are included in file [misc/example.txt](misc/example.txt)
+;; More examples are included in file [misc/example.txt](misc/example.http)
 
 ;; Customization:
 ;;
@@ -96,10 +96,10 @@
 ;; + [restclient.el][]: HTTP REST client tool for Emacs.  You can use both
 ;;   projects indistinctly, the main differences between both are:
 ;;
-;;              | `restclient.el'   | `http.el'
-;;   ---------- | ----------------- | -------------
-;;   backend    | `url.el'          | `request.el'
-;;   variables  | yes               | no
+;;   |            | `restclient.el'   | `http.el'     |
+;;   | ---------- | ----------------- | ------------- |
+;;   | backend    | `url.el'          | `request.el'  |
+;;   | variables  | yes               | no            |
 ;;
 ;; [httprepl.el]: https://github.com/gregsexton/httprepl.el "An HTTP REPL for Emacs"
 ;; [restclient.el]: https://github.com/pashky/restclient.el "HTTP REST client tool for Emacs"
@@ -201,20 +201,21 @@ Used only when was not possible to guess a response content-type."
   (rx line-start (* blank) line-end))
 
 (defvar http-content-type-mode-alist
-  '(("text/xml" . xml-mode)
-    ("application/xml" . xml-mode)
-    ("application/atom+xml" . xml-mode)
-    ("application/atomcat+xml" . xml-mode)
+  '(("text/css"                 . css-mode)
+    ("text/xml"                 . xml-mode)
+    ("application/xml"          . xml-mode)
+    ("application/atom+xml"     . xml-mode)
+    ("application/atomcat+xml"  . xml-mode)
     ("application/x-javascript" . js-mode)
-    ("application/json" . js-mode)
-    ("text/javascript" . js-mode)
-    ("text/html" . html-mode)
-    ("text/plain" . text-mode)
-    ("image/gif" . image-mode)
-    ("image/png" . image-mode)
-    ("image/jpeg" . image-mode)
-    ("image/x-icon" . image-mode)
-    ("image/svg+xml" . image-mode))
+    ("application/json"         . js-mode)
+    ("text/javascript"          . js-mode)
+    ("text/html"                . html-mode)
+    ("text/plain"               . text-mode)
+    ("image/gif"                . image-mode)
+    ("image/png"                . image-mode)
+    ("image/jpeg"               . image-mode)
+    ("image/x-icon"             . image-mode)
+    ("image/svg+xml"            . image-mode))
   "Mapping between 'content-type' and a Emacs mode.
 
 Used to fontify the response buffer and comment the response headers.")
@@ -323,8 +324,9 @@ Used to fontify the response buffer and comment the response headers.")
 
 (defun http-mode-from-headers (headers)
   "Return a major mode from HEADERS based on its content-type."
-  (or (assoc-default (assoc-default "content-type" headers) http-content-type-mode-alist)
-      'normal-mode))
+  (cl-multiple-value-bind (ctype _attrs)
+      (rfc2231-parse-string (or (assoc-default "content-type" headers) ""))
+    (or (assoc-default ctype http-content-type-mode-alist) #'normal-mode)))
 
 (defun http-in-request-line-p (&optional pos)
   "Whether current point POS is at the request line."
