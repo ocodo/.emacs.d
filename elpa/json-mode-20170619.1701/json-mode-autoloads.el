@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "json-mode" "json-mode.el" (0 0 0 0))
+;;;### (autoloads nil "json-mode" "json-mode.el" (22873 40395 0 0))
 ;;; Generated autoloads from json-mode.el
 
 (defconst json-mode-standard-file-ext '(".json" ".jsonld") "\
@@ -15,7 +15,7 @@ Update the `json-mode' entry of `auto-mode-alist'.
 FILENAMES should be a list of file as string.
 Return the new `auto-mode-alist' entry" (let* ((new-regexp (rx-to-string (\` (seq (eval (cons (quote or) (append json-mode-standard-file-ext (quote (\, filenames))))) eot)))) (new-entry (cons new-regexp (quote json-mode))) (old-entry (when (boundp (quote json-mode--auto-mode-entry)) json-mode--auto-mode-entry))) (setq auto-mode-alist (delete old-entry auto-mode-alist)) (add-to-list (quote auto-mode-alist) new-entry) new-entry))
 
-(defvar json-mode-auto-mode-list '(".babelrc" ".bowerrc") "\
+(defvar json-mode-auto-mode-list '(".babelrc" ".bowerrc" "composer.lock") "\
 List of filename as string to pass for the JSON entry of
 `auto-mode-alist'.
 
@@ -41,8 +41,6 @@ Major mode for editing JSON files
 Beautify / pretty-print the active region (or the entire buffer if no active region).
 
 \(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "json-mode" '("json-")))
 
 ;;;***
 

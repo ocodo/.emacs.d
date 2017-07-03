@@ -4,7 +4,7 @@
 
 ;; Author: Josh Johnston
 ;; URL: https://github.com/joshwnj/json-mode
-;; Package-Version: 20170418.1900
+;; Package-Version: 20170619.1701
 ;; Version: 1.6.0
 ;; Package-Requires: ((json-reformat "0.0.5") (json-snatcher "1.0.0"))
 
@@ -62,7 +62,11 @@ Return the new `auto-mode-alist' entry"
     new-entry))
 
 ;;;###autoload
-(defcustom json-mode-auto-mode-list '(".babelrc" ".bowerrc")
+(defcustom json-mode-auto-mode-list '(
+                                      ".babelrc"
+                                      ".bowerrc"
+                                      "composer.lock"
+                                      )
   "List of filename as string to pass for the JSON entry of
 `auto-mode-alist'.
 
