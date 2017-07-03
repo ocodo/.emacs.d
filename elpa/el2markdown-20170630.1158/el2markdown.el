@@ -3,8 +3,8 @@
 ;; Copyright (C) 2013-2014 Anders Lindgren
 
 ;; Author: Anders Lindgren
-;; Version: 0.0.6
-;; Package-Version: 20160822.1135
+;; Version: 0.0.7
+;; Package-Version: 20170630.1158
 ;; Created: 2013-03-26
 ;; URL: https://github.com/Lindydancer/el2markdown
 
@@ -119,7 +119,14 @@
 ;; buffer, use:
 ;;
 ;;     M-x el2markdown-write-readme RET
+
+;; Post processing:
 ;;
+;; To post-process the output, add a function to
+;; `el2markdown-post-convert-hook'.  The functions in the hook should
+;; accept one argument, the output stream (typically the destination
+;; buffer).  When the hook is run current buffer is the source buffer.
+
 ;; Batch mode:
 ;;
 ;; You can run el2markdown in batch mode. The function
@@ -129,7 +136,6 @@
 ;; For example,
 ;;
 ;;     emacs -batch -l el2markdown.el my-file.el -f el2markdown-write-readme
-;;
 
 ;;; Code:
 
@@ -149,6 +155,14 @@ things in comments.")
 
 (defvar el2markdown-keys '("RET" "TAB")
   "List of keys that sould be translated to <key>...</key>.")
+
+
+(defvar el2markdown-post-convert-hook nil
+  "Hook that is run after a buffer has been converted to MarkDown.
+
+The functions in the hook should accept one argument, the output
+stream (typically the destination buffer).  When the hook is run
+current buffer is the source buffer.")
 
 
 ;;;###autoload
@@ -197,6 +211,12 @@ things in comments.")
 
 
 (defun el2markdown-convert ()
+  "Print commentart section of current buffer as MarkDown.
+
+After conversion, `el2markdown-post-convert-hook' is called.  The
+functions in the hook should accept one argument, the output
+stream (typically the destination buffer).  When the hook is run
+current buffer is the source buffer."
   (save-excursion
     (goto-char (point-min))
     (el2markdown-convert-title)
@@ -217,7 +237,8 @@ things in comments.")
               "Converted" from
               " by "
               "[*el2markdown*](https://github.com/Lindydancer/el2markdown)."))
-      (terpri))))
+      (terpri))
+    (run-hook-with-args 'el2markdown-post-convert-hook standard-output)))
 
 
 (defun el2markdown-skip-empty-lines ()
