@@ -148,6 +148,7 @@
 (require 'avy)
 (require 'newcomment)
 (require 'lispy-inline)
+(setq iedit-toggle-key-default nil)
 (require 'iedit)
 (require 'delsel)
 (require 'swiper)
@@ -420,7 +421,7 @@ Otherwise return the amount of times executed."
   (declare (indent 0))
   `(let ((out (save-excursion
                 ,@body)))
-     (when (bolp)
+     (when (lispy-bolp)
        (back-to-indentation))
      out))
 
@@ -1103,6 +1104,11 @@ If position isn't special, move to previous or error."
                      (point-min) (point-max))))
   (delete-char -1))
 
+(defvar lispy-delete-atom-from-within nil
+  "When cursor is adjascent to an opening or closing pair,
+  `lispy-delete' or `lispy-delete-backward' toward the delimiter
+  will kill the whole atom (sexp or string).")
+
 (defun lispy-delete (arg)
   "Delete ARG sexps."
   (interactive "p")
@@ -1115,7 +1121,9 @@ If position isn't special, move to previous or error."
 
           ((setq bnd (lispy--bounds-string))
            (cond ((eq (1+ (point)) (cdr bnd))
-                  (goto-char (car bnd)))
+                  (goto-char (car bnd))
+                  (when lispy-delete-atom-from-within
+                    (lispy-delete arg)))
                  ((looking-at "\\\\\"")
                   (if (eq (+ (point) 2) (cdr bnd))
                       (goto-char (car bnd))
@@ -1151,7 +1159,9 @@ If position isn't special, move to previous or error."
              (delete-char arg)))
 
           ((looking-at lispy-right)
-           (lispy-left 1))
+           (lispy-left 1)
+           (when lispy-delete-atom-from-within
+             (lispy-delete arg)))
 
           ((lispy-left-p)
            (lispy--delete-leading-garbage)
@@ -1191,7 +1201,7 @@ beginning of the line."
 
 (defvar lispy-delete-backward-recenter -20
   "When cursor is near top of screen when calling
-  lispy-delete-backward, recenter cursor with arg.")
+  `lispy-delete-backward', recenter cursor with arg.")
 
 (defun lispy-delete-backward (arg)
   "From \")|\", delete ARG sexps backwards.
@@ -1209,7 +1219,9 @@ Otherwise (`backward-delete-char-untabify' ARG)."
           ((and (setq bnd (lispy--bounds-string))
                 (not (eq (point) (car bnd))))
            (cond ((eq (- (point) (car bnd)) 1)
-                  (goto-char (cdr bnd)))
+                  (goto-char (cdr bnd))
+                  (if lispy-delete-atom-from-within
+                      (lispy-delete-backward arg)))
                  ((or (looking-back "\\\\\\\\(" (car bnd))
                       (looking-back "\\\\\\\\)" (car bnd)))
                   (let ((pt (point)))
@@ -1231,12 +1243,22 @@ Otherwise (`backward-delete-char-untabify' ARG)."
              (delete-char -1)))
 
           ((lispy--in-comment-p)
-           (if (lispy-looking-back "^ +")
-               (progn
-                 (delete-region (1- (match-beginning 0))
-                                (match-end 0))
-                 (lispy--indent-for-tab))
-             (backward-delete-char-untabify arg)))
+           (cond ((lispy-looking-back "^ +")
+                  (delete-region (1- (match-beginning 0))
+                                 (match-end 0))
+                  (lispy--indent-for-tab))
+                 ((and (looking-at "$") (lispy-looking-back "; +"))
+                  (let ((pt (point)))
+                    (skip-chars-backward " ;")
+                    (delete-region (point) pt)
+                    (if (lispy-looking-back "^")
+                        (lispy--indent-for-tab)
+                      (let ((p (point)))
+                        (lispy--out-forward 1)
+                        (lispy--normalize-1)
+                        (goto-char p)))))
+                 (t
+                  (backward-delete-char-untabify arg))))
 
           ((lispy-looking-back "\\\\.")
            (backward-delete-char-untabify arg))
@@ -1600,11 +1622,11 @@ major mode. These regexps are used to determine whether to insert a space for
 `lispy-brackets'.")
 
 (defvar lispy-braces-preceding-syntax-alist
-  '((clojure-mode . ("[`'^]" "#[A-z.]*"))
-    (clojurescript-mode . ("[`'^]" "#[A-z.]*"))
-    (clojurec-mode . ("[`'^]" "#[A-z.]*"))
-    (cider-repl-mode . ("[`'^]" "#[A-z.]*"))
-    (cider-clojure-interaction-mode . ("[`'^]" "#[A-z.]*"))
+  '((clojure-mode . ("[`'^]" "#[:]*[A-z.:]*"))
+    (clojurescript-mode . ("[`'^]" "#[:]*[A-z.:]*"))
+    (clojurec-mode . ("[`'^]" "#[:]*[A-z.:]*"))
+    (cider-repl-mode . ("[`'^]" "#[:]*[A-z.:]*"))
+    (cider-clojure-interaction-mode . ("[`'^]" "#[:]*[A-z.:]*"))
     (t . nil))
   "An alist of `major-mode' to a list of regexps.
 Each regexp describes valid syntax that can precede an opening brace in that
@@ -1819,8 +1841,7 @@ When the region is active, toggle a ~ at the start of the region."
          (setq this-command 'cider-repl-newline-and-indent)
          (cider-repl-newline-and-indent))
         ((eq major-mode 'inferior-emacs-lisp-mode)
-         (setq this-command 'ielm-return)
-         (ielm-return))
+         (lispy-newline-and-indent-plain))
         ((lispy-left-p)
          (skip-chars-backward ",@'`#")
          (newline-and-indent)
@@ -1846,6 +1867,9 @@ When the region is active, toggle a ~ at the start of the region."
      (sly-mrepl-return))
     (python-mode
      (newline-and-indent))
+    (inferior-emacs-lisp-mode
+     (setq this-command 'ielm-return)
+     (ielm-return))
     (t
      (if (and (not (lispy--in-string-or-comment-p))
               (if (memq major-mode lispy-clojure-modes)
@@ -1998,14 +2022,14 @@ to all the functions, while maintaining the parens in a pretty state."
 (defvar lispy--occur-end 1
   "End position of the top level sexp during `lispy-occur'.")
 
-(defun lispy--occur-candidates ()
+(defun lispy--occur-candidates (&optional bnd)
   "Return the candidates for `lispy-occur'."
-  (let ((bnd (save-excursion
-               (unless (and (bolp)
-                            (lispy-left-p))
-                 (beginning-of-defun))
-               (lispy--bounds-dwim)))
-        (line-number -1)
+  (setq bnd (or bnd (save-excursion
+                      (unless (and (bolp)
+                                   (lispy-left-p))
+                        (beginning-of-defun))
+                      (lispy--bounds-dwim))))
+  (let ((line-number -1)
         candidates)
     (setq lispy--occur-beg (car bnd))
     (setq lispy--occur-end (cdr bnd))
@@ -4047,7 +4071,7 @@ Return the result of the last evaluation as a string."
          (end
           (save-excursion
             (forward-char)
-            (if (re-search-forward outline-regexp nil t)
+            (if (re-search-forward (concat "^" outline-regexp)  nil t)
                 (progn
                   (goto-char (match-beginning 0)))
               (goto-char (point-max)))
@@ -5336,7 +5360,7 @@ An equivalent of `cl-destructuring-bind'."
   ("m" lispy-cursor-ace "multi cursor")
   ;; ("n" nil)
   ;; ("o" nil)
-  ;; ("p" nil)
+  ("p" lispy-set-python-process "process")
   ;; ("q" nil)
   ("r" lispy-eval-and-replace "eval and replace")
   ("s" save-buffer)
@@ -5635,8 +5659,8 @@ When ARG is given, paste at that place in the current list."
          (setq lispy-hint-pos (point))
          (let* ((expr (cadr (read (lispy--string-dwim))))
                 (str1 (cadr (cadr expr)))
-                (str2 (caddr expr))
-                (keys (cddadr expr))
+                (str2 (cl-caddr expr))
+                (keys (cl-cddadr expr))
                 (keys (if (and (= (length keys) 1)
                                (consp (car keys))
                                (eq (caar keys) 'execute-kbd-macro))
@@ -6698,7 +6722,7 @@ Ignore the matches in strings and comments."
                         (insert "(ly-raw \\,@ ")))))
                 ;; ——— #{ or { or #( or @( or #?( or #?@( ——————————
                 (goto-char (point-min))
-                (while (re-search-forward "#\\?@(\\|@(\\|#(\\|{\\|#{\\|#\\?(" nil t)
+                (while (re-search-forward "#\\?@(\\|@(\\|#(\\|{\\|#{\\|#::{\\|#\\?(" nil t)
                   (let ((class
                          (cond ((string= (match-string 0) "#{")
                                 "clojure-set")
@@ -6712,6 +6736,8 @@ Ignore the matches in strings and comments."
                                 "clojure-reader-conditional-splice")
                                ((string= (match-string 0) "#?(")
                                 "clojure-reader-conditional")
+                               ((string= (match-string 0) "#::{")
+                                "clojure-namespaced-map")
                                (t
                                 (error "Expected set or map or lambda")))))
                     (unless (lispy--in-string-or-comment-p)
@@ -7344,14 +7370,16 @@ BND is a cons of start and end points."
 EXPR is indented first, with OFFSET being the column position of
 the first character of EXPR.
 MODE is the major mode for indenting EXPR."
-  (with-temp-buffer
-    (funcall mode)
-    (dotimes (_i offset)
-      (insert ?\ ))
-    (lispy--insert expr)
-    (buffer-substring-no-properties
-     (+ (point-min) offset)
-     (point-max))))
+  (let ((lif lisp-indent-function))
+    (with-temp-buffer
+      (funcall mode)
+      (dotimes (_i offset)
+        (insert ?\ ))
+      (let ((lisp-indent-function lif))
+        (lispy--insert expr))
+      (buffer-substring-no-properties
+       (+ (point-min) offset)
+       (point-max)))))
 
 (defun lispy--splice-to-str (sexp)
   "Return the printed representation of SEXP.
@@ -7425,6 +7453,10 @@ The outer delimiters are stripped."
           (clojure-map
            (delete-region beg (point))
            (insert (format "{%s}" (lispy--splice-to-str (cl-caddr sxp))))
+           (goto-char beg))
+          (clojure-namespaced-map
+           (delete-region beg (point))
+           (insert (format "#::{%s}" (lispy--splice-to-str (cl-caddr sxp))))
            (goto-char beg))
           (clojure-deref-list
            (delete-region beg (point))
@@ -7514,6 +7546,8 @@ The outer delimiters are stripped."
     (forward-list)))
 
 (defvar geiser-active-implementations)
+(defvar clojure-align-forms-automatically)
+(declare-function clojure-align "ext:clojure-mode")
 (defun lispy--normalize-1 ()
   "Normalize/prettify current sexp."
   (let* ((bnd (lispy--bounds-dwim))
@@ -7526,7 +7560,6 @@ The outer delimiters are stripped."
                     (or (string-match "\\^" str)
                         (string-match "~" str)))
                (> (length str) 10000))
-
            (lispy-from-left
             (indent-sexp)))
           ((looking-at ";;"))
@@ -7544,7 +7577,10 @@ The outer delimiters are stripped."
                               (cdr bnd))
                (insert new-str)
                (when was-left
-                 (backward-list))))))))
+                 (backward-list))))))
+    (when (and (memq major-mode lispy-clojure-modes)
+               clojure-align-forms-automatically)
+      (clojure-align (car bnd) (cdr bnd)))))
 
 (defun lispy--sexp-trim-leading-newlines (expr comment)
   "Trim leading (ly-raw newline) from EXPR.
@@ -7800,7 +7836,8 @@ PLIST currently accepts:
                      lispy--cider-debug-command))))
 
              ,@(when (memq 'god-mode lispy-compat)
-                     '(((and (bound-and-true-p god-global-mode))
+                     '(((and (or (bound-and-true-p god-global-mode)
+                                 (bound-and-true-p god-local-mode)))
                         (call-interactively 'god-mode-self-insert))))
 
              ,@(when (memq 'macrostep lispy-compat)
