@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20170411.608
+;; Package-Version: 20170702.237
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -133,6 +133,7 @@ If the commands isn't on the list, `avy-style' is used."
 (defcustom avy-dispatch-alist
   '((?x . avy-action-kill-move)
     (?X . avy-action-kill-stay)
+    (?t . avy-action-teleport)
     (?m . avy-action-mark)
     (?n . avy-action-copy)
     (?y . avy-action-yank)
@@ -561,6 +562,11 @@ Set `avy-style' according to COMMMAND as well."
    (kill-region pt (point))
    (just-one-space))
   (message "Killed: %s" (current-kill 0)))
+
+(defun avy-action-teleport (pt)
+  "Kill sexp starting on PT and yank into the current location."
+  (avy-action-kill-stay pt)
+  (yank))
 
 (declare-function flyspell-correct-word-before-point "flyspell")
 
