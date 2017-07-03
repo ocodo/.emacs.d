@@ -7,8 +7,8 @@
 
 ;; Author: mechairoi
 ;; Maintainer: Yasuyuki Oka <yasuyk@gmail.com>
-;; Version: 0.10.0-snapshot
-;; Package-Version: 20161111.2337
+;; Version: 0.10.1
+;; Package-Version: 20170614.711
 ;; URL: https://github.com/yasuyk/helm-git-grep
 ;; Package-Requires: ((helm-core "2.2.0"))
 
@@ -48,9 +48,7 @@
 (eval-when-compile (require 'cl))
 (require 'helm)
 (require 'helm-files)
-(require 'helm-elscreen) ;; helm-elscreen-find-file
 
-(declare-function elscreen-get-conf-list "ext:elscreen.el" (type))
 (declare-function wgrep-setup-internal "ext:wgrep")
 
 
@@ -92,6 +90,11 @@ Set it to nil if you don't want this limit."
   :group 'helm-git-grep
   :type  'boolean)
 
+(defcustom helm-git-grep-wordgrep nil
+  "Wordgrep when matching."
+  :group 'helm-git-grep
+  :type  'boolean)
+
 (defcustom helm-git-grep-showing-leading-and-trailing-lines nil
   "Show leading and trailing lines."
   :group 'helm-git-grep
@@ -117,36 +120,48 @@ Possible value are:
                  (const :tag "CurrentDirectory" current)))
 
 (defcustom helm-git-grep-pathspecs nil
-  "Pattern used to limit paths in git-grep(1) commands.
+  "List of strings: patterns used to limit paths in git-grep(1) commands.
 
-Each pathspec have not to be quoted by singe quotation like executing git
-command in inferior shell.  Because `helm-git-grep' run git command by
-`start-process', and `start-process' is not executed in inferior shell.
-So, if pathspec is quoted by singe quotation, pathspec can't work in
-git-grep(1) by `helm-git-grep'.
+The pathspecs are interpreted by Git in the order given; a
+pathspec starting with \":!:\" is treated as an exclusion.
+Exclusions must be preceded by at least one inclusion.
+
+Examples:
+
+   (setq helm-git-grep-pathspecs '(\"*.txt\" \"*.rst\")
+   ;; search only files matching *.txt or *.rst
+
+   (setq helm-git-grep-pathspecs '(\"*\"  \":!:*.dvi\")
+   ;; search all files except those matching *.dvi
+
+Each pathspec need not be quoted by single quotes, because
+`helm-git-grep' runs git with `start-process', which does not use
+an inferior shell.
 
 For more information about pathspec,
 see https://git-scm.com/docs/gitglossary#def_pathspec.
 
-If there is something wrong about pathspec configuration,
-you can check limit paths by pathspec using
+You can see the files matched by your pathspec with:
 `helm-git-grep-ls-files-limited-by-pathspec'."
   :group 'helm-git-grep
   :type '(repeat string  :tag "Pathspec"))
 
 (defcustom helm-git-grep-doc-order-in-name-header
-  '(pathspec basedir ignorecase)
+  '(pathspec basedir wordgrep ignorecase)
   "List of doc in name header for git-grep(1).
 list of following possible values:
     pathspec: if `helm-git-grep-pathspecs' is not nil, \
 availability of `helm-git-grep-pathspecs' and key of toggle command.
     basedir: value of `helm-git-grep-base-directory' \
 and key of toggle command.
+    wordgrep: if `helm-git-grep-wordgrep' is t, show [w] \
+and key of toggle command.
     ignorecase: if `helm-git-grep-ignore-case' is t, show [i] \
 and key of toggle command."
   :group 'helm-git-grep
   :type '(repeat (choice (const :tag "PathSpecs" pathspec)
                          (const :tag "BaseDirectory" basedir)
+                         (const :tag "WordGrep" wordgrep)
                          (const :tag "IgnoreCase" ignorecase))))
 
 
@@ -196,6 +211,11 @@ and key of toggle command."
      :function
      (lambda (doc)
        (format doc (symbol-name helm-git-grep-base-directory))))
+    wordgrep
+    (:doc
+     "[helm-git-grep-toggle-wordgrep]:Tog.wordgrep%s"
+     :function
+     (lambda (doc) (format doc (if helm-git-grep-wordgrep "[w]" ""))))
     ignorecase
     (:doc
      "[helm-git-grep-toggle-ignore-case]:Tog.ignorecase%s"
@@ -253,6 +273,7 @@ newline return an empty string."
         (append
          (list "--no-pager" "grep" "--null" "-n" "--no-color"
                (if helm-git-grep-ignore-case "-i" nil)
+               (if helm-git-grep-wordgrep "-w" nil)
                (helm-git-grep-showing-leading-and-trailing-lines-option))
          (nbutlast
           (apply 'append
@@ -264,8 +285,9 @@ newline return an empty string."
 (defun helm-git-grep-submodule-grep-command ()
   "Create command of `helm-git-submodule-grep-process' in `helm-git-grep'."
   (list "git" "--no-pager" "submodule" "--quiet" "foreach"
-       (format "git grep -n --no-color %s %s %s | sed s!^!$path/!"
+       (format "git grep -n --no-color %s %s %s %s | sed s!^!$path/!"
                (if helm-git-grep-ignore-case "-i" "")
+               (if helm-git-grep-wordgrep "-w" "")
                (helm-git-grep-showing-leading-and-trailing-lines-option t)
                 (mapconcat (lambda (x)
                              (format "-e %s " (shell-quote-argument x)))
@@ -331,18 +353,17 @@ newline return an empty string."
 
 (defun helm-git-grep-action (candidate &optional where mark)
   "Define a default action for `helm-git-grep' on CANDIDATE.
-WHERE can be one of `other-window', elscreen, `other-frame'.
+WHERE can be one of `other-window', `other-frame'.
 if MARK is t, Set mark."
   (let* ((lineno (nth 0 candidate))
          (fname (or (with-current-buffer helm-buffer
                       (get-text-property (point-at-bol) 'help-echo))
                     (nth 2 candidate))))
     (case where
-      (other-window (find-file-other-window fname))
-      (elscreen     (helm-elscreen-find-file fname))
-      (other-frame  (find-file-other-frame fname))
-      (grep         (helm-git-grep-save-results-1))
-      (t            (find-file fname)))
+          (other-window (find-file-other-window fname))
+          (other-frame  (find-file-other-frame fname))
+          (grep         (helm-git-grep-save-results-1))
+          (t            (find-file fname)))
     (unless (or (eq where 'grep))
       (helm-goto-line lineno))
     (when mark
@@ -368,13 +389,6 @@ if MARK is t, Set mark."
   "Jump to result in other frame from helm git grep with CANDIDATES."
   (helm-git-grep-action candidates 'other-frame))
 
-(defun helm-git-grep-jump-elscreen (candidates)
-  "Jump to result in elscreen from helm git grep with CANDIDATES."
-  (require 'elscreen nil t)
-  (if (elscreen-get-conf-list 'screen-history)
-      (helm-git-grep-action candidates 'elscreen)
-    (error "Elscreen is not running")))
-
 (defun helm-git-grep-save-results (candidates)
   "Save helm git grep result in a `helm-git-grep-mode' buffer with CANDIDATES."
   (helm-git-grep-action candidates 'grep))
@@ -382,11 +396,8 @@ if MARK is t, Set mark."
 (defvar helm-git-grep-actions
   (delq
    nil
-   `(("Find File" . helm-git-grep-action)
+   '(("Find File" . helm-git-grep-action)
      ("Find file other frame" . helm-git-grep-other-frame)
-     ,(and (locate-library "elscreen")
-           '("Find file in Elscreen"
-             . helm-git-grep-jump-elscreen))
      ("Save results in grep buffer" . helm-git-grep-save-results)
      ("Find file other window" . helm-git-grep-other-window)))
   "Actions for `helm-git-grep'.")
@@ -402,9 +413,9 @@ Argument SOURCE is not used."
     (filename lineno content)
   "Propertize FILENAME LINENO CONTENT and concatenate them."
   (format "%s:%s:%s"
-	  (propertize filename 'face 'helm-git-grep-file)
-	  (propertize lineno 'face 'helm-git-grep-line)
-	  (helm-git-grep-highlight-match content)))
+      (propertize filename 'face 'helm-git-grep-file)
+      (propertize lineno 'face 'helm-git-grep-line)
+      (helm-git-grep-highlight-match content)))
 
 (defun helm-git-grep-highlight-match (content)
   "Highlight matched text with `helm-git-grep-match' face in CONTENT."
@@ -416,6 +427,10 @@ Argument SOURCE is not used."
 
 (defun helm-git-grep-filtered-candidate-transformer-file-line-1 (candidate)
   "Transform CANDIDATE to `helm-git-grep-mode' format."
+  ; truncate any very long lines
+  (when (> (length candidate) (window-width))
+    (setq candidate (substring candidate 0 (window-width))))
+
   (when (string-match "^\\(.+\\)\x00\\([0-9]+\\)\x00\\(.*\\)$" candidate)
     (let ((filename (match-string 1 candidate))
           (lineno (match-string 2 candidate))
@@ -512,12 +527,6 @@ With a prefix arg record CANDIDATE in `mark-ring'."
   (helm-exit-and-execute-action 'helm-git-grep-other-frame))
 (put 'helm-git-grep-run-other-frame-action 'helm-only t)
 
-(defun helm-git-grep-run-elscreen-action ()
-  "Run grep goto elscreen action from `helm-git-grep'."
-  (interactive)
-  (helm-exit-and-execute-action 'helm-git-grep-jump-elscreen))
-(put 'helm-git-grep-run-elscreen-action 'helm-only t)
-
 (defun helm-git-grep-run-save-buffer ()
   "Run grep save results action from `helm-git-grep'."
   (interactive)
@@ -530,6 +539,13 @@ With a prefix arg record CANDIDATE in `mark-ring'."
   (setq helm-git-grep-ignore-case (not helm-git-grep-ignore-case))
   (helm-git-grep-rerun-with-input))
 (put 'helm-git-grep-toggle-ignore-case 'helm-only t)
+
+(defun helm-git-grep-toggle-wordgrep ()
+  "Toggle wordgrep option for git grep command from `helm-git-grep'."
+  (interactive)
+  (setq helm-git-grep-wordgrep (not helm-git-grep-wordgrep))
+  (helm-git-grep-rerun-with-input))
+(put 'helm-git-grep-toggle-wordgrep 'helm-only t)
 
 (defun helm-git-grep-toggle-showing-trailing-leading-line ()
   "Toggle show leading and trailing lines option for git grep."
@@ -596,6 +612,7 @@ You can save your results in a helm-git-grep-mode buffer, see below.
 \\[helm-git-grep-pathspec-toggle-availability]\t\t->Toggle pathspec availability.
 \\[helm-git-grep-toggle-base-directory]\t\t->Toggle base directory for search.
 \\[helm-git-grep-toggle-ignore-case]\t\t->Toggle ignore case option.
+\\[helm-git-grep-toggle-wordgrep]\t\t->Toggle wordgrep option.
 \\[helm-git-grep-run-other-window-action]\t\t->Jump other window.
 \\[helm-git-grep-run-other-frame-action]\t\t->Jump other frame.
 \\[helm-git-grep-run-persistent-action]\t\t->Run persistent action (Same as `C-z').
@@ -621,8 +638,8 @@ You can save your results in a helm-git-grep-mode buffer, see below.
     (define-key map (kbd "C-c p")    'helm-git-grep-pathspec-toggle-availability)
     (define-key map (kbd "C-c b")    'helm-git-grep-toggle-base-directory)
     (define-key map (kbd "C-c i")    'helm-git-grep-toggle-ignore-case)
+    (define-key map (kbd "C-c w")    'helm-git-grep-toggle-wordgrep)
     (define-key map (kbd "C-c n")    'helm-git-grep-toggle-showing-trailing-leading-line)
-    (define-key map (kbd "C-c e")    'helm-git-grep-run-elscreen-action)
     (define-key map (kbd "C-c o")    'helm-git-grep-run-other-window-action)
     (define-key map (kbd "C-c C-o")  'helm-git-grep-run-other-frame-action)
     (define-key map (kbd "C-w")      'helm-yank-text-at-point)
