@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "highlight" "highlight.el" (0 0 0 0))
+;;;### (autoloads nil "highlight" "highlight.el" (22873 40357 0 0))
 ;;; Generated autoloads from highlight.el
 
 (defvar hlt-auto-face-foreground nil "\
@@ -164,7 +164,7 @@ This is several commands rolled into one, depending on the prefix arg:
 * Positive prefix arg (`C-1'): highlight regexp matches
 * Negative prefix arg (`C--'): UNhighlight regexp matches
 
-You can also used the individual commands:
+You can also use the individual commands:
 
 * `hlt-highlight-region'          - same as no prefix arg
 * `hlt-unhighlight-region'        - same as `C-u' or `C-0'
@@ -601,8 +601,6 @@ arg during Isearch exits Isearch.
 Non-interactively, FACE = nil means unhighlight all faces.
 
 \(fn &optional FACE MSGP MOUSEP BUFFERS STRING)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "highlight" '("hlt-" "menu-bar-edit-menu")))
 
 ;;;***
 
