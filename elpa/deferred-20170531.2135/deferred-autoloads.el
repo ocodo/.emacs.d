@@ -3,10 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "deferred" "deferred.el" (0 0 0 0))
-;;; Generated autoloads from deferred.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "deferred" '("deferred:")))
+;;;### (autoloads nil nil ("deferred.el") (22873 40238 0 0))
 
 ;;;***
 
