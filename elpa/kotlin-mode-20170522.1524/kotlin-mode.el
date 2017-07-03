@@ -4,7 +4,7 @@
 
 ;; Author: Shodai Yokoyama (quantumcars@gmail.com)
 ;; Keywords: languages
-;; Package-Version: 20170403.826
+;; Package-Version: 20170522.1524
 ;; Package-Requires: ((emacs "24.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'rx)
+(require 'cc-cmds)
 
 (defgroup kotlin nil
   "A Kotlin major mode."
