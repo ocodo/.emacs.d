@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-link
-;; Package-Version: 20170319.553
+;; Package-Version: 20170528.1158
 ;; Version: 0.4.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: convenience, links
@@ -41,6 +41,9 @@
 (require 'avy)
 
 ;;* `ace-link'
+(defvar ace-link-fallback-function nil
+  "When non-nil, called by `ace-link' when `major-mode' isn't recognized.")
+
 ;;;###autoload
 (defun ace-link ()
   "Call the ace link function for the current `major-mode'"
@@ -62,6 +65,8 @@
          (ace-link-org))
         ((eq major-mode 'Custom-mode)
          (ace-link-org))
+        ((and ace-link-fallback-function
+              (funcall ace-link-fallback-function)))
         (t
          (error
           "%S isn't supported"
