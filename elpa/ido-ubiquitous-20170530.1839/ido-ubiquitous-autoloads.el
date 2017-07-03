@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ido-ubiquitous" "ido-ubiquitous.el" (0 0 0
-;;;;;;  0))
+;;;### (autoloads nil "ido-ubiquitous" "ido-ubiquitous.el" (22873
+;;;;;;  40376 0 0))
 ;;; Generated autoloads from ido-ubiquitous.el
 
 (defvar ido-ubiquitous-debug-mode nil "\
@@ -44,8 +44,6 @@ when ido completion is or is not used by customizing
 `ido-ubiquitous-function-overrides'.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ido-ubiquitous" '("ido-ubiquitous-" "completing-read-ido-ubiquitous")))
 
 ;;;***
 
