@@ -4,14 +4,8 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "ido-completing-read+" "ido-completing-read+.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (22873 40374 0 0))
 ;;; Generated autoloads from ido-completing-read+.el
-
-(defvar ido-cr+-enable-next-call nil "\
-If non-nil, then the next call to `ido-completing-read' is by `ido-completing-read+'.")
-
-(defvar ido-cr+-enable-this-call nil "\
-If non-nil, then the current call to `ido-completing-read' is by `ido-completing-read+'")
 
 (defvar ido-cr+-replace-completely nil "\
 If non-nil, replace `ido-completeing-read' completely with ido-cr+.
@@ -36,16 +30,7 @@ completion for them.
 \(fn PROMPT COLLECTION &optional PREDICATE REQUIRE-MATCH INITIAL-INPUT HIST DEF INHERIT-INPUT-METHOD)" nil nil)
 
 (defadvice ido-completing-read (around ido-cr+ activate) "\
-This advice handles application of ido-completing-read+ features.
-
-First, it ensures that `ido-cr+-enable-this-call' is set
-properly. This variable should be non-nil during execution of
-`ido-completing-read' if it was called from
-`ido-completing-read+'.
-
-Second, if `ido-cr+-replace-completely' is non-nil, then this
-advice completely replaces `ido-completing-read' with
-`ido-completing-read+'." (when (not (featurep (quote ido-completing-read+))) (require (quote ido-completing-read+))) (let ((ido-cr+-enable-this-call ido-cr+-enable-next-call) (ido-cr+-enable-next-call nil)) (if (or ido-cr+-enable-this-call (not ido-cr+-replace-completely)) ad-do-it (message "Replacing ido-completing-read") (setq ad-return-value (apply (function ido-completing-read+) (ad-get-args 0))))))
+This advice is the implementation of `ido-cr+-replace-completely'." (when (not (featurep (quote ido-completing-read+))) (require (quote ido-completing-read+))) (if (or (ido-cr+-active) (not ido-cr+-replace-completely)) ad-do-it (setq ad-return-value (apply (function ido-completing-read+) (ad-get-args 0)))))
 
 (defvar ido-context-switch-command nil "\
 Variable holding the command used for switching to another completion mode.
@@ -58,8 +43,6 @@ Emacs 25. Setting another package's variable is not safe in
 general, but in this case it should be, because ido always
 let-binds this variable before using it, so the initial value
 shouldn't matter.")
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ido-completing-read+" '("ido-c")))
 
 ;;;***
 

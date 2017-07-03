@@ -5,8 +5,8 @@
 ;; Filename: ido-completing-read+.el
 ;; Author: Ryan Thompson
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
-;; Version: 3.16
-;; Package-Version: 20170313.1603
+;; Version: 3.17
+;; Package-Version: 20170601.559
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-ubiquitous
 ;; Keywords: ido, completion, convenience
@@ -42,8 +42,8 @@
 ;;
 ;;; Code:
 
-(defconst ido-completing-read+-version "3.16"
-  "Currently running version of ido-ubiquitous.
+(defconst ido-completing-read+-version "3.17"
+  "Currently running version of ido-completing-read+.
 
 Note that when you update ido-completing-read+, this variable may
 not be updated until you restart Emacs.")
@@ -61,18 +61,40 @@ Debug info is printed to the *Messages* buffer."
   :global t
   :group 'ido-completing-read-plus)
 
-(defun ido-cr+--debug-message (format-string &rest args)
+(defsubst ido-cr+--debug-message (format-string &rest args)
   (when ido-cr+-debug-mode
     (apply #'message (concat "ido-completing-read+: " format-string) args)))
 
 ;;; Core code
 
-;;;###autoload
-(defvar ido-cr+-enable-next-call nil
-  "If non-nil, then the next call to `ido-completing-read' is by `ido-completing-read+'.")
-;;;###autoload
-(defvar ido-cr+-enable-this-call nil
-  "If non-nil, then the current call to `ido-completing-read' is by `ido-completing-read+'")
+(defvar ido-cr+-minibuffer-depth -1
+  "Minibuffer depth of the most recent ido-cr+ activation.
+
+If this equals the current minibuffer depth, then the minibuffer
+is currently being used by ido-cr+, and ido-cr+ feature will be
+active. Otherwise, something else is using the minibuffer and
+ido-cr+ features will be deactivated to avoid interfering with
+the other command.
+
+This is set to -1 by default, since `(minibuffer-depth)' should
+never return this value.")
+
+(defvar ido-cr+-force-on-functional-collection nil
+  "If non-nil, the next call to `ido-completing-read+' will operate on functional collections.
+
+This is not meant to be set permanently, but rather let-bound
+before calling `ido-completing-read+' under controlled
+circumstances.")
+
+(defvar ido-cr+-orig-completing-read-args nil
+  "Original arguments passed to `ido-completing-read+'.
+
+These are used for falling back to `completing-read-default'.")
+
+(defvar ido-cr+-before-fallback-hook nil
+  "Hook run when ido-cr+ triggers a fallback.
+
+The hook is run right before calling `ido-cr+-fallback-function'.")
 
 (defgroup ido-completing-read-plus nil
   "Extra features and compatibility for `ido-completing-read'."
@@ -136,7 +158,7 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
 (put 'ido-cr+-fallback 'error-conditions '(ido-cr+-fallback error))
 (put 'ido-cr+-fallback 'error-message "ido-cr+-fallback")
 
-(defun ido-cr+--explain-fallback (arg)
+(defsubst ido-cr+--explain-fallback (arg)
   ;; This function accepts a string, or an ido-cr+-fallback
   ;; signal.
   (when ido-cr+-debug-mode
@@ -145,6 +167,10 @@ https://github.com/DarwinAwardWinner/ido-ubiquitous/issues"
       (setq arg (cadr arg)))
     (ido-cr+--debug-message "Falling back to `%s' because %s."
                             ido-cr+-fallback-function arg)))
+
+(defsubst ido-cr+-active ()
+  "Returns non-nil if ido-cr+ is currently using the minibuffer."
+  (>= ido-cr+-minibuffer-depth (minibuffer-depth)))
 
 ;;;###autoload
 (defun ido-completing-read+ (prompt collection &optional predicate
@@ -160,11 +186,12 @@ it detects edge cases that ido cannot handle and uses normal
 completion for them."
   (let (;; Save the original arguments in case we need to do the
         ;; fallback
-        (orig-args
+        (ido-cr+-orig-completing-read-args
          (list prompt collection predicate require-match
                initial-input hist def inherit-input-method)))
     (condition-case sig
         (progn
+          ;; Check a bunch of fallback conditions
           (cond
            (inherit-input-method
             (signal 'ido-cr+-fallback
@@ -172,11 +199,24 @@ completion for them."
            ((bound-and-true-p completion-extra-properties)
             (signal 'ido-cr+-fallback
                     '("ido cannot handle non-nil `completion-extra-properties'")))
-           ((functionp collection)
+           ((and (functionp collection)
+                 (not ido-cr+-force-on-functional-collection))
             (signal 'ido-cr+-fallback
-                    '("ido cannot handle COLLECTION being a function"))))
-          ;; Expand all possible completions
+                    '("ido cannot handle COLLECTION being a function (but see `ido-cr+-force-on-functional-collection')"))))
+
+          ;; Expand all possible completions. (Apologies to everyone
+          ;; who worked so hard to make lazy collections work; ido
+          ;; doesn't know how to handle those.)
           (setq collection (all-completions "" collection predicate))
+          ;; Check for a specific bug
+          (when (and (version< emacs-version "26.1")
+                     ido-enable-dot-prefix
+                     (member "" collection))
+            (signal 'ido-cr+-fallback
+                    '("ido cannot handle the empty string as an option when `ido-enable-dot-prefix' is non-nil; see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=26997")))
+          ;; No point in using ido unless there's a collection
+          (when (= (length collection) 0)
+            (signal 'ido-cr+-fallback '("ido is not needed for an empty collection")))
           ;; Check for excessively large collection
           (when (and ido-cr+-max-items
                      (> (length collection) ido-cr+-max-items))
@@ -211,7 +251,7 @@ completion for them."
                     def nil)))
           ;; Ready to do actual ido completion
           (prog1
-              (let ((ido-cr+-enable-next-call t))
+              (let ((ido-cr+-minibuffer-depth (1+ (minibuffer-depth))))
                 (ido-completing-read
                  prompt collection
                  predicate require-match initial-input hist def
@@ -220,35 +260,27 @@ completion for them."
             ;; manually.
             (when (eq ido-exit 'fallback)
               (signal 'ido-cr+-fallback '("user manually triggered fallback")))))
+
       ;; Handler for ido-cr+-fallback signal
       (ido-cr+-fallback
        (ido-cr+--explain-fallback sig)
-       (apply ido-cr+-fallback-function orig-args)))))
+       (run-hooks 'ido-cr+-before-fallback-hook)
+       (apply ido-cr+-fallback-function ido-cr+-orig-completing-read-args)))))
 
 ;;;###autoload
 (defadvice ido-completing-read (around ido-cr+ activate)
-  "This advice handles application of ido-completing-read+ features.
-
-First, it ensures that `ido-cr+-enable-this-call' is set
-properly. This variable should be non-nil during execution of
-`ido-completing-read' if it was called from
-`ido-completing-read+'.
-
-Second, if `ido-cr+-replace-completely' is non-nil, then this
-advice completely replaces `ido-completing-read' with
-`ido-completing-read+'."
+  "This advice is the implementation of `ido-cr+-replace-completely'."
   ;; If this advice is autoloaded, then we need to force loading of
   ;; the rest of the file so all the variables will be defined.
   (when (not (featurep 'ido-completing-read+))
     (require 'ido-completing-read+))
-  (let ((ido-cr+-enable-this-call ido-cr+-enable-next-call)
-        (ido-cr+-enable-next-call nil))
-    (if (or
-       ido-cr+-enable-this-call         ; Avoid recursion
-       (not ido-cr+-replace-completely))
+  (if (or (ido-cr+-active)
+          (not ido-cr+-replace-completely))
+      ;; ido-cr+ has either already activated or isn't going to
+      ;; activate, so just run the function as normal
       ad-do-it
-    (message "Replacing ido-completing-read")
-    (setq ad-return-value (apply #'ido-completing-read+ (ad-get-args 0))))))
+    ;; Otherwise, we need to activate ido-cr+.
+    (setq ad-return-value (apply #'ido-completing-read+ (ad-get-args 0)))))
 
 ;; Fallback on magic C-f and C-b
 ;;;###autoload
@@ -266,14 +298,14 @@ shouldn't matter.")
 
 (defadvice ido-magic-forward-char (before ido-cr+-fallback activate)
   "Allow falling back in ido-completing-read+."
-  (when ido-cr+-enable-this-call
+  (when (ido-cr+-active)
     ;; `ido-context-switch-command' is already let-bound at this
     ;; point.
     (setq ido-context-switch-command #'ido-fallback-command)))
 
 (defadvice ido-magic-backward-char (before ido-cr+-fallback activate)
   "Allow falling back in ido-completing-read+."
-  (when ido-cr+-enable-this-call
+  (when (ido-cr+-active)
     ;; `ido-context-switch-command' is already let-bound at this
     ;; point.
     (setq ido-context-switch-command #'ido-fallback-command)))
@@ -292,7 +324,7 @@ sets up C-j to be equivalent to TAB in the same situation."
   (if (and
        ;; Only override C-j behavior if...
        ;; We're using ico-cr+
-       ido-cr+-enable-this-call
+       (ido-cr+-active)
        ;; Require-match is non-nil
        (with-no-warnings ido-require-match)
        ;; A default was provided, or ido-text is non-empty
