@@ -1,11 +1,11 @@
 ;;; fix-word.el --- Convenient word transformation -*- lexical-binding: t; -*-
 ;;
-;; Copyright © 2015–2017 Mark Karpov <markkarpov@openmailbox.org>
+;; Copyright © 2015–2017 Mark Karpov <markkarpov92@gmail.com>
 ;;
-;; Author: Mark Karpov <markkarpov@openmailbox.org>
+;; Author: Mark Karpov <markkarpov92@gmail.com>
 ;; URL: https://github.com/mrkkrp/fix-word
-;; Package-Version: 20161231.1555
-;; Version: 0.1.1
+;; Package-Version: 20170518.2343
+;; Version: 0.1.2
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: word, convenience
 ;;
@@ -26,7 +26,7 @@
 
 ;;; Commentary:
 
-;; This package provides means of lifting functions that transform strings
+;; This package provides a means of lifting functions that transform strings
 ;; into commands that have different behavior depending on active region,
 ;; position of point, etc.
 
@@ -84,7 +84,7 @@ There is also a macro that defines such commands for you:
        fnc arg))))
 
 (defun fix-word--fix-region (fnc)
-  "Transform active region with function FNC."
+  "Transform the active region with function FNC."
   (let* ((from (point))
          (to   (mark))
          (str  (buffer-substring-no-properties from to)))
@@ -93,7 +93,7 @@ There is also a macro that defines such commands for you:
     (goto-char from)))
 
 (defun fix-word--fix-and-move (fnc &optional arg)
-  "Transform current word with function FNC and move to the next word.
+  "Transform the current word with function FNC and move to the next word.
 
 If argument ARG is supplied, repeat the operation that many times."
   (dotimes (_ (or arg 1))
@@ -105,7 +105,7 @@ If argument ARG is supplied, repeat the operation that many times."
   "How many times `fix-word--fix-quickly' has been invoked consequently.")
 
 (defun fix-word--fix-quickly (fnc &optional arg)
-  "Transform previous word with function FNC.
+  "Transform the previous word with function FNC.
 
 If this function is invoked repeatedly, transform more words
 moving from right to left.  If argument ARG is supplied, repeat
@@ -127,7 +127,7 @@ the operation that many times."
     (goto-char origin)))
 
 (defun fix-word--transform-word (fnc)
-  "Transform word at point with function FNC."
+  "Transform the word at the point with function FNC."
   (let ((bounds (bounds-of-thing-at-point 'word)))
     (when bounds
       (cl-destructuring-bind (from . to) bounds
