@@ -386,6 +386,13 @@ before point."
   :type '(repeat symbol)
   :group 'evil)
 
+(defcustom evil-kill-on-visual-paste t
+  "Whether `evil-visual-paste' adds the replaced text to the kill
+ring, making it the default for the next paste. The default, t,
+replicates the default vim behavior."
+  :type 'boolean
+  :group 'evil)
+
 (defcustom evil-want-C-i-jump t
   "Whether \"C-i\" jumps forward like in Vim."
   :type 'boolean
@@ -608,6 +615,7 @@ If STATE is nil, Evil is disabled in the buffer."
     cfw:calendar-mode
     completion-list-mode
     Custom-mode
+    custom-theme-choose-mode
     debugger-mode
     delicious-search-mode
     desktop-menu-blist-mode
@@ -782,7 +790,6 @@ If STATE is nil, Evil is disabled in the buffer."
     Man-mode
     speedbar-mode
     undo-tree-visualizer-mode
-    view-mode
     woman-mode)
   "Modes that should come up in Motion state."
   :type  '(repeat symbol)
@@ -1204,12 +1211,6 @@ SYMBOL is made permanent buffer local."
 and `evil-scroll-down'.
 Determines how many lines should be scrolled.
 Default value is 0 - scroll half the screen.")
-
-(evil-define-local-var evil-scroll-line-count 1
-  "Holds last used prefix for `evil-scroll-line-up'
-and `evil-scroll-line-down'.
-Determines how many lines should be scrolled.
-Default value is 1 line.")
 
 (evil-define-local-var evil-state nil
   "The current Evil state.
@@ -1812,30 +1813,19 @@ Otherwise the previous command is assumed as substitute.")
     (with-temp-buffer
       (let ((dir (file-name-directory (or load-file-name
                                           byte-compile-current-file))))
-        (cond
-         ;; git repository
-         ((and (file-exists-p (concat dir "/.git"))
-               (condition-case nil
+        ;; git repository
+        (if (and (file-exists-p (concat dir "/.git"))
+                 (ignore-errors
                    (zerop (call-process "git" nil '(t nil) nil
                                         "rev-parse"
-                                        "--short" "HEAD"))
-                 (error nil)))
-          (goto-char (point-min))
-          (concat "evil-git-"
-                  (buffer-substring (point-min)
-                                    (line-end-position))))
-         ;; mercurial repository
-         ((and (file-exists-p (concat dir "/.hg"))
-               (condition-case nil
-                   (zerop (call-process "hg" nil '(t nil) nil
-                                        "parents"
-                                        "--template"
-                                        "evil-hg-{node|short}"))
-                 (error nil)))
-          (goto-char (point-min))
-          (buffer-substring (point-min) (line-end-position)))
-         ;; no repo, use plain version
-         (t "1.2.12")))))
+                                        "--short" "HEAD"))))
+            (progn
+              (goto-char (point-min))
+              (concat "evil-git-"
+                      (buffer-substring (point-min)
+                                        (line-end-position))))
+          ;; no repo, use plain version
+          "1.2.12"))))
   "The current version of Evil")
 
 (defun evil-version ()

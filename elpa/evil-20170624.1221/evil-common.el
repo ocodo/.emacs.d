@@ -1363,48 +1363,41 @@ match-data reflects the last successful match (that caused COUNT
 to reach zero). The behaviour of this functions is similar to
 `up-list'."
   (let* ((count (or count 1))
-         (dir (if (> count 0) +1 -1)))
+         (forwardp (> count 0))
+         (dir (if forwardp +1 -1)))
     (catch 'done
       (while (not (zerop count))
         (let* ((pnt (point))
                (cl (save-excursion
-                     (and (re-search-forward end nil t dir)
+                     (and (re-search-forward (if forwardp end beg) nil t dir)
                           (or (/= pnt (point))
                               (progn
                                 ;; zero size match, repeat search from
                                 ;; the next position
                                 (forward-char dir)
-                                (re-search-forward end nil t dir)))
+                                (re-search-forward (if forwardp end beg) nil t dir)))
                           (point))))
                (match (match-data t))
                (op (save-excursion
-                     (and (re-search-forward beg cl t dir)
+                     (and (re-search-forward (if forwardp beg end) cl t dir)
                           (or (/= pnt (point))
                               (progn
                                 ;; zero size match, repeat search from
                                 ;; the next position
                                 (forward-char dir)
-                                (re-search-forward beg cl t dir)))
+                                (re-search-forward (if forwardp beg end) cl t dir)))
                           (point)))))
           (cond
-           ((and (not op) (not cl))
-            (goto-char (if (> dir 0) (point-max) (point-min)))
+           ((not cl)
+            (goto-char (if forwardp (point-max) (point-min)))
             (set-match-data nil)
             (throw 'done count))
-           ((> dir 0)
-            (if cl
-                (progn
-                  (setq count (1- count))
-                  (if (zerop count) (set-match-data match))
-                  (goto-char cl))
-              (setq count (1+ count))
-              (goto-char op)))
-           ((< dir 0)
+           (t
             (if op
                 (progn
-                  (setq count (1+ count))
+                  (setq count (if forwardp (1+ count) (1- count)))
                   (goto-char op))
-              (setq count (1- count))
+              (setq count (if forwardp (1- count) (1+ count)))
               (if (zerop count) (set-match-data match))
               (goto-char cl))))))
       0)))
@@ -1529,8 +1522,9 @@ backwards."
         (setq reset-parser t))
       ;; global parser state is out of state, use local one
       (let* ((pnt (point))
-             (state (progn (beginning-of-defun)
-                           (parse-partial-sexp (point) pnt nil nil (syntax-ppss))))
+             (state (save-excursion
+                      (beginning-of-defun)
+                      (parse-partial-sexp (point) pnt nil nil (syntax-ppss))))
              (bnd (bounds-of-evil-string-at-point state)))
         (when (and bnd (< (point) (cdr bnd)))
           ;; currently within a string
@@ -2084,6 +2078,11 @@ The following special registers are supported.
 If REGISTER is an upcase character then text is appended to that
 register instead of replacing its content."
   (cond
+   ((not (characterp register))
+    (user-error "Invalid register"))
+   ;; don't allow modification of read-only registers
+   ((member register '(?: ?. ?%))
+    (user-error "Can't modify read-only register"))
    ((eq register ?\")
     (kill-new text))
    ((and (<= ?1 register) (<= register ?9))
@@ -2431,7 +2430,9 @@ The tracked insertion is set to `evil-last-insertion'."
   "Saves the lines in the region BEG and END into the kill-ring."
   (let* ((text (filter-buffer-substring beg end))
          (yank-handler (list (or yank-handler
-                                 #'evil-yank-line-handler))))
+                                 #'evil-yank-line-handler)
+                             nil
+                             t)))
     ;; Ensure the text ends with a newline. This is required
     ;; if the deleted lines were the last lines in the buffer.
     (when (or (zerop (length text))
@@ -2458,7 +2459,7 @@ The tracked insertion is set to `evil-last-insertion'."
     (let* ((yank-handler (list (or yank-handler
                                    #'evil-yank-block-handler)
                                lines
-                               nil
+                               t
                                'evil-delete-yanked-rectangle))
            (text (propertize (mapconcat #'identity lines "\n")
                              'yank-handler yank-handler)))
