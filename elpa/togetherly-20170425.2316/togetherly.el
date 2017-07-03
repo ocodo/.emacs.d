@@ -18,7 +18,7 @@
 
 ;; Author: zk_phi
 ;; URL: http://hins11.yu-yake.com/
-;; Package-Version: 20150820.138
+;; Package-Version: 20170425.2316
 ;; Version: 0.1.1
 ;; Package-Requires: ((cl-lib "0.3"))
 
@@ -452,7 +452,8 @@ text-properties."
              (mode (cddr message)))
          (erase-buffer)
          (insert (cadr message))
-         (funcall (or (and (fboundp mode) mode) 'fundamental-mode))
+         (unless (eq major-mode mode)
+           (funcall (or (and (fboundp mode) mode) 'fundamental-mode)))
          (goto-char (max (min original-pos (point-max)) (point-min)))
          ;; local hooks must be set after changing major-mode
          (add-hook 'before-change-functions 'togetherly--client-before-change nil t)

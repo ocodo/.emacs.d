@@ -1,9 +1,9 @@
 ;;; togetherly-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("togetherly.el") (21975 62251 684226 855000))
+;;;### (autoloads nil nil ("togetherly.el") (22873 40538 0 0))
 
 ;;;***
 
