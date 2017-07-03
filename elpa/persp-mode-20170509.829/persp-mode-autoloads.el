@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "persp-mode" "persp-mode.el" (0 0 0 0))
+;;;### (autoloads nil "persp-mode" "persp-mode.el" (22873 40475 0
+;;;;;;  0))
 ;;; Generated autoloads from persp-mode.el
 
 (autoload 'persp-def-auto-persp "persp-mode" "\
@@ -38,8 +39,6 @@ Here is a keymap of this minor mode:
 \\{persp-mode-map}
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "persp-mode" '("persp" "ido-toggle-persp-filter" "find-other-frame-with-persp" "safe-persp-" "set-" "get-" "clear-window-persp" "with-persp-" "window-persp-set-p" "delete-persp-parameter" "modify-persp-parameters" "*persp-")))
 
 ;;;***
 

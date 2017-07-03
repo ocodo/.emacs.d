@@ -4,7 +4,7 @@
 
 ;; Author: Constantin Kulikov (Bad_ptr) <zxnotdead@gmail.com>
 ;; Version: 2.9.6
-;; Package-Version: 20170419.1022
+;; Package-Version: 20170509.829
 ;; Package-Requires: ()
 ;; Keywords: perspectives, session, workspace, persistence, windows, buffers, convenience
 ;; URL: https://github.com/Bad-ptr/persp-mode.el
@@ -3535,7 +3535,7 @@ configuration, because of the error -- %s" err)
 
 (defun* persp-frame-save-state
     (&optional (frame (selected-frame)) set-persp-special-last-buffer)
-  (when (and frame
+  (when (and (frame-live-p frame)
              (not (persp-is-frame-daemons-frame frame))
              (not (frame-parameter frame 'persp-ignore-wconf))
              (not (frame-parameter frame 'persp-ignore-wconf-once)))
