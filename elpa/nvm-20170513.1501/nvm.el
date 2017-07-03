@@ -5,7 +5,7 @@
 ;; Author: Johan Andersson <johan.rejeep@gmail.com>
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
 ;; Version: 0.2.0
-;; Package-Version: 20151113.55
+;; Package-Version: 20170513.1501
 ;; Keywords: node, nvm
 ;; URL: http://github.com/rejeep/nvm.el
 ;; Package-Requires: ((s "1.8.0") (dash "2.4.0") (f "0.14.0") (dash-functional "2.4.0"))
@@ -116,6 +116,7 @@ function will return the most recent patch version."
           (-min-by (-on 'string< (lambda (version) (car version)))
                    possible-versions))))))
 
+;;;###autoload
 (defun nvm-use (version &optional callback)
   "Activate Node VERSION.
 
@@ -124,25 +125,30 @@ previously used version."
   (setq version (nvm--find-exact-version-for version))
   (let ((version-path (-last-item version)))
     (if (nvm--version-installed? (car version))
-        (let ((prev-version nvm-current-version))
+        (let ((prev-version nvm-current-version)
+              (prev-exec-path exec-path))
           (setenv "NVM_BIN" (f-join version-path "bin"))
           (setenv "NVM_PATH" (f-join version-path "lib" "node"))
           (let* ((path-re (concat "^" (f-join nvm-dir nvm-runtime-re) nvm-version-re "/bin/?$"))
+                 (new-bin-path (f-full (f-join version-path "bin")))
                  (paths
                   (cons
-                   (f-full (f-join version-path "bin"))
+                   new-bin-path
                    (-reject
                     (lambda (path)
                       (s-matches? path-re path))
                     (parse-colon-path (getenv "PATH"))))))
-            (setenv "PATH" (s-join path-separator paths)))
+            (setenv "PATH" (s-join path-separator paths))
+            (setq exec-path (cons new-bin-path (--remove (s-matches? path-re it) exec-path))))
           (setq nvm-current-version version)
           (when callback
             (unwind-protect
                 (funcall callback)
-              (when prev-version (nvm-use (car prev-version))))))
+              (when prev-version (nvm-use (car prev-version)))
+              (setq exec-path prev-exec-path))))
       (error "No such version %s" version))))
 
+;;;###autoload
 (defun nvm-use-for (&optional path callback)
   "Activate Node for PATH or `default-directory'.
 
