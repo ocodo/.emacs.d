@@ -4,7 +4,7 @@
 
 ;; Author: Mikhail <tensai@cirno.in> Kuryshev
 ;; Keywords: languages
-;; Package-Version: 20150903.1940
+;; Package-Version: 20170626.323
 ;; Package-Requires: ((auto-complete "1.4.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -52,6 +52,11 @@
   :type 'boolean
   :group 'go-autocomplete)
 
+(defcustom ac-go-gocode-bin "gocode"
+  "Overwrite path to gocode binary"
+  :type 'string
+  :group 'go-autocomplete)
+
 ;; Close gocode daemon at exit unless it was already running
 (eval-after-load "go-mode"
   '(progn
@@ -96,7 +101,7 @@
         (progn
           (call-process-region (point-min)
                                (point-max)
-                               "gocode"
+                               ac-go-gocode-bin
                                nil
                                temp-buffer
                                nil
