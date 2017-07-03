@@ -12,7 +12,7 @@
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
 ;; Package-Requires: ((emacs "24.4") (dash "20170207.2056") (with-editor "20170111.609"))
-;; Package-Version: 20170314.1414
+;; Package-Version: 20170609.2310
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -192,7 +192,7 @@ called.  If any of them returns nil, then the commit is not
 performed and the buffer is not killed.  The user should then
 fix the issue and try again.
 
-The functions are called with one argument.  If it is non-nil
+The functions are called with one argument.  If it is non-nil,
 then that indicates that the user used a prefix argument to
 force finishing the session despite issues.  Functions should
 usually honor this wish and return non-nil."
@@ -236,6 +236,9 @@ already using it, then you probably shouldn't start doing so."
   :safe 'numberp
   :type '(choice (const :tag "use regular fill-column")
                  number))
+
+(make-obsolete-variable 'git-commit-fill-column 'fill-column
+                        "Magit 2.11.0" 'set)
 
 (defcustom git-commit-known-pseudo-headers
   '("Signed-off-by" "Acked-by" "Cc"
@@ -367,6 +370,7 @@ already using it, then you probably shouldn't start doing so."
 
 ;;; Hooks
 
+;;;###autoload
 (defconst git-commit-filename-regexp "/\\(\
 \\(\\(COMMIT\\|NOTES\\|PULLREQ\\|TAG\\)_EDIT\\|MERGE_\\|\\)MSG\
 \\|BRANCH_DESCRIPTION\\)\\'")
@@ -388,6 +392,7 @@ already using it, then you probably shouldn't start doing so."
        (string-match-p git-commit-filename-regexp buffer-file-name)
        (git-commit-setup)))
 
+;;;###autoload
 (defun git-commit-setup ()
   ;; cygwin git will pass a cygwin path (/cygdrive/c/foo/.git/...),
   ;; try to handle this in window-nt Emacs.
@@ -474,6 +479,7 @@ to `git-commit-fill-column'."
   (when (and (numberp git-commit-fill-column)
              (not (local-variable-p 'fill-column)))
     (setq fill-column git-commit-fill-column))
+  (setq-local comment-auto-fill-only-comments nil)
   (turn-on-auto-fill))
 
 (defun git-commit-turn-on-flyspell ()
@@ -671,8 +677,8 @@ Added to `font-lock-extend-region-functions'."
               (summary-end (match-end 0)))
           (when (or (< summary-beg font-lock-beg summary-end)
                     (< summary-beg font-lock-end summary-end))
-            (setq font-lock-beg (min font-lock-beg summary-beg)
-                  font-lock-end (max font-lock-end summary-end))))))))
+            (setq font-lock-beg (min font-lock-beg summary-beg))
+            (setq font-lock-end (max font-lock-end summary-end))))))))
 
 (defun git-commit-mode-font-lock-keywords ()
   `(;; Comments
