@@ -3,15 +3,14 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-google" "helm-google.el" (0 0 0 0))
+;;;### (autoloads nil "helm-google" "helm-google.el" (22873 40351
+;;;;;;  0 0))
 ;;; Generated autoloads from helm-google.el
 
 (autoload 'helm-google "helm-google" "\
 Preconfigured `helm' : Google search.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-google" '("helm-")))
 
 ;;;***
 

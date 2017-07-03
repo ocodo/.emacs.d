@@ -4,7 +4,7 @@
 
 ;; Author: steckerhalter
 ;; Package-Requires: ((helm "0") (google "0"))
-;; Package-Version: 20170407.1156
+;; Package-Version: 20170509.244
 ;; URL: https://github.com/steckerhalter/helm-google
 ;; Keywords: helm google search browse
 
@@ -51,9 +51,9 @@ searches you will want to use `www.google.TLD'."
   :type 'string
   :group 'helm-google)
 
-(defcustom helm-google-use-regexp-parsing nil
-  "Force use of regexp html parsing even if libxml is available."
-  :type 'boolean
+(defcustom helm-google-parsing-function 'helm-google--parse-w/regexp
+  "Function to use to parse the html."
+  :type 'symbol
   :group 'helm-google)
 
 (defcustom helm-google-actions
@@ -98,44 +98,9 @@ searches you will want to use `www.google.TLD'."
           (setq result nil))
         results)))
 
-(defun helm-google--tree-search (tree)
-  (pcase tree
-    (`(,x . ,y) (or (and (null y) nil)
-                    (and (eql x 'div)
-                         (string= (xml-get-attribute tree 'id) "ires")
-                         (pcase-let* ((`(_ _ . ,ol) tree)
-                                      (`(_ _ . ,items) (car ol)))
-                           items))
-                    (helm-google--tree-search x)
-                    (helm-google--tree-search y)))))
-
-(defun helm-google--parse-w/libxml (buf)
-  (let* ((xml (helm-google--with-buffer buf
-                  (libxml-parse-html-region
-                   (point-min) (point-max))))
-         (items (helm-google--tree-search xml))
-         (get-string (lambda (element)
-                       (mapconcat (lambda (e)
-                                    (if (listp e) (car (last e)) e))
-                                  element "")))
-         (fix-url (lambda (str)
-                    (concat "https://www.google." helm-google-tld str)))
-         results)
-    (dolist (item items results)
-      (add-to-list 'results
-                   (list :title (funcall get-string (cddr (assoc 'a (assoc 'h3 item))))
-                         :cite (funcall get-string (cddr (assoc 'cite (assoc 'div (assoc 'div item)))))
-                         :url (funcall fix-url (cdr (assoc 'href (cadr (assoc 'a (assoc 'h3 item))))))
-                         :content (helm-google--process-html
-                                   (funcall get-string (cddr (assoc 'span (assoc 'div item))))))
-                   t))))
-
 (defun helm-google--parse (buf)
   "Extract the search results from BUF."
-  (if (or helm-google-use-regexp-parsing
-          (not (fboundp 'libxml-parse-html-region)))
-      (helm-google--parse-w/regexp buf)
-    (helm-google--parse-w/libxml buf)))
+    (funcall helm-google-parsing-function buf))
 
 (defun helm-google--response-buffer-from-search (text &optional search-url)
   (let ((url-mime-charset-string "utf-8")
