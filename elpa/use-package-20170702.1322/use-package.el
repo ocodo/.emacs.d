@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 17 Oct 2016
 ;; Version: 2.3
-;; Package-Version: 20170405.1028
+;; Package-Version: 20170702.1322
 ;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
@@ -153,6 +153,8 @@ the user specified."
     :bind-keymap*
     :interpreter
     :mode
+    :magic
+    :magic-fallback
     :commands
     :defines
     :functions
@@ -328,6 +330,14 @@ convert it to a symbol and return that."
 convert it to a string and return that."
   (if (stringp string-or-symbol) string-or-symbol
     (symbol-name string-or-symbol)))
+
+(defun use-package-as-mode (string-or-symbol)
+  "If STRING-OR-SYMBOL ends in `-mode' (or its name does), return
+it as a symbol.  Otherwise, return it as a symbol with `-mode'
+appended."
+  (let ((string (use-package-as-string string-or-symbol)))
+    (intern (if (string-match "-mode\\'" string) string
+              (concat string "-mode")))))
 
 (defun use-package-load-name (name &optional noerror)
   "Return a form which will load or require NAME depending on
@@ -727,7 +737,7 @@ If the package is installed, its entry is removed from
                 ;; bypassed.
                 (member context '(:byte-compile :ensure :config))
                 (y-or-n-p (format "Install package %S?" package))))
-          (progn
+          (with-demoted-errors (format "Cannot load %s: %%S" name)
             (when (assoc package (bound-and-true-p package-pinned-packages))
               (package-read-all-archive-contents))
             (if (assoc package package-archive-contents)
@@ -1093,27 +1103,32 @@ deferred until the prefix key sequence is pressed."
 ;;
 
 (defun use-package-normalize-mode (name keyword args)
+  "Normalize arguments for keywords which add regexp/mode pairs to an alist."
   (use-package-as-one (symbol-name keyword) args
     (apply-partially #'use-package-normalize-pairs
                      #'use-package-regex-p
                      (lambda (m) (and (not (null m)) (symbolp m)))
                      name)))
 
-(defalias 'use-package-normalize/:interpreter 'use-package-normalize-mode)
-
-(defun use-package-handler/:interpreter (name keyword arg rest state)
+(defun use-package-handle-mode (name alist arg rest state)
+  "Handle keywords which add regexp/mode pairs to an alist."
   (let* (commands
-         (form (mapcar #'(lambda (interpreter)
-                           (push (cdr interpreter) commands)
-                           (setcar interpreter
-                                   (use-package-normalize-regex (car interpreter)))
-                           `(add-to-list 'interpreter-mode-alist ',interpreter)) arg)))
+         (form (mapcar #'(lambda (thing)
+                           (push (cdr thing) commands)
+                           (setcar thing
+                                   (use-package-normalize-regex (car thing)))
+                           `(add-to-list ',alist ',thing)) arg)))
     (use-package-concat
      (use-package-process-keywords name
        (use-package-sort-keywords
         (use-package-plist-maybe-put rest :defer t))
        (use-package-plist-append state :commands commands))
      `((ignore ,@form)))))
+
+(defalias 'use-package-normalize/:interpreter 'use-package-normalize-mode)
+
+(defun use-package-handler/:interpreter (name keyword arg rest state)
+  (use-package-handle-mode name 'interpreter-mode-alist arg rest state))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1123,18 +1138,27 @@ deferred until the prefix key sequence is pressed."
 (defalias 'use-package-normalize/:mode 'use-package-normalize-mode)
 
 (defun use-package-handler/:mode (name keyword arg rest state)
-  (let* (commands
-         (form (mapcar #'(lambda (mode)
-                           (push (cdr mode) commands)
-                           (setcar mode
-                                   (use-package-normalize-regex (car mode)))
-                           `(add-to-list 'auto-mode-alist ',mode)) arg)))
-    (use-package-concat
-     (use-package-process-keywords name
-       (use-package-sort-keywords
-        (use-package-plist-maybe-put rest :defer t))
-       (use-package-plist-append state :commands commands))
-     `((ignore ,@form)))))
+  (use-package-handle-mode name 'auto-mode-alist arg rest state))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; :magic
+;;
+
+(defalias 'use-package-normalize/:magic 'use-package-normalize-mode)
+
+(defun use-package-handler/:magic (name keyword arg rest state)
+  (use-package-handle-mode name 'magic-mode-alist arg rest state))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; :magic-fallback
+;;
+
+(defalias 'use-package-normalize/:magic-fallback 'use-package-normalize-mode)
+
+(defun use-package-handler/:magic-fallback (name keyword arg rest state)
+  (use-package-handle-mode name 'magic-fallback-mode-alist arg rest state))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1200,7 +1224,7 @@ deferred until the prefix key sequence is pressed."
        (if (bound-and-true-p use-package--recursive-autoload)
            (use-package-error
             (format "Autoloading failed to define function %S"
-                    command))
+                    ',command))
          (when (use-package-install-deferred-package
                 ',package-name :autoload)
            (require ',package-name)
@@ -1420,26 +1444,48 @@ deferred until the prefix key sequence is pressed."
 ;;; :delight
 ;;
 
+(defun use-package--normalize-delight-1 (name args)
+  "Normalize ARGS for a single call to `delight'."
+  (when (eq :eval (car args))
+    ;; Handle likely common mistake.
+    (use-package-error ":delight mode line constructs must be quoted"))
+  (cond ((and (= (length args) 1) (symbolp (car args)))
+         `(,(nth 0 args) nil ,name))
+        ((= (length args) 2)
+         `(,(nth 0 args) ,(nth 1 args) ,name))
+        ((= (length args) 3)
+         args)
+        (t
+         (use-package-error
+          ":delight expects `delight' arguments or a list of them"))))
+
 (defun use-package-normalize/:delight (name keyword args)
   "Normalize arguments to delight."
-  (cond
-   ((and (= (length args) 1)
-         (symbolp (car args)))
-    (list (car args) nil name))
-   ((and (= (length args) 2)
-         (symbolp (car args)))
-    (list (car args) (cadr args) (use-package-as-symbol name)))
-   ((and (= (length args) 3)
-         (symbolp (car args)))
-    args)
-   (t
-    (use-package-error ":delight expects same args as delight function"))))
+  (cond ((null args)
+         `((,(use-package-as-mode name) nil ,name)))
+        ((and (= (length args) 1)
+              (symbolp (car args)))
+         `((,(car args) nil ,name)))
+        ((and (= (length args) 1)
+              (stringp (car args)))
+         `((,(use-package-as-mode name) ,(car args) ,name)))
+        ((and (= (length args) 1)
+              (listp (car args))
+              (eq 'quote (caar args)))
+         `((,(use-package-as-mode name) ,@(cdar args) ,name)))
+        ((and (= (length args) 2)
+              (listp (nth 1 args))
+              (eq 'quote (car (nth 1 args))))
+         `((,(car args) ,@(cdr (nth 1 args)) ,name)))
+        (t (mapcar
+            (apply-partially #'use-package--normalize-delight-1 name)
+            (if (symbolp (car args)) (list args) args)))))
 
 (defun use-package-handler/:delight (name keyword args rest state)
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat
      body
-     `((delight (quote ,(nth 0 args)) ,(nth 1 args) (quote ,(nth 2 args))) t))))
+     `((delight '(,@args))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1456,47 +1502,51 @@ this file.  Usage:
   (use-package package-name
      [:keyword [option]]...)
 
-:init          Code to run before PACKAGE-NAME has been loaded.
-:config        Code to run after PACKAGE-NAME has been loaded.  Note that if
-               loading is deferred for any reason, this code does not execute
-               until the lazy load has occurred.
-:preface       Code to be run before everything except `:disabled'; this can
-               be used to define functions for use in `:if', or that should be
-               seen by the byte-compiler.
+:init            Code to run before PACKAGE-NAME has been loaded.
+:config          Code to run after PACKAGE-NAME has been loaded.  Note that
+                 if loading is deferred for any reason, this code does not
+                 execute until the lazy load has occurred.
+:preface         Code to be run before everything except `:disabled'; this
+                 can be used to define functions for use in `:if', or that
+                 should be seen by the byte-compiler.
 
-:mode          Form to be added to `auto-mode-alist'.
-:interpreter   Form to be added to `interpreter-mode-alist'.
+:mode            Form to be added to `auto-mode-alist'.
+:magic           Form to be added to `magic-mode-alist'.
+:magic-fallback  Form to be added to `magic-fallback-mode-alist'.
+:mode            Form to be added to `auto-mode-alist'.
+:interpreter     Form to be added to `interpreter-mode-alist'.
 
-:commands      Define autoloads for commands that will be defined by the
-               package.  This is useful if the package is being lazily loaded,
-               and you wish to conditionally call functions in your `:init'
-               block that are defined in the package.
+:commands        Define autoloads for commands that will be defined by the
+                 package.  This is useful if the package is being lazily
+                 loaded, and you wish to conditionally call functions in your
+                 `:init' block that are defined in the package.
 
-:bind          Bind keys, and define autoloads for the bound commands.
-:bind*         Bind keys, and define autoloads for the bound commands,
-               *overriding all minor mode bindings*.
-:bind-keymap   Bind a key prefix to an auto-loaded keymap defined in the
-               package.  This is like `:bind', but for keymaps.
-:bind-keymap*  Like `:bind-keymap', but overrides all minor mode bindings
+:bind            Bind keys, and define autoloads for the bound commands.
+:bind*           Bind keys, and define autoloads for the bound commands,
+                 *overriding all minor mode bindings*.
+:bind-keymap     Bind a key prefix to an auto-loaded keymap defined in the
+                 package.  This is like `:bind', but for keymaps.
+:bind-keymap*    Like `:bind-keymap', but overrides all minor mode bindings
 
-:defer         Defer loading of a package -- this is implied when using
-               `:commands', `:bind', `:bind*', `:mode' or `:interpreter'.
-               This can be an integer, to force loading after N seconds of
-               idle time, if the package has not already been loaded.
+:defer           Defer loading of a package -- this is implied when using
+                 `:commands', `:bind', `:bind*', `:mode', `:magic',
+                 `:magic-fallback', or `:interpreter'.  This can be an integer,
+                 to force loading after N seconds of idle time, if the package
+                 has not already been loaded.
 
-:after         Defer loading of a package until after any of the named
-               features are loaded.
+:after           Defer loading of a package until after any of the named
+                 features are loaded.
 
-:demand        Prevent deferred loading in all cases.
+:demand          Prevent deferred loading in all cases.
 
-:if EXPR       Initialize and load only if EXPR evaluates to a non-nil value.
-:disabled      The package is ignored completely if this keyword is present.
-:defines       Declare certain variables to silence the byte-compiler.
-:functions     Declare certain functions to silence the byte-compiler.
-:load-path     Add to the `load-path' before attempting to load the package.
-:diminish      Support for diminish.el (if installed).
-:ensure        Loads the package using package.el if necessary.
-:pin           Pin the package to an archive."
+:if EXPR         Initialize and load only if EXPR evaluates to a non-nil value.
+:disabled        The package is ignored completely if this keyword is present.
+:defines         Declare certain variables to silence the byte-compiler.
+:functions       Declare certain functions to silence the byte-compiler.
+:load-path       Add to the `load-path' before attempting to load the package.
+:diminish        Support for diminish.el (if installed).
+:ensure          Loads the package using package.el if necessary.
+:pin             Pin the package to an archive."
   (declare (indent 1))
   (unless (member :disabled args)
     (let ((name-symbol (if (stringp name) (intern name) name))
