@@ -1,9 +1,9 @@
 ;;; utop-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "utop" "utop.el" (22176 24818 0 0))
+;;;### (autoloads nil "utop" "utop.el" (22873 40548 0 0))
 ;;; Generated autoloads from utop.el
 
 (autoload 'utop-minor-mode "utop" "\
