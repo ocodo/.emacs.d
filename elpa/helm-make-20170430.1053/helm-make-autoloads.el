@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-make" "helm-make.el" (0 0 0 0))
+;;;### (autoloads nil "helm-make" "helm-make.el" (22873 40353 0 0))
 ;;; Generated autoloads from helm-make.el
 
 (autoload 'helm-make "helm-make" "\
@@ -27,8 +27,6 @@ You can specify an additional directory to search for a makefile by
 setting the buffer local variable `helm-make-build-dir'.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-make" '("helm-")))
 
 ;;;***
 
