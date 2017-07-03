@@ -3,8 +3,8 @@
 ;; Copyright (C) 2016  Dominic Charlesworth <dgc336@gmail.com>
 
 ;; Author: Dominic Charlesworth <dgc336@gmail.com>
-;; Version: 2.5.0
-;; Package-Requires: ((emacs "24.3") (font-lock+ "0"))
+;; Version: 2.6.4
+;; Package-Requires: ((emacs "24.3") (font-lock+ "0") (memoize "1.0.1"))
 ;; URL: https://github.com/domtronn/all-the-icons.el
 ;; Keywords: convenient, lisp
 
@@ -85,6 +85,8 @@
 
 ;;; Code:
 (require 'font-lock+)
+(require 'memoize)
+(require 'cl-lib)
 
 (require 'data-alltheicons  "./data/data-alltheicons.el")
 (require 'data-faicons      "./data/data-faicons.el")
@@ -171,7 +173,7 @@
 
 
     ("\\.[jc]son$"      all-the-icons-octicon "settings"                :v-adjust 0.0 :face all-the-icons-yellow)
-    ("\\.yml$"          all-the-icons-octicon "settings"                :v-adjust 0.0 :face all-the-icons-dyellow)
+    ("\\.ya?ml$"        all-the-icons-octicon "settings"                :v-adjust 0.0 :face all-the-icons-dyellow)
 
     ("\\.pkg$"          all-the-icons-octicon "package"                 :v-adjust 0.0 :face all-the-icons-dsilver)
     ("\\.rpm$"          all-the-icons-octicon "package"                 :v-adjust 0.0 :face all-the-icons-dsilver)
@@ -302,6 +304,7 @@
     ("\\.jsx$"          all-the-icons-fileicon "jsx-2"                  :height 0.8  :face all-the-icons-dyellow)
     ("\\.njs$"          all-the-icons-alltheicon "nodejs"               :height 1.2  :face all-the-icons-lgreen)
     ("^webpack"         all-the-icons-fileicon "webpack"                :face all-the-icons-lblue)
+    ("\\.vue$"          all-the-icons-fileicon "vue"                    :face all-the-icons-lgreen)
 
     ;; File Types
     ("\\.ico$"          all-the-icons-octicon "file-media"              :v-adjust 0.0 :face all-the-icons-blue)
@@ -330,10 +333,14 @@
 
     ("\\.pp[st]$"       all-the-icons-fileicon "ppt"                    :face all-the-icons-orange)
     ("\\.pp[st]x$"      all-the-icons-fileicon "ppt"                    :face all-the-icons-red)
-    ("\\.knt$"          all-the-icons-fileicon "presentall-the-iconson" :face all-the-icons-cyan)
+    ("\\.knt$"          all-the-icons-fileicon "presentation"           :face all-the-icons-cyan)
 
     ("bookmark"         all-the-icons-octicon "bookmark"                :height 1.1 :v-adjust 0.0 :face all-the-icons-lpink)
     ("\\.cache$"        all-the-icons-octicon "database"                :height 1.0 :v-adjust 0.0 :face all-the-icons-green)
+
+    ("^\\*scratch\\*$"  all-the-icons-faicon "sticky-note"              :face all-the-icons-lyellow)
+    ("^\\*scratch.*"    all-the-icons-faicon "sticky-note"              :face all-the-icons-yellow)
+    ("^\\*new-tab\\*$"  all-the-icons-material "star"                     :face all-the-icons-cyan)
 
     ("^\\."             all-the-icons-octicon "gear"                    :v-adjust 0.0)
     ("."                all-the-icons-faicon "file-o"                   :height 0.8 :v-adjust 0.0 :face all-the-icons-dsilver)))
@@ -343,7 +350,7 @@
     ("trash"            all-the-icons-faicon "trash-o"          :height 1.2 :v-adjust -0.1)
     ("dropbox"          all-the-icons-faicon "dropbox"          :height 1.0 :v-adjust -0.1)
     ("google[ _-]drive" all-the-icons-alltheicon "google-drive" :height 1.3 :v-adjust -0.1)
-    ("atom"             all-the-icons-alltheicon "atom"         :height 1.2 :v-adjust -0.1)
+    ("^atom$"           all-the-icons-alltheicon "atom"         :height 1.2 :v-adjust -0.1)
     ("documents"        all-the-icons-faicon "book"             :height 1.0 :v-adjust -0.1)
     ("download"         all-the-icons-faicon "cloud-download"   :height 0.9 :v-adjust -0.2)
     ("desktop"          all-the-icons-octicon "device-desktop"  :height 1.0 :v-adjust -0.1)
@@ -399,6 +406,7 @@
     (lisp-interaction-mode     all-the-icons-fileicon "lisp"               :v-adjust -0.1 :face all-the-icons-orange)
     (org-mode                  all-the-icons-fileicon "org"                :v-adjust 0.0 :face all-the-icons-lgreen)
     (js-mode                   all-the-icons-alltheicon "javascript"       :v-adjust -0.1 :face all-the-icons-yellow)
+    (js-jsx-mode               all-the-icons-alltheicon "javascript"       :v-adjust -0.1 :face all-the-icons-yellow)
     (js2-mode                  all-the-icons-alltheicon "javascript"       :v-adjust -0.1 :face all-the-icons-yellow)
     (js3-mode                  all-the-icons-alltheicon "javascript"       :v-adjust -0.1 :face all-the-icons-yellow)
     (rjsx-mode                 all-the-icons-fileicon "jsx-2"              :v-adjust -0.1 :face all-the-icons-lblue)
@@ -421,7 +429,7 @@
     (magit-status-mode         all-the-icons-alltheicon "git"              :face all-the-icons-lred)
     (magit-log-mode            all-the-icons-alltheicon "git"              :face all-the-icons-green)
     (Custom-mode               all-the-icons-octicon "settings")
-    
+
     ;; Special matcher for Web Mode based on the `web-mode-content-type' of the current buffer
     (web-mode             all-the-icons--web-mode-icon)
 
@@ -438,9 +446,9 @@
     (nginx-mode                         all-the-icons-fileicon "nginx"            :height 0.9  :face all-the-icons-dgreen)
     (apache-mode                        all-the-icons-alltheicon "apache"         :height 0.9  :face all-the-icons-dgreen)
     (makefile-mode                      all-the-icons-fileicon "gnu"              :face all-the-icons-dorange)
-    (dockerfile-mode                    all-the-icons-fileicon "docker"           :face all-the-icons-blue)
+    (dockerfile-mode                    all-the-icons-fileicon "dockerfile"       :face all-the-icons-blue)
     (xml-mode                           all-the-icons-faicon "file-code-o"        :height 0.95 :face all-the-icons-lorange)
-    (json-mode                          all-the-icons-octicon "settings"       :face all-the-icons-yellow)
+    (json-mode                          all-the-icons-octicon "settings"          :face all-the-icons-yellow)
     (yaml-mode                          all-the-icons-octicon "settings"          :v-adjust 0.0 :face all-the-icons-dyellow)
     (elisp-byte-code-mode               all-the-icons-octicon "file-binary"       :v-adjust 0.0 :face all-the-icons-dsilver)
     (archive-mode                       all-the-icons-octicon "file-zip"          :v-adjust 0.0 :face all-the-icons-lmaroon)
@@ -574,6 +582,7 @@ icon."
 
 ;; Icon Functions
 
+;;;###autoload
 (defun all-the-icons-icon-for-file (file &rest arg-overrides)
   "Get the formatted icon for FILE.
 ARG-OVERRIDES should be a plist containining `:height',
@@ -581,9 +590,10 @@ ARG-OVERRIDES should be a plist containining `:height',
 inserting functions."
   (let* ((icon (all-the-icons-match-to-alist file all-the-icons-icon-alist))
          (args (cdr icon)))
-    (when arg-overrides (setcdr args (append arg-overrides (cdr args))))
+    (when arg-overrides (setq args (append `(,(car args)) arg-overrides (cdr args))))
     (apply (car icon) args)))
 
+;;;###autoload
 (defun all-the-icons-icon-for-mode (mode &rest arg-overrides)
   "Get the formatted icon for MODE.
 ARG-OVERRIDES should be a plist containining `:height',
@@ -591,8 +601,11 @@ ARG-OVERRIDES should be a plist containining `:height',
 inserting functions."
   (let* ((icon (cdr (assoc mode all-the-icons-mode-icon-alist)))
          (args (cdr icon)))
-    (when arg-overrides (setcdr args (append arg-overrides (cdr args))))
+    (when arg-overrides (setq args (append `(,(car args)) arg-overrides (cdr args))))
     (if icon (apply (car icon) args) mode)))
+
+(memoize 'all-the-icons-icon-for-file)
+(memoize 'all-the-icons-icon-for-mode)
 
 ;; Family Face Functions
 (defun all-the-icons-icon-family-for-file (file)
@@ -609,6 +622,11 @@ inserting functions."
   "Get a propertized ICON family programatically."
   (plist-get (get-text-property 0 'face icon) :family))
 
+(memoize 'all-the-icons-icon-family-for-file)
+(memoize 'all-the-icons-icon-family-for-mode)
+(memoize 'all-the-icons-icon-family)
+
+;;;###autoload
 (defun all-the-icons--icon-info-for-buffer (&optional f)
   "Get icon info for the current buffer.
 
@@ -651,7 +669,7 @@ When F is provided, the info function is calculated with the format
 
 (defun all-the-icons--read-candidates ()
   "Helper to build a list of candidates for all families."
-  (reduce 'append (mapcar (lambda (it) (all-the-icons--read-candidates-for-family it t)) all-the-icons-font-families)))
+  (cl-reduce 'append (mapcar (lambda (it) (all-the-icons--read-candidates-for-family it t)) all-the-icons-font-families)))
 
 (defun all-the-icons--read-candidates-for-family (family &optional show-family)
   "Helper to build read candidates for FAMILY.
@@ -681,19 +699,26 @@ When PFX is non-nil, ignore the prompt and just install"
   (when (or pfx (yes-or-no-p "This will download and install fonts, are you sure you want to do this?"))
     (let* ((url-format "https://github.com/domtronn/all-the-icons.el/blob/master/fonts/%s?raw=true")
            (font-dest (cl-case window-system
-                        (x  (concat (getenv "HOME") "/.fonts/"))                ;; Default Linux install directory
-                        (ns (concat (getenv "HOME") "/Library/Fonts/" ))))      ;; Default MacOS install directory
-           (known-dest? (stringp font-dest)))
-      (unless font-dest
-        (setq font-dest (read-directory-name "Font installation directory: " "~/")))
+                        (x  (concat (or (getenv "XDG_DATA_HOME")            ;; Default Linux install directories
+                                        (concat (getenv "HOME") "/.local/share"))
+                                    "/fonts/"))
+                        (mac (concat (getenv "HOME") "/Library/Fonts/" ))
+                        (ns (concat (getenv "HOME") "/Library/Fonts/" ))))  ;; Default MacOS install directory
+           (known-dest? (stringp font-dest))
+           (font-dest (or font-dest (read-directory-name "Font installation directory: " "~/"))))
+
+      (unless (file-directory-p font-dest) (mkdir font-dest t))
+
       (mapc (lambda (font)
-              (url-copy-file (format url-format font) (concat font-dest font) t))
+              (url-copy-file (format url-format font) (expand-file-name font font-dest) t))
             all-the-icons-font-names)
       (when known-dest?
         (message "Fonts downloaded, updating font cache... <fc-cache -f -v> ")
         (shell-command-to-string (format "fc-cache -f -v")))
       (message "%s Successfully %s `all-the-icons' fonts to `%s'!"
-               (all-the-icons-wicon "stars" :v-adjust 0.0) (if known-dest? "installed" "downloaded") font-dest))))
+               (all-the-icons-wicon "stars" :v-adjust 0.0)
+               (if known-dest? "installed" "downloaded")
+               font-dest))))
 
 ;;;###autoload
 (defun all-the-icons-insert (&optional arg family)
@@ -764,6 +789,7 @@ FONT-NAME is the name of the .ttf file providing the font, defaults to FAMILY."
                                `(:family ,family :height ,height :inherit ,other-face)
                              `(:family ,family :height ,height))
                      'display `(raise ,v-adjust)
+                     'rear-nonsticky t
                      'font-lock-ignore t)))
      (defun ,(all-the-icons--insert-function-name name) (&optional arg)
        ,(format "Insert a %s icon at point." family)
