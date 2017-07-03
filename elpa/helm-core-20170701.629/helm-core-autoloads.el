@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm" "helm.el" (0 0 0 0))
+;;;### (autoloads nil "helm" "helm.el" (22873 40346 0 0))
 ;;; Generated autoloads from helm.el
 
 (autoload 'helm-define-multi-key "helm" "\
@@ -13,14 +13,17 @@ If DELAY is specified, switch back to initial function of FUNCTIONS list
 after DELAY seconds.
 The functions in FUNCTIONS list take no args.
 e.g
-  (defun foo ()
-    (message \"Run foo\"))
-  (defun bar ()
-    (message \"Run bar\"))
-  (defun baz ()
-    (message \"Run baz\"))
+    (defun foo ()
+      (interactive)
+      (message \"Run foo\"))
+    (defun bar ()
+      (interactive)
+      (message \"Run bar\"))
+    (defun baz ()
+      (interactive)
+      (message \"Run baz\"))
 
-\(helm-define-multi-key global-map \"<f5> q\" '(foo bar baz) 2)
+\(helm-define-multi-key global-map (kbd \"<f5> q\") '(foo bar baz) 2)
 
 Each time \"<f5> q\" is pressed, the next function is executed. Waiting
 more than 2 seconds between key presses switches back to executing the first
@@ -64,8 +67,8 @@ Arg EXIT-FN specifies a function to run on exit.
 For any other keys pressed, run their assigned command as defined
 in MAP and then exit the loop running EXIT-FN, if specified.
 
-NOTE: SUBKEY and OTHER-SUBKEYS bindings support char syntax only
-\(e.g ?n), so don't use strings or vectors to define them.
+NOTE: SUBKEY and OTHER-SUBKEYS bindings support only char syntax and
+vectors, so don't use strings to define them.
 
 \(fn MAP KEY SUBKEY COMMAND &optional OTHER-SUBKEYS MENU EXIT-FN)" nil nil)
 
@@ -205,39 +208,21 @@ However, the use of non-keyword args is deprecated.
 
 \(fn &key SOURCES INPUT PROMPT RESUME PRESELECT BUFFER KEYMAP DEFAULT HISTORY ALLOW-NEST OTHER-LOCAL-VARS)" nil nil)
 
+(autoload 'helm-cycle-resume "helm" "\
+Cycle in `helm-buffers' list and resume when waiting more than 1.2s.
+
+\(fn)" t nil)
+
 (autoload 'helm-other-buffer "helm" "\
 Simplified `helm' interface with other `helm-buffer'.
 Call `helm' only with ANY-SOURCES and ANY-BUFFER as args.
 
 \(fn ANY-SOURCES ANY-BUFFER)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm" '("helm-" "cua-delete-region--advice" "copy-region-as-kill--advice" "with-helm-")))
-
 ;;;***
 
-;;;### (autoloads nil "helm-lib" "helm-lib.el" (0 0 0 0))
-;;; Generated autoloads from helm-lib.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-lib" '("helm-" "with-helm-")))
-
-;;;***
-
-;;;### (autoloads nil "helm-multi-match" "helm-multi-match.el" (0
-;;;;;;  0 0 0))
-;;; Generated autoloads from helm-multi-match.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-multi-match" '("helm-m")))
-
-;;;***
-
-;;;### (autoloads nil "helm-source" "helm-source.el" (0 0 0 0))
-;;; Generated autoloads from helm-source.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-source" '("helm-")))
-
-;;;***
-
-;;;### (autoloads nil nil ("helm-core-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("helm-core-pkg.el" "helm-lib.el" "helm-multi-match.el"
+;;;;;;  "helm-source.el") (22873 40346 0 0))
 
 ;;;***
 

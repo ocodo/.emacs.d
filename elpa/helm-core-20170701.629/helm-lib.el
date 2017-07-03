@@ -35,6 +35,8 @@
 (declare-function org-content "org.el")
 (defvar helm-current-position)
 
+(eval-when-compile (require 'wdired))
+(defvar wdired-old-marks)
 
 ;;; User vars.
 ;;
@@ -97,6 +99,136 @@ When only `add-text-properties' is available APPEND is ignored."
   (if (fboundp 'add-face-text-property)
       (add-face-text-property beg end face append object)
       (add-text-properties beg end `(face ,face) object)))
+
+;; Override `wdired-finish-edit'.
+;; Fix emacs bug in `wdired-finish-edit' where
+;; Wdired is not handling the case where `dired-directory' is a cons
+;; cell instead of a string.
+(defun helm--advice-wdired-finish-edit ()
+  (interactive)
+  (wdired-change-to-dired-mode)
+  (let ((changes nil)
+	(errors 0)
+	files-deleted
+	files-renamed
+	some-file-names-unchanged
+	file-old file-new tmp-value)
+    (save-excursion
+      (when (and wdired-allow-to-redirect-links
+		 (fboundp 'make-symbolic-link))
+	(setq tmp-value (wdired-do-symlink-changes))
+	(setq errors (cdr tmp-value))
+	(setq changes (car tmp-value)))
+      (when (and wdired-allow-to-change-permissions
+		 (boundp 'wdired-col-perm)) ; could have been changed
+	(setq tmp-value (wdired-do-perm-changes))
+	(setq errors (+ errors (cdr tmp-value)))
+	(setq changes (or changes (car tmp-value))))
+      (goto-char (point-max))
+      (while (not (bobp))
+	(setq file-old (wdired-get-filename nil t))
+	(when file-old
+	  (setq file-new (wdired-get-filename))
+          (if (equal file-new file-old)
+	      (setq some-file-names-unchanged t)
+            (setq changes t)
+            (if (not file-new)		;empty filename!
+                (push file-old files-deleted)
+	      (when wdired-keep-marker-rename
+		(let ((mark (cond ((integerp wdired-keep-marker-rename)
+				   wdired-keep-marker-rename)
+				  (wdired-keep-marker-rename
+				   (cdr (assoc file-old wdired-old-marks)))
+				  (t nil))))
+		  (when mark
+		    (push (cons (substitute-in-file-name file-new) mark)
+			  wdired-old-marks))))
+              (push (cons file-old (substitute-in-file-name file-new))
+                    files-renamed))))
+	(forward-line -1)))
+    (when files-renamed
+      (setq errors (+ errors (wdired-do-renames files-renamed))))
+    (if changes
+	(progn
+	  ;; If we are displaying a single file (rather than the
+	  ;; contents of a directory), change dired-directory if that
+	  ;; file was renamed.  (This ought to be generalized to
+	  ;; handle the multiple files case, but that's less trivial)
+          ;; fixit [1].
+	  (cond ((and (stringp dired-directory)
+                      (not (file-directory-p dired-directory))
+                      (null some-file-names-unchanged)
+                      (= (length files-renamed) 1))
+                 (setq dired-directory (cdr (car files-renamed))))
+                ;; Fix [1] i.e dired buffers created with
+                ;; (dired '(foo f1 f2 f3)).
+                ((and (consp dired-directory)
+                      (cdr dired-directory)
+                      files-renamed)
+                 (setcdr dired-directory
+                         ;; Replace in `dired-directory' files that have
+                         ;; been modified with their new name keeping
+                         ;; the ones that are unmodified at the same place.
+                         (cl-loop with old-to-rename = (mapcar 'car files-renamed)
+                                  for f in (cdr dired-directory)
+                                  if (member f old-to-rename)
+                                  collect (assoc-default f files-renamed)
+                                  else collect f))))
+	  ;; Re-sort the buffer.
+	  (revert-buffer)
+	  (let ((inhibit-read-only t))
+	    (dired-mark-remembered wdired-old-marks)))
+      (let ((inhibit-read-only t))
+	(remove-text-properties (point-min) (point-max)
+				'(old-name nil end-name nil old-link nil
+					   end-link nil end-perm nil
+					   old-perm nil perm-changed nil))
+	(message "(No changes to be performed)")))
+    (when files-deleted
+      (wdired-flag-for-deletion files-deleted))
+    (when (> errors 0)
+      (dired-log-summary (format "%d rename actions failed" errors) nil)))
+  (set-buffer-modified-p nil)
+  (setq buffer-undo-list nil))
+
+;; Override `wdired-get-filename'.
+;; Fix emacs bug in `wdired-get-filename' which returns the current
+;; directory concatened with the filename i.e
+;; "/home/you//home/you/foo" when filename is absolute in dired
+;; buffer.
+;; In consequence Wdired try to rename files even when buffer have
+;; been modified and corrected, e.g delete one char and replace it so
+;; that no change to file is done.
+;; This also lead to ask confirmation for every files even when not
+;; modified and when `wdired-use-interactive-rename' is nil.
+(defun helm--advice-wdired-get-filename (&optional no-dir old)
+  ;; FIXME: Use dired-get-filename's new properties.
+  (let (beg end file)
+    (save-excursion
+      (setq end (line-end-position))
+      (beginning-of-line)
+      (setq beg (next-single-property-change (point) 'old-name nil end))
+      (unless (eq beg end)
+	(if old
+	    (setq file (get-text-property beg 'old-name))
+	  ;; In the following form changed `(1+ beg)' to `beg' so that
+	  ;; the filename end is found even when the filename is empty.
+	  ;; Fixes error and spurious newlines when marking files for
+	  ;; deletion.
+	  (setq end (next-single-property-change beg 'end-name))
+	  (setq file (buffer-substring-no-properties (1+ beg) end)))
+	;; Don't unquote the old name, it wasn't quoted in the first place
+        (and file (setq file (condition-case _err
+                                 ;; emacs-25+
+                                 (apply #'wdired-normalize-filename
+                                        (list file (not old)))
+                               (wrong-number-of-arguments
+                                ;; emacs-24
+                                (wdired-normalize-filename file))))))
+      (if (or no-dir old (and file (file-name-absolute-p file)))
+	  file
+	(and file (> (length file) 0)
+             (expand-file-name file (dired-current-directory)))))))
 
 ;;; Macros helper.
 ;;
@@ -157,6 +289,14 @@ and not `exit-minibuffer' or other unwanted functions."
        (let ((elm (car lis)))
          (setq lis (pcase lis (`(,_ . ,ll) (or ll seq))))
          elm))))
+
+(cl-defun helm-iter-sub-next-circular (seq elm &key (test 'eq))
+  "Infinite iteration of SEQ starting at ELM."
+  (let* ((pos      (1+ (helm-position elm seq :test test)))
+         (sub      (append (nthcdr pos seq) (cl-subseq seq 0 pos)))
+         (iterator (helm-iter-circular sub)))
+    (lambda ()
+      (helm-iter-next iterator))))
 
 (defun helm-iter-next (iterator)
   "Return next elm of ITERATOR."
