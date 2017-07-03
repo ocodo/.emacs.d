@@ -40,6 +40,7 @@
 (require 'ht)
 
 (require 'subr-x nil :no-error)
+(require 'cl-lib)
 (require 'json)
 (require 'regexp-opt)
 (require 'jit-lock)
@@ -168,13 +169,29 @@ functions work."
 
 ;; Utility functions
 
+;; These should be bound dynamically by functions calling
+;; `emojify--inside-rectangle-selection-p' and
+;; `emojify--inside-non-rectangle-selection-p' to region-beginning and
+;; region-end respectively. This is needed mark the original region which is
+;; impossible to get after point moves during processing.
+(defvar emojify-region-beg nil)
+(defvar emojify-region-end nil)
+
+;; This should be bound dynamically to the location of point before emojify's
+;; display loop, this since getting the point after point moves during
+;; processing is impossible
+(defvar emojify-current-point nil)
+
 (defmacro emojify-with-saved-buffer-state (&rest forms)
   "Execute FORMS saving current buffer state.
 
 This saves point and mark, `match-data' and buffer modification state it also
 inhibits buffer change, point motion hooks."
   (declare (debug t) (indent 0))
-  `(let ((inhibit-point-motion-hooks t))
+  `(let ((inhibit-point-motion-hooks t)
+         (emojify-current-point (point))
+         (emojify-region-beg (when (region-active-p) (region-beginning)))
+         (emojify-region-end (when (region-active-p) (region-end))))
      (with-silent-modifications
        (save-match-data
          (save-excursion
@@ -449,7 +466,7 @@ buffer where emojis are going to be displayed selected."
   :type 'boolean
   :group 'emojify)
 
-(defcustom emojify-company-tooltips-p nil
+(defcustom emojify-company-tooltips-p t
   "Should company mode tooltips be emojified."
   :type 'boolean
   :group 'emojify)
@@ -847,14 +864,6 @@ fail."
                                                                                       nil
                                                                                       t))))))
 
-;; These should be bound dynamically by functions calling
-;; `emojify--inside-rectangle-selection-p' and
-;; `emojify--inside-non-rectangle-selection-p' to region-beginning and
-;; region-end respectively. This is needed mark the original region which is
-;; impossible to get after point moves during processing.
-(defvar emojify-region-beg nil)
-(defvar emojify-region-end nil)
-
 (defun emojify--inside-rectangle-selection-p (beg end)
   "Check if region marked by BEG and END is inside a rectangular selection.
 
@@ -890,7 +899,7 @@ and end of region respectively."
         (and (<  emojify-region-beg end)
              (<= end emojify-region-end)))))
 
-(defun emojify--region-background-face-maybe (beg end)
+(defun emojify--region-background-maybe (beg end)
   "If the BEG and END falls inside an active region return the region face.
 
 This returns nil if the emojis between BEG and END do not fall in region."
@@ -901,39 +910,22 @@ This returns nil if the emojis between BEG and END do not fall in region."
                  (emojify--inside-rectangle-selection-p beg end)))
     (face-background 'region)))
 
-(defun emojify--overlay-face-background (face)
-  "Get background for given overlay FACE.
-
-This similar to `face-background' except it handles different values possible
-for overlay face including anonymous faces and list of faces.  Unlike
-`face-background' it always looks up inherited faces if background is not
-directly defined on the face."
-  (if (memq (type-of face) '(string symbol))
-      (and (facep face)
-           (face-background face nil 'default))
-    (and (consp face)
-         ;; Handle anonymous faces
-         (or (or (plist-get face :background)
-                 (face-background (car (plist-get face :inherit)) nil 'default ))
-             ;; Possibly a list of faces
-             (emojify--overlay-face-background (car face))))))
-
-(defun emojify--overlay-background (beg)
-  "Get the overlay face for point BEG."
-  (let* ((overlay-backgrounds (delq nil (seq-map (lambda (overlay)
-                                                   (and (overlay-get overlay 'face)
-                                                        (emojify--overlay-face-background (overlay-get overlay 'face))))
-                                                 (emojify-overlays-at beg t)))))
-    (car (last overlay-backgrounds))))
+(defun emojify--cursor-background-maybe (beg end)
+  "If the BEG and END fall inside a cursor return the background color for cursor."
+  (when (and emojify-current-point
+             (or (and (equal cursor-type t)
+		      (equal (frame-parameter nil 'cursor-type) 'box))
+		 (equal cursor-type 'box))
+             (and (<= beg emojify-current-point)
+                  (< emojify-current-point end)))
+    (face-background 'cursor)))
 
 (defun emojify--get-image-background (beg end)
-  "Get the color to be used as background for emoji between BEG and END.
-
-Ideally `emojify--overlay-background' should have been enough to handle
-selection, but for some reason it does not work well."
+  "Get the color to be used as background for emoji between BEG and END."
   ;; We do a separate check for region since `background-color-at-point'
   ;; does not always detect background color inside regions properly
-  (or (emojify--region-background-face-maybe beg end)
+  (or (emojify--cursor-background-maybe beg end)
+      (emojify--region-background-maybe beg end)
       (save-excursion
         (goto-char beg)
         (background-color-at-point))))
@@ -1311,13 +1303,11 @@ which is not what we want when falling back in `emojify-delete-emoji'"
   "Update the background color for emojis between BEG and END."
   (when (equal emojify-display-style 'image)
     (emojify-with-saved-buffer-state
-      (let ((emojify-region-beg (when (region-active-p) (region-beginning)))
-            (emojify-region-end (when (region-active-p) (region-end))))
-        (emojify-do-for-emojis-in-region beg end
-          (plist-put (cdr (get-text-property emoji-start 'display))
-                     :background
-                     (emojify--get-image-background emoji-start
-                                                    emoji-end)))))))
+      (emojify-do-for-emojis-in-region beg end
+        (plist-put (cdr (get-text-property emoji-start 'display))
+                   :background
+                   (emojify--get-image-background emoji-start
+                                                  emoji-end))))))
 
 (defun emojify--update-emojis-background-in-region-starting-at (point)
   "Update background color for emojis in buffer starting at POINT.
@@ -1505,7 +1495,7 @@ run the command `emojify-download-emoji'")))
   :init-value nil)
 
 (defadvice set-buffer-multibyte (after emojify-disable-for-unibyte-buffers (&rest ignored))
-  "Disable emojify when buffer changes to a unibyte encoding.
+  "Disable emojify when unibyte encoding is enabled for a buffer.
 Re-enable it when buffer changes back to multibyte encoding."
   (ignore-errors
     (if enable-multibyte-characters
@@ -1514,6 +1504,66 @@ Re-enable it when buffer changes back to multibyte encoding."
       (emojify-mode -1))))
 
 (ad-activate #'set-buffer-multibyte)
+
+
+
+;; Displaying emojis in mode-line
+
+(defun emojify--emojied-mode-line (format)
+  "Return an emojified version of mode-line FORMAT.
+
+The format is converted to the actual string to be displayed using
+`format-mode-line' and the unicode characters are replaced by images."
+  (if emojify-mode
+      ;; Remove "%e" from format since we keep it as first part of the
+      ;; emojified mode-line, see `emojify-emojify-mode-line'
+      (emojify-string (format-mode-line (delq "%e" format)) nil 'mode-line)
+    (format-mode-line format)))
+
+(defun emojify-mode-line-emojified-p ()
+  "Check if the mode-line is already emojified.
+
+If the `mode-line-format' is of following format
+
+\(\"%e\" (:eval (emojify-emojied-mode-line ... )))
+
+We can assume the mode-line is already emojified."
+  (and (consp mode-line-format)
+       (equal (ignore-errors (cl-caadr mode-line-format))
+              :eval)
+       (equal (ignore-errors (car (cl-cadadr mode-line-format)))
+              'emojify--emojied-mode-line)))
+
+(defun emojify-emojify-mode-line ()
+  "Emojify unicode characters in the mode-line.
+
+This updates `mode-line-format' to a modified version which emojifies the
+mode-line before it is displayed."
+  (unless (emojify-mode-line-emojified-p)
+    (setq mode-line-format `("%e" (:eval
+                                   (emojify--emojied-mode-line ',mode-line-format))))))
+
+(defun emojify-unemojify-mode-line ()
+  "Restore `mode-line-format' to unemojified version.
+
+This basically reverses the effect of `emojify-emojify-mode-line'."
+  (when (emojify-mode-line-emojified-p)
+    (setq mode-line-format (cl-cadadr (cl-cadadr mode-line-format)))))
+
+;;;###autoload
+(define-minor-mode emojify-mode-line-mode
+  "Emojify mode line"
+  :init-value nil
+  (if emojify-mode-line-mode
+      ;; Turn on
+      (emojify-emojify-mode-line)
+    ;; Turn off
+    (emojify-unemojify-mode-line)))
+
+;;;###autoload
+(define-globalized-minor-mode global-emojify-mode-line-mode
+  emojify-mode-line-mode emojify-mode-line-mode
+  :init-value nil)
 
 
 
@@ -1980,16 +2030,23 @@ the completion tooltip using `after-string' overlay property rather than
 The second step is needed because emojify displays the emojis using `display'
 text property, similarly company-mode in some cases uses `display' overlay
 property to render its pop, this results into a `display' property inside
-`display' property, however Emacs ignores recursive text properties.  Using
-`after-string' works as well as `display' while allowing the emojis to be
+`display' property, however Emacs ignores recursive display text property.
+Using `after-string' works as well as `display' while allowing the emojis to be
 displayed."
-  (when (and emojify-mode emojify-company-tooltips-p (overlayp (bound-and-true-p company-pseudo-tooltip-overlay)))
+  (when (and emojify-mode
+             emojify-company-tooltips-p
+             (overlayp (bound-and-true-p company-pseudo-tooltip-overlay)))
     (let* ((ov company-pseudo-tooltip-overlay)
            (disp (or (overlay-get ov 'display)
                      (overlay-get ov 'after-string)))
            (emojified-display (when disp
-                                (emojify-string disp))))
-      (when disp
+                                (emojify-string disp)))
+           (emojified-p (when emojified-display
+                          (text-property-any 0 (1- (length emojified-display))
+                                             'emojified t
+                                             emojified-display))))
+      ;; Do not switch to after-string if menu is not emojified
+      (when (and disp emojified-p)
         (overlay-put ov 'after-string nil)
         (overlay-put ov 'display (propertize " " 'invisible t))
         (overlay-put ov 'after-string emojified-display)))))
