@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dart-mode" "dart-mode.el" (0 0 0 0))
+;;;### (autoloads nil "dart-mode" "dart-mode.el" (22873 40234 0 0))
 ;;; Generated autoloads from dart-mode.el
 
 (autoload 'dartfmt-before-save "dart-mode" "\
@@ -26,8 +26,6 @@ Key bindings:
 \\{dart-mode-map}
 
 \(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dart-mode" '("dart" "-dart-beginning-of-statement-p" "c-syntactic-context")))
 
 ;;;***
 

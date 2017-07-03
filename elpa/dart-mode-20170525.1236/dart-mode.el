@@ -2,7 +2,7 @@
 
 ;; Author: Natalie Weizenbaum
 ;; URL: http://code.google.com/p/dart-mode
-;; Package-Version: 20170127.1652
+;; Package-Version: 20170525.1236
 ;; Version: 0.15
 ;; Package-Requires: ((cl-lib "0.5") (dash "2.10.0") (flycheck "0.23"))
 ;; Keywords: language
@@ -81,12 +81,16 @@
 
 (require 'cc-mode)
 (eval-when-compile
+  (and (= emacs-major-version 24)
+       (>= emacs-minor-version 4)
+       (require 'cl))
   (require 'cc-langs)
   (require 'cc-fonts))
 
 (eval-and-compile (c-add-language 'dart-mode 'java-mode))
 
 (require 'cl-lib)
+(require 'compile)
 (require 'dash)
 (require 'flycheck)
 (require 'json)
