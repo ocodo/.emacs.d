@@ -1,10 +1,10 @@
 ;;; rainbow-mode.el --- Colorize color names in buffers
 
-;; Copyright (C) 2010-2015 Free Software Foundation, Inc
+;; Copyright (C) 2010-2017 Free Software Foundation, Inc
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: faces
-;; Version: 0.12
+;; Version: 0.13
 
 ;; This file is part of GNU Emacs.
 
@@ -1088,7 +1088,7 @@ If the percentage value is above 100, it's converted to 100."
       (rainbow-colorize-match color))))
 
 (defun rainbow-color-luminance (red green blue)
-  "Calculate the luminance of color composed of RED, BLUE and GREEN.
+  "Calculate the luminance of color composed of RED, GREEN and BLUE.
 Return a value between 0 and 1."
   (/ (+ (* .2126 red) (* .7152 green) (* .0722 blue)) 256))
 
@@ -1174,6 +1174,10 @@ This will fontify with colors the string like \"#aabbcc\" or \"blue\"."
 
 ;;;; ChangeLog:
 
+;; 2017-05-29  Julien Danjou  <julien@danjou.info>
+;; 
+;; 	Fix `rainbow-color-luminance' docstring
+;; 
 ;; 2015-10-12  Julien Danjou  <julien@danjou.info>
 ;; 
 ;; 	rainbow: add font-lock at the end
