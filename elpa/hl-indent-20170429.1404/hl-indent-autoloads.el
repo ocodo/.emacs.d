@@ -1,9 +1,9 @@
 ;;; hl-indent-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("hl-indent.el") (21664 42692 924104 836000))
+;;;### (autoloads nil nil ("hl-indent.el") (22873 40362 0 0))
 
 ;;;***
 

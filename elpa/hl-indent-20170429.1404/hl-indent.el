@@ -3,8 +3,8 @@
 ;; Copyright (C) 2014 Kirill Ignatiev <github.com/ikirill>
 ;;
 ;; Author: Kirill Ignatiev <github.com/ikirill>
-;; Version: 20141227.1330
-;; X-Original-Version: 0.1
+;; Version: 0.1
+;; Package-Version: 20170429.1404
 ;; Keywords: convenience, faces
 ;; URL: https://github.com/ikirill/hl-indent
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
@@ -226,6 +226,12 @@ looks bad."
   :type 'boolean
   :group 'hl-indent)
 
+(defcustom hl-indent-color-indents
+  nil
+  "Whether indent highlights should be colored or not."
+  :type 'boolean
+  :group 'hl-indent)
+
 ;; }}}
 ;; {{{ Overlay handling
 
@@ -372,6 +378,11 @@ following lines, otherwise scan all of the them."
     ;; (message "point %d:  %d,  %d:  \"%s\"" (point) (line-end-position) (1- (line-beginning-position 2)) (buffer-substring (point) (min (line-end-position) (+ 4 (point) (save-excursion (skip-syntax-forward " " (line-end-position)))))))
     (skip-syntax-forward " " (line-end-position))))
 
+(defun hl-indent--face-for-level (level)
+  (intern (format "hl-indent-block-face-%s"
+                  (1+ (mod (cl-position level (reverse hl-indent--current-indent))
+                           (length hl-indent--current-indent))))))
+
 (defun hl-indent--scan-line (&optional stop-soon)
   "Highlight indentation levels on the current line.
 The variable `hl-indent--current-indent' will contain indentation levels
@@ -392,7 +403,10 @@ correctly on the next line."
         (setq hl-indent--current-indent (cdr hl-indent--current-indent)))
       (dolist (level hl-indent--current-indent)
         (let* ((pos (+ line-start level))
-               (o (hl-indent--make-overlay pos (1+ pos) 'hl-indent-face)))
+               (face (if hl-indent-color-indents
+                         (hl-indent--face-for-level level)
+                       'hl-indent-face))
+               (o (hl-indent--make-overlay pos (1+ pos) face)))
           (when hl-indent-mode-blocks
             (overlay-put o 'face nil))))
       (when (and hl-indent-mode-blocks
