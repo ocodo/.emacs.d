@@ -1,10 +1,10 @@
 ;;; impatient-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "impatient-mode" "impatient-mode.el" (21833
-;;;;;;  28702 527401 0))
+;;;### (autoloads nil "impatient-mode" "impatient-mode.el" (22873
+;;;;;;  40378 0 0))
 ;;; Generated autoloads from impatient-mode.el
 
 (autoload 'impatient-mode "impatient-mode" "\
@@ -14,8 +14,8 @@ Serves the buffer live over HTTP.
 
 ;;;***
 
-;;;### (autoloads nil nil ("impatient-mode-pkg.el") (21833 28702
-;;;;;;  540582 745000))
+;;;### (autoloads nil nil ("impatient-mode-pkg.el") (22873 40378
+;;;;;;  0 0))
 
 ;;;***
 
