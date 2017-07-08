@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "all-the-icons" "all-the-icons.el" (22873 40176
+;;;### (autoloads nil "all-the-icons" "all-the-icons.el" (22880 30524
 ;;;;;;  0 0))
 ;;; Generated autoloads from all-the-icons.el
 
@@ -47,7 +47,7 @@ When FAMILY is non-nil, limit the candidates to the icon set matching it.
 ;;;***
 
 ;;;### (autoloads nil nil ("all-the-icons-faces.el" "all-the-icons-pkg.el")
-;;;;;;  (22873 40176 0 0))
+;;;;;;  (22880 30524 0 0))
 
 ;;;***
 
