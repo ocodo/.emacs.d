@@ -4,7 +4,7 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.4
-;; Package-Version: 20170701.1318
+;; Package-Version: 20170703.1433
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.4") (loop "1.3") (dash "2.13.0") (s "1.11.0") (f "0.18.2"))
 ;; URL: https://github.com/Wilfred/suggest.el
@@ -329,8 +329,7 @@ when given negative integers."
     (while (looking-at "\n")
       (forward-line 1))
     ;; Return the current line.
-    (buffer-substring (point)
-                      (progn (move-end-of-line nil) (point)))))
+    (buffer-substring (point) (line-end-position))))
 
 (defun suggest--keybinding (command keymap)
   "Find the keybinding for COMMAND in KEYMAP."
@@ -655,10 +654,9 @@ than their values."
   "Update the suggestions heading to say whether we need
 the user to call `suggest-update'."
   (save-excursion
-    (goto-char (point-min))
     (suggest--nth-heading 3)
     (let ((inhibit-read-only t))
-      (delete-region (point) (progn (move-end-of-line nil) (point)))
+      (delete-region (point) (line-end-position))
       (if update-needed
           (suggest--insert-heading
            (format ";; Suggestions (press %s to update):"
