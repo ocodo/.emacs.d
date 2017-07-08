@@ -6,7 +6,7 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2012
 ;; Keywords: http
-;; Package-Version: 20170702.118
+;; Package-Version: 20170703.33
 
 ;; This file is not part of GNU Emacs.
 ;; This file is public domain software. Do what you want.
@@ -135,10 +135,10 @@
   "^\\(:[^: \n]+\\)$")
 
 (defconst restclient-var-regexp
-  (concat "^\\(:[^: ]+\\)[ \t]*\\(:?\\)=[ \t]*\\(<<[ \t]*\n\\(\\(.*\n\\)*?\\)" restclient-comment-separator "\\|\\([^<].*\\)$\\)"))
+  (concat "^\\(:[^:= ]+\\)[ \t]*\\(:?\\)=[ \t]*\\(<<[ \t]*\n\\(\\(.*\n\\)*?\\)" restclient-comment-separator "\\|\\([^<].*\\)$\\)"))
 
 (defconst restclient-svar-regexp
-  "^\\(:[^: ]+\\)[ \t]*=[ \t]*\\(.+?\\)$")
+  "^\\(:[^:= ]+\\)[ \t]*=[ \t]*\\(.+?\\)$")
 
 (defconst restclient-evar-regexp
   "^\\(:[^: ]+\\)[ \t]*:=[ \t]*\\(.+?\\)$")
