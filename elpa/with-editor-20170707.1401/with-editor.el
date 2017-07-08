@@ -107,15 +107,13 @@
 
 (defun with-editor-locate-emacsclient ()
   "Search for a suitable Emacsclient executable."
-  (--if-let (with-editor-locate-emacsclient-1 (with-editor-emacsclient-path) 3)
-      it
-    (display-warning 'with-editor (format "\
+  (or (with-editor-locate-emacsclient-1 (with-editor-emacsclient-path) 3)
+      (prog1 nil (display-warning 'with-editor "\
 Cannot determine a suitable Emacsclient
 
 Determining an Emacsclient executable suitable for the
 current Emacs instance failed.  For more information
-please see https://github.com/magit/magit/wiki/Emacsclient."))
-    nil))
+please see https://github.com/magit/magit/wiki/Emacsclient."))))
 
 (defun with-editor-locate-emacsclient-1 (path depth)
   (let* ((version-lst (-take depth (split-string emacs-version "\\.")))
