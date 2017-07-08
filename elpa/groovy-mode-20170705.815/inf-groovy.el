@@ -12,6 +12,7 @@
 ;; Maintainer: Russel Winder <russel@winder.org.uk>
 ;; Version: 201705161954
 ;; Keywords: languages
+;; Package-Requires: ((groovy-mode "0"))
 
 ;;;; NB Version number is date and time yyyymmddhhMM UTC.
 
@@ -28,9 +29,6 @@
 ;;  You should have received a copy of the GNU General Public License
 ;;  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; depends on
-;; groovy-mode
-
 ;;; Usage:
 ;;  If you install using the packaging system no further set up should be needed. If you install this mode
 ;;  manually then you will likely need to add some extra lines in your init file:
@@ -42,7 +40,7 @@
 ;;    (setq auto-mode-alist
 ;;          (append '(("\\.groovy\\'" . groovy-mode)) auto-mode-alist))
 ;;    (setq interpreter-mode-alist (append '(("groovy" . groovy-mode))
-;;    				     interpreter-mode-alist))
+;;                                   interpreter-mode-alist))
 ;;
 ;; (2) set to load inf-groovy and set inf-groovy key definition in groovy-mode.
 ;;
@@ -55,13 +53,12 @@
 ;;             (inf-groovy-keys)
 ;;    ))
 ;;
-;;    ;; can set groovy-home here, if not in environment
-;;    (setq inferior-groovy-mode-hook
-;;        '(lambda()
-;;           (setq groovy-home "/Users/sclayman/Downloads/groovy-1.7.1/")
-;;           ))
+;; (3) If groovysh isn't on $PATH and you haven't set $GROOVY_HOME,
+;; you need to tell Emacs where groovysh is.
 ;;
-;; (3) execute
+;;    (setq groovysh "/Users/sclayman/Downloads/groovy-1.7.1/bin/groovysh")
+;;
+;; (4) execute
 ;;      M-x run-groovy
 
 ;;; Commentary
@@ -92,14 +89,21 @@
 (require 'groovy-mode)
 
 
-(defvar groovysh (executable-find "groovysh"))
+(defcustom groovysh
+  (or
+   ;; If groovysh in on $PATH, use that by default.
+   (executable-find "groovysh")
+   ;; Fall back to $GROOVY_HOME if the user has set that.
+   (executable-find
+    (format "%s/bin/groovysh" (or (getenv "GROOVY_HOME") ""))))
+  "The path to the groovysh binary, used by `run-groovy'."
+  :group 'groovy)
+
+(defcustom groovysh-args
+  "--color=false"
+  "Arguments passed to groovysh when starting an inferior groovy buffer.")
 
 ;;;; for groovy
-(defvar groovy-home (getenv "GROOVY_HOME"))
-
-(defvar groovy-program-name "groovysh --color=false"
-  "*Program invoked by the run-groovy command")
-
 (defvar inferior-groovy-first-prompt-pattern "^groovy:.*> *"
   "first prompt regex pattern of groovy interpreter.")
 
@@ -117,34 +121,26 @@
 
 (defconst inferior-groovy-error-regexp-alist
        '(("SyntaxError: compile error\n^\\([^\(].*\\):\\([1-9][0-9]*\\):" 1 2)
-	 ("^\tfrom \\([^\(].*\\):\\([1-9][0-9]*\\)\\(:in `.*'\\)?$" 1 2)))
+         ("^\tfrom \\([^\(].*\\):\\([1-9][0-9]*\\)\\(:in `.*'\\)?$" 1 2)))
 
 (cond ((not inferior-groovy-mode-map)
        (setq inferior-groovy-mode-map
-	     (copy-keymap comint-mode-map))
-;       (define-key inferior-groovy-mode-map "\M-\C-x" ;gnu convention
-;	           'groovy-send-definition)
-;       (define-key inferior-groovy-mode-map "\C-x\C-e" 'groovy-send-last-sexp)
+             (copy-keymap comint-mode-map))
        (define-key inferior-groovy-mode-map "\C-c\C-l" 'groovy-load-file)
-       (define-key inferior-groovy-mode-map "\C-c\C-m" 'inferior-groovy-newline)
-))
+       (define-key inferior-groovy-mode-map "\C-c\C-m" 'inferior-groovy-newline)))
 
 ;;;###autoload
 (defun inf-groovy-keys ()
   "Set local key defs for inf-groovy in groovy-mode"
   (define-key groovy-mode-map "\M-\C-x" 'groovy-send-definition)
   (define-key groovy-mode-map "\C-x\C-e" 'groovy-send-last-sexp)
-  ;;(define-key groovy-mode-map "\C-c\M-b" 'groovy-send-block)
-  ;;(define-key groovy-mode-map "\C-c\C-b" 'groovy-send-block-and-go)
   (define-key groovy-mode-map "\C-c\M-d" 'groovy-send-definition)
-  (define-key groovy-mode-map "\C-c\C-x" 'groovy-send-definition-and-go)
   (define-key groovy-mode-map "\C-c\C-x" 'groovy-send-definition-and-go)
   (define-key groovy-mode-map "\C-c\M-r" 'groovy-send-region)
   (define-key groovy-mode-map "\C-c\C-r" 'groovy-send-region-and-go)
   (define-key groovy-mode-map "\C-c\C-z" 'switch-to-groovy)
   (define-key groovy-mode-map "\C-c\C-l" 'groovy-load-file)
-  (define-key groovy-mode-map "\C-c\C-s" 'run-groovy)
-)
+  (define-key groovy-mode-map "\C-c\C-s" 'run-groovy))
 
 (defvar groovy-buffer nil "current groovy (actually groovysh) process buffer.")
 
@@ -187,7 +183,6 @@ to continue it."
   (comint-mode)
   ;; Customise in inferior-groovy-mode-hook
   (setq comint-prompt-regexp inferior-groovy-prompt-pattern)
-  ;; (groovy-mode-variables)
   (setq major-mode 'inferior-groovy-mode)
   (setq mode-name "Inferior Groovy")
   (setq mode-line-process '(":%s"))
@@ -223,8 +218,8 @@ Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters.")
   (let ((rtn-str "") (start 0) match prev-start)
     (while (setq match (string-match regexp str start))
       (setq prev-start start
-	    start (match-end 0)
-	    rtn-str (concat rtn-str (substring str prev-start match))))
+            start (match-end 0)
+            rtn-str (concat rtn-str (substring str prev-start match))))
     (concat rtn-str (substring str start))))
 
 (defun groovy-get-old-input ()
@@ -233,57 +228,76 @@ Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters.")
     (let ((end (point)))
       (re-search-backward inferior-groovy-first-prompt-pattern)
       (remove-in-string (buffer-substring (point) end)
-			inferior-groovy-prompt-pattern)
-      )))
+                        inferior-groovy-prompt-pattern))))
 
 (defun groovy-args-to-list (string)
   (let ((where (string-match "[ \t]" string)))
     (cond ((null where) (list string))
-	  ((not (= where 0))
-	   (cons (substring string 0 where)
-		 (groovy-args-to-list (substring string (+ 1 where)
-						 (length string)))))
-	  (t (let ((pos (string-match "[^ \t]" string)))
-	       (if (null pos)
-		   nil
-		 (groovy-args-to-list (substring string pos
-						 (length string)))))))))
+          ((not (= where 0))
+           (cons (substring string 0 where)
+                 (groovy-args-to-list (substring string (+ 1 where)
+                                                 (length string)))))
+          (t (let ((pos (string-match "[^ \t]" string)))
+               (if (null pos)
+                   nil
+                 (groovy-args-to-list (substring string pos
+                                                 (length string)))))))))
 
 ;;;###autoload
 (defun run-groovy (cmd)
   "Run an inferior Groovy process, input and output via buffer *groovy*.
-If there is a process already running in `*groovy*', switch to that buffer.
-With argument, allows you to edit the command line (default is value
-of `groovy-program-name').  Runs the hooks `inferior-groovy-mode-hook'
-\(after the `comint-mode-hook' is run).
-\(Type \\[describe-mode] in the process buffer for a list of commands.)"
+If there is a process already running in *groovy*, switch to that buffer.
+With a prefix argument, prompt for the groovysh path and arguments
+\(see variables `groovysh' and `groovysh-args' for the defaults).
 
-  (interactive (list (if current-prefix-arg
-			 (read-string "Run Groovy: " groovy-program-name)
-                       (if groovysh
-                           (concat groovysh " --color=false")
-                         (concat groovy-home "/bin/" groovy-program-name)))))
+Runs the hook `inferior-groovy-mode-hook' (after the
+`comint-mode-hook' is run).  Type \\[describe-mode] in the
+process buffer for a list of commands."
+  (interactive (list
+                (format "%s %s"
+                        (if current-prefix-arg
+                            (read-file-name "groovysh binary: " groovysh)
+                          groovysh)
+                        (if current-prefix-arg
+                            (read-string "groovysh arguments: " groovysh-args)
+                          groovysh-args))))
   (if (not (comint-check-proc "*groovy*"))
       (let ((cmdlist (groovy-args-to-list cmd)))
-	(set-buffer (apply 'make-comint "groovy" (car cmdlist)
-			   nil (cdr cmdlist)))
-	(inferior-groovy-mode)))
-  ;(setq groovy-program-name cmd)
+        (set-buffer (apply 'make-comint "groovy" (car cmdlist)
+                           nil (cdr cmdlist)))
+        (inferior-groovy-mode)))
   (setq groovy-buffer "*groovy*")
   (pop-to-buffer "*groovy*")
-  (get-buffer-process groovy-buffer)
-  )
+  (get-buffer-process groovy-buffer))
 
 
 (defun groovy-proc ()
   "Returns the current groovy process. See variable groovy-buffer."
   (let ((proc (get-buffer-process (if (eq major-mode 'inferior-groovy-mode)
-				      (current-buffer)
-				    groovy-buffer))))
+                                      (current-buffer)
+                                    groovy-buffer))))
     (or proc
-	(call-interactively 'run-groovy))))
+        (call-interactively 'run-groovy))))
 
-	;;; was (error "No current process. See variable groovy-buffer"))))
+(defun groovy-send-region (start end)
+  "Send the current region to the inferior Groovy process."
+  (interactive "r")
+
+  (save-excursion
+    (save-restriction
+      (let ((str (concat (buffer-substring start end) "\n"))
+            (proc (groovy-proc)))
+
+        (with-current-buffer (process-buffer proc)
+          (while (and
+                  (goto-char comint-last-input-end)
+                  (not (re-search-forward comint-prompt-regexp nil t))
+                  (accept-process-output proc)))
+          (goto-char (process-mark proc))
+          (insert-before-markers str)
+          (move-marker comint-last-input-end (point))
+          (comint-send-string proc str)
+          (comint-send-string proc "\n"))))))
 
 (defun groovy-send-string (str)
   "Send a string STR to the inferior Groovy process."
@@ -293,46 +307,16 @@ of `groovy-program-name').  Runs the hooks `inferior-groovy-mode-hook'
     (save-restriction
       (let ((proc (groovy-proc)))
 
-      (with-current-buffer (process-buffer proc)
-	(while (and
-		(goto-char comint-last-input-end)
-		(not (re-search-forward comint-prompt-regexp nil t))
-		(accept-process-output proc)))
-	(goto-char (process-mark proc))
-	(insert-before-markers str)
-	(move-marker comint-last-input-end (point))
-	(comint-send-string proc str)
-	(comint-send-string proc "\n")
-	)
-      )
-    )))
-
-
-
-(defun groovy-send-region (start end)
-  "Send the current region to the inferior Groovy process."
-  (interactive "r")
-
-  (save-excursion
-    (save-restriction
-      (let (( str (concat (buffer-substring start end) "\n"))
-	    (proc (groovy-proc)))
-
-      (with-current-buffer (process-buffer proc)
-	(while (and
-		(goto-char comint-last-input-end)
-		(not (re-search-forward comint-prompt-regexp nil t))
-		(accept-process-output proc)))
-	(goto-char (process-mark proc))
-	(insert-before-markers str)
-	(move-marker comint-last-input-end (point))
-	(comint-send-string proc str)
-	(comint-send-string proc "\n")
-	)
-      )
-    )))
-
-
+        (with-current-buffer (process-buffer proc)
+          (while (and
+                  (goto-char comint-last-input-end)
+                  (not (re-search-forward comint-prompt-regexp nil t))
+                  (accept-process-output proc)))
+          (goto-char (process-mark proc))
+          (insert-before-markers str)
+          (move-marker comint-last-input-end (point))
+          (comint-send-string proc str)
+          (comint-send-string proc "\n"))))))
 
 (defun groovy-send-definition ()
   "Send the current definition to the inferior Groovy process."
@@ -348,27 +332,16 @@ of `groovy-program-name').  Runs the hooks `inferior-groovy-mode-hook'
   (interactive)
   (groovy-send-region (save-excursion (backward-sexp) (point)) (point)))
 
-;; v2. current groovy-mode does not support beginning-of-block, end-of-block
-;; (defun groovy-send-block ()
-;;   "Send the current block to the inferior Groovy process."
-;;   (interactive)
-;;   (save-excursion
-;;     (groovy-end-of-block)
-;;     (end-of-line)
-;;     (let ((end (point)))
-;;       (groovy-beginning-of-block)
-;;       (groovy-send-region (point) end))))
-
 (defun switch-to-groovy (eob-p)
   "Switch to the groovy process buffer.
 With argument, positions cursor at end of buffer."
   (interactive "P")
   (if (get-buffer groovy-buffer)
       (pop-to-buffer groovy-buffer)
-      (error "No current process buffer. See variable groovy-buffer."))
+    (error "No current process buffer. See variable groovy-buffer."))
   (cond (eob-p
-	 (push-mark)
-	 (goto-char (point-max)))))
+         (push-mark)
+         (goto-char (point-max)))))
 
 (defun groovy-send-string-and-go (str)
   "Send the string STR to the inferior Groovy process.
@@ -393,13 +366,6 @@ Then switch to the process buffer."
   (groovy-send-definition)
   (switch-to-groovy t))
 
-;; (defun groovy-send-block-and-go ()
-;;   "Send the current block to the inferior Groovy.
-;; Then switch to the process buffer."
-;;   (interactive)
-;;   (groovy-send-block)
-;;   (switch-to-groovy t))
-
 (defvar groovy-source-modes '(groovy-mode)
   "*Used to determine if a buffer contains Groovy source code.
 If it's loaded into a buffer that is in one of these major modes, it's
@@ -415,14 +381,14 @@ next one.")
 (defun groovy-load-file (file-name)
   "Load a Groovy file into the inferior Groovy process."
   (interactive (comint-get-source "Load Groovy file: " groovy-prev-l/c-dir/file
-				  groovy-source-modes t)) ; T because LOAD
+                                  groovy-source-modes t)) ; T because LOAD
                                                           ; needs an exact name
   (comint-check-source file-name) ; Check to see if buffer needs saved.
   (setq groovy-prev-l/c-dir/file (cons (file-name-directory    file-name)
-				       (file-name-nondirectory file-name)))
-  (comint-send-string (groovy-proc) (concat "\\i "
-					    file-name
-					    "\n")))
+                                       (file-name-nondirectory file-name)))
+  (comint-send-string (groovy-proc) (concat ":l "
+                                            file-name
+                                            "\n")))
 
 ;;; Do the user's customisation...
 
@@ -435,8 +401,7 @@ This is a good place to put keybindings.")
 ;;;###autoload
 (eval-after-load 'groovy-mode
   (lambda ()
-    (add-hook 'groovy-mode-hook 'inf-groovy-keys)
-    ))
+    (add-hook 'groovy-mode-hook 'inf-groovy-keys)))
 
 ;;----------------------------------------------------------------------------
 

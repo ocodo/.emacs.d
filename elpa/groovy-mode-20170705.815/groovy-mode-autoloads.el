@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "groovy-electric" "groovy-electric.el" (22873
-;;;;;;  40320 0 0))
+;;;### (autoloads nil "groovy-electric" "groovy-electric.el" (22880
+;;;;;;  30484 0 0))
 ;;; Generated autoloads from groovy-electric.el
 
 (autoload 'groovy-electric-mode "groovy-electric" "\
@@ -22,7 +22,7 @@ have Font Lock enabled. ${ } is expanded when in a GString
 
 ;;;***
 
-;;;### (autoloads nil "groovy-mode" "groovy-mode.el" (22873 40320
+;;;### (autoloads nil "groovy-mode" "groovy-mode.el" (22880 30484
 ;;;;;;  0 0))
 ;;; Generated autoloads from groovy-mode.el
  (add-to-list 'auto-mode-alist '("\\.g\\(?:ant\\|roovy\\|radle\\)\\'\\|Jenkinsfile\\'" . groovy-mode))
@@ -41,7 +41,7 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads nil "inf-groovy" "inf-groovy.el" (22873 40320 0
+;;;### (autoloads nil "inf-groovy" "inf-groovy.el" (22880 30484 0
 ;;;;;;  0))
 ;;; Generated autoloads from inf-groovy.el
 
@@ -89,11 +89,13 @@ to continue it.
 
 (autoload 'run-groovy "inf-groovy" "\
 Run an inferior Groovy process, input and output via buffer *groovy*.
-If there is a process already running in `*groovy*', switch to that buffer.
-With argument, allows you to edit the command line (default is value
-of `groovy-program-name').  Runs the hooks `inferior-groovy-mode-hook'
-\(after the `comint-mode-hook' is run).
-\(Type \\[describe-mode] in the process buffer for a list of commands.)
+If there is a process already running in *groovy*, switch to that buffer.
+With a prefix argument, prompt for the groovysh path and arguments
+\(see variables `groovysh' and `groovysh-args' for the defaults).
+
+Runs the hook `inferior-groovy-mode-hook' (after the
+`comint-mode-hook' is run).  Type \\[describe-mode] in the
+process buffer for a list of commands.
 
 \(fn CMD)" t nil)
 
@@ -101,7 +103,7 @@ of `groovy-program-name').  Runs the hooks `inferior-groovy-mode-hook'
 
 ;;;***
 
-;;;### (autoloads nil nil ("groovy-mode-pkg.el") (22873 40320 0 0))
+;;;### (autoloads nil nil ("groovy-mode-pkg.el") (22880 30484 0 0))
 
 ;;;***
 
