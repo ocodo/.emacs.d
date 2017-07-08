@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20170626.653
+;; Package-Version: 20170704.2358
 ;; Version:           0.15.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -54,7 +54,7 @@
     "serialize" "exempt_from_layout" "filter_parameter_logging" "hide_action"
     "cache_sweeper" "protect_from_forgery" "caches_page" "cache_page"
     "caches_action" "expire_page" "expire_action" "rescue_from" "params"
-    "request" "response" "session" "flash" "head" "redirect_to"
+    "request" "response" "session" "flash" "head" "redirect_to" "redirect_back"
     "render_to_string" "respond_with" "before_filter" "append_before_filter"
     "before_action" "append_before_action"
     "prepend_before_filter" "after_filter" "append_after_filter"
