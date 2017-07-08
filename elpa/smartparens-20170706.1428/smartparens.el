@@ -3660,80 +3660,101 @@ You can globally disable insertion of closing pair if point is
 followed by the matching opening pair.  It is disabled by
 default."
   (sp--with-case-sensitive
-    (-let* ((active-pair (unwind-protect
-                             ;; This fake insertion manufactures proper
-                             ;; context for the tests below... in effect
-                             ;; we must make it look as if the user
-                             ;; typed in the opening part themselves
-                             ;; TODO: it is duplicated in the test
-                             ;; below, maybe it wouldn't hurt to
-                             ;; restructure this function a bit
-                             (progn
-                               (when pair (insert pair))
-                               (sp--pair-to-insert))
-                           (when pair (delete-char (- (length pair))))))
-            ((open-pair close-pair trig) (sp--insert-pair-get-pair-info active-pair)))
-      (if (not (unwind-protect
-                   (progn
-                     (when pair (insert pair))
-                     ;; TODO: all these tests must go into `sp--pair-to-insert'
-                     (and sp-autoinsert-pair
-                          active-pair
-                          (if (memq sp-autoskip-closing-pair '(always always-end))
-                              (or (not (equal open-pair close-pair))
-                                  (not (sp-skip-closing-pair nil t)))
-                            t)
-                          (sp--do-action-p open-pair 'insert t)
-                          ;; was sp-autoinsert-if-followed-by-same
-                          (or (not (sp--get-active-overlay 'pair))
-                              (not (sp--looking-at (sp--strict-regexp-quote open-pair)))
-                              (and (equal open-pair close-pair)
-                                   (eq sp-last-operation 'sp-insert-pair)
-                                   (save-excursion
-                                     (backward-char (length trig))
-                                     (sp--looking-back (sp--strict-regexp-quote open-pair))))
-                              (not (equal open-pair close-pair)))))
-                 (when pair (delete-char (- (length pair))))))
-          ;; if this pair could not be inserted, we try the procedure
-          ;; again with this pair removed from sp-pair-list to give
-          ;; chance to other pairs sharing a common suffix (for
-          ;; example \[ and [)
-          (let ((new-sp-pair-list (--remove (equal (car it) open-pair) sp-pair-list))
-                (new-sp-local-pairs (--remove (equal (plist-get it :open) open-pair) sp-local-pairs)))
-            (when (> (length sp-pair-list) (length new-sp-pair-list))
-              (let ((sp-pair-list new-sp-pair-list)
-                    (sp-local-pairs new-sp-local-pairs))
-                (sp-insert-pair))))
-        ;; setup the delayed insertion here.
-        (if (sp-get-pair open-pair :when-cond)
-            (progn
-              (setq sp-delayed-pair (cons open-pair (- (point) (length open-pair))))
-              (setq sp-last-operation 'sp-insert-pair-delayed))
-          (unless pair (delete-char (- (length trig))))
-          (insert open-pair)
-          (sp--run-hook-with-args open-pair :pre-handlers 'insert)
-          (--when-let (sp--pair-to-uninsert)
-            (let ((cl (plist-get it :close)))
-              (when (and (sp--looking-at-p (sp--strict-regexp-quote cl))
-                         (not (string-prefix-p cl close-pair)))
-                (delete-char (length cl)))))
-          (insert close-pair)
-          (backward-char (length close-pair))
-          (sp--pair-overlay-create (- (point) (length open-pair))
-                                   (+ (point) (length close-pair))
-                                   open-pair)
-          (when sp-undo-pairs-separately
-            (sp--split-last-insertion-undo (+ (length open-pair) (length close-pair)))
-            ;; TODO: abc\{abc\} undo undo \{asd\} . next undo removes the
-            ;; entire \{asd\} if we do not insert two nils here.
-            ;; Normally, repeated nils are ignored so it shouldn't
-            ;; matter.  It would still be useful to inspect further.
-            (push nil buffer-undo-list)
-            (push nil buffer-undo-list))
-          (sp--run-hook-with-args open-pair :post-handlers 'insert)
-          (setq sp-last-inserted-pair open-pair)
-          (setf (sp-state-delayed-hook sp-state) (cons :next open-pair))
-          (setq sp-last-operation 'sp-insert-pair))))))
+    (catch 'done
+      (-let* ((active-pair (unwind-protect
+                               ;; This fake insertion manufactures proper
+                               ;; context for the tests below... in effect
+                               ;; we must make it look as if the user
+                               ;; typed in the opening part themselves
+                               ;; TODO: it is duplicated in the test
+                               ;; below, maybe it wouldn't hurt to
+                               ;; restructure this function a bit
+                               (progn
+                                 (when pair (insert pair))
+                                 (sp--pair-to-insert))
+                             (when pair (delete-char (- (length pair))))))
+              ((open-pair close-pair trig) (sp--insert-pair-get-pair-info active-pair)))
+        ;; We are not looking at a closing delimiter which might mean we
+        ;; are in an already existing sexp.  If the to-be-inserted pair
+        ;; has a prefix which is also a pair we migth be extending the
+        ;; opener of a sexp with this opener.  In which case we should
+        ;; probably rewrap.
+        (unless (sp--looking-at-p (sp--get-closing-regexp))
+          (when open-pair
+            (-when-let (prefix-pair (sp-get-pair (substring open-pair 0 -1)))
+              (let ((last-char-of-open-pair (substring open-pair -1)))
+                (unwind-protect
+                    (progn
+                      (delete-char -1)
+                      (--when-let (sp-get-thing t)
+                        (save-excursion
+                          (sp-get it
+                            (delete-region :end-in :end)
+                            (goto-char :end-in)
+                            (insert close-pair)))
+                        (throw 'done t)))
+                  (insert last-char-of-open-pair))))))
+        (if (not (unwind-protect
+                     (progn
+                       (when pair (insert pair))
+                       ;; TODO: all these tests must go into `sp--pair-to-insert'
+                       (and sp-autoinsert-pair
+                            active-pair
+                            (if (memq sp-autoskip-closing-pair '(always always-end))
+                                (or (not (equal open-pair close-pair))
+                                    (not (sp-skip-closing-pair nil t)))
+                              t)
+                            (sp--do-action-p open-pair 'insert t)
+                            ;; was sp-autoinsert-if-followed-by-same
+                            (or (not (sp--get-active-overlay 'pair))
+                                (not (sp--looking-at (sp--strict-regexp-quote open-pair)))
+                                (and (equal open-pair close-pair)
+                                     (eq sp-last-operation 'sp-insert-pair)
+                                     (save-excursion
+                                       (backward-char (length trig))
+                                       (sp--looking-back (sp--strict-regexp-quote open-pair))))
+                                (not (equal open-pair close-pair)))))
+                   (when pair (delete-char (- (length pair))))))
+            ;; if this pair could not be inserted, we try the procedure
+            ;; again with this pair removed from sp-pair-list to give
+            ;; chance to other pairs sharing a common suffix (for
+            ;; example \[ and [)
+            (let ((new-sp-pair-list (--remove (equal (car it) open-pair) sp-pair-list))
+                  (new-sp-local-pairs (--remove (equal (plist-get it :open) open-pair) sp-local-pairs)))
+              (when (> (length sp-pair-list) (length new-sp-pair-list))
+                (let ((sp-pair-list new-sp-pair-list)
+                      (sp-local-pairs new-sp-local-pairs))
+                  (sp-insert-pair))))
+          ;; setup the delayed insertion here.
+          (if (sp-get-pair open-pair :when-cond)
+              (progn
+                (setq sp-delayed-pair (cons open-pair (- (point) (length open-pair))))
+                (setq sp-last-operation 'sp-insert-pair-delayed))
+            (unless pair (delete-char (- (length trig))))
+            (insert open-pair)
+            (sp--run-hook-with-args open-pair :pre-handlers 'insert)
+            (--when-let (sp--pair-to-uninsert)
+              (let ((cl (plist-get it :close)))
+                (when (and (sp--looking-at-p (sp--strict-regexp-quote cl))
+                           (not (string-prefix-p cl close-pair)))
+                  (delete-char (length cl)))))
+            (insert close-pair)
+            (backward-char (length close-pair))
+            (sp--pair-overlay-create (- (point) (length open-pair))
+                                     (+ (point) (length close-pair))
+                                     open-pair)
+            (when sp-undo-pairs-separately
+              (sp--split-last-insertion-undo (+ (length open-pair) (length close-pair)))
+              ;; TODO: abc\{abc\} undo undo \{asd\} . next undo removes the
+              ;; entire \{asd\} if we do not insert two nils here.
+              ;; Normally, repeated nils are ignored so it shouldn't
+              ;; matter.  It would still be useful to inspect further.
+              (push nil buffer-undo-list)
+              (push nil buffer-undo-list))
+            (sp--run-hook-with-args open-pair :post-handlers 'insert)
+            (setq sp-last-inserted-pair open-pair)
+            (setf (sp-state-delayed-hook sp-state) (cons :next open-pair))
+            (setq sp-last-operation 'sp-insert-pair)))))))
 
 (defun sp--wrap-repeat-last (active-pair)
   "If the last operation was a wrap and `sp-wrap-repeat-last' is
@@ -4013,13 +4034,16 @@ is remove the just added wrapping."
               (setq sp-last-operation 'sp-delete-pair-opening))))
            ;; we're inside a pair
            ((and inside-pair sp-autodelete-pair)
-            (let* ((end (save-excursion
+            (let* ((beg (save-excursion
+                          (search-backward (car inside-pair))))
+                   (end (save-excursion
                           (search-forward (cdr inside-pair))))
                    (cs (sp--get-context p))
                    (ce (sp--get-context end))
                    (current-sexp (sp-get-sexp)))
               (when (and (or (not (eq cs 'comment)) ;; a => b <=> ~a v b
                              (eq ce 'comment))
+                         (eq beg (sp-get current-sexp :beg))
                          (eq end (sp-get current-sexp :end))
                          (equal (sp-get current-sexp :op) (car inside-pair))
                          (equal (sp-get current-sexp :cl) (cdr inside-pair)))
@@ -4136,6 +4160,8 @@ If the point is not inside a quoted string, return nil."
   (when (or (sp-point-in-comment)
             (looking-at "[[:space:]]+\\s<"))
     (let ((open (save-excursion
+                  (--when-let (nth 8 (sp--syntax-ppss))
+                    (goto-char it))
                   (while (and (not (bobp))
                               (or (when (sp-point-in-comment)
                                     (backward-char 1)
@@ -4147,7 +4173,8 @@ If the point is not inside a quoted string, return nil."
                                       (end-of-line))
                                     t))))
                   ;; this means we got here by `sp-point-in-comment' condition
-                  (forward-char)
+                  (unless (and (bobp) (sp-point-in-comment))
+                    (forward-char))
                   (point)))
           (close (save-excursion
                    (while (and (not (eobp))
