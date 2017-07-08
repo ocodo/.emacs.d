@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "ido-completing-read+" "ido-completing-read+.el"
-;;;;;;  (22873 40374 0 0))
+;;;;;;  (22880 30425 0 0))
 ;;; Generated autoloads from ido-completing-read+.el
 
 (defvar ido-cr+-replace-completely nil "\
@@ -32,6 +32,11 @@ completion for them.
 (defadvice ido-completing-read (around ido-cr+ activate) "\
 This advice is the implementation of `ido-cr+-replace-completely'." (when (not (featurep (quote ido-completing-read+))) (require (quote ido-completing-read+))) (if (or (ido-cr+-active) (not ido-cr+-replace-completely)) ad-do-it (setq ad-return-value (apply (function ido-completing-read+) (ad-get-args 0)))))
 
+(defadvice call-interactively (around ido-cr+-record-command-name activate) "\
+Record the command being interactively called.
+
+See `ido-cr+-current-command'." (let ((ido-cr+-current-command (ad-get-arg 0))) ad-do-it))
+
 (defvar ido-context-switch-command nil "\
 Variable holding the command used for switching to another completion mode.
 
@@ -43,6 +48,25 @@ Emacs 25. Setting another package's variable is not safe in
 general, but in this case it should be, because ido always
 let-binds this variable before using it, so the initial value
 shouldn't matter.")
+
+(defvar ido-ubiquitous-mode nil "\
+Non-nil if Ido-Ubiquitous mode is enabled.
+See the `ido-ubiquitous-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `ido-ubiquitous-mode'.")
+
+(custom-autoload 'ido-ubiquitous-mode "ido-completing-read+" nil)
+
+(autoload 'ido-ubiquitous-mode "ido-completing-read+" "\
+Use ido completion instead of standard completion almost everywhere.
+
+If this mode causes problems for a function, you can customize
+when ido completion is or is not used by customizing
+`ido-cr+-function-blacklist'.
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
