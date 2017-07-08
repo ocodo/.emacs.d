@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20170701.413
+;; Package-Version: 20170705.417
 ;; Version: 0.9.1
 ;; Package-Requires: ((emacs "24.3") (swiper "0.9.0"))
 ;; Keywords: completion, matching
@@ -1365,8 +1365,8 @@ When REVERT is non-nil, regenerate the current *ivy-occur* buffer."
 (defun counsel-git-grep-recenter ()
   "Recenter window according to the selected candidate."
   (interactive)
+  (counsel-git-grep-action (ivy-state-current ivy-last))
   (with-ivy-window
-    (counsel-git-grep-action (ivy-state-current ivy-last))
     (recenter-top-bottom)))
 
 ;;** `counsel-git-stash'
@@ -1535,9 +1535,11 @@ since you can still access the dotfiles if your input starts with
 a dot. The generic way to toggle ignored files is \\[ivy-toggle-ignore],
 but the leading dot is a lot faster."
   :group 'ivy
-  :type '(choice
+  :type `(choice
           (const :tag "None" nil)
           (const :tag "Dotfiles" "\\`\\.")
+          (const :tag "Ignored Extensions"
+                 ,(regexp-opt completion-ignored-extensions))
           (regexp :tag "Regex")))
 
 (defun counsel--find-file-matcher (regexp candidates)
