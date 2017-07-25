@@ -7,7 +7,7 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;; URL:  https://github.com/mooz/js2-mode/
 ;;       http://code.google.com/p/js2-mode/
-;; Version: 20170116
+;; Version: 20170721
 ;; Keywords: languages, javascript
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 
@@ -5173,8 +5173,7 @@ You should use `js2-print-tree' instead of this function."
           (or (js2-node-has-side-effects expr)
               (when (js2-string-node-p expr)
                 (member (js2-string-node-value expr) '("use strict" "use asm"))))))
-       ((= tt js2-AWAIT)
-        (js2-node-has-side-effects (js2-unary-node-operand node)))
+       ((= tt js2-AWAIT) t)
        ((= tt js2-COMMA)
         (js2-node-has-side-effects (js2-infix-node-right node)))
        ((or (= tt js2-AND)
@@ -7205,6 +7204,10 @@ When STRICT, signal an error if NODE is not one of the expected types."
             (setq targets (append
                            (js2--collect-target-symbols subexpr strict)
                            targets))))))
+     ((js2-assign-node-p node)
+      (setq targets (append (js2--collect-target-symbols
+                             (js2-assign-node-left node) strict)
+                            targets)))
      (strict
       (js2-report-error "msg.no.parm" nil (js2-node-abs-pos node)
                         (js2-node-len node))
@@ -9890,8 +9893,11 @@ If NODE is non-nil, it is the AST node associated with the symbol."
           (js2-record-imenu-functions right left))
         ;; do this last so ide checks above can use absolute positions
         (js2-node-add-children pn left right))
-       ((and (= tt js2-ARROW)
-             (>= js2-language-version 200))
+       ((and (>= js2-language-version 200)
+             (or
+              (= tt js2-ARROW)
+              (and async-p
+                   (= (js2-peek-token) js2-ARROW))))
         (js2-ts-seek ts-state)
         (when async-p
           (js2-record-face 'font-lock-keyword-face)
