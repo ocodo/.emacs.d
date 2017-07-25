@@ -1,11 +1,26 @@
 ;;; flymake-jslint.el --- A flymake handler for javascript using jslint
-;;
-;;; Author: Steve Purcell <steve@sanityinc.com>
-;;; Homepage: https://github.com/purcell/flymake-jslint
-;; Version: 20130613.1002
-;;; X-Original-Version: DEV
-;;; Package-Requires: ((flymake-easy "0.1"))
-;;
+
+;; Copyright (c) 2011-2017 Steve Purcell
+
+;; Author: Steve Purcell <steve@sanityinc.com>
+;; Homepage: https://github.com/purcell/flymake-jslint
+;; Package-Version: 20170722.1846
+;; Package-X-Original-Version: 0
+;; Package-Requires: ((flymake-easy "0.1"))
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 ;;; Commentary:
 ;;
 ;; References:
@@ -13,8 +28,8 @@
 ;;   http://d.hatena.ne.jp/kazu-yamamoto/mobile?date=20071029
 ;;
 ;; Works with either "jslint" from jslint.com, or "jsl" from
-;; javascriptlint.com. The default is "jsl", if that executable is
-;; found at load-time. Otherwise, "jslint" is the default. If you want
+;; javascriptlint.com.  The default is "jsl", if that executable is
+;; found at load-time.  Otherwise, "jslint" is the default.  If you want
 ;; to use the non-default checker, you can customize the values of
 ;; `flymake-jslint-command' and `flymake-jslint-args' accordingly.
 ;;
@@ -63,7 +78,7 @@
   '("^\\(.+\\)\:\\([0-9]+\\)\: strict \\(warning: trailing comma.+\\)\:$" nil 2 nil 3))
 
 (defun flymake-jslint-command (filename)
-  "Construct a command that flymake can use to check javascript source."
+  "Construct a command that flymake can use to check javascript source in FILENAME."
   (append
    (list flymake-jslint-command)
    flymake-jslint-args

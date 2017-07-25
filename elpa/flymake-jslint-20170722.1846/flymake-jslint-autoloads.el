@@ -1,11 +1,10 @@
 ;;; flymake-jslint-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads (flymake-jslint-load flymake-jslint-args flymake-jslint-command
-;;;;;;  flymake-jslint-detect-trailing-comma) "flymake-jslint" "flymake-jslint.el"
-;;;;;;  (21133 57634 0 0))
+;;;### (autoloads nil "flymake-jslint" "flymake-jslint.el" (0 0 0
+;;;;;;  0))
 ;;; Generated autoloads from flymake-jslint.el
 
 (defvar flymake-jslint-detect-trailing-comma t "\
@@ -28,18 +27,13 @@ Configure flymake mode to check the current buffer's javascript syntax.
 
 \(fn)" t nil)
 
-;;;***
-
-;;;### (autoloads nil nil ("flymake-jslint-pkg.el") (21133 57634
-;;;;;;  176231 0))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flymake-jslint" '("flymake-jslint-")))
 
 ;;;***
 
-(provide 'flymake-jslint-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; flymake-jslint-autoloads.el ends here
