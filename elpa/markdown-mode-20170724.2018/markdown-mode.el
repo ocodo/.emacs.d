@@ -3,11 +3,11 @@
 ;; Copyright (C) 2007-2017 Jason R. Blevins and markdown-mode
 ;; contributors (see the commit log for details).
 
-;; Author: Jason R. Blevins <jrblevin@sdf.org>
-;; Maintainer: Jason R. Blevins <jrblevin@sdf.org>
+;; Author: Jason R. Blevins <jblevins@xbeta.org>
+;; Maintainer: Jason R. Blevins <jblevins@xbeta.org>
 ;; Created: May 24, 2007
 ;; Version: 2.3-dev
-;; Package-Version: 20170707.1030
+;; Package-Version: 20170724.2018
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
@@ -1746,7 +1746,11 @@ and END are the previous region to refontify."
       ;; (point-max) is deleted, but font-lock-extend-region-functions
       ;; are called.  Force a syntax property update in that case.
       (when (= end (point-max))
-        (markdown-syntax-propertize (car res) (cdr res)))
+        ;; This function is called in a buffer modification hook.
+        ;; `markdown-syntax-propertize' doesn't save the match data,
+        ;; so we have to do it here.
+        (save-match-data
+          (markdown-syntax-propertize (car res) (cdr res))))
       (setq jit-lock-start (car res)
             jit-lock-end (cdr res)))))
 
@@ -7005,12 +7009,13 @@ setext header, but should not be folded."
                              (point)))
                          nil)))
 
+;; This function was originally derived from `org-cycle' from org.el.
 (defun markdown-cycle (&optional arg)
   "Visibility cycling for Markdown mode.
 If ARG is t, perform global visibility cycling.  If the point is
 at an atx-style header, cycle visibility of the corresponding
-subtree.  Otherwise, insert a tab using `indent-relative'.
-Derived from `org-cycle'."
+subtree.  Otherwise, indent the current line or insert a tab,
+as appropriate, by calling `indent-for-tab-command'."
   (interactive "P")
   (cond
    ((eq arg t) ;; Global cycling
@@ -8309,6 +8314,14 @@ return the number of paragraphs left to move."
         (goto-char start)))))
   arg)
 
+(defun markdown--inhibit-electric-quote ()
+  "Function added to `electric-quote-inhibit-functions'.
+Return non-nil if the quote has been inserted inside a code block
+or span."
+  (let ((pos (1- (point))))
+    (or (markdown-inline-code-at-pos pos)
+        (markdown-code-block-at-pos pos))))
+
 
 ;;; Extension Framework =======================================================
 
@@ -8851,6 +8864,10 @@ position."
   ;; Flyspell
   (setq-local flyspell-generic-check-word-predicate
               #'markdown-flyspell-check-word-p)
+
+  ;; Electric quoting
+  (add-hook 'electric-quote-inhibit-functions
+            #'markdown--inhibit-electric-quote nil :local)
 
   ;; Backwards compatibility with markdown-css-path
   (when (boundp 'markdown-css-path)
