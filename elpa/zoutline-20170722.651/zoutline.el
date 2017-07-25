@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/zoutline
-;; Package-Version: 20160915.503
+;; Package-Version: 20170722.651
 ;; Version: 0.1.0
 ;; Keywords: outline
 
@@ -74,7 +74,7 @@ Return nil if moved 0 times."
   (let ((lvl (funcall outline-level))
         res)
     (if (= lvl 1)
-        (re-search-forward (aref zo-lvl-re lvl) nil t arg)
+        (setq res (re-search-forward (aref zo-lvl-re lvl) nil t arg))
       (let ((end (save-excursion
                    (or (re-search-forward (aref zo-lvl-re (1- lvl)) nil t)
                        (point-max)))))

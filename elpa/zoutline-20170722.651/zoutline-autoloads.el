@@ -3,7 +3,10 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("zoutline.el") (22507 31259 761224 693000))
+;;;### (autoloads nil "zoutline" "zoutline.el" (0 0 0 0))
+;;; Generated autoloads from zoutline.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "zoutline" '("zo-")))
 
 ;;;***
 
