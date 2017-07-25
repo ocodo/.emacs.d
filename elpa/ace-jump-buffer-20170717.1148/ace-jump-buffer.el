@@ -4,10 +4,11 @@
 ;;
 ;; Author: Justin Talbott <justin@waymondo.com>
 ;; URL: https://github.com/waymondo/ace-jump-buffer
-;; Package-Version: 20160229.1458
+;; Package-Version: 20170717.1148
 ;; Version: 0.4.0
 ;; Package-Requires: ((avy "0.4.0") (dash "2.4.0"))
-;;
+;; License: GNU General Public License version 3, or (at your option) any later version
+
 ;;; Commentary:
 ;;
 ;;   (require 'ace-jump-buffer)

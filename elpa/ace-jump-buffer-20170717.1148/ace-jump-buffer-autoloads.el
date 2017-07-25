@@ -1,10 +1,10 @@
 ;;; ace-jump-buffer-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ace-jump-buffer" "ace-jump-buffer.el" (22246
-;;;;;;  12538 541309 860000))
+;;;### (autoloads nil "ace-jump-buffer" "ace-jump-buffer.el" (0 0
+;;;;;;  0 0))
 ;;; Generated autoloads from ace-jump-buffer.el
 
 (autoload 'ace-jump-buffer "ace-jump-buffer" "\
@@ -35,7 +35,9 @@ It will displays buffers that don't get rejected by the body of
 
 \(fn NAME &rest BUFFER-LIST-REJECT-FILTER)" nil t)
 
-(put 'make-ace-jump-buffer-function 'lisp-indent-function '1)
+(function-put 'make-ace-jump-buffer-function 'lisp-indent-function '1)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ace-jump-buffer" '("ajb" "bs--sort-by-recentf")))
 
 ;;;***
 
