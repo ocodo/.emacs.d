@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20170705.417
+;; Package-Version: 20170719.1102
 ;; Version: 0.9.1
 ;; Package-Requires: ((emacs "24.3") (swiper "0.9.0"))
 ;; Keywords: completion, matching
@@ -1150,6 +1150,28 @@ Typical value: '(recenter)."
 Allows to automatically use a custom \"git-grep\" command for all
 files in a project.")
 
+(defun counsel--git-grep-cmd-and-proj (cmd)
+  (let ((dd (expand-file-name default-directory))
+        proj)
+    (cond
+      ((stringp cmd))
+      (cmd
+       (if (setq proj
+                 (cl-find-if
+                  (lambda (x)
+                    (string-match (car x) dd))
+                  counsel-git-grep-projects-alist))
+           (setq cmd (cdr proj))
+         (setq cmd
+               (ivy-read "cmd: " counsel-git-grep-cmd-history
+                         :history 'counsel-git-grep-cmd-history
+                         :re-builder #'ivy--regex))
+         (setq counsel-git-grep-cmd-history
+               (delete-dups counsel-git-grep-cmd-history))))
+      (t
+       (setq cmd counsel-git-grep-cmd-default)))
+    (cons proj cmd)))
+
 ;;;###autoload
 (defun counsel-git-grep (&optional cmd initial-input)
   "Grep for a string in the current git repository.
@@ -1158,26 +1180,10 @@ When CMD is non-nil, prompt for a specific \"git grep\" command.
 INITIAL-INPUT can be given as the initial minibuffer input."
   (interactive "P")
   (ivy-set-prompt 'counsel-git-grep counsel-prompt-function)
-  (let ((dd (expand-file-name default-directory))
+  (let ((proj-and-cmd (counsel--git-grep-cmd-and-proj cmd))
         proj)
-    (cond
-      ((stringp cmd)
-       (setq counsel-git-grep-cmd cmd))
-      (cmd
-       (if (setq proj
-                 (cl-find-if
-                  (lambda (x)
-                    (string-match (car x) dd))
-                  counsel-git-grep-projects-alist))
-           (setq counsel-git-grep-cmd (cdr proj))
-         (setq counsel-git-grep-cmd
-               (ivy-read "cmd: " counsel-git-grep-cmd-history
-                         :history 'counsel-git-grep-cmd-history
-                         :re-builder #'ivy--regex))
-         (setq counsel-git-grep-cmd-history
-               (delete-dups counsel-git-grep-cmd-history))))
-      (t
-       (setq counsel-git-grep-cmd counsel-git-grep-cmd-default)))
+    (setq proj (car proj-and-cmd))
+    (setq counsel-git-grep-cmd (cdr proj-and-cmd))
     (counsel-require-program (car (split-string counsel-git-grep-cmd)))
     (setq counsel--git-grep-dir
           (if proj
@@ -1190,25 +1196,24 @@ INITIAL-INPUT can be given as the initial minibuffer input."
               (if (eq system-type 'windows-nt)
                   0
                 (counsel--gg-count "" t))))
-      (cl-flet
-          ((collection-function
-            (if proj
-                #'counsel-git-grep-proj-function
-              #'counsel-git-grep-function))
-           (unwind-function
-            (if proj
-                (lambda ()
-                  (counsel-delete-process)
-                  (swiper--cleanup))
-              (lambda ()
-                (swiper--cleanup)))))
-        (ivy-read "git grep" #'collection-function
+      (let ((collection-function
+             (if proj
+                 #'counsel-git-grep-proj-function
+               #'counsel-git-grep-function))
+            (unwind-function
+             (if proj
+                 (lambda ()
+                   (counsel-delete-process)
+                   (swiper--cleanup))
+               (lambda ()
+                 (swiper--cleanup)))))
+        (ivy-read "git grep" collection-function
                   :initial-input initial-input
                   :matcher #'counsel-git-grep-matcher
                   :dynamic-collection (or proj counsel-git-grep-skip-counting-lines (> counsel--git-grep-count 20000))
                   :keymap counsel-git-grep-map
                   :action #'counsel-git-grep-action
-                  :unwind #'unwind-function
+                  :unwind unwind-function
                   :history 'counsel-git-grep-history
                   :caller 'counsel-git-grep)))))
 
@@ -1439,11 +1444,32 @@ TREE is the selected candidate."
   "Return worktree from candidate TREE."
   (substring tree 0 (string-match " " tree)))
 
+(defun counsel-git-toplevel ()
+  "Return the base directory of the current git repository."
+  (let ((out (string-trim-right (shell-command-to-string "git rev-parse --show-toplevel"))))
+    (unless (string-match-p "Not a git repository" out) out)))
+
+(defun counsel-git-close-worktree-files-action (root-dir)
+  "Close all buffers from the worktree located at ROOT-DIR."
+  (setq root-dir (counsel-git-worktree-parse-root root-dir))
+  (save-excursion
+    (dolist (buf (buffer-list))
+      (set-buffer buf)
+      (let (top)
+        (and buffer-file-name
+             (setq top (counsel-git-toplevel))
+             (string= "." (file-relative-name root-dir top))
+             (kill-buffer buf))))))
+
+(ivy-set-actions
+ 'counsel-git-change-worktree
+ '(("k" counsel-git-close-worktree-files-action "kill all")))
+
 ;;;###autoload
 (defun counsel-git-change-worktree ()
   "Find the file corresponding to the current buffer on a different worktree."
   (interactive)
-  (let ((git-root-dir (string-trim-right (shell-command-to-string "git rev-parse --show-toplevel"))))
+  (let ((git-root-dir (counsel-git-toplevel)))
     (ivy-read "Select worktree: "
               (or (cl-delete git-root-dir (counsel-git-worktree-list)
                              :key #'counsel-git-worktree-parse-root :test #'string=)
@@ -2003,7 +2029,7 @@ This uses `counsel-ag' with `counsel-ack-base-command' replacing
 
 
 ;;** `counsel-rg'
-(defcustom counsel-rg-base-command "rg -i --no-heading --line-number --max-columns 150 --color never %s ."
+(defcustom counsel-rg-base-command "rg -i --no-heading --line-number --color never %s ."
   "Alternative to `counsel-ag-base-command' using ripgrep."
   :type 'string
   :group 'ivy)
