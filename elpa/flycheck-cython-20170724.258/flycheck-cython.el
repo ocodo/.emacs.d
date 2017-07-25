@@ -5,7 +5,7 @@
 ;; Author: Lorenzo Bolla <lbolla@gmail.com>
 ;; Created: 26 March 2016
 ;; Version: 1.0
-;; Package-Version: 20160327.1228
+;; Package-Version: 20170724.258
 ;; Package-Requires: ((flycheck "0.25"))
 
 ;;; Commentary:
@@ -56,6 +56,27 @@ string is a directory to add to the include path of Cython."
   :type '(repeat (directory :tag "Include directory"))
   :safe #'flycheck-string-list-p)
 
+(flycheck-def-option-var flycheck-cython-filename-replacement '(("\\(.*\\)\\.pxd" . "\\1.pyx")) cython
+  "A list of regexp and replacement pairs for replacing filenames before passing them on to Cython."
+  :type '(alist :key-type (string :tag "Regexp") :value-type (string :tag "Replacement")))
+
+(defun flycheck-cython-map-source-file (replacement-alist filename)
+  "Attempt to apply each regexp/replacement in REPLACEMENT-ALIST to FILENAME.
+
+when the regexp does not match, no change is performed. This
+function repeatedly calls `replace-regexp-in-string'.
+
+If the final result exists as a file, its filename is returned,
+otherwise the input FILENAME is returned."
+  (let ((new-filename filename))
+    (dolist (replacement replacement-alist)
+      (setq new-filename
+            (replace-regexp-in-string (car replacement)
+                                      (cdr replacement) new-filename)))
+    (if (file-exists-p new-filename)
+        new-filename
+      filename)))
+
 (flycheck-define-checker cython
   "Cython checker."
   :command ("cython"
@@ -63,7 +84,9 @@ string is a directory to add to the include path of Cython."
             (option-flag "--cplus" flycheck-cython-cplus)
             (option-list "--include-dir" flycheck-cython-include-dir)
             "-o" temporary-file-name
-            source-original)
+            (eval (flycheck-cython-map-source-file
+                   flycheck-cython-filename-replacement
+                   (or (buffer-file-name) ""))))
   :error-patterns
   ((warning line-start
             "warning: "
