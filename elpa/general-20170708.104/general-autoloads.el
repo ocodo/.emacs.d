@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "general" "general.el" (22873 40303 0 0))
+;;;### (autoloads nil "general" "general.el" (0 0 0 0))
 ;;; Generated autoloads from general.el
 
 (autoload 'general-define-key "general" "\
@@ -155,10 +155,11 @@ aliases such as `nmap' for `general-nmap'.
 
 \(fn &optional SHORT-NAMES DEFAULT-TO-STATES)" nil t)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "general" '("general-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("elpa.el" "general-pkg.el") (22873 40303
-;;;;;;  0 0))
+;;;### (autoloads nil nil ("elpa.el" "general-pkg.el") (0 0 0 0))
 
 ;;;***
 
