@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "inf-clojure" "inf-clojure.el" (22880 30421
-;;;;;;  0 0))
+;;;### (autoloads nil "inf-clojure" "inf-clojure.el" (0 0 0 0))
 ;;; Generated autoloads from inf-clojure.el
 
 (autoload 'inf-clojure-minor-mode "inf-clojure" "\
@@ -32,6 +31,8 @@ Connect to a running socket-repl via `inf-clojure'.
 HOST is the host the process is running on, PORT is where it's listening.
 
 \(fn HOST PORT)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "inf-clojure" '("inf-clojure-")))
 
 ;;;***
 

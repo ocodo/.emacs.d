@@ -5,7 +5,7 @@
 ;; Authors: Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Olin Shivers <shivers@cs.cmu.edu>
 ;; URL: http://github.com/clojure-emacs/inf-clojure
-;; Package-Version: 20170707.131
+;; Package-Version: 20170720.2256
 ;; Keywords: processes, clojure
 ;; Version: 2.0.1
 ;; Package-Requires: ((emacs "24.4") (clojure-mode "5.6"))
@@ -141,6 +141,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
     (define-key map "\C-c\C-s" #'inf-clojure-show-var-source)
     (define-key map "\C-c\M-n" #'inf-clojure-set-ns)
     (define-key map "\C-c\C-q" #'inf-clojure-quit)
+    (define-key map "\C-c\M-c" #'inf-clojure-connect)
     (easy-menu-define inf-clojure-minor-mode-menu map
       "Inferior Clojure Minor Mode Menu"
       '("Inf-Clojure"
@@ -228,8 +229,8 @@ See http://blog.jorgenschaefer.de/2014/05/race-conditions-in-emacs-process-filte
   (when (not inf-clojure--repl-type-lock)
     (let ((inf-clojure--repl-type-lock t))
       (cond
-       ((inf-clojure--lumo-p proc) 'lumo)
-       ((inf-clojure--planck-p proc) 'planck)
+       ((inf-clojure--some-response-p proc inf-clojure--lumo-repl-form) 'lumo)
+       ((inf-clojure--some-response-p proc inf-clojure--planck-repl-form) 'planck)
        (t 'clojure)))))
 
 (defun inf-clojure--set-repl-type (proc)
@@ -959,14 +960,16 @@ Inf-Clojure will create a log file in the project folder named
 `inf-clojure--log-file-name' and dump the process activity in it
 in case this is not nil." )
 
-(defun inf-clojure--log-string (string &optional type)
+(defun inf-clojure--log-string (string &optional tag)
   "Log STRING to file, according to `inf-clojure-log-response'.
-The optional TYPE will be converted to string and printed before
+The optional TAG will be converted to string and printed before
 STRING if present."
   (when inf-clojure-log-activity
     (write-region (concat "\n"
-                          (when type
-                            (concat (prin1-to-string type) " | "))
+                          (when tag
+                            (if (stringp tag)
+                              (concat tag "\n")
+                              (concat (prin1-to-string tag) "\n")))
                           (let ((print-escape-newlines t))
                             (prin1-to-string string)))
                   nil
@@ -975,17 +978,28 @@ STRING if present."
                   'append
                   'no-annoying-write-file-in-minibuffer)))
 
+(defun inf-clojure--string-boundaries (string prompt &optional beg-regexp end-regexp)
+  "Calculate the STRING boundaries, including PROMPT.
+Return a list of positions (beginning end prompt).  If the
+optional BEG-REGEXP and END-REGEXP are present, the boundaries
+are going to match those."
+  (list (or (and beg-regexp (string-match beg-regexp string)) 0)
+        (or (and end-regexp (when (string-match end-regexp string)
+                              (match-end 0)))
+            (length string))
+        (or (string-match prompt string) (length string))))
+
 ;; Originally from:
 ;;   https://github.com/glycerine/lush2/blob/master/lush2/etc/lush.el#L287
-(defun inf-clojure--process-response (command process &optional beg-string end-string)
+(defun inf-clojure--process-response (command process &optional beg-regexp end-regexp)
   "Send COMMAND to PROCESS and return the response.
-Return the result of COMMAND starting with BEG-STRING and ending
-with END-STRING if non-nil.  If BEG-STRING is nil, the result
-string will start from (point) in the results buffer.  If
-END-STRING is nil, the result string will end at (point-max) in
-the results buffer.  It cuts out the output from and including
-the `inf-clojure-prompt`."
-  (inf-clojure--log-string command :cmd)
+Return the result of COMMAND, filtering it from BEG-REGEXP to the
+end of the matching END-REGEXP if non-nil.
+If BEG-REGEXP is nil, the result string will start from (point)
+in the results buffer.  If END-REGEXP is nil, the result string
+will end at (point-max) in the results buffer.  It cuts out the
+output from and including the `inf-clojure-prompt`."
+  (inf-clojure--log-string command "----CMD->")
   (let ((work-buffer inf-clojure--redirect-buffer-name))
     (save-excursion
       (set-buffer (get-buffer-create work-buffer))
@@ -994,22 +1008,22 @@ the `inf-clojure-prompt`."
        (inf-clojure--sanitize-command command) work-buffer process nil t)
       ;; Wait for the process to complete
       (set-buffer (process-buffer process))
-      (while (null comint-redirect-completed)
-        (accept-process-output nil 1))
+      (while (and (null comint-redirect-completed)
+                  (accept-process-output process 1 0 t))
+        (sleep-for 0.01))
       ;; Collect the output
       (set-buffer work-buffer)
       (goto-char (point-min))
-      (let* ((beg (or (when (and beg-string (search-forward beg-string nil t))
-                        (match-beginning 0))
-                      (point-min)))
-             (end (or (when end-string
-                        (search-forward end-string nil t))
-                      (point-max)))
-             (prompt (when (search-forward inf-clojure-prompt nil t)
-                       (match-beginning 0)))
-             (buffer-string (buffer-substring-no-properties beg (or prompt end))))
-        (inf-clojure--log-string buffer-string :res)
-        buffer-string))))
+      (let* ((buffer-string (buffer-substring-no-properties (point-min) (point-max)))
+             (boundaries (inf-clojure--string-boundaries buffer-string inf-clojure-prompt beg-regexp end-regexp))
+             (beg-pos (car boundaries))
+             (end-pos (car (cdr boundaries)))
+             (prompt-pos (car (cdr (cdr boundaries))))
+             (response-string (substring buffer-string beg-pos (min end-pos prompt-pos))))
+        (inf-clojure--log-string buffer-string "<-BUF----")
+        (inf-clojure--log-string boundaries "<-BND----")
+        (inf-clojure--log-string response-string "<-RES----")
+        response-string))))
 
 (defun inf-clojure--nil-string-match-p (string)
   "Return true iff STRING is not nil.
@@ -1041,7 +1055,7 @@ readable sexp only."
 
 (defun inf-clojure--process-response-match-p (match-p proc form)
   "Eval MATCH-P on the response of sending to PROC the input FORM.
-Note that this function will add a \n to the end (or  )f the string
+Note that this function will add a \n to the end of the string
 for evaluation, therefore FORM should not include it."
   (when-let ((response (inf-clojure--process-response form proc)))
     (funcall match-p response)))
@@ -1049,9 +1063,9 @@ for evaluation, therefore FORM should not include it."
 (defun inf-clojure--some-response-p (proc form)
   "Return true iff PROC's response after evaluating FORM is not nil."
   (inf-clojure--process-response-match-p
-                  (lambda (string)
-                    (not (inf-clojure--nil-string-match-p string)))
-                  proc form))
+   (lambda (string)
+     (not (inf-clojure--nil-string-match-p (string-trim string))))
+   proc form))
 
 ;;;; Commands
 ;;;; ========
@@ -1307,34 +1321,19 @@ for evaluation, therefore FORM should not include it."
 ;;;; ====
 
 (defcustom inf-clojure--lumo-repl-form
-  "(js/global.hasOwnProperty \"$$LUMO_GLOBALS\")"
+  "(find-ns 'lumo.repl)"
   "Form to invoke in order to verify that we launched a Lumo REPL."
   :type 'string
   :package-version '(inf-clojure . "2.0.0"))
-
-(defalias 'inf-clojure--lumo-p
-  (apply-partially 'inf-clojure--response-match-p
-                   inf-clojure--lumo-repl-form
-                   (lambda (string)
-                     (string-match-p "\\Ca*true\\Ca*" string)))
-  "Ascertain that PROC is a Lumo REPL.")
-
 
 ;;;; Planck
 ;;;; ====
 
 (defcustom inf-clojure--planck-repl-form
-  "(js/global.hasOwnProperty \"PLANCK_VERSION\")"
+  "(find-ns 'planck.repl)"
   "Form to invoke in order to verify that we launched a Planck REPL."
   :type 'string
   :package-version '(inf-clojure . "2.0.0"))
-
-(defalias 'inf-clojure--planck-p
-  (apply-partially 'inf-clojure--response-match-p
-                   inf-clojure--planck-repl-form
-                   (lambda (string)
-                     (string-match-p "\\Ca*true\\Ca*" string)))
-  "Ascertain that PROC is a Planck REPL.")
 
 (provide 'inf-clojure)
 
