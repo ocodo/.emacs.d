@@ -6,7 +6,7 @@
 ;; Keywords: themes
 ;; Package-Requires: ((projectile "0.11.0"))
 ;; URL: http://github.com/purcell/ibuffer-projectile
-;; Package-Version: 20170410.1452
+;; Package-Version: 20170721.1823
 ;; Package-X-Original-Version: 0
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -72,6 +72,11 @@ This option can be used to exclude certain files from the grouping mechanism."
   :type 'function
   :group 'ibuffer-projectile)
 
+(defcustom ibuffer-projectile-prefix "Projectile:"
+  "Prefix string for generated filter groups."
+  :type 'string
+  :group 'ibuffer-projectile)
+
 (defun ibuffer-projectile--include-file-p (file)
   "Return t iff FILE should be included in ibuffer-projectile's filtering."
   (and file
@@ -103,7 +108,7 @@ If the file is not in a project, then nil is returned instead."
   (let ((roots (ibuffer-remove-duplicates
                 (delq nil (mapcar 'ibuffer-projectile-root (buffer-list))))))
     (mapcar (lambda (root)
-              (cons (format "Projectile:%s" (car root))
+              (cons (format "%s%s" ibuffer-projectile-prefix (car root))
                     `((projectile-root . ,root))))
             roots)))
 
