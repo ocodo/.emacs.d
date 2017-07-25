@@ -8,7 +8,7 @@
 
 ;; Author: The go-mode Authors
 ;; Version: 1.5.0
-;; Package-Version: 20170308.1512
+;; Package-Version: 20170725.402
 ;; Keywords: languages go
 ;; URL: https://github.com/dominikh/go-mode.el
 ;;
@@ -1479,7 +1479,8 @@ description at POINT."
                                "-f"
                                (file-truename (buffer-file-name (go--coverage-origin-buffer)))
                                "-o"
-                               (number-to-string (position-bytes point)))
+                               ;; Emacs point and byte positions are 1-indexed.
+                               (number-to-string (1- (position-bytes point))))
           (with-current-buffer outbuf
             (split-string (buffer-substring-no-properties (point-min) (point-max)) "\n"))
         (kill-buffer outbuf)))))
