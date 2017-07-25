@@ -1,7 +1,7 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code -*-lexical-binding: t-*-
 
 ;; Version: 0.3.0
-;; Package-Version: 20170606.457
+;; Package-Version: 20170719.1308
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
@@ -19,8 +19,13 @@
                    (require 'compile)
                    (require 'url-vars))
 
+(require 'json)
+
 (defvar electric-pair-inhibit-predicate)
 (defvar electric-indent-chars)
+
+(defvar rust-buffer-project)
+(make-variable-buffer-local 'rust-buffer-project)
 
 ;; for GNU Emacs < 24.3
 (eval-when-compile
@@ -143,6 +148,17 @@ function or trait.  When nil, where will be aligned with fn or trait."
 (defcustom rust-rustfmt-bin "rustfmt"
   "Path to rustfmt executable."
   :type 'string
+  :group 'rust-mode)
+
+(defcustom rust-cargo-bin "cargo"
+  "Path to cargo executable."
+  :type 'string
+  :group 'rust-mode)
+
+(defcustom rust-always-locate-project-on-open nil
+  "Whether to run `cargo locate-project' every time `rust-mode'
+  is activated."
+  :type 'boolean
   :group 'rust-mode)
 
 (defface rust-unsafe-face
@@ -1409,7 +1425,15 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
   (setq-local end-of-defun-function 'rust-end-of-defun)
   (setq-local parse-sexp-lookup-properties t)
   (setq-local electric-pair-inhibit-predicate 'rust-electric-pair-inhibit-predicate-wrap)
-  (add-hook 'before-save-hook 'rust--before-save-hook nil t))
+
+  (setq-local compile-command "cargo build")
+
+  (add-hook 'before-save-hook 'rust--before-save-hook nil t)
+
+  (setq-local rust-buffer-project nil)
+
+  (when rust-always-locate-project-on-open
+    (rust-update-buffer-project)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
@@ -1545,6 +1569,30 @@ visit the new file."
           (mkdir mod-dir t)
           (rename-file filename new-name 1)
           (set-visited-file-name new-name))))))
+
+(defun rust-run-clippy ()
+  "Run `cargo clippy'."
+  (interactive)
+  (when (null rust-buffer-project)
+    (rust-update-buffer-project))
+  (let* ((args (list rust-cargo-bin "clippy" (concat "--manifest-path=" rust-buffer-project)))
+         ;; set `compile-command' temporarily so `compile' doesn't
+         ;; clobber the existing value
+         (compile-command (mapconcat #'shell-quote-argument args " ")))
+    (compile compile-command)))
+
+(defun rust-update-buffer-project ()
+  (setq-local rust-buffer-project (rust-buffer-project)))
+
+(defun rust-buffer-project ()
+  "Get project root if possible."
+  (with-temp-buffer
+    (let ((ret (call-process rust-cargo-bin nil t nil "locate-project")))
+      (when (/= ret 0)
+        (error "`cargo locate-project' returned %s status: %s" ret (buffer-string)))
+      (goto-char 0)
+      (let ((output (json-read)))
+        (cdr (assoc-string "root" output))))))
 
 (provide 'rust-mode)
 
