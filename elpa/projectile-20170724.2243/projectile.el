@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20170416.148
+;; Package-Version: 20170724.2243
 ;; Keywords: project, convenience
 ;; Version: 0.15.0-cvs
 ;; Package-Requires: ((emacs "24.1") (pkg-info "0.4"))
@@ -301,9 +301,6 @@ If variable `projectile-project-name' is non-nil, this function will not be used
     "requirements.txt"   ; Pip file
     "setup.py"           ; Setuptools file
     "tox.ini"            ; Tox file
-    "gulpfile.js"        ; Gulp build file
-    "Gruntfile.js"       ; Grunt project file
-    "bower.json"         ; Bower project file
     "composer.json"      ; Composer project file
     "Cargo.toml"         ; Cargo project file
     "mix.exs"            ; Elixir mix project file
@@ -861,29 +858,63 @@ topmost sequence of matched directories.  Nil otherwise."
                  (not (projectile-file-exists-p (expand-file-name f (projectile-parent dir)))))))))
    (or list projectile-project-root-files-top-down-recurring)))
 
+(defvar-local projectile-cached-project-root nil
+  "Cached root of the current Projectile project. If non-nil, it
+is used as the return value of `projectile-project-root' for
+performance (unless the variable `projectile-project-root' is
+also set). If nil, it is recalculated the next time
+`projectile-project-root' is called.
+
+This variable is reset automatically when Projectile detects that
+the `buffer-file-name' has changed. It can also be reset manually
+by calling `projectile-reset-cached-project-root'.")
+
+(defvar-local projectile-cached-buffer-file-name nil
+  "The last known value of `buffer-file-name' for the current
+buffer. This is used to detect a change in `buffer-file-name',
+which triggers a reset of `projectile-cached-project-root' and
+`projectile-cached-project-name'.")
+
 (defun projectile-project-root ()
   "Retrieves the root directory of a project if available.
 The current directory is assumed to be the project's root otherwise."
-  ;; The `is-local' and `is-connected' variables are used to fix the behavior where Emacs hangs
-  ;; because of Projectile when you open a file over TRAMP. It basically prevents Projectile from trying
-  ;; to find information about files for which it's not possible to get that information right now.
-  (let* ((dir default-directory)
-         (is-local (not (file-remote-p dir)))      ;; `true' if the file is local
-         (is-connected (file-remote-p dir nil t))) ;; `true' if the file is remote AND we are connected to the remote
-    (or (when (or is-local is-connected)
-          (cl-some
-           (lambda (func)
-             (let* ((cache-key (format "%s-%s" func dir))
-                    (cache-value (gethash cache-key projectile-project-root-cache)))
-               (if (and cache-value (file-exists-p cache-value))
-                   cache-value
-                 (let ((value (funcall func (file-truename dir))))
-                   (puthash cache-key value projectile-project-root-cache)
-                   value))))
-           projectile-project-root-files-functions))
-        (if projectile-require-project-root
-            (error "You're not in a project")
-          default-directory))))
+  ;; the cached value will be 'none in the case of no project root (this is to
+  ;; ensure it is not reevaluated each time when not inside a project) so use
+  ;; cl-subst to replace this 'none value with nil so a nil value is used
+  ;; instead
+  (or (cl-subst nil 'none
+                (or (and (equal projectile-cached-buffer-file-name buffer-file-name)
+                         projectile-cached-project-root)
+                    (progn
+                      (setq projectile-cached-buffer-file-name buffer-file-name)
+                      (setq projectile-cached-project-root
+                            ;; The `is-local' and `is-connected' variables are
+                            ;; used to fix the behavior where Emacs hangs
+                            ;; because of Projectile when you open a file over
+                            ;; TRAMP. It basically prevents Projectile from
+                            ;; trying to find information about files for which
+                            ;; it's not possible to get that information right
+                            ;; now.
+                            (or (let* ((dir default-directory)
+                                       (is-local (not (file-remote-p dir)))      ;; `true' if the file is local
+                                       (is-connected (file-remote-p dir nil t))) ;; `true' if the file is remote AND we are connected to the remote
+                                  (when (or is-local is-connected)
+                                    (cl-some
+                                     (lambda (func)
+                                       (let* ((cache-key (format "%s-%s" func dir))
+                                              (cache-value (gethash cache-key projectile-project-root-cache)))
+                                         (if (and cache-value (file-exists-p cache-value))
+                                             cache-value
+                                           (let ((value (funcall func (file-truename dir))))
+                                             (puthash cache-key value projectile-project-root-cache)
+                                             value))))
+                                     projectile-project-root-files-functions)))
+                                ;; set cached to none so is non-nil so we don't try
+                                ;; and look it up again
+                                'none)))))
+      (if projectile-require-project-root
+          (error "You're not in a project")
+        default-directory)))
 
 (defun projectile-file-truename (file-name)
   "Return the truename of FILE-NAME.
@@ -912,10 +943,13 @@ This variable is reset automatically when Projectile detects that
 the `buffer-file-name' has changed. It can also be reset manually
 by calling `projectile-reset-cached-project-name'.")
 
-(defvar-local projectile-cached-buffer-file-name nil
-  "The last known value of `buffer-file-name' for the current
-buffer. This is used to detect a change in `buffer-file-name',
-which triggers a reset of `projectile-cached-project-name'.")
+(defun projectile-reset-cached-project-root ()
+  "Reset the value of `projectile-cached-project-root' to nil.
+
+This means that it is automatically recalculated the next time
+function `projectile-project-root' is called."
+  (interactive)
+  (setq projectile-cached-project-root nil))
 
 (defun projectile-reset-cached-project-name ()
   "Reset the value of `projectile-cached-project-name' to nil.
@@ -1139,6 +1173,12 @@ they are excluded from the results of this function."
     (when cmd
       (projectile-files-via-ext-command cmd))))
 
+(defun projectile-get-repo-ignored-directory (dir)
+  "Get a list of the files ignored in the project in the directory DIR."
+  (let ((cmd (projectile-get-ext-ignored-command)))
+    (when cmd
+      (projectile-files-via-ext-command (concat cmd " " dir)))))
+
 (defun projectile-call-process-to-string (program &rest args)
   "Invoke the executable PROGRAM with ARGS and return the output as a string."
   (with-temp-buffer
@@ -1183,14 +1223,12 @@ If PROJECT-PATH is a project, check this one instead."
 The list is composed of sublists~: (project-path, project-status).
 Raise an error if their is no dirty project."
   (let ((projects projectile-known-projects)
-        (status ())
-        (tmp-status nil))
+        (status ()))
     (dolist (project projects)
-      (condition-case nil
-          (setq tmp-status (projectile-check-vcs-status project))
-        (error nil))
-      (when tmp-status
-        (setq status (cons (list project tmp-status) status))))
+      (when (and (projectile-keep-project-p project) (not (string= 'none (projectile-project-vcs project))))
+        (let ((tmp-status (projectile-check-vcs-status project)))
+          (when tmp-status
+            (setq status (cons (list project tmp-status) status))))))
     (when (= (length status) 0)
       (message "No dirty projects have been found"))
     status))
@@ -1267,6 +1305,15 @@ SUBDIRECTORIES to a non-nil value."
        (cl-some (lambda (f) (string-prefix-p f file)) files))
      (projectile-get-repo-ignored-files))))
 
+(defun projectile-keep-ignored-directories (directories)
+  "Get ignored files within each of DIRECTORIES."
+  (when directories
+    (let (result)
+      (dolist (dir directories result)
+        (setq result (append result
+                             (projectile-get-repo-ignored-directory dir))))
+      result)))
+
 (defun projectile-add-unignored (files)
   "This adds unignored files to FILES.
 
@@ -1275,7 +1322,7 @@ this case unignored files will be absent from FILES."
   (let ((unignored-files (projectile-keep-ignored-files
                           (projectile-unignored-files-rel)))
         (unignored-paths (projectile-remove-ignored
-                          (projectile-keep-ignored-files
+                          (projectile-keep-ignored-directories
                            (projectile-unignored-directories-rel))
                           'subdirectories)))
     (append files unignored-files unignored-paths)))
@@ -2524,13 +2571,15 @@ regular expression."
          current-prefix-arg))
   (if (require 'ag nil 'noerror)
       (let ((ag-command (if arg 'ag-regexp 'ag))
-            (ag-ignore-list (unless (eq (projectile-project-vcs) 'git)
-                              ;; ag supports git ignore files
-                              (cl-union ag-ignore-list
+            (ag-ignore-list (cl-union ag-ignore-list
+                                      (projectile--globally-ignored-file-suffixes-glob)
+                                      ;; ag supports git ignore files directly
+                                      (unless (eq (projectile-project-vcs) 'git)
                                         (append
-                                         (projectile-ignored-files-rel) (projectile-ignored-directories-rel)
-                                         (projectile--globally-ignored-file-suffixes-glob)
-                                         grep-find-ignored-files grep-find-ignored-directories))))
+                                         (projectile-ignored-files-rel)
+                                         (projectile-ignored-directories-rel)
+                                         grep-find-ignored-files
+                                         grep-find-ignored-directories))))
             ;; reset the prefix arg, otherwise it will affect the ag-command
             (current-prefix-arg nil))
         (funcall ag-command search-term (projectile-project-root)))
@@ -3121,8 +3170,12 @@ With a prefix ARG invokes `projectile-commander' instead of
       ;; the current project, in the minibuffer. This is a simple hack
       ;; to tell the `projectile-project-name' function to ignore the
       ;; current buffer and the caching mechanism, and just return the
-      ;; value of the `projectile-project-name' variable.
-      (let ((projectile-project-name (funcall projectile-project-name-function
+      ;; value of the `projectile-project-name' variable.  We also
+      ;; need to ignore the cached project-root value otherwise we end
+      ;; up still showing files from the current project rather than
+      ;; the new project
+      (let ((projectile-cached-project-root nil)
+            (projectile-project-name (funcall projectile-project-name-function
                                               project-to-switch)))
         (funcall switch-project-action)))
     (run-hooks 'projectile-after-switch-project-hook)))
