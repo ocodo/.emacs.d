@@ -2,11 +2,15 @@
 // @name         Skewer Everything
 // @description  Add a toggle button to run Skewer on the current page
 // @lastupdated  2015-09-14
-// @version      1.2
+// @version      1.3
 // @license      Public Domain
 // @include      /^https?:///
 // @grant        none
+// @run-at       document-start
 // ==/UserScript==
+
+window.skewerNativeXHR = XMLHttpRequest;
+window.skewerInject = inject;
 
 var host = 'http://localhost:8080';
 
@@ -39,10 +43,12 @@ function inject() {
     localStorage._autoskewered = JSON.stringify(injected);
 }
 
-/* Don't use on iframes. */
-if (window.top === window.self) {
-    document.body.appendChild(toggle);
-    if (JSON.parse(localStorage._autoskewered || 'false')) {
-        inject();
+document.addEventListener('DOMContentLoaded', function() {
+    /* Don't use on iframes. */
+    if (window.top === window.self) {
+        document.body.appendChild(toggle);
+        if (JSON.parse(localStorage._autoskewered || 'false')) {
+            inject();
+        }
     }
-}
+});
