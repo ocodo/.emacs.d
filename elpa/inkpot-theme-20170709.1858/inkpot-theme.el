@@ -3,7 +3,7 @@
 ;; Author: Sarah Iovan <sarah@hwaetageek.com>
 ;;         Campbell Barton <ideasman42@gmail.com>
 ;; URL: https://github.com/ideasman42/emacs-inkpot-theme
-;; Package-Version: 20170602.1000
+;; Package-Version: 20170709.1858
 ;; Version: 0.1
 ;; Keywords: color, theme
 
@@ -149,6 +149,16 @@
  '(message-header-subject ((t (:foreground "#808bed"))))
  '(message-header-to ((t (:foreground "#cd8b00"))))
  '(message-header-cc ((t (:foreground "#409090"))))
+ '(font-latex-bold-face ((t (:foreground "#cd8b00"))))
+ '(font-latex-italic-face ((t (:foreground "#808bed" :italic t))))
+ '(font-latex-string-face ((t (:foreground "#708090"))))
+ '(font-latex-match-reference-keywords ((t (:foreground "#708090"))))
+ '(font-latex-match-variable-keywords ((t (:foreground "#708090"))))
+
+ ;; Haskell
+ '(haskell-operator-face ((t (:foreground "#737dd5"))))
+
+ ;; Org-Mode
  '(org-hide ((t (:foreground "#708090"))))
  '(org-level-1 ((t (:bold t :foreground "#8b8bcd" :height 1.0))))
  '(org-level-2 ((t (:bold nil :foreground "#409090" :height 1.0))))
@@ -158,7 +168,8 @@
  '(org-footnote  ((t (:underline t :foreground "#ad600b"))))
  '(org-link ((t (:underline t :foreground "#708090" ))))
  '(org-special-keyword ((t (:foreground "#ad600b"))))
- '(org-verbatim ((t (:foreground "#eeeeec" :underline t :slant italic))))
+ '(org-verbatim ((t (:foreground "#ffcd8b" :background "#404040"))))
+ '(org-code ((t (:foreground "#ffcd8b" :background "#404040"))))
  '(org-block ((t (:foreground "#708090"))))
  '(org-quote ((t (:inherit org-block :slant italic))))
  '(org-verse ((t (:inherit org-block :slant italic))))
@@ -169,14 +180,6 @@
  '(org-agenda-date ((t (:foreground "#409090"))))
  '(org-agenda-date-weekend ((t (:weight normal :foreground "8b8bcd"))))
  '(org-agenda-date-today ((t (:weight bold :foreground "#cd8b00"))))
- '(font-latex-bold-face ((t (:foreground "#cd8b00"))))
- '(font-latex-italic-face ((t (:foreground "#808bed" :italic t))))
- '(font-latex-string-face ((t (:foreground "#708090"))))
- '(font-latex-match-reference-keywords ((t (:foreground "#708090"))))
- '(font-latex-match-variable-keywords ((t (:foreground "#708090"))))
-
- ;; Haskell
- '(haskell-operator-face ((t (:foreground "#737dd5"))))
 
  ;; reStructuredText
  '(rst-external ((t (:foreground "#ff8bff"))))
