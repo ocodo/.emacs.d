@@ -4,11 +4,11 @@
 ;; Maintainer: Somelauw
 ;; Original-author: Edward Tjörnhammar
 ;; URL: https://github.com/Somelauw/evil-org-mode.git
-;; Package-Version: 20170622.1310
+;; Package-Version: 20170724.752
 ;; Git-Repository: git://github.com/Somelauw/evil-org-mode.git
 ;; Created: 2012-06-14
 ;; Forked-since: 2017-02-12
-;; Version: 0.7.5
+;; Version: 0.8.5
 ;; Package-Requires: ((emacs "24.4") (evil "1.0") (org "8.0.0"))
 ;; Keywords: evil vim-emulation org-mode key-bindings presets
 
@@ -67,10 +67,9 @@
   :group 'evil-org)
 
 (defcustom evil-org-key-theme
-  (if (and (boundp 'evil-disable-insert-state-bindings)
-           (evil-disable-insert-state-bindings))
+  (if (bound-and-true-p evil-disable-insert-state-bindings)
       '(textobjects navigation additional)
-    '(textobjects navigation insert additional))
+      '(textobjects navigation insert additional))
   "Which key themes to enable.
 If you use this variable, you should call `evil-org-set-key-theme' with zero
 arguments."
@@ -88,9 +87,16 @@ arguments."
 (defcustom evil-org-special-o/O '(table-row item)
   "When o and O should be special.
 This makes them continue item lists and table rows.
-By default, o and O are bound to evil-org-open-above and evil-org-open-below."
+By default, o and O are bound to ‘evil-org-open-above’ and ‘evil-org-open-below’."
   :group 'evil-org
   :type '(set (const table-row) (const item)))
+
+;; Constants
+(defconst evil-org-special-o/O-ignore
+  (append '(latex-environment drawer property-drawer)
+          (cl-remove-if-not (lambda (s) (string-suffix-p "block" (symbol-name s)))
+                            org-element-all-elements))
+  "Org elements on which o/O should not special.")
 
 ;;; Variable declarations
 (defvar browse-url-generic-program)
@@ -109,46 +115,52 @@ By default, o and O are bound to evil-org-open-above and evil-org-open-below."
   :group 'evil-org
 )
 
-(defun evil-org-eol-call (fun)
+(defun evil-org-eol-call (fun &rest arguments)
   "Go to end of line and call provided function.
-FUN function callback"
+FUN function callback
+Optional argument ARGUMENTS arguments to pass to FUN."
   (end-of-visible-line)
-  (funcall fun)
-  (evil-append nil))
+  (apply fun arguments)
+  (evil-insert nil))
 
-(defun evil-org-bol-call (fun)
+(defun evil-org-bol-call (fun &rest arguments)
   "Go to beginning of line and call provided function.
-FUN function callback"
+FUN function callback
+Optional argument ARGUMENTS arguments to pass to FUN."
   (beginning-of-visual-line)
-  (funcall fun)
-  (evil-append nil))
+  (apply fun arguments)
+  (evil-insert nil))
 
 (defun evil-org-open-below (count)
   "Clever insertion of org item.
 Argument COUNT number of lines to insert.
-The behavior in items and tables can be controlled using evil-org-special-o/O.
+The behavior in items and tables can be controlled using ‘evil-org-special-o/O’.
 Passing in any prefix argument, executes the command without special behavior."
   (interactive "P")
   (end-of-visible-line)
   (let* ((special (and (null count) evil-org-special-o/O))
-         (e (org-element-lineage (org-element-at-point) special t)))
+         (ignore (when (memq 'item special) evil-org-special-o/O-ignore))
+         (elements (append special ignore))
+         (e (org-element-lineage (org-element-at-point) elements t)))
     (cl-case (org-element-type e)
       ((table-row) (org-table-insert-row '(4)) (evil-insert nil))
-      ((item) (org-insert-item) (evil-append nil))
+      ((item) (org-insert-item) (evil-insert nil))
       (otherwise (evil-open-below count)))))
 
 (defun evil-org-open-above (count)
   "Clever insertion of org item.
 Argument COUNT number of lines to insert.
-The behavior in items and tables can be controlled using evil-org-special-o/O.
+The behavior in items and tables can be controlled using ‘evil-org-special-o/O’.
 Passing in any prefix argument, executes the command without special behavior."
   (interactive "P")
   (end-of-visible-line)
   (let* ((special (and (null count) evil-org-special-o/O))
-         (e (org-element-lineage (org-element-at-point) special t)))
+         (ignore (when (memq 'item special) evil-org-special-o/O-ignore))
+         (elements (append special ignore))
+         (e (org-element-lineage (org-element-at-point) elements t)))
     (cl-case (org-element-type e)
       ((table-row) (org-table-insert-row) (evil-insert nil))
-      ((item) (beginning-of-line) (org-insert-item) (evil-append nil))
+      ((item) (beginning-of-line) (org-insert-item) (evil-insert nil))
       (otherwise (evil-open-above count)))))
 
 (defun evil-org-insert-subheading (&optional arg)
@@ -158,7 +170,7 @@ Optional argument ARG If one prefix argument is given, insert at the end of curr
   (end-of-visible-line)
   (org-insert-heading arg)
   (org-metaright)
-  (evil-append 1))
+  (evil-insert nil))
 
 (defun evil-org-insert-subtodo (&optional arg)
   "Insert new todo subheading.
@@ -167,7 +179,7 @@ Optional argument ARG If one prefix argument is given, insert at the end of curr
   (end-of-visible-line)
   (org-insert-todo-heading arg)
   (org-metaright)
-  (evil-append 1))
+  (evil-insert nil))
 
 ;;; motion declarations
 (evil-declare-motion 'org-beginning-of-line)
@@ -238,6 +250,19 @@ Optional argument ARG If one prefix argument is given, insert at the end of curr
   :type exclusive
   :jump t
   (while (org-up-heading-safe)))
+
+(evil-define-motion evil-org-end-of-line (&optional n)
+  "Like evil-org-end-of-line but makes org-special-ctrl-a work in evil."
+  (when (and org-special-ctrl-a/e
+             evil-move-cursor-back
+             (not evil-move-beyond-eol)
+             (memq evil-state '(normal visual operator))
+             (not (invisible-p (line-end-position)))
+             (= (point) (1- (line-end-position))))
+    (forward-char))
+  (org-end-of-line n))
+
+(defalias 'evil-org-beginning-of-line 'org-beginning-of-line)
 
 ;;; operators
 (evil-define-operator evil-org-demote-or-indent (beg end count)
@@ -310,10 +335,12 @@ Argument COUNT if negative, items are dedented instead."
     (org-delete-char count)))
 
 (evil-define-operator evil-org-recompute-clocks (beg end type register yank-handler)
-  "Recompute clocks in visual selection."
+  "Recompute clocks in visual selection.
+Deprecated, because org-mode already has org-resolve-clocks built-in."
   :keep-visual t
   :move-point nil
   (interactive "<r>")
+  (obsolete 'org-resolve-clocks "0.8.5")
   (progn
     (message "start!")
     (save-excursion
@@ -339,17 +366,21 @@ Argument INCOG whether to open in incognito mode."
                     (not (null org-link-search-failed)))
             (throw 'break 0))
           (if (not (null incog))
-              (let* ((new-arg
-                      ;; if incog is true, decide which incognito settings to
-                      ;; use dependening on the browser
-                      (cond ((not (null (string-match "^.*\\(iceweasel\\|firefox\\).*$" browse-url-generic-program))) "--private-window")
-                            ((not (null (string-match "^.*\\(chrome\\|chromium\\).*$" browse-url-generic-program))) "--incognito")
-                            (t "")))
-                     (old-b (list browse-url-generic-args " "))
-                     (browse-url-generic-args (add-to-ordered-list 'old-b new-arg 0)))
-                (org-open-at-point))
-            (let ((browse-url-generic-args '("")))
-              (org-open-at-point))))))))
+              (evil-org-open-incognito)
+             (let ((browse-url-generic-args '("")))
+               (org-open-at-point '(16)))))))))
+
+(defun evil-org-open-incognito ()
+  "Open link in new incognito window."
+  (interactive)
+  (let* ((new-arg
+          ;; decide which incognito settings to use depending on the browser
+          (cond ((not (null (string-match "^.*\\(iceweasel\\|firefox\\).*$" browse-url-generic-program))) "--private-window")
+                ((not (null (string-match "^.*\\(chrome\\|chromium\\).*$" browse-url-generic-program))) "--incognito")
+                (t "")))
+         (old-b (list browse-url-generic-args " "))
+         (browse-url-generic-args (add-to-ordered-list 'old-b new-arg 0)))
+    (org-open-at-point '(16))))
 
 (evil-define-operator evil-org-open-links (beg end &optional count)
   "Open links in visual selection.
@@ -369,7 +400,7 @@ If a prefix argument is given, links are opened in incognito mode."
 ;;; text-objects
 (defun evil-org-select-an-element (element)
   "Select an org ELEMENT."
-  (list (org-element-property :begin element)
+  (list (min (region-beginning) (org-element-property :begin element))
         (org-element-property :end element)))
 
 (defun evil-org-select-inner-element (element)
@@ -409,8 +440,7 @@ Matches urls and table cells."
     (dotimes (_ (1- count))
       (goto-char (org-element-property :end element))
       (setq element (org-element-context)))
-    (list (min beg (org-element-property :begin first))
-          (org-element-property :end element))))
+    (evil-org-select-an-element element)))
 
 (evil-define-text-object evil-org-inner-object (count &optional beg end type)
   "Select an org object.
@@ -429,8 +459,7 @@ Includes paragraphs, table rows and code blocks.
     (dotimes (_ (1- count))
       (org-forward-element)
       (setq element (org-element-at-point)))
-    (list (min (or beg (point)) (org-element-property :begin first))
-          (org-element-property :end element))))
+    (evil-org-select-an-element element)))
 
 (evil-define-text-object evil-org-inner-element (count &optional beg end type)
   "Inner org element.
@@ -441,6 +470,7 @@ Includes paragraphs, table rows and code blocks.
 (evil-define-text-object evil-org-a-greater-element (count &optional beg end type)
   "A greater (recursive) org element.
 Includes tables, list items and subtrees."
+  :type line
   (when (null count) (setq count 1))
   (save-excursion
     (when beg (goto-char beg))
@@ -467,6 +497,7 @@ Includes tables, list items and subtrees."
 
 (evil-define-text-object evil-org-a-subtree (count &optional beg end type)
   "An org subtree."
+  :type line
   (when (null count) (setq count 1))
   (org-with-limited-levels
    (cond ((org-at-heading-p) (beginning-of-line))
@@ -477,6 +508,7 @@ Includes tables, list items and subtrees."
 
 (evil-define-text-object evil-org-inner-subtree (count &optional beg end type)
   "Inner org subtree."
+  :type line
   (when (null count) (setq count 1))
   (org-with-limited-levels
    (cond ((org-at-heading-p) (beginning-of-line))
@@ -487,38 +519,38 @@ Includes tables, list items and subtrees."
 ;;; Keythemes
 (defun evil-org--populate-base-bindings ()
   "Bindings that are always available."
-  (let-alist evil-org-movement-bindings
-    (dolist (state '(normal visual operator motion))
-      (evil-define-key state evil-org-mode-map
-        (kbd "$") 'org-end-of-line
-        (kbd "^") 'org-beginning-of-line
-        (kbd "x") 'evil-org-delete-char
-        (kbd "X") 'evil-org-delete-backward-char
-        (kbd ")") 'evil-org-forward-sentence
-        (kbd "(") 'evil-org-backward-sentence
-        (kbd "}") 'org-forward-paragraph
-        (kbd "{") 'org-backward-paragraph
-        (kbd "<C-return>") (lambda ()
-                             (interactive)
-                             (evil-org-eol-call
-                              'org-insert-heading-respect-content))
-        (kbd "<C-S-return>") (lambda ()
-                               (interactive)
-                               (evil-org-eol-call
-                                'org-insert-todo-heading-respect-content))))
-    (dolist (state '(normal visual))
-      (evil-define-key state evil-org-mode-map
-        (kbd "<") 'evil-org-promote-or-dedent
-        (kbd ">") 'evil-org-demote-or-indent
-        (kbd "<tab>") 'org-cycle
-        (kbd "<S-tab>") 'org-shifttab))
-    (evil-define-key 'normal evil-org-mode-map
-      (kbd "o") 'evil-org-open-below
-      (kbd "O") 'evil-org-open-above)))
+  ;; (let-alist evil-org-movement-bindings)
+  (let ((motion-map (evil-get-auxiliary-keymap evil-org-mode-map 'motion t)))
+    (evil-redirect-digit-argument motion-map "0" 'evil-org-beginning-of-line))
+  (evil-define-key 'motion evil-org-mode-map
+    (kbd "$") 'evil-org-end-of-line
+    (kbd "x") 'evil-org-delete-char
+    (kbd "X") 'evil-org-delete-backward-char
+    (kbd ")") 'evil-org-forward-sentence
+    (kbd "(") 'evil-org-backward-sentence
+    (kbd "}") 'org-forward-paragraph
+    (kbd "{") 'org-backward-paragraph
+    (kbd "<C-return>") (lambda ()
+                         (interactive)
+                         (evil-org-eol-call
+                          #'org-insert-heading-respect-content))
+    (kbd "<C-S-return>") (lambda ()
+                           (interactive)
+                           (evil-org-eol-call
+                            #'org-insert-todo-heading-respect-content)))
+  (dolist (state '(normal visual))
+    (evil-define-key state evil-org-mode-map
+      (kbd "<") 'evil-org-promote-or-dedent
+      (kbd ">") 'evil-org-demote-or-indent
+      (kbd "<tab>") 'org-cycle
+      (kbd "<S-tab>") 'org-shifttab))
+  (evil-define-key 'normal evil-org-mode-map
+    (kbd "o") 'evil-org-open-below
+    (kbd "O") 'evil-org-open-above))
 
 (defun evil-org--populate-textobjects-bindings ()
   "Text objects."
-  (dolist (state '(visual operator))
+  (let ((state '(visual operator)))
     (evil-define-key state evil-org-mode-map "ae" 'evil-org-an-object)
     (evil-define-key state evil-org-mode-map "ie" 'evil-org-inner-object)
     (evil-define-key state evil-org-mode-map "aE" 'evil-org-an-element)
@@ -562,9 +594,9 @@ Includes tables, list items and subtrees."
 (defun evil-org--populate-additional-bindings ()
   "Bindings with meta and control."
   (let-alist evil-org-movement-bindings
-    (dolist (state (if evil-org-use-additional-insert
-                       '('normal visual insert)
-                     '(normal visual)))
+    (let ((state (if evil-org-use-additional-insert
+                     '('normal visual insert)
+                   '(normal visual))))
       (evil-define-key state evil-org-mode-map
         (kbd (concat "M-" .left)) 'org-metaleft
         (kbd (concat "M-" .right)) 'org-metaright
@@ -591,22 +623,18 @@ Includes tables, list items and subtrees."
 (defun evil-org--populate-todo-bindings ()
   "Bindings for easy todo insertion."
   (evil-define-key 'normal evil-org-mode-map
-    "t" 'org-todo
-    "T" '(lambda ()
-           (interactive)
-           (evil-org-eol-call
-            (lambda ()
-              (org-insert-todo-heading nil))))
+    (kbd "t") 'org-todo
+    (kbd "T") (lambda (arg)
+                (interactive "P")
+                (evil-org-eol-call #'org-insert-todo-heading arg))
     (kbd "M-t") 'evil-org-insert-subtodo))
 
 (defun evil-org--populate-heading-bindings ()
   "Bindings for easy heading insertion."
   (evil-define-key 'normal evil-org-mode-map
-    (kbd "O") '(lambda ()
-                 (interactive)
-                 (evil-org-eol-call
-                  (lambda ()
-                    (org-insert-heading))))
+    (kbd "O") (lambda (arg)
+                (interactive "P")
+                (evil-org-eol-call #'org-insert-heading arg))
     (kbd "M-o") 'evil-org-insert-subheading))
 
 ;;;###autoload

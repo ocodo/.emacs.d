@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "evil-org" "evil-org.el" (22873 40282 0 0))
+;;;### (autoloads nil "evil-org" "evil-org.el" (0 0 0 0))
 ;;; Generated autoloads from evil-org.el
 
 (autoload 'evil-org-mode "evil-org" "\
@@ -16,6 +16,8 @@ Select what keythemes to enable.
 Optional argument THEME list of themes. See evil-org-keytheme for a list of values.
 
 \(fn &optional THEME)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-org" '("evil-org-")))
 
 ;;;***
 
