@@ -72,7 +72,6 @@
      (mode-line                                 (:background gruvbox-dark2 :foreground gruvbox-light2 :box nil))
      (mode-line-inactive                        (:background gruvbox-dark1 :foreground gruvbox-light4 :box nil))
      (fringe                                    (:background gruvbox-bg))
-     (linum                                     (:background gruvbox-bg :foreground gruvbox-dark4))
      (hl-line                                   (:background gruvbox-dark1))
      (region                                    (:background gruvbox-dark2)) ;;selection
 
@@ -134,15 +133,17 @@
      (rainbow-delimiters-depth-12-face          (:foreground gruvbox-delimiter-four))
      (rainbow-delimiters-unmatched-face         (:background nil :foreground gruvbox-light0))
 
-     ;; linum-relative
-     (linum-relative-current-face               (:background gruvbox-dark1 :foreground gruvbox-light4))
+
+     ;; line numbers
+     (line-number                               (:foreground gruvbox-dark2 :background gruvbox-dark0))
+     (line-number-current-line                  (:foreground gruvbox-neutral_orange :background gruvbox-dark1))
+     (linum                                     (:inherit 'line-number))
+     (linum-highlight-face                      (:inherit 'line-number-current-line))
+     (linum-relative-current-face               (:inherit 'line-number-current-line))
 
      ;; Highlight indentation mode
      (highlight-indentation-current-column-face (:background gruvbox-dark2))
      (highlight-indentation-face                (:background gruvbox-dark1))
-
-     ;; Highlight linum
-     (linum-highlight-face                      (:background gruvbox-dark1 :foreground gruvbox-neutral_yellow))
 
      ;; Smartparens
      (sp-pair-overlay-face                      (:background gruvbox-dark2))
@@ -238,10 +239,18 @@
      (company-scrollbar-fg                      (:background gruvbox-dark0_soft))
      (company-tooltip                           (:background gruvbox-dark0_soft))
      (company-tooltip-annotation                (:foreground gruvbox-neutral_green))
-     (company-tooltip-selection                 (:foreground gruvbox-neutral_purple))
+     (company-tooltip-annotation-selection      (:inherit 'company-tooltip-annotation))
+     (company-tooltip-selection                 (:foreground gruvbox-neutral_purple :background gruvbox-dark2))
      (company-tooltip-common                    (:foreground gruvbox-neutral_blue :underline t))
      (company-tooltip-common-selection          (:foreground gruvbox-neutral_blue :underline t))
-     (company-preview-common                    (:foreground gruvbox-neutral_purple))
+     (company-preview-common                    (:foreground gruvbox-light0))
+     (company-preview                           (:background gruvbox-lightblue4))
+     (company-preview-search                    (:background gruvbox-turquoise4))
+     (company-template-field                    (:foreground gruvbox-black :background gruvbox-neutral_yellow))
+     (company-echo-common                       (:foreground gruvbox-faded_red))
+
+     ;; Tool Tips
+     (tooltip                                   (:foreground gruvbox-light1 :background gruvbox-dark1))
 
      ;; Term
      (term-color-black                          (:foreground gruvbox-dark2 :background gruvbox-dark1))
@@ -306,6 +315,7 @@
      (org-upcoming-deadline                     (:inherit 'font-lock-keyword-face))
      (org-deadline-announce                     (:foreground gruvbox-faded_red))
      (org-time-grid                             (:foreground gruvbox-faded_orange))
+     (org-latex-and-related                     (:foreground gruvbox-neutral_blue))
 
      ;; org-habit
      (org-habit-clear-face                      (:background gruvbox-faded_blue))
@@ -435,6 +445,23 @@
      (mu4e-header-key-face                      (:foreground gruvbox-bright_green :weight 'bold ))
      (mu4e-unread-face                          (:foreground gruvbox-bright_blue :weight 'bold ))
      (mu4e-highlight-face                       (:foreground gruvbox-neutral_green))
+
+     ;; Shell script faces
+     (sh-quoted-exec                            (:foreground gruvbox-bright_purple))
+     (sh-heredoc                                (:foreground gruvbox-bright_orange))
+
+     ;; Undo-tree
+     (undo-tree-visualizer-active-branch-face   (:foreground gruvbox-light0))
+     (undo-tree-visualizer-current-face         (:foreground gruvbox-bright_red))
+     (undo-tree-visualizer-default-face         (:foreground gruvbox-dark4))
+     (undo-tree-visualizer-register-face        (:foreground gruvbox-bright_yellow))
+     (undo-tree-visualizer-unmodified-face      (:foreground gruvbox-bright_aqua))
+
+     ;; Widget faces
+     (widget-button-pressed-face                (:foreground gruvbox-bright_red))
+     (widget-documentation-face                 (:foreground gruvbox-faded_green))
+     (widget-field                              (:foreground gruvbox-light0 :background gruvbox-dark2))
+     (widget-single-line-field                  (:foreground gruvbox-light0 :background gruvbox-dark2))
 
      ;; MODE SUPPORT: dired+
      (diredp-file-name                          (:foreground gruvbox-light2))

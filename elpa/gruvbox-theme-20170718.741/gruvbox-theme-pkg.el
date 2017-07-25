@@ -1,4 +1,4 @@
-(define-package "gruvbox-theme" "20170707.1628" "A retro-groove colour theme for Emacs"
+(define-package "gruvbox-theme" "20170718.741" "A retro-groove colour theme for Emacs"
   '((autothemer "0.2"))
   :url "http://github.com/Greduan/emacs-theme-gruvbox")
 ;; Local Variables:
