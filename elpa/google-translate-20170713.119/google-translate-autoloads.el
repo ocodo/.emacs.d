@@ -3,8 +3,24 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
+;;;### (autoloads nil "google-translate-core" "google-translate-core.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from google-translate-core.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "google-translate-core" '("google-translate-")))
+
+;;;***
+
+;;;### (autoloads nil "google-translate-core-ui" "google-translate-core-ui.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from google-translate-core-ui.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "google-translate-core-ui" '("gtos" "google-translate-")))
+
+;;;***
+
 ;;;### (autoloads nil "google-translate-default-ui" "google-translate-default-ui.el"
-;;;;;;  (22613 12887 61492 877000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from google-translate-default-ui.el
 
 (autoload 'google-translate-query-translate "google-translate-default-ui" "\
@@ -61,10 +77,12 @@ reverse direction.
 
 \(fn &optional OVERRIDE-P)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "google-translate-default-ui" '("%google-translate-" "google-translate-")))
+
 ;;;***
 
 ;;;### (autoloads nil "google-translate-smooth-ui" "google-translate-smooth-ui.el"
-;;;;;;  (22613 12887 93493 805000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from google-translate-smooth-ui.el
 
 (autoload 'google-translate-smooth-translate "google-translate-smooth-ui" "\
@@ -89,11 +107,20 @@ one respectively.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "google-translate-smooth-ui" '("google-translate-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("google-translate-core-ui.el" "google-translate-core.el"
-;;;;;;  "google-translate-pkg.el" "google-translate-tk.el" "google-translate.el")
-;;;;;;  (22613 12887 117494 501000))
+;;;### (autoloads nil "google-translate-tk" "google-translate-tk.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from google-translate-tk.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "google-translate-tk" '("google-translate--")))
+
+;;;***
+
+;;;### (autoloads nil nil ("google-translate-pkg.el" "google-translate.el")
+;;;;;;  (0 0 0 0))
 
 ;;;***
 
