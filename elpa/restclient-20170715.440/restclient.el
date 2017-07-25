@@ -6,7 +6,7 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2012
 ;; Keywords: http
-;; Package-Version: 20170703.33
+;; Package-Version: 20170715.440
 
 ;; This file is not part of GNU Emacs.
 ;; This file is public domain software. Do what you want.
@@ -199,7 +199,7 @@
                                      ("accept" . url-mime-accept-string)))))
 
         (if mapped
-            (set (cdr mapped) (cdr header))
+            (set (cdr mapped) (encode-coding-string (cdr header) 'us-ascii))
           (let* ((hkey (encode-coding-string (car header) 'us-ascii))
                  (hvalue (encode-coding-string (cdr header) 'us-ascii)))
             (setq url-request-extra-headers (cons (cons hkey hvalue) url-request-extra-headers))))))

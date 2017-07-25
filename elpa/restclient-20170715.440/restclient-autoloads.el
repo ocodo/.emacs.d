@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "restclient" "restclient.el" (22880 30307 0
-;;;;;;  0))
+;;;### (autoloads nil "restclient" "restclient.el" (0 0 0 0))
 ;;; Generated autoloads from restclient.el
 
 (autoload 'restclient-http-send-current "restclient" "\
@@ -28,6 +27,8 @@ Send current request and keep focus in request window.
 Turn on restclient mode.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "restclient" '("restclient-")))
 
 ;;;***
 
