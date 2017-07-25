@@ -1,12 +1,25 @@
 ;;; flymake-python-pyflakes.el --- A flymake handler for python-mode files using pyflakes (or flake8)
 
-;; Copyright (C) 2012 Steve Purcell
+;; Copyright (C) 2012-2017 Steve Purcell
 
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; URL: https://github.com/purcell/flymake-python-pyflakes
-;; Version: 20131127.6
-;; X-Original-Version: DEV
+;; Package-Version: 20170722.1846
+;; Package-X-Original-Version: 0
 ;; Package-Requires: ((flymake-easy "0.8"))
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
