@@ -18,7 +18,22 @@ If called interactively with prefix arg REPLACE-TOC-P, replaces previous TOC.
 
 \(fn &optional REPLACE-TOC-P)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "markdown-toc" '("markdown-toc")))
+(autoload 'markdown-toc-generate-or-refresh-toc "markdown-toc" "\
+Generate a TOC for markdown file at current point or refreshes an already generated TOC.
+
+\(fn)" t nil)
+
+(autoload 'markdown-toc-refresh-toc "markdown-toc" "\
+Refreshes an already generated TOC.
+
+\(fn)" t nil)
+
+(autoload 'markdown-toc-delete-toc "markdown-toc" "\
+Deletes a previously generated TOC.
+
+\(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "markdown-toc" '("markdown-")))
 
 ;;;***
 

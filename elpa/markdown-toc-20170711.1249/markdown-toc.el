@@ -33,7 +33,7 @@
 ;; Update existing TOC: C-u M-x markdown-toc-generate-toc
 
 ;; Here is a possible output:
-;; <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
+;; <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 ;; **Table of Contents**
 
 ;; - [some markdown page title](#some-markdown-page-title)
@@ -105,25 +105,41 @@
   "Implementation detail to protect some punctuation characters
   when converting to link.")
 
-(defun markdown-toc--to-link (title)
+(defun markdown-toc--to-link (title count)
   "Given a TITLE, return the markdown link associated."
-  (format "[%s](#%s)" title
+  (format "[%s](#%s%s)" title
           (->> title
                downcase
                (replace-regexp-in-string "-" markdown-toc--protection-symbol)
                (replace-regexp-in-string "[[:punct:]]" "")
                (replace-regexp-in-string markdown-toc--protection-symbol "-")
-               (s-replace " " "-"))))
+               (s-replace " " "-"))
+          (if (> count 0)
+            (concat "-" (number-to-string count))
+            "")))
+
+(defun markdown--count-duplicate-titles (toc-structure)
+  "Counts the number of times each title appeared in the toc structure and adds
+it to the TOC structure."
+  (-map-indexed (lambda (index n)
+          (let* ((indent (car n))
+                (title (cdr n))
+                (count (--count (string= title (cdr it))
+                         (-take (+ index 1) toc-structure))))
+            (list indent title (- count 1))))
+    toc-structure))
 
 (defun markdown-toc--to-markdown-toc (level-title-toc-list)
   "Given LEVEL-TITLE-TOC-LIST, a list of pair level, title, return a TOC string."
   (->> level-title-toc-list
+       markdown--count-duplicate-titles
        (--map (let ((nb-spaces (* 4 (car it)))
-                    (title     (cdr it)))
+                    (title     (car (cdr it)))
+                    (count     (car (cdr (cdr it)))))
                 (format "%s%s %s"
                         (markdown-toc--symbol " " nb-spaces)
                         markdown-toc-list-item-marker
-                        (markdown-toc--to-link title))))
+                        (markdown-toc--to-link title count))))
        (s-join "\n")))
 
 (defcustom markdown-toc-list-item-marker
@@ -136,7 +152,7 @@ Example: '-' for unordered lists or '1.' for ordered lists."
   :group 'markdown-toc)
 
 (defcustom markdown-toc-header-toc-start
-  "<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->"
+  "<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->"
   "Beginning delimiter comment."
   :group 'markdown-toc)
 
@@ -174,6 +190,14 @@ Return the end position if it exists, nil otherwise."
   (-> toc-structure
       markdown-toc--to-markdown-toc
       markdown-toc--compute-full-toc))
+
+(defun markdown-toc--delete-toc (&optional replace-toc-p)
+  "Delets a TOC."
+  (let ((region-start (markdown-toc--toc-start))
+        (region-end   (markdown-toc--toc-end)))
+    (delete-region region-start (1+ region-end))
+    (when replace-toc-p
+          (goto-char region-start))))
 
 (defun markdown-toc--compute-full-toc (toc)
   "Given the TOC's content, compute the full toc with comments and title."
@@ -213,7 +237,6 @@ Default to identity function (do nothing)."
   :group 'markdown-toc)
 
 ;;;###autoload
-
 (defun markdown-toc-generate-toc (&optional replace-toc-p)
   "Generate a TOC for markdown file at current point.
 Deletes any previous TOC.
@@ -222,16 +245,32 @@ If called interactively with prefix arg REPLACE-TOC-P, replaces previous TOC."
   (save-excursion
     (when (markdown-toc--toc-already-present-p)
       ;; when toc already present, remove it
-      (let ((region-start (markdown-toc--toc-start))
-            (region-end   (markdown-toc--toc-end)))
-        (delete-region region-start (1+ region-end))
-        (when replace-toc-p
-          (goto-char region-start))))
+      (markdown-toc--delete-toc t))
     (->> (markdown-imenu-create-nested-index)
          markdown-toc--compute-toc-structure
          (funcall markdown-toc-user-toc-structure-manipulation-fn)
          markdown-toc--generate-toc
          insert)))
+
+;;;###autoload
+(defun markdown-toc-generate-or-refresh-toc ()
+  "Generate a TOC for markdown file at current point or refreshes an already generated TOC."
+  (interactive)
+  (markdown-toc-generate-toc t))
+
+;;;###autoload
+(defun markdown-toc-refresh-toc ()
+  "Refreshes an already generated TOC."
+  (interactive)
+  (when (markdown-toc--toc-already-present-p)
+    (markdown-toc-generate-toc t)))
+
+;;;###autoload
+(defun markdown-toc-delete-toc ()
+  "Deletes a previously generated TOC."
+  (interactive)
+  (save-excursion
+    (markdown-toc--delete-toc t)))
 
 (defalias 'markdown-toc/generate-toc 'markdown-toc-generate-toc)
 
