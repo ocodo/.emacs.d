@@ -54,7 +54,7 @@
 ;; We do not "require" these functions but if `org-mode' is active we use them
 
 ;; Required to determine point is in an org-list
-(declare-function org-at-item-p "org-list")
+(declare-function org-list-get-item-begin "org-list")
 (declare-function org-at-heading-p "org")
 
 ;; Required to determine point is in an org-src block
@@ -471,27 +471,30 @@ buffer where emojis are going to be displayed selected."
   :type 'boolean
   :group 'emojify)
 
-(defun emojify-in-org-tags-p (match _beg _end)
+(defun emojify-in-org-tags-p (match beg _end)
   "Determine whether the point is on `org-mode' tag.
 
-MATCH, BEG and END are the text currently matched emoji and the start position
+MATCH, BEG and _END are the text currently matched emoji and the start position
 and end position of emoji text respectively.
 
 Easiest would have to inspect face at point but unfortunately, there is no
 way to guarantee that we run after font-lock"
   (and (memq major-mode '(org-mode org-agenda-mode))
-       (string-match-p ":.*:" match)
+       (string-match-p ":[^:]+[:]?" match)
        (org-at-heading-p)
-       (not (save-excursion
-              (save-match-data
-                (search-forward-regexp "\\s-" (line-end-position) t))))))
+       (save-excursion
+         (save-match-data
+           (goto-char beg)
+           (looking-at ":[^:]+:[\s-]*$")))))
 
-(defun emojify-in-org-list-p (&rest ignored)
+(defun emojify-in-org-list-p (text beg &rest ignored)
   "Determine whether the point is in `org-mode' list.
 
-The arguments IGNORED are, well ignored"
+TEXT is the text which is supposed to rendered a an emoji.  BEG is the beginning
+of the emoji text in the buffer.  The arguments IGNORED are ignored."
   (and (eq major-mode 'org-mode)
-       (org-at-item-p)))
+       (equal text "8)")
+       (equal (org-list-get-item-begin) beg)))
 
 (defun emojify-valid-program-context-p (emoji beg end)
   "Determine if EMOJI should be displayed for text between BEG and END.
@@ -910,22 +913,11 @@ This returns nil if the emojis between BEG and END do not fall in region."
                  (emojify--inside-rectangle-selection-p beg end)))
     (face-background 'region)))
 
-(defun emojify--cursor-background-maybe (beg end)
-  "If the BEG and END fall inside a cursor return the background color for cursor."
-  (when (and emojify-current-point
-             (or (and (equal cursor-type t)
-		      (equal (frame-parameter nil 'cursor-type) 'box))
-		 (equal cursor-type 'box))
-             (and (<= beg emojify-current-point)
-                  (< emojify-current-point end)))
-    (face-background 'cursor)))
-
 (defun emojify--get-image-background (beg end)
   "Get the color to be used as background for emoji between BEG and END."
   ;; We do a separate check for region since `background-color-at-point'
   ;; does not always detect background color inside regions properly
-  (or (emojify--cursor-background-maybe beg end)
-      (emojify--region-background-maybe beg end)
+  (or (emojify--region-background-maybe beg end)
       (save-excursion
         (goto-char beg)
         (background-color-at-point))))
@@ -1067,7 +1059,7 @@ should not be a problem 🤞."
                          (not (or (get-text-property match-beginning 'emojified)
                                   (get-text-property (1- match-end) 'emojified)))
                          ;; Display unconditionally in non-prog mode
-                         (or (not (derived-mode-p 'prog-mode 'tuareg--prog-mode 'comint-mode))
+                         (or (not (derived-mode-p 'prog-mode 'tuareg--prog-mode 'comint-mode 'smalltalk-mode))
                              ;; In prog mode enable respecting `emojify-program-contexts'
                              (emojify-valid-program-context-p emoji match-beginning match-end))
 
