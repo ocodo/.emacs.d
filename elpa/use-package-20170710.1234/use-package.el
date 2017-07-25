@@ -7,7 +7,7 @@
 ;; Created: 17 Jun 2012
 ;; Modified: 17 Oct 2016
 ;; Version: 2.3
-;; Package-Version: 20170702.1322
+;; Package-Version: 20170710.1234
 ;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
 ;; Keywords: dotemacs startup speed config package
 ;; URL: https://github.com/jwiegley/use-package
@@ -1545,6 +1545,7 @@ this file.  Usage:
 :functions       Declare certain functions to silence the byte-compiler.
 :load-path       Add to the `load-path' before attempting to load the package.
 :diminish        Support for diminish.el (if installed).
+:delight         Support for delight.el (if installed).
 :ensure          Loads the package using package.el if necessary.
 :pin             Pin the package to an archive."
   (declare (indent 1))

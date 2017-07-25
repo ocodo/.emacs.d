@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "use-package" "use-package.el" (22873 40547
-;;;;;;  0 0))
+;;;### (autoloads nil "use-package" "use-package.el" (0 0 0 0))
 ;;; Generated autoloads from use-package.el
 
 (autoload 'use-package-autoload-keymap "use-package" "\
@@ -73,12 +72,15 @@ this file.  Usage:
 :functions       Declare certain functions to silence the byte-compiler.
 :load-path       Add to the `load-path' before attempting to load the package.
 :diminish        Support for diminish.el (if installed).
+:delight         Support for delight.el (if installed).
 :ensure          Loads the package using package.el if necessary.
 :pin             Pin the package to an archive.
 
 \(fn NAME &rest ARGS)" nil t)
 
 (function-put 'use-package 'lisp-indent-function '1)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "use-package" '("use-package-")))
 
 ;;;***
 
