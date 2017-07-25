@@ -2,10 +2,10 @@
 
 ;; Author: Tom Schutzer-Weissmann
 ;; Keywords: comm, data, processes, hypermedia
-;; Package-Version: 20131010.2058
+;; Package-Version: 20170715.240
 
 ;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as1
+;; modify it under the terms of the GNU General Public License as
 ;; published by the Free Software Foundation; either version 2 of
 ;; the License, or (at your option) any later version.
 
@@ -37,15 +37,16 @@
 ;; server will not send the 100 (Continue) code, or call
 ;; `http-post-finesse-code-100'. Note that the latter advises
 ;; 'url-http-parse-response'
-;;
-;;; Change Log:
 
+;;; Change Log:
+;;
 ;; 11/06/2008 Set `url-http-version' to "1.0" when posting.
 ;; 19/07/2008 Don't set special variables like `url-http-version' and
 ;;	      `url-http-attempt-keepalives'.
 ;; 03/11/2008 Tell the server what charset we're using & accepting.
 
 ;;; Code:
+
 (require 'url)
 (require 'url-http)
 

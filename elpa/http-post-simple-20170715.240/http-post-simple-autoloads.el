@@ -3,8 +3,11 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("http-post-simple.el") (22533 41768 0
-;;;;;;  0))
+;;;### (autoloads nil "http-post-simple" "http-post-simple.el" (0
+;;;;;;  0 0 0))
+;;; Generated autoloads from http-post-simple.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "http-post-simple" '("http-post-" "url-http-response-status")))
 
 ;;;***
 
