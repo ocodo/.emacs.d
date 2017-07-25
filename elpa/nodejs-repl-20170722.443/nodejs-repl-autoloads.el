@@ -3,9 +3,13 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "nodejs-repl" "nodejs-repl.el" (22873 40436
-;;;;;;  0 0))
+;;;### (autoloads nil "nodejs-repl" "nodejs-repl.el" (0 0 0 0))
 ;;; Generated autoloads from nodejs-repl.el
+
+(autoload 'nodejs-repl-send-line "nodejs-repl" "\
+Send the current line to the `nodejs-repl-process'
+
+\(fn)" t nil)
 
 (autoload 'nodejs-repl-send-region "nodejs-repl" "\
 Send the current region to the `nodejs-repl-process'
@@ -22,8 +26,13 @@ Load the file to the `nodejs-repl-process'
 
 \(fn FILE)" t nil)
 
-(autoload 'nodejs-repl-send-last-sexp "nodejs-repl" "\
+(autoload 'nodejs-repl-send-last-expression "nodejs-repl" "\
 Send the expression before point to the `nodejs-repl-process'
+
+\(fn)" t nil)
+
+(autoload 'nodejs-repl-send-last-sexp "nodejs-repl" "\
+
 
 \(fn)" t nil)
 
@@ -37,6 +46,8 @@ otherwise spawn one.
 Run Node.js REPL.
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nodejs-repl" '("nodejs-repl-")))
 
 ;;;***
 

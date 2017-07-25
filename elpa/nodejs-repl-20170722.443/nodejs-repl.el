@@ -3,8 +3,8 @@
 ;; Copyright (C) 2012-2017  Takeshi Arabiki
 
 ;; Author: Takeshi Arabiki
-;; Version: 0.1.3
-;; Package-Version: 20170607.1303
+;; Version: 0.1.6
+;; Package-Version: 20170722.443
 
 ;;  This program is free software: you can redistribute it and/or modify
 ;;  it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@
 ;;
 ;;     (add-hook 'js-mode-hook
 ;;               (lambda ()
-;;                 (define-key js-mode-map (kbd "C-x C-e") 'nodejs-repl-send-last-sexp)
+;;                 (define-key js-mode-map (kbd "C-x C-e") 'nodejs-repl-send-last-expression)
 ;;                 (define-key js-mode-map (kbd "C-c C-r") 'nodejs-repl-send-region)
 ;;                 (define-key js-mode-map (kbd "C-c C-l") 'nodejs-repl-load-file)
 ;;                 (define-key js-mode-map (kbd "C-c C-z") 'nodejs-repl-switch-to-repl)))
@@ -54,7 +54,7 @@
   "Run Node.js REPL and communicate the process."
   :group 'processes)
 
-(defconst nodejs-repl-version "0.1.3"
+(defconst nodejs-repl-version "0.1.6"
   "Node.js mode Version.")
 
 (defcustom nodejs-repl-command "node"
@@ -150,10 +150,8 @@ See also `comint-process-echoes'"
    "\\)"
    "$"))
 
-(defvar nodejs-repl-unary-operator-chars
-  '(?! ?+ ?-))
-(defvar nodejs-repl-unary-operator-words
-  '(void typeof delete))
+(defvar nodejs-repl-unary-operators
+  '(! + - void typeof delete))
 
 (defvar nodejs-repl-cache-token "")
 (defvar nodejs-repl-cache-candidates ())
@@ -291,29 +289,61 @@ when receive the output string"
       (when (re-search-forward (concat nodejs-repl-prompt nodejs-repl-prompt) end t)
         (replace-match nodejs-repl-prompt)))))
 
-(defun nodejs-repl--beginning-of-sexp ()
-  (backward-sexp)
-  (while (and (not (bobp))
-              (or
-               (and (eq (char-syntax (char-after)) ?\()
-                    (save-excursion
-                      (search-backward-regexp "[[:graph:]]" nil t)
-                      (and (not (eq (char-after) ?\;))
-                           (not (eq (sexp-at-point) 'return)))))
-               (eq (char-before) ?.)
-               (save-excursion
-                 (backward-char)
-                 (eq (sexp-at-point) 'function))))
-    (backward-sexp))
-  (let ((char-and-sexp (save-excursion
-                         (search-backward-regexp "[[:graph:]]" nil t)
-                         (cons (char-after) (sexp-at-point)))))
-    (cond
-     ((member (car char-and-sexp) nodejs-repl-unary-operator-chars)
-      (search-backward-regexp "[[:graph:]]" nil t))
-     ((member (cdr char-and-sexp) nodejs-repl-unary-operator-words)
-      (backward-sexp))))
+;; cf. https://www.ecma-international.org/ecma-262/#sec-ecmascript-language-expressions
+(defun nodejs-repl--beginning-of-expression ()
+  (search-backward-regexp "[[:graph:]]" nil t)
+  (unless (eq (char-after) ?\;)
+    (forward-char))
+  (cond
+   ;; Allow function
+   ((and (eq (char-before) ?})
+         (save-excursion
+           (backward-list)
+           (search-backward-regexp "[[:graph:]]" nil t)
+           (and (eq (char-before) ?=) (eq (char-after) ?>))))
+    (backward-list)
+    (search-backward-regexp "\\(\\w\\|)\\)\\s-*=>" nil t)
+    (forward-char)
+    (nodejs-repl--backward-expression))
+   (t
+    (nodejs-repl--backward-expression)
+    (while (and (not (bobp))
+                (or
+                 (and (eq (char-syntax (char-after)) ?\()
+                      (save-excursion
+                        (search-backward-regexp "[[:graph:]]" nil t)
+                        (and (not (eq (char-after) ?\;))  ; e.g. otherExp; (exp)
+                             (not (eq (sexp-at-point) 'return)))))  ; e.g. return (exp)
+                 (save-excursion
+                   (search-backward-regexp "[[:graph:]]" nil t)
+                   (eq (char-after) ?.))
+                 (save-excursion
+                   (backward-char)
+                   (eq (sexp-at-point) 'function))))
+      (search-backward-regexp "[[:graph:]]" nil t)
+      (when (eq (char-after) ?.)
+        (search-backward-regexp "[[:graph:]]" nil t))
+      (forward-char)
+      (nodejs-repl--backward-expression))
+
+    ;; e.g. !function() {}()
+    (let ((exp (save-excursion
+                 (search-backward-regexp "[[:graph:]]" nil t)
+                 (or (sexp-at-point) (intern (char-to-string (char-after)))))))
+      (when (member exp nodejs-repl-unary-operators)
+       (search-backward (symbol-name exp) nil)))))
   (point))
+
+(defun nodejs-repl--backward-expression ()
+  (cond
+   ((eq (char-syntax (char-before)) ?\))
+    (backward-list))
+   ((save-excursion
+      (search-backward-regexp "[[:graph:]]" nil t)
+      (eq (char-syntax (char-after)) ?w))
+    (backward-sexp))
+   (t
+    (error "No proper expression is found backward"))))
 
 ;;;--------------------------
 ;;; Public functions
@@ -326,6 +356,19 @@ when receive the output string"
 (defun nodejs-repl-clear-line ()
   "Send ^U to Node.js process."
   (nodejs-repl--send-string "\x15"))
+
+;;;###autoload
+(defun nodejs-repl-send-line ()
+  "Send the current line to the `nodejs-repl-process'"
+  (interactive)
+  (save-excursion
+    (let ((proc (nodejs-repl--get-or-create-process))
+          (start))
+      (beginning-of-line)
+      (setq start (point))
+      (end-of-line)
+      (comint-send-region proc start (point))
+      (comint-send-string proc "\n"))))
 
 ;;;###autoload
 (defun nodejs-repl-send-region (start end)
@@ -344,16 +387,20 @@ when receive the output string"
 ;;;###autoload
 (defun nodejs-repl-load-file (file)
   "Load the file to the `nodejs-repl-process'"
-  (interactive (list (read-file-name "Load file: " nil nil 'lambda)))
+  (interactive (list (expand-file-name (read-file-name "Load file: " nil nil 'lambda))))
   (let ((proc (nodejs-repl--get-or-create-process)))
     (comint-send-string proc (format ".load %s\n" file))))
 
 ;;;###autoload
-(defun nodejs-repl-send-last-sexp ()
+(defun nodejs-repl-send-last-expression ()
   "Send the expression before point to the `nodejs-repl-process'"
   (interactive)
-  (nodejs-repl-send-region (save-excursion (nodejs-repl--beginning-of-sexp))
+  (nodejs-repl-send-region (save-excursion (nodejs-repl--beginning-of-expression))
                            (point)))
+
+;;;###autoload
+(defun nodejs-repl-send-last-sexp () (interactive))  ;; Dummy definition for autoload
+(define-obsolete-function-alias 'nodejs-repl-send-last-sexp 'nodejs-repl-send-last-expression)
 
 ;;;###autoload
 (defun nodejs-repl-switch-to-repl ()
