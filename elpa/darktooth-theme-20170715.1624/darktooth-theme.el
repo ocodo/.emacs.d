@@ -4,7 +4,7 @@
 
 ;; Authors: Jason Milkins <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20170629.1848
+;; Package-Version: 20170715.1624
 ;; Version: 0.3.7
 ;; Package-Requires: ((autothemer "0.2"))
 
@@ -303,7 +303,9 @@
   ;; MODE SUPPORT: diff
   (diff-changed                              (:foreground darktooth-light1 :background nil))
   (diff-added                                (:foreground darktooth-neutral_green :background nil))
+  (diff-refine-added                         (:foreground darktooth-bright_green :background darktooth-muted_green))
   (diff-removed                              (:foreground darktooth-neutral_red :background nil))
+  (diff-refine-removed                       (:foreground darktooth-bright_red :background darktooth-muted_red))
 
   ;; MODE SUPPORT: diff-indicator
   (diff-indicator-changed                    (:inherit 'diff-changed))
@@ -719,7 +721,20 @@
   (web-mode-html-attr-name-face              (:inherit 'font-lock-variable-name-face))
   (web-mode-html-attr-equal-face             (:inherit 'default))
   (web-mode-html-tag-face                    (:foreground darktooth-light3))
-  (web-mode-html-tag-bracket-face            (:inherit 'default)))
+  (web-mode-html-tag-bracket-face            (:inherit 'default))
+
+  ;; MODE SUPPORT: swoop
+  (swoop-face-target-line                    (:foreground darktooth-light0_hard :background darktooth-faded_blue))
+  (swoop-face-target-words                   (:foreground darktooth-light0 :background darktooth-faded_aqua))
+  (swoop-face-line-buffer-name               (:foreground darktooth-light2 :background darktooth-dark1))
+  (swoop-face-header-format-line             (:foreground darktooth-white :background darktooth-muted_blue :height 1.3 :weight 'bold))
+  (swoop-face-line-number                    (:foreground darktooth-neutral_orange))
+
+  ;; MODE SUPPORT: helm-swoop
+  (helm-swoop-target-word-face               (:foreground darktooth-light0 :background darktooth-faded_aqua))
+  (helm-swoop-target-line-block-face         (:foreground darktooth-light0_hard :background darktooth-faded_blue))
+  (helm-swoop-target-line-face               (:foreground darktooth-light0_hard :background darktooth-faded_blue))
+  (helm-swoop-line-number-face               (:foreground darktooth-neutral_orange)))
 
  (defface darktooth-modeline-one-active
    `((t
