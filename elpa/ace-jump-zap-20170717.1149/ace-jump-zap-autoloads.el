@@ -1,10 +1,9 @@
 ;;; ace-jump-zap-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ace-jump-zap" "ace-jump-zap.el" (21791 22004
-;;;;;;  7401 0))
+;;;### (autoloads nil "ace-jump-zap" "ace-jump-zap.el" (0 0 0 0))
 ;;; Generated autoloads from ace-jump-zap.el
 
 (autoload 'ace-jump-zap-up-to-char "ace-jump-zap" "\
@@ -28,6 +27,8 @@ Without PREFIX, call `zap-up-to-char'.
 With PREFIX, call `ace-jump-zap-up-to-char'.
 
 \(fn &optional PREFIX)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ace-jump-zap" '("ajz/")))
 
 ;;;***
 
