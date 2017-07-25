@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "go-guru" "go-guru.el" (22873 40316 0 0))
+;;;### (autoloads nil "go-guru" "go-guru.el" (0 0 0 0))
 ;;; Generated autoloads from go-guru.el
 
 (autoload 'go-guru-set-scope "go-guru" "\
@@ -39,6 +39,11 @@ function containing the current point.
 
 (autoload 'go-guru-definition "go-guru" "\
 Jump to the definition of the selected identifier.
+
+\(fn &optional OTHER-WINDOW)" t nil)
+
+(autoload 'go-guru-definition-other-window "go-guru" "\
+Jump to the defintion of the selected identifier in another window
 
 \(fn)" t nil)
 
@@ -97,6 +102,8 @@ Highlight instances of the identifier at point after a short
 timeout.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "go-guru" '("go-guru-")))
 
 ;;;***
 
