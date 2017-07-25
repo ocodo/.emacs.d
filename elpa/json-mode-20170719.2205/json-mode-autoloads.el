@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "json-mode" "json-mode.el" (22873 40395 0 0))
+;;;### (autoloads nil "json-mode" "json-mode.el" (0 0 0 0))
 ;;; Generated autoloads from json-mode.el
 
 (defconst json-mode-standard-file-ext '(".json" ".jsonld") "\
@@ -37,10 +37,17 @@ Major mode for editing JSON files
 
 \(fn)" t nil)
 
+(autoload 'json-mode-kill-path "json-mode" "\
+
+
+\(fn)" t nil)
+
 (autoload 'json-mode-beautify "json-mode" "\
 Beautify / pretty-print the active region (or the entire buffer if no active region).
 
 \(fn)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "json-mode" '("json-")))
 
 ;;;***
 
