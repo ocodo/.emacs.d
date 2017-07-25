@@ -812,10 +812,7 @@ This hook runs after `helm-buffer' is created but not from
 (make-obsolete-variable 'helm-update-hook 'helm-after-update-hook "1.9.9")
 
 (defvar helm-after-update-hook nil
-  "Runs after updating the helm buffer with the new input pattern.
-This is very similar to `helm-update-hook' except the selection
-is not moved. Hook is useful for selecting a particular object
-instead of the first one.")
+  "Runs after updating the helm buffer with the new input pattern.")
 
 (defvar helm-cleanup-hook nil
   "Runs after exiting the minibuffer and before performing an
@@ -1300,7 +1297,7 @@ because they are automatically added.
 
 You should not modify this yourself unless you know what you are doing.")
 ;; Same as `ffap-url-regexp' but keep it here to ensure `ffap-url-regexp' is not nil.
-(defvar helm--url-regexp "\\(news\\(post\\)?:\\|mailto:\\|file:\\|\\(ftp\\|https?\\|telnet\\|gopher\\|www\\|wais\\)://\\)")
+(defvar helm--url-regexp "\\`\\(news\\(post\\)?:\\|mailto:\\|file:\\|\\(ftp\\|https?\\|telnet\\|gopher\\|www\\|wais\\)://\\)")
 (defvar helm--ignore-errors nil
   "Flag to prevent helm popping up errors in candidates functions.
 Should be set in candidates functions if needed, will be restored
@@ -2446,9 +2443,29 @@ frame configuration as per `helm-save-configuration-functions'."
                ;; This is needed for minibuffer own-frame config
                ;; when recursive minibuffers are in use.
                ;; e.g M-: + helm-minibuffer-history.
-               (let ((frame (if (minibufferp helm-current-buffer)
-                                (selected-frame)
-                              (last-nonminibuffer-frame))))
+               (cl-letf ((frame (if (minibufferp helm-current-buffer)
+                                    (selected-frame)
+                                  (last-nonminibuffer-frame)))
+                         ;; This is a workaround, because the i3 window
+                         ;; manager developers are refusing to fix their
+                         ;; broken timestamp and event handling.
+                         ;;
+                         ;; We basically just disable the part of
+                         ;; select-frame-set-input-focus that would call
+                         ;; XSetInputFocus in Xlib (x-focus-frame), that
+                         ;; resets a timestamp in the xserver which the i3
+                         ;; developers fail to notice.
+                         ;;
+                         ;; Since they don't know about the new timestamp,
+                         ;; their keyboard handling can break after a helm
+                         ;; user quits emacs, as reported in #1641.
+                         ;;
+                         ;; Fortunately for us, we really don't need this
+                         ;; XSetInputFocus call, since we already have focus
+                         ;; for Emacs, the user is just using helm!  We call
+                         ;; select-frame-set-input-focus for the other
+                         ;; side-effects, not for x-focus-frame.
+                         ((symbol-function 'x-focus-frame) #'ignore))
                  (select-frame-set-input-focus frame))))))
 
 (defun helm-split-window-default-fn (window)
@@ -3594,6 +3611,13 @@ It is used for narrowing list of candidates to the
        (helm-while-no-input ,@body))))
 
 (defun helm--collect-matches (src-list)
+  "Returns a list of matches for each source in SRC-LIST.
+
+The resulting value is a list of lists, e.g ((a b c) (c d) (e f)) or
+\(nil nil nil) for three sources when no matches found, however this
+function can be interrupted by new input and in this case returns a
+plain `nil' i.e not (nil), in this case `helm-update' is not rendering
+the source, keeping previous candidates in display."
   (let ((matches (helm--maybe-use-while-no-input
                   (cl-loop for src in src-list
                            collect (helm-compute-matches src)))))
@@ -3669,7 +3693,7 @@ without recomputing them, it should be a list of lists."
                      (setq matches (or candidates (helm--collect-matches sources))))
            ;; If computing matches finished and is not interrupted
            ;; erase the helm-buffer and render results (Fix #1157).
-           (when matches
+           (when matches ;; nil only when interrupted by helm-while-no-input.
              (erase-buffer)             ; [1]
              (cl-loop for src in sources
                       for mtc in matches
@@ -3678,6 +3702,11 @@ without recomputing them, it should be a list of lists."
              ;; to avoid cursor moving upside down (issue #1703).
              (helm--update-move-first-line)
              (helm--reset-update-flag)))
+      ;; When there is only one async source, update mode-line and run
+      ;; `helm-after-update-hook' in `helm-output-filter--post-process',
+      ;; when there is more than one source, update mode-line and run
+      ;; `helm-after-update-hook' now even if an async source is
+      ;; present and running in BG.
       (let ((src (or source (helm-get-current-source))))
         (unless (assq 'candidates-process src)
           (helm-display-mode-line src)
@@ -3703,7 +3732,7 @@ without recomputing them, it should be a list of lists."
          ;; Entering repeatedly these strings (*, ?) takes 100% CPU
          ;; and hang emacs on MacOs preventing deleting backward those
          ;; characters (issue #1802).
-         (not (string-match-p "[*]\\{2,\\}\\|[?]\\{3,\\}" helm-pattern))
+         (not (string-match-p "\\`[*]+\\'" helm-pattern))
          ;; These incomplete regexps hang helm forever
          ;; so defer update. Maybe replace spaces quoted when using
          ;; multi-match.
