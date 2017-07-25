@@ -152,8 +152,8 @@
     ("\\.bowerrc$"      all-the-icons-alltheicon "bower"                :height 1.2  :face all-the-icons-silver)
     ("^bower.json$"     all-the-icons-alltheicon "bower"                :height 1.2  :face all-the-icons-lorange)
     ("\\.ini$"          all-the-icons-octicon "settings"                :v-adjust 0.0 :face all-the-icons-yellow)
-    ("\\.eslintignore"  all-the-icons-fileicon "eslint"                 :height 0.8  :face all-the-icons-purple)
-    ("\\.eslint"        all-the-icons-fileicon "eslint"                 :height 0.8  :face all-the-icons-lpurple)
+    ("\\.eslintignore"  all-the-icons-fileicon "eslint"                 :height 0.9  :face all-the-icons-purple)
+    ("\\.eslint"        all-the-icons-fileicon "eslint"                 :height 0.9  :face all-the-icons-lpurple)
     ("\\.git"           all-the-icons-alltheicon "git"                  :height 1.0  :face all-the-icons-lred)
     ("nginx"            all-the-icons-fileicon "nginx"                  :height 0.9  :face all-the-icons-dgreen)
     ("apache"           all-the-icons-alltheicon "apache"               :height 0.9  :face all-the-icons-dgreen)
@@ -165,13 +165,16 @@
     ("^Brewfile$"       all-the-icons-faicon "beer"                     :face all-the-icons-lsilver)
     ("\\.npmignore"     all-the-icons-fileicon "npm"                    :face all-the-icons-dred)
     ("^package.json$"   all-the-icons-fileicon "npm"                    :face all-the-icons-red)
+    ("^package.lock.json$" all-the-icons-fileicon "npm"                 :face all-the-icons-dred)
+    ("^yarn\.lock"      all-the-icons-fileicon "yarn"                   :face all-the-icons-blue-alt)
 
     ("\.xml$"           all-the-icons-faicon "file-code-o"              :height 0.95 :face all-the-icons-lorange)
 
     ;; ;; AWS
     ("^stack.*.json$"   all-the-icons-alltheicon "aws"                  :face all-the-icons-orange)
 
-
+    
+    ("^serverless\\.yml$" all-the-icons-faicon "bolt"                   :v-adjust 0.0 :face all-the-icons-yellow)
     ("\\.[jc]son$"      all-the-icons-octicon "settings"                :v-adjust 0.0 :face all-the-icons-yellow)
     ("\\.ya?ml$"        all-the-icons-octicon "settings"                :v-adjust 0.0 :face all-the-icons-dyellow)
 
@@ -228,6 +231,8 @@
 
     ("\\.rkt$"          all-the-icons-fileicon "racket"                 :height 1.2 :face all-the-icons-red)
     ("\\.gem$"          all-the-icons-alltheicon "ruby-alt"             :face all-the-icons-red)
+    ("_?test\\.rb$"        all-the-icons-fileicon "test-ruby"            :height 1.0 :v-adjust 0.0 :face all-the-icons-red)
+    ("_?test_helper\\.rb$" all-the-icons-fileicon "test-ruby"            :height 1.0 :v-adjust 0.0 :face all-the-icons-dred)
     ("\\.rb$"           all-the-icons-octicon "ruby"                    :v-adjust 0.0 :face all-the-icons-lred)
     ("\\.rs$"           all-the-icons-alltheicon "rust"                 :height 1.2  :face all-the-icons-maroon)
     ("\\.rlib$"         all-the-icons-alltheicon "rust"                 :height 1.2  :face all-the-icons-dmaroon)
@@ -237,10 +242,13 @@
     ("\\.scm$"          all-the-icons-fileicon   "scheme"               :height 1.2 :face all-the-icons-red)
     ("\\.swift$"        all-the-icons-alltheicon "swift"                :height 1.0 :v-adjust -0.1 :face all-the-icons-green)
 
-    ("-?spec\\.js$"     all-the-icons-alltheicon "jasmine"              :height 0.9 :v-adjust -0.1 :face all-the-icons-lpurple)
-    ("-?test\\.js$"     all-the-icons-alltheicon "jasmine"              :height 0.9 :v-adjust -0.1 :face all-the-icons-lpurple)
-    ("-?spec\\."        all-the-icons-faicon "flask"                    :height 1.0 :v-adjust 0.0 :face all-the-icons-dgreen)
-    ("-?test\\."        all-the-icons-faicon "flask"                    :height 1.0 :v-adjust 0.0 :face all-the-icons-dgreen)
+    ("-?spec\\.js$"     all-the-icons-fileicon "test-js"                :height 1.0 :v-adjust 0.0 :face all-the-icons-lpurple)
+    ("-?test\\.js$"     all-the-icons-fileicon "test-js"                :height 1.0 :v-adjust 0.0 :face all-the-icons-lpurple)
+    ("-?spec\\.jsx$"    all-the-icons-fileicon "test-react"             :height 1.0 :v-adjust 0.0 :face all-the-icons-blue-alt)
+    ("-?test\\.jsx$"    all-the-icons-fileicon "test-react"             :height 1.0 :v-adjust 0.0 :face all-the-icons-blue-alt)
+
+    ("-?spec\\."        all-the-icons-fileicon "test-generic"           :height 1.0 :v-adjust 0.0 :face all-the-icons-dgreen)
+    ("-?test\\."        all-the-icons-fileicon "test-generic"           :height 1.0 :v-adjust 0.0 :face all-the-icons-dgreen)
 
     ;; There seems to be a a bug with this font icon which does not
     ;; let you propertise it without it reverting to being a lower
@@ -293,7 +301,7 @@
     ("\\.inky-slim$"    all-the-icons-octicon "dashboard"               :v-adjust 0.0 :face all-the-icons-yellow)
     ("\\.slim$"         all-the-icons-octicon "dashboard"               :v-adjust 0.0 :face all-the-icons-yellow)
     ("\\.jade$"         all-the-icons-fileicon "jade"                   :face all-the-icons-red)
-    ("\\.pug$"          all-the-icons-fileicon "pug"                    :face all-the-icons-red)
+    ("\\.pug$"          all-the-icons-fileicon "pug-alt"                :face all-the-icons-red)
 
     ;; JavaScript
     ("^gulpfile"        all-the-icons-alltheicon "gulp"                 :height 1.0  :face all-the-icons-lred)
@@ -301,10 +309,15 @@
 
     ("\\.d3\\.?js"      all-the-icons-alltheicon "d3"                   :height 0.8  :face all-the-icons-lgreen)
 
+    ("\\.re$"            all-the-icons-fileicon "reason"                :height 1.0  :face all-the-icons-red-alt)
+    ("\\.rei$"           all-the-icons-fileicon "reason"                :height 1.0  :face all-the-icons-dred)
+    ("\\.ml$"            all-the-icons-fileicon "ocaml"                 :height 1.0  :face all-the-icons-lpink)
+    ("\\.mli$"           all-the-icons-fileicon "ocaml"                 :height 1.0  :face all-the-icons-dpink)
+
     ("\\.react"         all-the-icons-alltheicon "react"                :height 1.1  :face all-the-icons-lblue)
-    ("\\.js$"           all-the-icons-alltheicon "javascript"           :height 0.9  :face all-the-icons-yellow)
-    ("\\.es[0-9]$"      all-the-icons-alltheicon "javascript"           :height 0.9  :face all-the-icons-yellow)
-    ("\\.jsx$"          all-the-icons-fileicon "jsx-2"                  :height 0.8  :face all-the-icons-dyellow)
+    ("\\.js$"           all-the-icons-alltheicon "javascript"           :height 1.0 :v-adjust 0.0 :face all-the-icons-yellow)
+    ("\\.es[0-9]$"      all-the-icons-alltheicon "javascript"           :height 1.0 :v-adjust 0.0 :face all-the-icons-yellow)
+    ("\\.jsx$"          all-the-icons-fileicon "jsx-2"                  :height 1.0 :v-adjust -0.1 :face all-the-icons-cyan-alt)
     ("\\.njs$"          all-the-icons-alltheicon "nodejs"               :height 1.2  :face all-the-icons-lgreen)
     ("^webpack"         all-the-icons-fileicon "webpack"                :face all-the-icons-lblue)
     ("\\.vue$"          all-the-icons-fileicon "vue"                    :face all-the-icons-lgreen)
@@ -334,9 +347,9 @@
     ("\\.bib$"          all-the-icons-fileicon "bib"                    :face all-the-icons-maroon)
     ("\\.org$"          all-the-icons-fileicon "org"                    :face all-the-icons-lgreen)
 
-    ("\\.pp[st]$"       all-the-icons-fileicon "ppt"                    :face all-the-icons-orange)
-    ("\\.pp[st]x$"      all-the-icons-fileicon "ppt"                    :face all-the-icons-red)
-    ("\\.knt$"          all-the-icons-fileicon "presentation"           :face all-the-icons-cyan)
+    ("\\.pp[st]$"       all-the-icons-fileicon "powerpoint"             :face all-the-icons-orange)
+    ("\\.pp[st]x$"      all-the-icons-fileicon "powerpoint"             :face all-the-icons-red)
+    ("\\.knt$"          all-the-icons-fileicon "powerpoint"             :face all-the-icons-cyan)
 
     ("bookmark"         all-the-icons-octicon "bookmark"                :height 1.1 :v-adjust 0.0 :face all-the-icons-lpink)
     ("\\.cache$"        all-the-icons-octicon "database"                :height 1.0 :v-adjust 0.0 :face all-the-icons-green)
@@ -363,6 +376,7 @@
     ("movies"           all-the-icons-faicon "film"             :height 0.9 :v-adjust -0.1)
     ("code"             all-the-icons-octicon "code"            :height 1.1 :v-adjust -0.1)
     ("workspace"        all-the-icons-octicon "code"            :height 1.1 :v-adjust -0.1)
+    ("test"             all-the-icons-fileicon "test-dir"       :height 0.9)
     ("\\.git"           all-the-icons-alltheicon "git"          :height 1.0)
     ("."                all-the-icons-octicon "file-directory"  :height 1.0 :v-adjust -0.1)
     ))
@@ -412,7 +426,7 @@
     (js-jsx-mode               all-the-icons-alltheicon "javascript"       :v-adjust -0.1 :face all-the-icons-yellow)
     (js2-mode                  all-the-icons-alltheicon "javascript"       :v-adjust -0.1 :face all-the-icons-yellow)
     (js3-mode                  all-the-icons-alltheicon "javascript"       :v-adjust -0.1 :face all-the-icons-yellow)
-    (rjsx-mode                 all-the-icons-fileicon "jsx-2"              :v-adjust -0.1 :face all-the-icons-lblue)
+    (rjsx-mode                 all-the-icons-fileicon "jsx-2"              :v-adjust -0.1 :face all-the-icons-cyan-alt)
     (term-mode                 all-the-icons-octicon "terminal"            :v-adjust 0.2)
     (eshell-mode               all-the-icons-octicon "terminal"            :v-adjust 0.0 :face all-the-icons-purple)
     (magit-refs-mode           all-the-icons-octicon "git-branch"          :v-adjust 0.0 :face all-the-icons-red)
