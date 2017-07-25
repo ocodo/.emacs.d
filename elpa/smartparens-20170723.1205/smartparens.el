@@ -544,7 +544,6 @@ Symbol is defined as a chunk of text recognized by
 (defcustom sp-no-reindent-after-kill-modes '(
                                              python-mode
                                              coffee-mode
-                                             js2-mode
                                              asm-mode
                                              makefile-gmake-mode
                                              )
@@ -3176,7 +3175,7 @@ that the strings are not matched in-symbol."
                         it)
              (mapconcat (lambda (g) (apply 'sp--regexp-for-group g)) it "\\|")
              (concat "\\(?:" it "\\)")))
-    ""))
+    "^\\<$"))
 
 (defun sp--strict-regexp-quote (string)
   "Like regexp-quote, but make sure that the string is not
@@ -4234,11 +4233,20 @@ the test functions as keyword arguments to speed up the lookup."
   "Test the last match using `sp--skip-match-p'.  The form should
 be a function call that sets the match data."
   (declare (debug (form)))
-  `(and ,form
-        (not (sp--skip-match-p
-              (match-string 0)
-              (match-beginning 0)
-              (match-end 0)))))
+  (let ((match (make-symbol "match"))
+        (pair-skip (make-symbol "pair-skip")))
+    `(and ,form
+          (let* ((,match (match-string 0))
+                 (,pair-skip (or (sp-get-pair ,match :skip-match)
+                                 (sp-get-pair (car (--first
+                                                    (equal (cdr it) ,match)
+                                                    sp-pair-list))
+                                              :skip-match))))
+            (not (sp--skip-match-p
+                  ,match
+                  (match-beginning 0)
+                  (match-end 0)
+                  :pair-skip ,pair-skip))))))
 
 (defun sp--elisp-skip-match (ms mb _me)
   "Function used to test for escapes in lisp modes.
@@ -4484,10 +4492,10 @@ and the skip-match predicate."
         (unless (or (save-match-data
                       (save-excursion
                         (goto-char (match-beginning 0))
-                        (or (looking-back "\\\\") ;; assumes \ is always the escape... bad?
+                        (or (sp--looking-back-p "\\\\" 2) ;; assumes \ is always the escape... bad?
                             (and (eq major-mode 'emacs-lisp-mode)
                                  (not (sp-point-in-string))
-                                 (looking-back "?")))))
+                                 (sp--looking-back-p "?" 1)))))
                     ;; TODO: HACK: global-skip is hack here!!!
                     (sp--skip-match-p match (match-beginning 0) (match-end 0) :pair-skip skip-fn :global-skip nil))
           (setq hit t))))
@@ -6365,9 +6373,9 @@ Note: prefix argument is shown after the example in
 (defun sp--cleanup-after-kill ()
   (unless (looking-back "^[\t\s]+")
     (let ((bdel (save-excursion
-                  (when (looking-back " ")
+                  (when (sp--looking-back-p " " 1)
                     (skip-chars-backward " \t")
-                    (when (not (looking-back (sp--get-opening-regexp)))
+                    (when (not (sp--looking-back-p (sp--get-opening-regexp)))
                       (forward-char)))
                   (point)))
           (edel (save-excursion
@@ -7753,7 +7761,7 @@ Examples:
                                 (sp-point-in-comment)
                                 (save-excursion
                                   (skip-chars-backward "\t ")
-                                  (looking-back "^")))
+                                  (bolp)))
                        (cons (point) (sp-get next :end-suf)))))
                   ;; similarly, if there is a comment before
                   ;; this sexp, keep it.
@@ -7765,7 +7773,7 @@ Examples:
                                 (> (point) (sp-get ok :beg))
                                 (save-excursion
                                   (skip-chars-backward "\t ")
-                                  (looking-back "^")))
+                                  (bolp)))
                        (cons (point) (sp-get next :end-suf)))))
                   (t (sp-get next (cons :beg-prf :end-suf))))))
           (sp--splice-sexp-do-killing from to
@@ -7923,7 +7931,9 @@ If the raw prefix is negative, this behaves as \\[universal-argument] `sp-backwa
         (setq b (region-beginning))
         (setq e (region-end))
         (goto-char (sp-get enc :end-in))
-        (if (looking-back "\n[ \t]*")
+        (if (save-excursion
+              (skip-chars-backward "\t ")
+              (bolp))
             (let ((whitespace (sp-get-whitespace)))
               (sp-get whitespace (when (= :beg e)
                                    (delete-region :beg :end))))
@@ -7968,7 +7978,9 @@ expressions up until the start of enclosing list."
         (setq b (region-beginning))
         (setq e (region-end))
         (goto-char (sp-get enc :end-in))
-        (if (looking-back "\n[ \t]*")
+        (if (save-excursion
+              (skip-chars-backward "\t ")
+              (bolp))
             (let ((whitespace (sp-get-whitespace)))
               (sp-get whitespace
                 (when (= :beg e)
@@ -8518,58 +8530,61 @@ Examples:
 
  (foo bar)| -> (foo bar|)"
   (interactive "P")
-  (sp--with-case-sensitive
-    (let* ((raw (sp--raw-argument-p arg))
-           ;; if you edit 10 gigabyte files in Emacs, you're gonna have
-           ;; a bad time.
-           (n (if raw 100000000
-                (prefix-numeric-value arg))))
-      (cond
-       ((> n 0)
-        (while (> n 0)
-          (cond
-           ((let ((ok (sp-point-in-empty-sexp)))
-              (when ok
-                (backward-char (length (car ok)))
-                (delete-char (+ (length (car ok)) (length (cdr ok)))))
-              ok)
-            ;; make this customizable
-            (setq n (1- n)))
-           ((and (sp-point-in-string)
-                 (save-excursion (backward-char) (not (sp-point-in-string))))
-            (setq n 0))
-           ((sp--looking-back (sp--get-closing-regexp (sp--get-pair-list-context 'navigate)))
-            (-if-let (thing (save-match-data (sp-get-thing t)))
-                (cond
-                 ((= (sp-get thing :end) (point))
-                  (goto-char (sp-get thing :end-in)))
-                 ((= (sp-get thing :beg-in) (point))
-                  (setq n 0))
-                 (t
-                  (delete-char (- (length (match-string 0))))))
-              (delete-char (- (length (match-string 0)))))
-            ;; make this customizable
-            (setq n (1- n)))
-           ((and (not (sp-point-in-string))
-                 (save-excursion (backward-char) (sp-point-in-string)))
-            (backward-char)
-            ;; make this customizable
-            (setq n (1- n)))
-           ((sp--looking-back (sp--get-opening-regexp (sp--get-pair-list-context 'navigate)))
-            (if (save-match-data (sp-get-thing t))
-                ;; make this customizable -- maybe we want to skip and
-                ;; continue deleting
-                (setq n 0)
-              (delete-char (- (length (match-string 0))))
-              (setq n (1- n))))
-           ((bound-and-true-p hungry-delete-mode)
-            (hungry-delete-backward 1)
-            (setq n (1- n)))
-           (t
-            (delete-char -1)
-            (setq n (1- n))))))
-       ((= n 0) (delete-char -1))
-       (t (sp-delete-char (sp--negate-argument arg)))))))
+  (if (and sp-autodelete-wrap
+           (eq sp-last-operation 'sp-wrap-region))
+      (sp-backward-unwrap-sexp)
+    (sp--with-case-sensitive
+      (let* ((raw (sp--raw-argument-p arg))
+             ;; if you edit 10 gigabyte files in Emacs, you're gonna have
+             ;; a bad time.
+             (n (if raw 100000000
+                  (prefix-numeric-value arg))))
+        (cond
+         ((> n 0)
+          (while (> n 0)
+            (cond
+             ((let ((ok (sp-point-in-empty-sexp)))
+                (when ok
+                  (backward-char (length (car ok)))
+                  (delete-char (+ (length (car ok)) (length (cdr ok)))))
+                ok)
+              ;; make this customizable
+              (setq n (1- n)))
+             ((and (sp-point-in-string)
+                   (save-excursion (backward-char) (not (sp-point-in-string))))
+              (setq n 0))
+             ((sp--looking-back (sp--get-closing-regexp (sp--get-pair-list-context 'navigate)))
+              (-if-let (thing (save-match-data (sp-get-thing t)))
+                  (cond
+                   ((= (sp-get thing :end) (point))
+                    (goto-char (sp-get thing :end-in)))
+                   ((= (sp-get thing :beg-in) (point))
+                    (setq n 0))
+                   (t
+                    (delete-char (- (length (match-string 0))))))
+                (delete-char (- (length (match-string 0)))))
+              ;; make this customizable
+              (setq n (1- n)))
+             ((and (not (sp-point-in-string))
+                   (save-excursion (backward-char) (sp-point-in-string)))
+              (backward-char)
+              ;; make this customizable
+              (setq n (1- n)))
+             ((sp--looking-back (sp--get-opening-regexp (sp--get-pair-list-context 'navigate)))
+              (if (save-match-data (sp-get-thing t))
+                  ;; make this customizable -- maybe we want to skip and
+                  ;; continue deleting
+                  (setq n 0)
+                (delete-char (- (length (match-string 0))))
+                (setq n (1- n))))
+             ((bound-and-true-p hungry-delete-mode)
+              (hungry-delete-backward 1)
+              (setq n (1- n)))
+             (t
+              (delete-char -1)
+              (setq n (1- n))))))
+         ((= n 0) (delete-char -1))
+         (t (sp-delete-char (sp--negate-argument arg))))))))
 
 (put 'sp-backward-delete-char 'delete-selection 'supersede)
 (put 'sp-delete-char 'delete-selection 'supersede)
@@ -8828,15 +8843,6 @@ of the point."
         (indent-sexp))
       (sp--back-to-indentation column indentation))))
 
-(defun sp--balanced-context-p (count start-context end-context)
-  (let ((string-or-comment-count (cl-first count))
-        (normal-count (cl-second count)))
-    (cond
-     ((and start-context (eq start-context end-context))
-      (zerop string-or-comment-count))
-     ((eq start-context end-context) (zerop normal-count))
-     (t (= string-or-comment-count normal-count 0)))))
-
 (cl-defun sp-region-ok-p (start end)
   "Test if region between START and END is balanced.
 
@@ -8849,28 +8855,15 @@ properly balanced."
   (save-excursion
     (save-restriction
       (narrow-to-region start end)
-      (when (ignore-errors (scan-sexps (point-min) (point-max)) t)
-        (let ((count (list 0 0))
-              (start-context (progn (goto-char start) (sp-point-in-string-or-comment)))
-              (end-context (progn (goto-char end) (sp-point-in-string-or-comment))))
-          (dolist (pairs (sp--get-allowed-pair-list))
-            (goto-char (point-min))
-            (while (re-search-forward (sp--strict-regexp-quote (car pairs)) end :noerror)
-              (save-excursion
-                (backward-char)
-                (if (sp-point-in-string-or-comment)
-                    (cl-incf (cl-first count))
-                  (cl-incf (cl-second count)))))
-            (goto-char (point-min))
-            (while (re-search-forward (sp--strict-regexp-quote (cdr pairs)) end :noerror)
-              (save-excursion
-                (backward-char)
-                (if (sp-point-in-string-or-comment)
-                    (cl-decf (cl-first count))
-                  (cl-decf (cl-second count)))))
-            (unless (sp--balanced-context-p count start-context end-context)
-              (cl-return-from sp-region-ok-p)))
-          t)))))
+      (when (eq (sp-point-in-string start) (sp-point-in-string end))
+        (let ((regex (sp--get-allowed-regexp (-difference sp-pair-list (sp--get-allowed-pair-list)))))
+          (goto-char (point-min))
+          (while (or (prog1 (sp-forward-sexp)
+                       (sp-skip-forward-to-symbol))
+                     ;; skip impossible delimiters
+                     (when (looking-at-p regex)
+                       (goto-char (match-end 0)))))
+          (looking-at-p "[[:blank:]\n]*\\'"))))))
 
 (defun sp-newline ()
   "Insert a newline and indent it.
