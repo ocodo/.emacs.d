@@ -4,7 +4,7 @@
 
 ;; Author: steckerhalter
 ;; Package-Requires: ((helm "0") (google "0"))
-;; Package-Version: 20170509.244
+;; Package-Version: 20170722.710
 ;; URL: https://github.com/steckerhalter/helm-google
 ;; Keywords: helm google search browse
 
@@ -74,7 +74,9 @@ searches you will want to use `www.google.TLD'."
    "\n" ""
    (with-temp-buffer
      (insert html)
-     (html2text)
+     (if (fboundp 'html2text)
+         (html2text)
+       (shr-render-region (point-min) (point-max)))
      (buffer-substring-no-properties (point-min) (point-max)))))
 
 (defmacro helm-google--with-buffer (buf &rest body)
