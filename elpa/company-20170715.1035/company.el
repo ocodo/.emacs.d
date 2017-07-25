@@ -5,7 +5,7 @@
 ;; Author: Nikolaj Schumacher
 ;; Maintainer: Dmitry Gutov <dgutov@yandex.ru>
 ;; URL: http://company-mode.github.io/
-;; Version: 0.9.3
+;; Version: 0.9.4
 ;; Keywords: abbrev, convenience, matching
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -835,7 +835,8 @@ means that `company-mode' is always turned on except in `message-mode' buffers."
     (cons (+ col (window-hscroll)) row)))
 
 (defun company--col-row (&optional pos)
-  (company--posn-col-row (posn-at-point pos)))
+  (let (display-line-numbers)
+    (company--posn-col-row (posn-at-point pos))))
 
 (defun company--row (&optional pos)
   (cdr (company--col-row pos)))
