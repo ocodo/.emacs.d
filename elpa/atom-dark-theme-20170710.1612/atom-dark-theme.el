@@ -3,7 +3,7 @@
 ;;
 ;; Author: Jeremy Whitlock <jwhitlock@apache.org
 ;; Version: 0.2
-;; Package-Version: 20151119.2335
+;; Package-Version: 20170710.1612
 ;; Keywords: themes atom dark
 ;; URL: https://github.com/whitlockjc/atom-dark-theme-emacs
 ;;
@@ -86,7 +86,7 @@
  ;; isearch
  '(isearch ((((class color) (min-colors 88) (background light)) (:foreground "lightskyblue1" :background "magenta3")) (((class color) (min-colors 88) (background dark)) (:foreground "brown4" :background "palevioletred2")) (((class color) (min-colors 16)) (:foreground "cyan1" :background "magenta4")) (((class color) (min-colors 8)) (:foreground "cyan1" :background "magenta4")) (t (:inverse-video t))))
  '(isearch-fail ((((class color) (min-colors 88) (background light)) (:background "RosyBrown1")) (((class color) (min-colors 88) (background dark)) (:background "red4")) (((class color) (min-colors 16)) (:background "red")) (((class color) (min-colors 8)) (:background "red")) (((class color grayscale)) (:foreground "grey")) (t (:inverse-video t))))
- 
+
  ;; ido-mode
  '(ido-first-match ((t (:foreground "violet" :weight bold))))
  '(ido-only-match ((t (:foreground "#ff982d" :weight bold))))
@@ -136,6 +136,11 @@
 
  ;; powerline (https://github.com/milkypostman/powerline)
  '(powerline-active2 ((t (:background "grey10"))))
+
+ ;; realgud
+ `(realgud-overlay-arrow1 ((t (:foreground "#7fff00"))))
+ `(realgud-overlay-arrow2 ((t (:foreground "#5FAF44"))))
+ `(realgud-overlay-arrow3 ((t (:foreground "#116600"))))
 
  ;; speedbar
  '(speedbar-button-face ((t (:foreground "#AAAAAA"))))
