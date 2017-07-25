@@ -10,7 +10,7 @@
 ;; Maintainer: Bozhidar Batsov <bozhidar@batsov.com>
 ;;     Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/voxpupuli/puppet-mode
-;; Package-Version: 20170614.2215
+;; Package-Version: 20170719.752
 ;; Keywords: languages
 ;; Version: 0.4-cvs
 ;; Package-Requires: ((emacs "24.1") (pkg-info "0.4"))
@@ -644,7 +644,7 @@ of the initial include plus puppet-include-indent."
               (setq cur-indent (current-column))))))
        (include-start
         (setq cur-indent include-start))
-       ((and (looking-at "^\\s-*},?\\s-*$") block-indent)
+       ((and (looking-at "^\\s-*}\\(,\\|\\s-*[-~]>\\)?\\s-*$") block-indent)
         ;; This line contains a closing brace or a closing brace followed by a
         ;; comma and we're at the inner block, so we should indent it matching
         ;; the indentation of the opening brace of the block.
@@ -672,7 +672,7 @@ of the initial include plus puppet-include-indent."
              ;; Brace (possibly followed by a comma) or paren on a
              ;; line by itself will already be indented to the right
              ;; level, so we can cheat and stop there.
-             ((looking-at "^\\s-*[\)}],?\\s-*\s?$")
+             ((looking-at "^\\s-*[\)}]\\(,\\|\\s-*[-~]>\\)?\\s-*\s?$")
               (setq cur-indent (current-indentation))
               (setq not-indented nil))
 
