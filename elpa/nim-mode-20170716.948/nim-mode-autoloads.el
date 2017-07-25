@@ -56,7 +56,7 @@ Setup.
 ;;; Generated autoloads from nim-compile.el
 
 (autoload 'nim-compile "nim-compile" "\
-
+Compile and execute the current buffer as a nim file.  All output is writton into the *compilation* buffer.
 
 \(fn)" t nil)
 
