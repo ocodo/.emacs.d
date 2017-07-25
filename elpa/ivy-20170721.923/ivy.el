@@ -198,9 +198,24 @@ See https://github.com/abo-abo/swiper/wiki/ivy-display-function."
 
 (defcustom ivy-completing-read-handlers-alist
   '((tmm-menubar . completing-read-default)
-    (tmm-shortcut . completing-read-default))
+    (tmm-shortcut . completing-read-default)
+    (bbdb-create . ivy-completing-read-with-empty-string-def)
+    (auto-insert . ivy-completing-read-with-empty-string-def)
+    (Info-on-current-buffer . ivy-completing-read-with-empty-string-def)
+    (Info-follow-reference . ivy-completing-read-with-empty-string-def)
+    (Info-menu . ivy-completing-read-with-empty-string-def)
+    (Info-index . ivy-completing-read-with-empty-string-def)
+    (Info-virtual-index . ivy-completing-read-with-empty-string-def)
+    (info-display-manual . ivy-completing-read-with-empty-string-def)
+    (webjump . ivy-completing-read-with-empty-string-def))
   "An alist of handlers to replace `completing-read' in `ivy-mode'."
   :type '(alist :key-type function :value-type function))
+
+(defvar ivy-completing-read-ignore-handlers-depth -1
+  "Used to avoid infinite recursion.
+
+If `(minibuffer-depth)' equals this, `ivy-completing-read' will
+act as if `ivy-completing-read-handlers-alist' is empty.")
 
 (defvar ivy--actions-list nil
   "A list of extra actions per command.")
@@ -300,6 +315,8 @@ action functions.")
     (define-key map (kbd "C-g") 'minibuffer-keyboard-quit)
     (define-key map [remap scroll-up-command] 'ivy-scroll-up-command)
     (define-key map [remap scroll-down-command] 'ivy-scroll-down-command)
+    (define-key map (kbd "<next>") 'ivy-scroll-up-command)
+    (define-key map (kbd "<prior>") 'ivy-scroll-down-command)
     (define-key map (kbd "C-v") 'ivy-scroll-up-command)
     (define-key map (kbd "M-v") 'ivy-scroll-down-command)
     (define-key map (kbd "C-M-n") 'ivy-next-line-and-call)
@@ -1840,9 +1857,12 @@ INITIAL-INPUT is a string inserted into the minibuffer initially.
 HISTORY is a list of previously selected inputs.
 DEF is the default value.
 INHERIT-INPUT-METHOD is currently ignored."
-  (let ((handler (assoc this-command ivy-completing-read-handlers-alist)))
+  (let ((handler
+         (when (< ivy-completing-read-ignore-handlers-depth (minibuffer-depth))
+           (assoc this-command ivy-completing-read-handlers-alist))))
     (if handler
-        (let ((completion-in-region-function #'completion--in-region))
+        (let ((completion-in-region-function #'completion--in-region)
+              (ivy-completing-read-ignore-handlers-depth (1+ (minibuffer-depth))))
           (funcall (cdr handler)
                    prompt collection
                    predicate require-match
@@ -1868,7 +1888,7 @@ INHERIT-INPUT-METHOD is currently ignored."
                                      (t
                                       initial-input))
                 :preselect (if (listp def) (car def) def)
-                :def def
+                :def (if (listp def) (car def) def)
                 :history history
                 :keymap nil
                 :sort t
@@ -1876,6 +1896,21 @@ INHERIT-INPUT-METHOD is currently ignored."
                                this-command)
                               ((and collection (symbolp collection))
                                collection))))))
+
+(defun ivy-completing-read-with-empty-string-def
+    (prompt collection
+            &optional predicate require-match initial-input
+            history def inherit-input-method)
+  "Same as `ivy-completing-read' but with different handling of DEF.
+
+Specifically, if DEF is nil, it is treated the same as if DEF was
+the empty string. This mimics the behavior of
+`completing-read-refault'. This function can therefore be used in
+place of `ivy-completing-read' for commands that rely on this
+behavior."
+  (ivy-completing-read
+   prompt collection predicate require-match initial-input
+   history (or def "") inherit-input-method))
 
 (defvar ivy-completion-beg nil
   "Completion bounds start.")
@@ -3486,6 +3521,14 @@ Skip buffers that match `ivy-ignore-buffers'."
               :action #'ivy--switch-buffer-action
               :keymap ivy-switch-buffer-map
               :caller 'ivy-switch-buffer)))
+
+;;;###autoload
+(defun ivy-switch-view ()
+  "Switch to one of the window views stored by `ivy-push-view'."
+  (interactive)
+  (let ((ivy-initial-inputs-alist
+         '((ivy-switch-buffer . "{}"))))
+    (ivy-switch-buffer)))
 
 ;;;###autoload
 (defun ivy-switch-buffer-other-window ()

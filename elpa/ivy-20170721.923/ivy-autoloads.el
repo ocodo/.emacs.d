@@ -3,7 +3,14 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ivy" "ivy.el" (22880 30416 0 0))
+;;;### (autoloads nil "colir" "colir.el" (0 0 0 0))
+;;; Generated autoloads from colir.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "colir" '("colir-")))
+
+;;;***
+
+;;;### (autoloads nil "ivy" "ivy.el" (0 0 0 0))
 ;;; Generated autoloads from ivy.el
 
 (autoload 'ivy-resume "ivy" "\
@@ -110,15 +117,28 @@ Switch to another buffer.
 
 \(fn)" t nil)
 
+(autoload 'ivy-switch-view "ivy" "\
+Switch to one of the window views stored by `ivy-push-view'.
+
+\(fn)" t nil)
+
 (autoload 'ivy-switch-buffer-other-window "ivy" "\
 Switch to another buffer in another window.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ivy" '("ivy-" "with-ivy-window")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("colir.el" "ivy-overlay.el" "ivy-pkg.el")
-;;;;;;  (22880 30416 0 0))
+;;;### (autoloads nil "ivy-overlay" "ivy-overlay.el" (0 0 0 0))
+;;; Generated autoloads from ivy-overlay.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ivy-overlay" '("ivy-")))
+
+;;;***
+
+;;;### (autoloads nil nil ("ivy-pkg.el") (0 0 0 0))
 
 ;;;***
 

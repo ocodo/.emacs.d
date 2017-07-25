@@ -95,8 +95,8 @@ Key bindings
 Minibuffer key bindings
 
 * Key bindings for navigation::
-* Key bindings for single selection, action, then exit minibuffer: Key bindings for single selection action then exit minibuffer. 
-* Key bindings for multiple selections and actions, keep minibuffer open: Key bindings for multiple selections and actions keep minibuffer open. 
+* Key bindings for single selection, action, then exit minibuffer: Key bindings for single selection action then exit minibuffer.
+* Key bindings for multiple selections and actions, keep minibuffer open: Key bindings for multiple selections and actions keep minibuffer open.
 * Key bindings that alter the minibuffer input::
 * Other key bindings::
 * Hydra in the minibuffer::
@@ -390,8 +390,8 @@ where the familiar ‘C-a’, ‘C-f’, ‘M-d’, ‘M-DEL’, ‘M-b’, ‘M
 * Menu:
 
 * Key bindings for navigation::
-* Key bindings for single selection, action, then exit minibuffer: Key bindings for single selection action then exit minibuffer. 
-* Key bindings for multiple selections and actions, keep minibuffer open: Key bindings for multiple selections and actions keep minibuffer open. 
+* Key bindings for single selection, action, then exit minibuffer: Key bindings for single selection action then exit minibuffer.
+* Key bindings for multiple selections and actions, keep minibuffer open: Key bindings for multiple selections and actions keep minibuffer open.
 * Key bindings that alter the minibuffer input::
 * Other key bindings::
 * Hydra in the minibuffer::
@@ -1255,7 +1255,7 @@ that work here:
      If the current input matches an existing directory name exactly,
      switch the completion to that directory.
 
-‘M-q’ (‘ivy-toggle-regexp-quote’)
+‘M-r’ (‘ivy-toggle-regexp-quote’)
 .................................
 
      Toggle between input as regexp or not.
@@ -1786,7 +1786,7 @@ Keystroke Index
                                                                (line 24)
 * M-p:                                   Key bindings that alter the minibuffer input.
                                                                (line 18)
-* M-q:                                   File Name Completion. (line 41)
+* M-r:                                   File Name Completion. (line 41)
 * M-w:                                   Other key bindings.   (line  9)
 * mouse-1:                               Saving the current completion session to a buffer.
                                                                (line 21)
@@ -1811,50 +1811,50 @@ Keystroke Index
 
 Tag Table:
 Node: Top1355
-Node: Introduction4404
-Node: Installation6915
-Node: Installing from Emacs Package Manager7369
-Node: Installing from the Git repository8328
-Node: Getting started9178
-Node: Basic customization9485
-Node: Key bindings10080
-Node: Global key bindings10272
-Node: Minibuffer key bindings11660
-Node: Key bindings for navigation12894
-Node: Key bindings for single selection action then exit minibuffer14101
-Node: Key bindings for multiple selections and actions keep minibuffer open16818
-Node: Key bindings that alter the minibuffer input19210
-Node: Other key bindings21098
-Node: Hydra in the minibuffer21476
-Node: Saving the current completion session to a buffer23553
-Node: Completion Styles24965
-Node: ivy--regex-plus26723
-Node: ivy--regex-ignore-order28209
-Node: ivy--regex-fuzzy28577
-Node: Customization29074
-Node: Faces29260
-Node: Defcustoms31397
-Node: Actions32574
-Node: What are actions?32900
-Node: How can different actions be called?33733
-Node: How to modify the actions list?34304
-Node: Example - add two actions to each command34964
-Node: How to undo adding the two actions35923
-Node: How to add actions to a specific command36375
-Node: Example - define a new command with several actions36791
-Node: Test the above function with ‘ivy-occur’37734
-Node: Packages38582
-Node: Commands39440
-Node: File Name Completion39625
-Node: Buffer Name Completion41951
-Node: Counsel commands42571
-Node: API43218
-Node: Required arguments for ‘ivy-read’43795
-Node: Optional arguments for ‘ivy-read’44460
-Node: Example - ‘counsel-describe-function’47694
-Node: Example - ‘counsel-locate’51098
-Node: Variable Index54946
-Node: Keystroke Index61847
+Node: Introduction4402
+Node: Installation6913
+Node: Installing from Emacs Package Manager7367
+Node: Installing from the Git repository8326
+Node: Getting started9176
+Node: Basic customization9483
+Node: Key bindings10078
+Node: Global key bindings10270
+Node: Minibuffer key bindings11658
+Node: Key bindings for navigation12890
+Node: Key bindings for single selection action then exit minibuffer14097
+Node: Key bindings for multiple selections and actions keep minibuffer open16814
+Node: Key bindings that alter the minibuffer input19206
+Node: Other key bindings21094
+Node: Hydra in the minibuffer21472
+Node: Saving the current completion session to a buffer23549
+Node: Completion Styles24961
+Node: ivy--regex-plus26719
+Node: ivy--regex-ignore-order28205
+Node: ivy--regex-fuzzy28573
+Node: Customization29070
+Node: Faces29256
+Node: Defcustoms31393
+Node: Actions32570
+Node: What are actions?32896
+Node: How can different actions be called?33729
+Node: How to modify the actions list?34300
+Node: Example - add two actions to each command34960
+Node: How to undo adding the two actions35919
+Node: How to add actions to a specific command36371
+Node: Example - define a new command with several actions36787
+Node: Test the above function with ‘ivy-occur’37730
+Node: Packages38578
+Node: Commands39436
+Node: File Name Completion39621
+Node: Buffer Name Completion41947
+Node: Counsel commands42567
+Node: API43214
+Node: Required arguments for ‘ivy-read’43791
+Node: Optional arguments for ‘ivy-read’44456
+Node: Example - ‘counsel-describe-function’47690
+Node: Example - ‘counsel-locate’51094
+Node: Variable Index54942
+Node: Keystroke Index61843
 
 End Tag Table
 
