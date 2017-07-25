@@ -6,7 +6,7 @@
 ;;
 
 ;; Author:    Harley Gorrell <harley@panix.com>
-;; URL:       http://www.mahalito.net/~harley/elisp/ssh-config-mode.el
+;; URL:       https://github.com/jhgorrell/ssh-config-mode-el
 ;; Github:    https://raw.github.com/jhgorrell/ssh-config-mode-el/master/ssh-config-mode.el
 ;; License:   GPL v2
 ;; Keywords:  ssh, config, emacs
@@ -83,11 +83,11 @@
 
 (defun ssh-config-host-next ()
   "Skip to the next host entry."
-  (interactive)
+  (interactive "^")
   (search-forward-regexp ssh-config-host-regexp))
 (defun ssh-config-host-prev ()
   "Skip to the previous host entry."
-  (interactive)
+  (interactive "^")
   (search-backward-regexp ssh-config-host-regexp))
 
 ;;
