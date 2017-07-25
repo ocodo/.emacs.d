@@ -1,11 +1,12 @@
 ;;; flycheck.el --- On-the-fly syntax checking -*- lexical-binding: t; -*-
 
-;; Copyright (c) 2012-2016 Sebastian Wiesner and Flycheck contributors
+;; Copyright (C) 2017 Flycheck contributors
+;; Copyright (C) 2012-2016 Sebastian Wiesner and Flycheck contributors
 ;; Copyright (C) 2013, 2014 Free Software Foundation, Inc.
 ;;
 ;; Author: Sebastian Wiesner <swiesner@lunaryorn.com>
-;; Maintainer: Sebastian Wiesner <swiesner@lunaryorn.com>
-;;             Clément Pit--Claudel <clement.pitclaudel@live.com>
+;; Maintainer: Clément Pit-Claudel <clement.pitclaudel@live.com>
+;;             fmdkdd <fmdkdd@gmail.com>
 ;; URL: http://www.flycheck.org
 ;; Keywords: convenience, languages, tools
 ;; Version: 31-cvs
@@ -188,6 +189,7 @@ attention to case differences."
     go-test
     go-errcheck
     go-unconvert
+    go-megacheck
     groovy
     haml
     handlebars
@@ -551,7 +553,7 @@ If nil, never check syntax automatically.  In this case, use
               (const :tag "After a new line was inserted" new-line)
               (const :tag "After `flycheck-mode' was enabled" mode-enabled))
   :package-version '(flycheck . "0.12")
-  :safe #'symbolp)
+  :safe #'flycheck-symbol-list-p)
 
 (defcustom flycheck-idle-change-delay 0.5
   "How many seconds to wait before checking syntax automatically.
@@ -7383,7 +7385,8 @@ See URL `https://golang.org/cmd/gofmt/'."
                   ;; Fall back, if go-vet doesn't exist
                   (warning . go-build) (warning . go-test)
                   (warning . go-errcheck)
-                  (warning . go-unconvert)))
+                  (warning . go-unconvert)
+                  (warning . go-megacheck)))
 
 (flycheck-define-checker go-golint
   "A Go style checker using Golint.
@@ -7395,7 +7398,7 @@ See URL `https://github.com/golang/lint'."
   :modes go-mode
   :next-checkers (go-vet
                   ;; Fall back, if go-vet doesn't exist
-                  go-build go-test go-errcheck go-unconvert))
+                  go-build go-test go-errcheck go-unconvert go-megacheck))
 
 (flycheck-def-option-var flycheck-go-vet-print-functions nil go-vet
   "A list of print-like functions for `go tool vet'.
@@ -7426,6 +7429,18 @@ This option requires Go 1.6 or newer."
                  (const :tag "Check for shadowed variables" t)
                  (const :tag "Strictly check for shadowed variables" strict)))
 
+(flycheck-def-option-var flycheck-go-megacheck-disabled-checkers nil go-megacheck
+  "A list of checkers to disable when running `megacheck'.
+
+The value of this variable is a list of strings, where each
+string is a checker to be disabled. Valid checkers are `simple',
+`staticcheck' and `unused'. When nil, all checkers will be
+enabled. "
+  :type '(set (const :tag "Disable simple" "simple")
+              (const :tag "Disable staticcheck" "staticcheck")
+              (const :tag "Disable unused" "unused"))
+  :safe #'flycheck-string-list-p)
+
 (flycheck-define-checker go-vet
   "A Go syntax checker using the `go tool vet' command.
 
@@ -7449,7 +7464,8 @@ See URL `https://golang.org/cmd/go/' and URL
                   go-test
                   ;; Fall back if `go build' or `go test' can be used
                   go-errcheck
-                  go-unconvert)
+                  go-unconvert
+                  go-megacheck)
   :verify (lambda (_)
             (let* ((go (flycheck-checker-executable 'go-vet))
                    (have-vet (member "vet" (ignore-errors
@@ -7514,7 +7530,8 @@ Requires Go 1.6 or newer.  See URL `https://golang.org/cmd/go'."
                (and (flycheck-buffer-saved-p)
                     (not (string-suffix-p "_test.go" (buffer-file-name)))))
   :next-checkers ((warning . go-errcheck)
-                  (warning . go-unconvert)))
+                  (warning . go-unconvert)
+                  (warning . go-megacheck)))
 
 (flycheck-define-checker go-test
   "A Go syntax and type checker using the `go test' command.
@@ -7534,7 +7551,8 @@ Requires Go 1.6 or newer.  See URL `https://golang.org/cmd/go'."
   (lambda () (and (flycheck-buffer-saved-p)
                   (string-suffix-p "_test.go" (buffer-file-name))))
   :next-checkers ((warning . go-errcheck)
-                  (warning . go-unconvert)))
+                  (warning . go-unconvert)
+                  (warning . go-megacheck)))
 
 (flycheck-define-checker go-errcheck
   "A Go checker for unchecked errors.
@@ -7562,7 +7580,8 @@ See URL `https://github.com/kisielk/errcheck'."
     errors)
   :modes go-mode
   :predicate (lambda () (flycheck-buffer-saved-p))
-  :next-checkers ((warning . go-unconvert)))
+  :next-checkers ((warning . go-unconvert)
+                  (warning . go-megacheck)))
 
 (flycheck-define-checker go-unconvert
   "A Go checker looking for unnecessary type conversions.
@@ -7572,7 +7591,26 @@ See URL `https://github.com/mdempsky/unconvert'."
   :error-patterns
   ((warning line-start (file-name) ":" line ":" column ": " (message) line-end))
   :modes go-mode
-  :predicate (lambda () (flycheck-buffer-saved-p)))
+  :predicate (lambda () (flycheck-buffer-saved-p))
+  :next-checkers ((warning . go-megacheck)))
+
+(flycheck-define-checker go-megacheck
+  "A Go checker that performs static analysis and linting using the `megacheck'
+command.
+
+Requires Go 1.6 or newer. See URL
+`https://github.com/dominikh/go-tools'."
+  :command ("megacheck"
+            (option-list "-tags=" flycheck-go-build-tags concat)
+            (eval (mapcar (lambda (checker) (concat "-" checker
+                                                    ".enabled=false"))
+                          flycheck-go-megacheck-disabled-checkers))
+            ;; Run in current directory to make megacheck aware of symbols
+            ;; declared in other files.
+            ".")
+  :error-patterns
+  ((warning line-start (file-name) ":" line ":" column ": " (message) line-end))
+  :modes go-mode)
 
 (flycheck-define-checker groovy
   "A groovy syntax checker using groovy compiler API.
@@ -7700,6 +7738,16 @@ Otherwise return the previously used cache directory."
         (or flycheck-haskell-ghc-cache-directory
             (make-temp-file "flycheck-haskell-ghc-cache" 'directory))))
 
+(defun flycheck--locate-dominating-file-matching (directory regexp)
+  "Search for a file in directory hierarchy starting at DIRECTORY.
+
+Look up the directory hierarchy from DIRECTORY for a directory
+containing a file that matches REGEXP."
+  (locate-dominating-file
+   directory
+   (lambda (dir)
+     (directory-files dir t regexp t))))
+
 (defun flycheck-haskell--find-default-directory (checker)
   "Come up with a suitable default directory for Haskell to run CHECKER in.
 
@@ -7713,21 +7761,20 @@ contains a cabal file."
   (pcase checker
     (`haskell-stack-ghc
      (or
-      (locate-dominating-file (buffer-file-name) "stack.yaml")
+      (when (buffer-file-name)
+        (flycheck--locate-dominating-file-matching
+         (file-name-directory (buffer-file-name))
+         "stack.*\\.yaml\\'"))
       (-when-let* ((stack (funcall flycheck-executable-find "stack"))
                    (output (ignore-errors
                              (process-lines stack "path" "--project-root")))
                    (stack-dir (car output)))
         (and (file-directory-p stack-dir) stack-dir))))
     (_
-     (locate-dominating-file
-      (file-name-directory (buffer-file-name))
-      (lambda (dir)
-        (directory-files dir
-                         nil ;; use full paths
-                         ".+\\.cabal\\'"
-                         t ;; do not sort result
-                         ))))))
+     (when (buffer-file-name)
+       (flycheck--locate-dominating-file-matching
+        (file-name-directory (buffer-file-name))
+        ".+\\.cabal\\'")))))
 
 (flycheck-define-checker haskell-stack-ghc
   "A Haskell syntax and type checker using `stack ghc'.
@@ -7961,7 +8008,7 @@ The value of this variable is a list of strings, where each
 string is a directory with custom rules for ESLint.
 
 Refer to the ESLint manual at URL
-`https://github.com/eslint/eslint/tree/master/docs/command-line-interface#--rulesdir'
+`http://eslint.org/docs/user-guide/command-line-interface#--rulesdir'
 for more information about the custom directories."
   :type '(repeat (directory :tag "Custom rules directory"))
   :safe #'flycheck-string-list-p
@@ -7977,7 +8024,7 @@ for more information about the custom directories."
 (flycheck-define-checker javascript-eslint
   "A Javascript syntax and style checker using eslint.
 
-See URL `https://github.com/eslint/eslint'."
+See URL `http://eslint.org/'."
   :command ("eslint" "--format=checkstyle"
             (option-list "--rulesdir" flycheck-eslint-rules-directories)
             "--stdin" "--stdin-filename" source-original)
@@ -9139,7 +9186,7 @@ This syntax checker requires Rust 1.15 or newer.  See URL
                     flycheck-rust-binary-name))
             "--message-format=json"
             (eval flycheck-cargo-rustc-args)
-            "--" "-Z" "no-trans"
+            "--"
             ;; Passing the "--test" flag when the target is a test binary or
             ;; bench is unnecessary and triggers an error.
             (eval (when flycheck-rust-check-tests
@@ -9190,12 +9237,8 @@ This syntax checker requires Rust 1.15 or newer.  See URL
 
 This syntax checker needs Rust 1.7 or newer.  See URL
 `https://www.rust-lang.org'."
-  :command ("rustc" "-Z" "no-trans"
+  :command ("rustc"
             (option "--crate-type" flycheck-rust-crate-type)
-            ;; Passing the "unstable-options" flag may raise an error in the
-            ;; future.  For the moment, we need it to access JSON output in all
-            ;; rust versions >= 1.7.
-            "-Z" "unstable-options"
             "--error-format=json"
             (option-flag "--test" flycheck-rust-check-tests)
             (option-list "-L" flycheck-rust-library-path concat)
