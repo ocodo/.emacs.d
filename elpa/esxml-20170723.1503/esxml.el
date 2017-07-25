@@ -5,7 +5,7 @@
 ;; Maintainer: Evan Izaksonas-Smith
 ;; Created: 15th August 2012
 ;; Version: 0.3.2
-;; Package-Version: 20160703.1417
+;; Package-Version: 20170723.1503
 ;; Keywords: tools, lisp, comm
 ;; Description: A library for easily generating XML/XHTML in elisp
 ;;
@@ -45,8 +45,7 @@
 ;; resolve these issues.
 ;;
 ;;; Code:
-(eval-when-compile
-  (require 'cl))
+(require 'cl)
 (require 'xml)
 (require 'pcase)
 
