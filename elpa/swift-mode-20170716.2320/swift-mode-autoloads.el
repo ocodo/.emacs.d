@@ -100,17 +100,22 @@ Intended for debugging.")
 
 (autoload 'swift-mode:run-repl "swift-mode-repl" "\
 Run a Swift REPL process.
-It input and output via buffer `*CMD*' where CMD is replaced with the CMD given.
+This function input and output via buffer `*CMD*' where CMD is replaced with
+the CMD given.
 If there is a process already running in `*CMD*', switch to that buffer.
-With argument CMD allows you to edit the command line (default is value
-of `swift-mode:repl-executable').  This function updates the buffer local
-variable `swift-mode:repl-executable' with the given CMD, so it will be used
-as the default value for the next invocatoin in the current buffer.
-With DONT-SWITCH cursor will stay in current buffer.
+CMD is a string or a list, interpreted as a command line. The default value is
+`swift-mode:repl-executable'. This function updates the buffer local variable
+`swift-mode:repl-executable' with the given CMD unless KEEP-DEFAULT is non-nil,
+so it will be used as the default value for the next invocatoin in the current
+buffer.
+If DONT-SWITCH is non-nil, cursor will stay in current buffer.
+If KEEP-DEFAULT is non-nil, the `swift-mode:repl-executable' and the global
+variable `swift-mode:repl-buffer' are not updated. The buffer local variable
+`swift-mode:repl-buffer' is always updated.
 Runs the hook `swift-repl-mode-hook' (after the `comint-mode-hook' is run).
 \(Type \\[describe-mode] in the process buffer for a list of commands.)
 
-\(fn CMD &optional DONT-SWITCH)" t nil)
+\(fn CMD &optional DONT-SWITCH KEEP-DEFAULT)" t nil)
 
 (defalias 'run-swift 'swift-mode:run-repl)
 
@@ -124,6 +129,39 @@ START and END define region within current buffer
 Send the buffer to the Swift REPL process.
 
 \(fn)" t nil)
+
+(autoload 'swift-mode:build-swift-module "swift-mode-repl" "\
+Build a Swift module in the PROJECT-DIRECTORY.
+If PROJECT-DIRECTORY is nil or omited, it is searched from `default-directory'
+or its ancestors.
+An list ARGS are appended for builder command line arguments.
+
+\(fn &optional PROJECT-DIRECTORY ARGS)" t nil)
+
+(autoload 'swift-mode:build-ios-app "swift-mode-repl" "\
+Build a iOS app in the PROJECT-DIRECTORY.
+Build it for iOS simulator device DEVICE-IDENTIFIER.
+If PROJECT-DIRECTORY is nil or omited, it is searched from `default-directory'
+or its ancestors.
+If DEVICE-IDENTIFIER is nil or omited,
+the value of `swift-mode:ios-simulator-device-identifier' is used.
+
+\(fn &optional PROJECT-DIRECTORY DEVICE-IDENTIFIER)" t nil)
+
+(autoload 'swift-mode:debug-swift-module "swift-mode-repl" "\
+Run debugger on a Swift module in the PROJECT-DIRECTORY.
+If PROJECT-DIRECTORY is nil or omited, it is searched from `default-directory'
+or its ancestors.
+
+\(fn &optional PROJECT-DIRECTORY)" t nil)
+
+(autoload 'swift-mode:debug-ios-app "swift-mode-repl" "\
+Run debugger on an iOS app in the PROJECT-DIRECTORY.
+If PROJECT-DIRECTORY is nil or omited, it is searched from `default-directory'
+or its ancestors.
+DEVICE-IDENTIFIER is the device identifier of the iOS simulator.
+
+\(fn &optional PROJECT-DIRECTORY DEVICE-IDENTIFIER)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "swift-mode-repl" '("swift-")))
 

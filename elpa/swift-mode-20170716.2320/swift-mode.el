@@ -7,7 +7,7 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;;
-;; Version: 2.2.4
+;; Version: 2.3.0
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: languages swift
 ;; URL: https://github.com/swift-emacs/swift-mode
@@ -60,10 +60,18 @@
         :help "Swift-specific Features"
         ["Run REPL" swift-mode-run-repl
          :help "Run Swift REPL"]
-        ["Send buffer to REPL" swift-mode-send-buffer
+        ["Send buffer to REPL" swift-mode:send-buffer
          :help "Send the current buffer's contents to the REPL"]
-        ["Send region to REPL" swift-mode-send-region
-         :help "Send currently selected region to the REPL"]))
+        ["Send region to REPL" swift-mode:send-region
+         :help "Send currently selected region to the REPL"]
+        ["Build Swift module" swift-mode:build-swift-module
+         :help "Build current Swift module"]
+        ["Build iOS app" swift-mode:build-ios-app
+         :help "Build current iOS app"]
+        ["Debug Swift module" swift-mode:debug-swift-module
+         :help "Debug current Swift module"]
+        ["Debug iOS app" swift-mode:debug-ios-app
+         :help "Debug current iOS app with simulator"]))
     map)
   "Swift mode key map.")
 
