@@ -4,11 +4,11 @@
 ;; Copyright (c) 1999 Jonathan Marten  <jonathan.marten@uk.sun.com>
 
 ;; Author: Karl Chen <quarl@nospam.quarl.org>
+;; Maintainer: USAMI Kenta <tadsan@zonu.me>
 
 ;; Keywords: languages, faces
-;; Package-Version: 20170407.1140
-;; Last edit: 2005-01-06
-;; Version: 2.0 $Id: apache-mode.el 8264 2005-06-29 23:34:41Z quarl $
+;; Package-Version: 20170711.913
+;; Version: 2.1
 
 ;; apache-mode.el is free software; you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
@@ -85,9 +85,9 @@
 
   (set (make-local-variable 'font-lock-defaults)
        '(apache-font-lock-keywords nil t
-                                   ((?_ . "w")
-                                    (?- . "w"))
-                                   beginning-of-line)))
+                             ((?_ . "w")
+                              (?- . "w"))
+                             beginning-of-line)))
 
 ;; Font lock
 (defconst apache-font-lock-keywords
@@ -785,13 +785,13 @@
   "Expressions to highlight in Apache config buffers.")
 
 (defun apache-indent-line ()
-   "Indent current line of Apache code."
-   (interactive)
-   (let ((savep (> (current-column) (current-indentation)))
-	 (indent (max (apache-calculate-indentation) 0)))
-     (if savep
-	 (save-excursion (indent-line-to indent))
-       (indent-line-to indent))))
+  "Indent current line of Apache code."
+  (interactive)
+  (let ((savep (> (current-column) (current-indentation)))
+        (indent (max (apache-calculate-indentation) 0)))
+    (if savep
+        (save-excursion (indent-line-to indent))
+      (indent-line-to indent))))
 
 
 (defun apache-previous-indentation ()
@@ -818,13 +818,13 @@
             (setq indent (+ indent apache-indent-level)))
         indent))))
 
-;;;###autoload(add-to-list 'auto-mode-alist '("/\\.htaccess\\'"   . apache-mode))
-;;;###autoload(add-to-list 'auto-mode-alist '("/httpd\\.conf\\'"  . apache-mode))
-;;;###autoload(add-to-list 'auto-mode-alist '("/srm\\.conf\\'"    . apache-mode))
-;;;###autoload(add-to-list 'auto-mode-alist '("/access\\.conf\\'" . apache-mode))
-;;;###autoload(add-to-list 'auto-mode-alist '("/apache2/.+\\.conf\\'" . apache-mode))
-;;;###autoload(add-to-list 'auto-mode-alist '("/httpd/conf/.+\\.conf\\'" . apache-mode))
-;;;###autoload(add-to-list 'auto-mode-alist '("/apache2/sites-\\(?:available\\|enabled\\)/" . apache-mode))
+;;;###autoload
+(progn
+  (add-to-list 'auto-mode-alist '("/\\.htaccess\\'" . apache-mode))
+  (add-to-list 'auto-mode-alist '("/\\(?:access\\|httpd\\|srm\\)\\.conf\\'" . apache-mode))
+  (add-to-list 'auto-mode-alist '("/apache2/.+\\.conf\\'" . apache-mode))
+  (add-to-list 'auto-mode-alist '("/httpd/conf/.+\\.conf\\'" . apache-mode))
+  (add-to-list 'auto-mode-alist '("/apache2/sites-\\(?:available\\|enabled\\)/" . apache-mode)))
 
 (provide 'apache-mode)
 

@@ -10,12 +10,15 @@
 Major mode for editing Apache configuration files.
 
 \(fn)" t nil)
-(add-to-list 'auto-mode-alist '("/\\.htaccess\\'"   . apache-mode))
-(add-to-list 'auto-mode-alist '("/httpd\\.conf\\'"  . apache-mode))
-(add-to-list 'auto-mode-alist '("/srm\\.conf\\'"    . apache-mode))
-(add-to-list 'auto-mode-alist '("/access\\.conf\\'" . apache-mode))
+
+(add-to-list 'auto-mode-alist '("/\\.htaccess\\'" . apache-mode))
+
+(add-to-list 'auto-mode-alist '("/\\(?:access\\|httpd\\|srm\\)\\.conf\\'" . apache-mode))
+
 (add-to-list 'auto-mode-alist '("/apache2/.+\\.conf\\'" . apache-mode))
+
 (add-to-list 'auto-mode-alist '("/httpd/conf/.+\\.conf\\'" . apache-mode))
+
 (add-to-list 'auto-mode-alist '("/apache2/sites-\\(?:available\\|enabled\\)/" . apache-mode))
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "apache-mode" '("apache-")))
