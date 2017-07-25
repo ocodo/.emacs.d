@@ -4,8 +4,8 @@
 
 ;; Author: Masashı Mıyaura
 ;; URL: https://github.com/masasam/emacs-easy-hugo
-;; Package-Version: 20170531.216
-;; Version: 0.9.9
+;; Package-Version: 20170724.1123
+;; Version: 1.3.1
 ;; Package-Requires: ((emacs "24.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -397,6 +397,96 @@ Because only two are supported by hugo."
 (defvar easy-hugo--server-process nil
   "Hugo process.")
 
+(defvar easy-hugo--unmovable-line 10
+  "Impossible to move below this line.")
+
+(defvar easy-hugo--publish-timer nil
+  "Easy-hugo-publish-timer.")
+
+(defvar easy-hugo--basedir-timer nil
+  "Easy-hugo-basedir-timer.")
+
+(defvar easy-hugo--sshdomain-timer nil
+  "Easy-hugo-sshdomain-timer.")
+
+(defvar easy-hugo--root-timer nil
+  "Easy-hugo-root-timer.")
+
+(defvar easy-hugo--url-timer nil
+  "Easy-hugo-url-timer.")
+
+(defvar easy-hugo--github-deploy-timer nil
+  "Easy-hugo-github-deploy-timer.")
+
+(defvar easy-hugo--github-deploy-basedir-timer nil
+  "Easy-hugo-github-deploy-basedir-timer.")
+
+(defvar easy-hugo--github-deploy-url-timer nil
+  "Easy-hugo-github-deploy-url-timer.")
+
+(defvar easy-hugo--amazon-s3-timer nil
+  "Easy-hugo-amazon-s3-timer.")
+
+(defvar easy-hugo--amazon-s3-basedir-timer nil
+  "Easy-hugo-amazon-s3-basedir-timer.")
+
+(defvar easy-hugo--amazon-s3-url-timer nil
+  "Easy-hugo-amazon-s3-url-timer.")
+
+(defvar easy-hugo--amazon-s3-bucket-name-timer nil
+  "Easy-hugo-amazon-s3-bucket-name-timer.")
+
+(defvar easy-hugo--google-cloud-storage-timer nil
+  "Easy-hugo-google-cloud-storage-timer.")
+
+(defvar easy-hugo--google-cloud-storage-basedir-timer nil
+  "Easy-hugo-google-cloud-storage-basedir-timer.")
+
+(defvar easy-hugo--google-cloud-storage-url-timer nil
+  "Easy-hugo-google-cloud-storage-url-timer.")
+
+(defvar easy-hugo--google-cloud-storage-bucket-name-timer nil
+  "Easy-hugo-google-cloud-storage-bucket-name-timer.")
+
+(defvar easy-hugo--publish-basedir nil
+  "Easy-hugo-publish-var.")
+
+(defvar easy-hugo--publish-sshdomain nil
+  "Easy-hugo-publish-var.")
+
+(defvar easy-hugo--publish-root nil
+  "Easy-hugo-publish-var.")
+
+(defvar easy-hugo--publish-url nil
+  "Easy-hugo-publish-var.")
+
+(defvar easy-hugo--github-deploy-basedir nil
+  "Easy-hugo-github-deploy-var.")
+
+(defvar easy-hugo--github-deploy-url nil
+  "Easy-hugo-github-deploy-var.")
+
+(defvar easy-hugo--amazon-s3-basedir nil
+  "Easy-hugo-amazon-s3-var.")
+
+(defvar easy-hugo--amazon-s3-url nil
+  "Easy-hugo-amazon-s3-var.")
+
+(defvar easy-hugo--amazon-s3-bucket-name nil
+  "Easy-hugo-amazon-s3-var.")
+
+(defvar easy-hugo--google-cloud-storage-basedir nil
+  "Easy-hugo-google-cloud-storage-var.")
+
+(defvar easy-hugo--google-cloud-storage-url nil
+  "Easy-hugo-google-cloud-storage-var.")
+
+(defvar easy-hugo--google-cloud-storage-bucket-name nil
+  "Easy-hugo-google-cloud-storage-var.")
+
+(defconst easy-hugo--unmovable-line-default easy-hugo--unmovable-line
+  "Default value of impossible to move below this line.")
+
 (defconst easy-hugo--delete-line 11
   "Easy-hugo-delete line number.")
 
@@ -421,7 +511,7 @@ Because only two are supported by hugo."
 
 ;;;###autoload
 (defun easy-hugo-article ()
-  "Open a list of articles written in hugo."
+  "Open a list of articles written in hugo with dired."
   (interactive)
   (unless easy-hugo-basedir
     (error "Please set easy-hugo-basedir variable"))
@@ -458,6 +548,57 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
    (message "Blog published")
    (when easy-hugo-url
      (browse-url easy-hugo-url))))
+
+;;;###autoload
+(defun easy-hugo-publish-timer(n)
+  "A timer that publish after the specified number of minutes has elapsed."
+  (interactive "nMinute:")
+  (setq easy-hugo--basedir-timer easy-hugo-basedir)
+  (setq easy-hugo--sshdomain-timer easy-hugo-sshdomain)
+  (setq easy-hugo--root-timer easy-hugo-root)
+  (setq easy-hugo--url-timer easy-hugo-url)
+  (setq easy-hugo--publish-timer
+	(run-at-time (* n 60) nil #'easy-hugo-publish-on-timer)))
+
+;;;###autoload
+(defun easy-hugo-cancel-publish-timer()
+  "Cancel timer that publish after the specified number of minutes has elapsed."
+  (interactive)
+  (when easy-hugo--publish-timer
+    (cancel-timer easy-hugo--publish-timer)
+    (setq easy-hugo--publish-timer nil)
+    (message "Easy-hugo-publish-timer canceled")))
+
+(defun easy-hugo-publish-on-timer ()
+  "Adapt local change to the server with hugo on timer."
+  (setq easy-hugo--publish-basedir easy-hugo-basedir)
+  (setq easy-hugo-basedir easy-hugo--basedir-timer)
+  (setq easy-hugo--publish-sshdomain easy-hugo-sshdomain)
+  (setq easy-hugo-sshdomain easy-hugo--sshdomain-timer)
+  (setq easy-hugo--publish-root easy-hugo-root)
+  (setq easy-hugo-root easy-hugo--root-timer)
+  (setq easy-hugo--publish-url easy-hugo-url)
+  (setq easy-hugo-url easy-hugo--url-timer)
+  (unless easy-hugo-sshdomain
+    (error "Please set easy-hugo-sshdomain variable"))
+  (unless easy-hugo-root
+    (error "Please set easy-hugo-root variable"))
+  (unless (executable-find "rsync")
+    (error "'rsync' is not installed"))
+  (unless (file-exists-p "~/.ssh/config")
+    (error "There is no ~/.ssh/config"))
+  (easy-hugo-with-env
+   (when (file-directory-p "public")
+     (delete-directory "public" t nil))
+   (shell-command-to-string "hugo --destination public")
+   (shell-command-to-string (concat "rsync -rtpl --delete public/ " easy-hugo-sshdomain ":" (shell-quote-argument easy-hugo-root)))
+   (message "Blog published")
+   (when easy-hugo-url
+     (browse-url easy-hugo-url))
+   (setq easy-hugo-basedir easy-hugo--publish-basedir)
+   (setq easy-hugo-sshdomain easy-hugo--publish-sshdomain)
+   (setq easy-hugo-root easy-hugo--publish-root)
+   (setq easy-hugo-url easy-hugo--publish-url)))
 
 (defun easy-hugo--org-headers (file)
   "Return a draft org mode header string for a new article as FILE."
@@ -498,6 +639,14 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
      (goto-char (point-max))
      (save-buffer))))
 
+(defun easy-hugo--version ()
+  "Return the version of hugo."
+  (let ((source (split-string
+		 (with-temp-buffer
+		   (shell-command-to-string "hugo version"))
+		 " ")))
+    (substring (nth 4 source) 1)))
+
 ;;;###autoload
 (defun easy-hugo-preview ()
   "Preview hugo at localhost."
@@ -506,8 +655,11 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
    (if (process-live-p easy-hugo--server-process)
        (browse-url easy-hugo-preview-url)
      (progn
-       (setq easy-hugo--server-process
-	     (start-process "hugo-server" easy-hugo--preview-buffer "hugo" "server"))
+       (if (<= 0.25 (string-to-number (easy-hugo--version)))
+	   (setq easy-hugo--server-process
+	   	 (start-process "hugo-server" easy-hugo--preview-buffer "hugo" "server" "--navigateToChanged"))
+	 (setq easy-hugo--server-process
+	       (start-process "hugo-server" easy-hugo--preview-buffer "hugo" "server")))
        (browse-url easy-hugo-preview-url)
        (run-at-time easy-hugo-previewtime nil 'easy-hugo--preview-end)))))
 
@@ -524,7 +676,7 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
 
 ;;;###autoload
 (defun easy-hugo-github-deploy ()
-  "Execute deploy.sh script locate at 'easy-hugo-basedir'."
+  "Execute deploy.sh script locate at `easy-hugo-basedir'."
   (interactive)
   (easy-hugo-with-env
    (let ((deployscript (file-truename (concat easy-hugo-basedir "deploy.sh"))))
@@ -534,6 +686,41 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
      (message "Blog deployed")
      (when easy-hugo-url
        (browse-url easy-hugo-url)))))
+
+;;;###autoload
+(defun easy-hugo-github-deploy-timer(n)
+  "A timer that github-deploy after the specified number of minutes has elapsed."
+  (interactive "nMinute:")
+  (setq easy-hugo--github-deploy-basedir-timer easy-hugo-basedir)
+  (setq easy-hugo--github-deploy-url-timer easy-hugo-url)
+  (setq easy-hugo--github-deploy-timer
+	(run-at-time (* n 60) nil #'easy-hugo-github-deploy-on-timer)))
+
+;;;###autoload
+(defun easy-hugo-cancel-github-deploy-timer()
+  "Cancel timer that github-deploy after the specified number of minutes has elapsed."
+  (interactive)
+  (when easy-hugo--github-deploy-timer
+    (cancel-timer easy-hugo--github-deploy-timer)
+    (setq easy-hugo--github-deploy-timer nil)
+    (message "Easy-hugo-github-deploy-timer canceled")))
+
+(defun easy-hugo-github-deploy-on-timer ()
+  "Execute deploy.sh script on timer locate at `easy-hugo-basedir'."
+  (setq easy-hugo--github-deploy-basedir easy-hugo-basedir)
+  (setq easy-hugo-basedir easy-hugo--github-deploy-basedir-timer)
+  (setq easy-hugo--github-deploy-url easy-hugo-url)
+  (setq easy-hugo-url easy-hugo--github-deploy-url-timer)
+  (easy-hugo-with-env
+   (let ((deployscript (file-truename (concat easy-hugo-basedir "deploy.sh"))))
+     (unless (executable-find deployscript)
+       (error "%s do not execute" deployscript))
+     (shell-command-to-string (shell-quote-argument deployscript))
+     (message "Blog deployed")
+     (when easy-hugo-url
+       (browse-url easy-hugo-url))
+     (setq easy-hugo-basedir easy-hugo--github-deploy-basedir)
+     (setq easy-hugo-url easy-hugo--github-deploy-url))))
 
 ;;;###autoload
 (defun easy-hugo-amazon-s3-deploy ()
@@ -553,6 +740,49 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
      (browse-url easy-hugo-url))))
 
 ;;;###autoload
+(defun easy-hugo-amazon-s3-deploy-timer(n)
+  "A timer that amazon-s3-deploy after the specified number of minutes has elapsed."
+  (interactive "nMinute:")
+  (setq easy-hugo--amazon-s3-basedir-timer easy-hugo-basedir)
+  (setq easy-hugo--amazon-s3-url-timer easy-hugo-url)
+  (setq easy-hugo--amazon-s3-bucket-name-timer easy-hugo-amazon-s3-bucket-name)
+  (setq easy-hugo--amazon-s3-timer
+	(run-at-time (* n 60) nil #'easy-hugo-amazon-s3-deploy-on-timer)))
+
+;;;###autoload
+(defun easy-hugo-cancel-amazon-s3-deploy-timer()
+  "Cancel timer that amazon-s3-deploy after the specified number of minutes has elapsed."
+  (interactive)
+  (when easy-hugo--amazon-s3-timer
+    (cancel-timer easy-hugo--amazon-s3-timer)
+    (setq easy-hugo--amazon-s3-timer nil)
+    (message "Easy-hugo-amazon-s3-deploy-timer canceled")))
+
+(defun easy-hugo-amazon-s3-deploy-on-timer ()
+  "Deploy hugo source at Amazon S3 on timer."
+  (setq easy-hugo--amazon-s3-basedir easy-hugo-basedir)
+  (setq easy-hugo-basedir easy-hugo--amazon-s3-basedir-timer)
+  (setq easy-hugo--amazon-s3-url easy-hugo-url)
+  (setq easy-hugo-url easy-hugo--amazon-s3-url-timer)
+  (setq easy-hugo--amazon-s3-bucket-name easy-hugo-amazon-s3-bucket-name)
+  (setq easy-hugo-amazon-s3-bucket-name easy-hugo--amazon-s3-bucket-name-timer)
+  (easy-hugo-with-env
+   (unless (executable-find "aws")
+     (error "'aws' is not installed"))
+   (unless easy-hugo-amazon-s3-bucket-name
+     (error "Please set 'easy-hugo-amazon-s3-bucket-name' variable"))
+   (when (file-directory-p "public")
+     (delete-directory "public" t nil))
+   (shell-command-to-string "hugo --destination public")
+   (shell-command-to-string (concat "aws s3 sync --delete public s3://" easy-hugo-amazon-s3-bucket-name "/"))
+   (message "Blog deployed")
+   (when easy-hugo-url
+     (browse-url easy-hugo-url))
+   (setq easy-hugo-basedir easy-hugo--amazon-s3-basedir)
+   (setq easy-hugo-url easy-hugo--amazon-s3-url)
+   (setq easy-hugo-amazon-s3-bucket-name easy-hugo--amazon-s3-bucket-name)))
+
+;;;###autoload
 (defun easy-hugo-google-cloud-storage-deploy ()
   "Deploy hugo source at Google Cloud Storage."
   (interactive)
@@ -570,11 +800,54 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
      (browse-url easy-hugo-url))))
 
 ;;;###autoload
+(defun easy-hugo-google-cloud-storage-deploy-timer(n)
+  "A timer that google-cloud-storage-deploy after the specified number of minutes has elapsed."
+  (interactive "nMinute:")
+  (setq easy-hugo--google-cloud-storage-basedir-timer easy-hugo-basedir)
+  (setq easy-hugo--google-cloud-storage-url-timer easy-hugo-url)
+  (setq easy-hugo--google-cloud-storage-bucket-name-timer easy-hugo-google-cloud-storage-bucket-name)
+  (setq easy-hugo--google-cloud-storage-timer
+	(run-at-time (* n 60) nil #'easy-hugo-google-cloud-storage-deploy-on-timer)))
+
+;;;###autoload
+(defun easy-hugo-cancel-google-cloud-storage-deploy-timer()
+  "Cancel timer that google-cloud-storage-deploy after the specified number of minutes has elapsed."
+  (interactive)
+  (when easy-hugo--google-cloud-storage-timer
+    (cancel-timer easy-hugo--google-cloud-storage-timer)
+    (setq easy-hugo--google-cloud-storage-timer nil)
+    (message "Easy-hugo-google-cloud-storage-deploy-timer canceled")))
+
+(defun easy-hugo-google-cloud-storage-deploy-on-timer ()
+  "Deploy hugo source at Google Cloud Storage on timer."
+  (setq easy-hugo--google-cloud-storage-basedir easy-hugo-basedir)
+  (setq easy-hugo-basedir easy-hugo--google-cloud-storage-basedir-timer)
+  (setq easy-hugo--google-cloud-storage-url easy-hugo-url)
+  (setq easy-hugo-url easy-hugo--google-cloud-storage-url-timer)
+  (setq easy-hugo--google-cloud-storage-bucket-name easy-hugo-google-cloud-storage-bucket-name)
+  (setq easy-hugo-google-cloud-storage-bucket-name easy-hugo--google-cloud-storage-bucket-name-timer)
+  (easy-hugo-with-env
+   (unless (executable-find "gsutil")
+     (error "'Google Cloud SDK' is not installed"))
+   (unless easy-hugo-google-cloud-storage-bucket-name
+     (error "Please set 'easy-hugo-google-cloud-storage-bucket-name' variable"))
+   (when (file-directory-p "public")
+     (delete-directory "public" t nil))
+   (shell-command-to-string "hugo --destination public")
+   (shell-command-to-string (concat "gsutil -m rsync -d -r public gs://" easy-hugo-google-cloud-storage-bucket-name "/"))
+   (message "Blog deployed")
+   (when easy-hugo-url
+     (browse-url easy-hugo-url))
+   (setq easy-hugo-basedir easy-hugo--google-cloud-storage-basedir)
+   (setq easy-hugo-url easy-hugo--google-cloud-storage-url)
+   (setq easy-hugo-google-cloud-storage-bucket-name easy-hugo--google-cloud-storage-bucket-name)))
+
+;;;###autoload
 (defun easy-hugo-helm-ag ()
   "Search for blog article with helm-ag."
   (interactive)
   (easy-hugo-with-env
-   (if (featurep 'helm-ag)
+   (if (package-installed-p 'helm-ag)
        (helm-ag (expand-file-name easy-hugo-postdir easy-hugo-basedir))
      (error "'helm-ag' is not installed"))))
 
@@ -585,32 +858,32 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
   (easy-hugo-with-env
    (unless easy-hugo-basedir
      (error "Please set easy-hugo-basedir variable"))
-   (cond ((file-exists-p (concat easy-hugo-basedir "config.toml"))
-	  (find-file (concat easy-hugo-basedir "config.toml")))
-	 ((file-exists-p (concat easy-hugo-basedir "config.yaml"))
-	  (find-file (concat easy-hugo-basedir "config.yaml")))
-	 ((file-exists-p (concat easy-hugo-basedir "config.json"))
-	  (find-file (concat easy-hugo-basedir "config.json")))
+   (cond ((file-exists-p (expand-file-name "config.toml" easy-hugo-basedir))
+	  (find-file (expand-file-name "config.toml" easy-hugo-basedir)))
+	 ((file-exists-p (expand-file-name "config.yaml" easy-hugo-basedir))
+	  (find-file (expand-file-name "config.yaml" easy-hugo-basedir)))
+	 ((file-exists-p (expand-file-name "config.json" easy-hugo-basedir))
+	  (find-file (expand-file-name "config.json" easy-hugo-basedir)))
 	 (t (error "Hugo config file not found at %s" easy-hugo-basedir)))))
 
 (defconst easy-hugo--help
   (if (null easy-hugo-sort-default-char)
       (progn
-	"n ... New blog post    G ... Deploy GitHub Pages  S ... Sort character
-p ... Preview          g ... Refresh              A ... Deploy Amazon S3
-v ... Open view-mode   s ... Sort time            c ... Open config
-d ... Delete post      C ... Deploy GCP Storage   ? ... Help easy-hugo
-P ... Publish server   N ... No help-mode         a ... Search with helm-ag
-< ... Previous blog    > ... Next blog            q ... Quit easy-hugo
+	"n .. New blog post    R .. Rename file   G .. Deploy GitHub    O .. Open basedir
+p .. Preview          g .. Refresh       A .. Deploy AWS S3    S .. Sort character
+v .. Open view-mode   s .. Sort time     T .. Publish timer    N .. No help-mode
+d .. Delete post      c .. Open config   ? .. Help easy-hugo   L .. Deploy GCS timer
+P .. Publish server   C .. Deploy GCS    a .. Search helm-ag   H .. Deploy GitHub timer
+< .. Previous blog    > .. Next blog     q .. Quit easy-hugo   W .. Deploy AWS S3 timer
 
 ")
     (progn
-      "n ... New blog post    G ... Deploy GitHub Pages  S ... Sort time
-p ... Preview          g ... Refresh              A ... Deploy Amazon S3
-v ... Open view-mode   s ... Sort character       c ... Open config
-d ... Delete post      C ... Deploy GCP Storage   ? ... Help easy-hugo
-P ... Publish server   N ... No help-mode         a ... Search with helm-ag
-< ... Previous blog    > ... Next blog            q ... Quit easy-hugo
+      "n .. New blog post    R .. Rename file   G .. Deploy GitHub    O .. Open basedir
+p .. Preview          g .. Refresh       A .. Deploy AWS S3    s .. Sort character
+v .. Open view-mode   S .. Sort time     T .. Publish timer    N .. No help-mode
+d .. Delete post      c .. Open config   ? .. Help easy-hugo   L .. Deploy GCS timer
+P .. Publish server   C .. Deploy GCS    a .. Search helm-ag   H .. Deploy GitHub timer
+< .. Previous blog    > .. Next blog     q .. Quit easy-hugo   W .. Deploy AWS S3 timer
 
 "))
   "Help of easy-hugo.")
@@ -636,20 +909,32 @@ Enjoy!
     (define-key map "D" 'easy-hugo-article)
     (define-key map "p" 'easy-hugo-preview)
     (define-key map "P" 'easy-hugo-publish)
+    (define-key map "T" 'easy-hugo-publish-timer)
+    (define-key map "W" 'easy-hugo-amazon-s3-deploy-timer)
+    (define-key map "t" 'easy-hugo-cancel-publish-timer)
     (define-key map "o" 'easy-hugo-open)
     (define-key map "O" 'easy-hugo-open-basedir)
+    (define-key map "R" 'easy-hugo-rename)
     (define-key map "\C-m" 'easy-hugo-open)
     (put 'easy-hugo-open :advertised-binding "\C-m")
     (define-key map "d" 'easy-hugo-delete)
     (define-key map "e" 'easy-hugo-open)
     (define-key map "f" 'easy-hugo-open)
     (define-key map "N" 'easy-hugo-no-help)
-    (define-key map "j" 'next-line)
-    (define-key map "k" 'previous-line)
-    (define-key map "h" 'backward-char)
-    (define-key map "l" 'forward-char)
-    (define-key map " " 'next-line)
-    (define-key map [?\S-\ ] 'previous-line)
+    (define-key map "j" 'easy-hugo-next-line)
+    (define-key map "k" 'easy-hugo-previous-line)
+    (define-key map "h" 'easy-hugo-backward-char)
+    (define-key map "l" 'easy-hugo-forward-char)
+    (define-key map " " 'easy-hugo-next-line)
+    (define-key map [?\S-\ ] 'easy-hugo-previous-line)
+    (define-key map [remap next-line] 'easy-hugo-next-line)
+    (define-key map [remap previous-line] 'easy-hugo-previous-line)
+    (define-key map [remap forward-char] 'easy-hugo-forward-char)
+    (define-key map [remap backward-char] 'easy-hugo-backward-char)
+    (define-key map [remap beginning-of-buffer] 'easy-hugo-beginning-of-buffer)
+    (define-key map [remap backward-word] 'easy-hugo-backward-word)
+    (define-key map [right] 'easy-hugo-forward-char)
+    (define-key map [left] 'easy-hugo-backward-char)
     (define-key map "v" 'easy-hugo-view)
     (define-key map "r" 'easy-hugo-refresh)
     (define-key map "g" 'easy-hugo-refresh)
@@ -661,8 +946,13 @@ Enjoy!
 	(define-key map "S" 'easy-hugo-sort-time)
 	(define-key map "s" 'easy-hugo-sort-char)))
     (define-key map "G" 'easy-hugo-github-deploy)
+    (define-key map "H" 'easy-hugo-github-deploy-timer)
+    (define-key map "b" 'easy-hugo-cancel-github-deploy-timer)
     (define-key map "A" 'easy-hugo-amazon-s3-deploy)
+    (define-key map "m" 'easy-hugo-cancel-amazon-s3-deploy-timer)
     (define-key map "C" 'easy-hugo-google-cloud-storage-deploy)
+    (define-key map "L" 'easy-hugo-google-cloud-storage-deploy-timer)
+    (define-key map "i" 'easy-hugo-cancel-google-cloud-storage-deploy-timer)
     (define-key map "q" 'easy-hugo-quit)
     (define-key map "<" 'easy-hugo-previous-blog)
     (define-key map ">" 'easy-hugo-next-blog)
@@ -733,8 +1023,12 @@ Enjoy!
   "No help easy hugo."
   (interactive)
   (if easy-hugo-no-help
-      (setq easy-hugo-no-help nil)
-    (setq easy-hugo-no-help 1))
+      (progn
+	(setq easy-hugo-no-help nil)
+	(setq easy-hugo--unmovable-line easy-hugo--unmovable-line-default))
+    (progn
+      (setq easy-hugo-no-help 1)
+      (setq easy-hugo--unmovable-line 3)))
   (easy-hugo))
 
 (defun easy-hugo-refresh ()
@@ -763,8 +1057,75 @@ Enjoy!
     (setq easy-hugo--sort-char-flg 1))
   (easy-hugo))
 
+(defun easy-hugo-forward-char (arg)
+  "Forward-char as ARG."
+  (interactive "^p")
+  (when (not (eolp))
+    (forward-char (or arg 1))))
+
+(defun easy-hugo-backward-char (arg)
+  "Backward-char as ARG."
+  (interactive "^p")
+  (when (not (bolp))
+    (backward-char (or arg 1))))
+
+(defun easy-hugo-beginning-of-buffer ()
+  "Easy-hugo beginning-of-buffer."
+  (interactive)
+  (goto-char (point-min))
+  (forward-line (- easy-hugo--unmovable-line 1))
+  (forward-char easy-hugo--forward-char))
+
+(defun easy-hugo-backward-word (&optional arg)
+  "Easy-hugo backward-word as ARG."
+  (interactive "^p")
+  (forward-word (- (or arg 1)))
+  (if (< (line-number-at-pos) easy-hugo--unmovable-line)
+      (progn
+	(goto-char (point-min))
+	(forward-line (- easy-hugo--unmovable-line 1)))))
+
+(defun easy-hugo-next-line (arg)
+  "Move down lines then position at filename.
+Optional prefix ARG says how many lines to move; default is one line."
+  (interactive "^p")
+  (let ((line-move-visual)
+	(goal-column))
+    (line-move arg t))
+  (while (and (invisible-p (point))
+	      (not (if (and arg (< arg 0)) (bobp) (eobp))))
+    (forward-char (if (and arg (< arg 0)) -1 1)))
+  (beginning-of-line)
+  (forward-char easy-hugo--forward-char))
+
+(defun easy-hugo-previous-line (arg)
+  "Move up lines then position at filename.
+Optional prefix ARG says how many lines to move; default is one line."
+  (interactive "^p")
+  (when (>= (- (line-number-at-pos) arg) easy-hugo--unmovable-line)
+    (easy-hugo-next-line (- (or arg 1)))))
+
+(defun easy-hugo-rename (post-file)
+  "Renames file on the pointer to POST-FILE."
+  (interactive (list (read-from-minibuffer "Rename: " `(,easy-hugo-default-ext . 1) nil nil nil)))
+  (let ((filename (concat (replace-regexp-in-string (regexp-quote "content/") "" easy-hugo-postdir t t) "/" post-file))
+        (file-ext (file-name-extension post-file)))
+    (when (not (member file-ext easy-hugo--formats))
+      (error "Please enter .%s or .org or .%s or .rst or .mmark or .%s file name" easy-hugo-markdown-extension easy-hugo-asciidoc-extension easy-hugo-html-extension))
+    (easy-hugo-with-env
+     (when (file-exists-p (file-truename (concat "content/" filename)))
+       (error "%s already exists!" (concat easy-hugo-basedir "content/" filename)))
+     (unless (or (string-match "^$" (thing-at-point 'line))
+		 (eq (point) (point-max))
+		 (> (+ 1 easy-hugo--forward-char) (length (thing-at-point 'line))))
+       (let ((name (expand-file-name
+		    (concat easy-hugo-postdir "/" (substring (thing-at-point 'line) easy-hugo--forward-char -1))
+		    easy-hugo-basedir)))
+	 (rename-file name (concat "content/" filename) 1)
+	 (easy-hugo-refresh))))))
+
 (defun easy-hugo-open ()
-  "Open file."
+  "Open the file on the pointer."
   (interactive)
   (unless (or (string-match "^$" (thing-at-point 'line))
 	      (eq (point) (point-max))
@@ -777,12 +1138,12 @@ Enjoy!
 	(find-file file)))))
 
 (defun easy-hugo-open-basedir ()
-  "Open easy-hugo-basedir."
+  "Open `easy-hugo-basedir' with dired."
   (interactive)
   (switch-to-buffer (find-file-noselect easy-hugo-basedir)))
 
 (defun easy-hugo-view ()
-  "Open file with 'view-mode'."
+  "Open the file on the pointer with 'view-mode'."
   (interactive)
   (unless (or (string-match "^$" (thing-at-point 'line))
 	      (eq (point) (point-max))
@@ -795,7 +1156,7 @@ Enjoy!
 	(view-file file)))))
 
 (defun easy-hugo-delete ()
-  "Delete file."
+  "Delete the file on the pointer."
   (interactive)
   (unless (or (string-match "^$" (thing-at-point 'line))
 	      (eq (point) (point-max))
@@ -1114,7 +1475,13 @@ Enjoy!
 	   (insert (concat (car lists) "\n"))
 	   (pop lists))
 	 (goto-char easy-hugo--cursor)
-	 (unless easy-hugo--refresh
+	 (if easy-hugo--refresh
+	     (progn
+	       (when (< (line-number-at-pos) easy-hugo--unmovable-line)
+		 (goto-char (point-min))
+		 (forward-line (- easy-hugo--unmovable-line 1)))
+	       (beginning-of-line)
+	       (forward-char easy-hugo--forward-char))
 	   (forward-char easy-hugo--forward-char))
 	 (easy-hugo-mode))))))
 
