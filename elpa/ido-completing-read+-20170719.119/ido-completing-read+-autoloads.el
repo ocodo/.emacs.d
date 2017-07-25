@@ -4,8 +4,20 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "ido-completing-read+" "ido-completing-read+.el"
-;;;;;;  (22880 30425 0 0))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from ido-completing-read+.el
+
+(defvar ido-cr+-minibuffer-depth -1 "\
+Minibuffer depth of the most recent ido-cr+ activation.
+
+If this equals the current minibuffer depth, then the minibuffer
+is currently being used by ido-cr+, and ido-cr+ feature will be
+active. Otherwise, something else is using the minibuffer and
+ido-cr+ features will be deactivated to avoid interfering with
+the other command.
+
+This is set to -1 by default, since `(minibuffer-depth)' should
+never return this value.")
 
 (defvar ido-cr+-replace-completely nil "\
 If non-nil, replace `ido-completeing-read' completely with ido-cr+.
@@ -16,6 +28,9 @@ incompatibilities, please file a bug report at
 https://github.com/DarwinAwardWinner/ido-ubiquitous/issues")
 
 (custom-autoload 'ido-cr+-replace-completely "ido-completing-read+" t)
+
+(defsubst ido-cr+-active nil "\
+Returns non-nil if ido-cr+ is currently using the minibuffer." (>= ido-cr+-minibuffer-depth (minibuffer-depth)))
 
 (autoload 'ido-completing-read+ "ido-completing-read+" "\
 ido-based method for reading from the minibuffer with completion.
@@ -29,25 +44,23 @@ completion for them.
 
 \(fn PROMPT COLLECTION &optional PREDICATE REQUIRE-MATCH INITIAL-INPUT HIST DEF INHERIT-INPUT-METHOD)" nil nil)
 
-(defadvice ido-completing-read (around ido-cr+ activate) "\
-This advice is the implementation of `ido-cr+-replace-completely'." (when (not (featurep (quote ido-completing-read+))) (require (quote ido-completing-read+))) (if (or (ido-cr+-active) (not ido-cr+-replace-completely)) ad-do-it (setq ad-return-value (apply (function ido-completing-read+) (ad-get-args 0)))))
+(autoload 'ido-completing-read@ido-cr+-replace "ido-completing-read+" "\
+This advice allows ido-cr+ to coompletely replace `ido-completing-read'.
 
-(defadvice call-interactively (around ido-cr+-record-command-name activate) "\
-Record the command being interactively called.
+See the varaible `ido-cr+-replace-completely' for more information.
 
-See `ido-cr+-current-command'." (let ((ido-cr+-current-command (ad-get-arg 0))) ad-do-it))
+\(fn ORIG-FUN &rest ARGS)" nil nil)
 
-(defvar ido-context-switch-command nil "\
-Variable holding the command used for switching to another completion mode.
+(advice-add 'ido-completing-read :around #'ido-completing-read@ido-cr+-replace)
 
-This variable is originally declared in `ido.el', but it is not
-given a value (or a docstring). This documentation comes from a
-re-declaration in `ido-completing-read+.el' that initializes it
-to nil, which should suppress some byte-compilation warnings in
-Emacs 25. Setting another package's variable is not safe in
-general, but in this case it should be, because ido always
-let-binds this variable before using it, so the initial value
-shouldn't matter.")
+(autoload 'call-interactively@ido-cr+-record-current-command "ido-completing-read+" "\
+Let-bind the command being interactively called.
+
+See `ido-cr+-current-command' for more information.
+
+\(fn ORIG-FUN COMMAND &rest ARGS)" nil nil)
+
+(advice-add 'call-interactively :around #'call-interactively@ido-cr+-record-current-command)
 
 (defvar ido-ubiquitous-mode nil "\
 Non-nil if Ido-Ubiquitous mode is enabled.
@@ -67,6 +80,8 @@ when ido completion is or is not used by customizing
 `ido-cr+-function-blacklist'.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ido-completing-read+" '("ido-" "minibuf-eldef-update-minibuffer@ido-cr+-compat" "define-ido-internal-var")))
 
 ;;;***
 
