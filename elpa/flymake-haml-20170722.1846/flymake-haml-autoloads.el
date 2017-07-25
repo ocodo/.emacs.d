@@ -1,10 +1,9 @@
 ;;; flymake-haml-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads (flymake-haml-load) "flymake-haml" "flymake-haml.el"
-;;;;;;  (20814 63538 0 0))
+;;;### (autoloads nil "flymake-haml" "flymake-haml.el" (0 0 0 0))
 ;;; Generated autoloads from flymake-haml.el
 
 (autoload 'flymake-haml-load "flymake-haml" "\
@@ -16,18 +15,13 @@ does not alter flymake's global configuration, so function
 
 \(fn)" t nil)
 
-;;;***
-
-;;;### (autoloads nil nil ("flymake-haml-pkg.el") (20814 63538 130739
-;;;;;;  0))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flymake-haml" '("flymake-haml-")))
 
 ;;;***
 
-(provide 'flymake-haml-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
-;; coding: utf-8
 ;; End:
 ;;; flymake-haml-autoloads.el ends here
