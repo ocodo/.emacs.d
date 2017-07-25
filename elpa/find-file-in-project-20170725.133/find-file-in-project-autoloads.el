@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (22873 40294 0 0))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from find-file-in-project.el
 
 (autoload 'ffip-diff-backend-git-show-commit "find-file-in-project" "\
@@ -84,8 +84,10 @@ directory they are found in so that they are unique.
 
 If KEYWORD is string, it's the file name or file path to find file.
 If KEYWORD is list, it's the list of file names.
+IF IS-FINDING-DIRECTORY is t, we are searching directories, else files.
+DIRECTORY-TO-SEARCH specify the root directory to search.
 
-\(fn KEYWORD FIND-DIRECTORY)" nil nil)
+\(fn KEYWORD IS-FINDING-DIRECTORY &optional DIRECTORY-TO-SEARCH)" nil nil)
 
 (autoload 'ffip-find-files "find-file-in-project" "\
 The API to find files.
@@ -202,14 +204,13 @@ Show the diff output by excuting selected `ffip-diff-backends.
 \(fn)" t nil)
 
 (autoload 'ffip-diff-apply-hunk "find-file-in-project" "\
-Apply current hunk in `diff-mode'. Try to locate the file to patch
-from `recentf-list'. If nothing is found in `recentf-list', user need
-specify the file path.
-It's same as `diff-apply-hunk' except it can find file in `recentf-list'.
-So `diff-apply-hunk' can be replaced by `ffip-diff-apply-hunk'.
+Apply current hunk in `diff-mode'. Try to locate the file to patch.
+It's similar to `diff-apply-hunk' except it find file by `ffip-project-root'.
 Please read documenation of `diff-apply-hunk' to get more details.
 
 \(fn &optional REVERSE)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "find-file-in-project" '("ffip-")))
 
 ;;;***
 
