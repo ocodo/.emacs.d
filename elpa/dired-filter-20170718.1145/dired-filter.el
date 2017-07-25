@@ -5,7 +5,7 @@
 ;; Author: Matúš Goljer <matus.goljer@gmail.com>
 ;; Maintainer: Matúš Goljer <matus.goljer@gmail.com>
 ;; Keywords: files
-;; Package-Version: 20161009.530
+;; Package-Version: 20170718.1145
 ;; Version: 0.0.2
 ;; Created: 14th February 2014
 ;; Package-requires: ((dash "2.10.0") (dired-hacks-utils "0.0.1") (f "0.17.0") (cl-lib "0.3"))
@@ -954,18 +954,34 @@ filter."))
 ;;;###autoload (autoload 'dired-filter-by-name "dired-filter")
 ;;;###autoload (autoload 'dired-filter-mark-by-name "dired-filter")
 (dired-filter-define name
-    "Toggle current view to files matching QUALIFIER."
+    "Toggle current view to files matching QUALIFIER.
+
+The matching uses smart-case convention: match is
+case-insensitive if the QUALIFIER does not contain upper-case
+letter, otherwise it is case-sensitive."
   (:description "name"
    :reader (regexp-quote (read-string "Pattern: ")))
-  (string-match-p qualifier file-name))
+  (let ((case-fold-search nil))
+    (if (string-match-p "[A-Z]" qualifier)
+        (string-match-p qualifier file-name)
+      (let ((case-fold-search t))
+        (string-match-p qualifier file-name)))))
 
 ;;;###autoload (autoload 'dired-filter-by-regexp "dired-filter")
 ;;;###autoload (autoload 'dired-filter-mark-by-regexp "dired-filter")
 (dired-filter-define regexp
-    "Toggle current view to files matching QUALIFIER as a regular expression."
+    "Toggle current view to files matching QUALIFIER as a regular expression.
+
+The matching uses smart-case convention: match is
+case-insensitive if the QUALIFIER does not contain upper-case
+letter, otherwise it is case-sensitive."
   (:description "regexp"
    :reader (read-regexp "Regexp: " ))
-  (string-match-p qualifier file-name))
+  (let ((case-fold-search nil))
+    (if (string-match-p "[A-Z]" qualifier)
+        (string-match-p qualifier file-name)
+      (let ((case-fold-search t))
+        (string-match-p qualifier file-name)))))
 
 ;;;###autoload (autoload 'dired-filter-by-extension "dired-filter")
 ;;;###autoload (autoload 'dired-filter-mark-by-extension "dired-filter")
