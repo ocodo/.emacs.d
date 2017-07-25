@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "window-purpose" "window-purpose.el" (22533
-;;;;;;  41800 0 0))
+;;;### (autoloads nil "window-purpose" "window-purpose.el" (0 0 0
+;;;;;;  0))
 ;;; Generated autoloads from window-purpose.el
 
 (defvar purpose-mode nil "\
@@ -22,10 +22,12 @@ Toggle Purpose mode on or off according to the regular rules.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "window-purpose" '("purpose-" "switch-buffer-" "find-file-")))
+
 ;;;***
 
 ;;;### (autoloads nil "window-purpose-configuration" "window-purpose-configuration.el"
-;;;;;;  (22533 41800 0 0))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from window-purpose-configuration.el
 
 (autoload 'purpose-set-extension-configuration "window-purpose-configuration" "\
@@ -46,10 +48,12 @@ done.
 
 \(fn EXT-KEYWORD CONFIG)" nil nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "window-purpose-configuration" '("purpose-" "define-purpose-list-checker")))
+
 ;;;***
 
 ;;;### (autoloads nil "window-purpose-core" "window-purpose-core.el"
-;;;;;;  (22533 41800 0 0))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from window-purpose-core.el
 
 (autoload 'purpose-toggle-window-buffer-dedicated "window-purpose-core" "\
@@ -58,10 +62,20 @@ WINDOW defaults to the selected window.
 
 \(fn &optional WINDOW)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "window-purpose-core" '("purpose-" "default-purpose")))
+
+;;;***
+
+;;;### (autoloads nil "window-purpose-fixes" "window-purpose-fixes.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from window-purpose-fixes.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "window-purpose-fixes" '("purpose-" "compilation-next-error-function")))
+
 ;;;***
 
 ;;;### (autoloads nil "window-purpose-layout" "window-purpose-layout.el"
-;;;;;;  (22533 41800 0 0))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from window-purpose-layout.el
 
 (autoload 'purpose-save-window-layout-file "window-purpose-layout" "\
@@ -145,10 +159,20 @@ the right purpose in it, or creating a dummy buffer.
 
 \(fn PURPOSE &optional DONT-DEDICATE)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "window-purpose-layout" '("purpose-")))
+
+;;;***
+
+;;;### (autoloads nil "window-purpose-prefix-overload" "window-purpose-prefix-overload.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from window-purpose-prefix-overload.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "window-purpose-prefix-overload" '("define-purpose-prefix-overload" "purpose--")))
+
 ;;;***
 
 ;;;### (autoloads nil "window-purpose-switch" "window-purpose-switch.el"
-;;;;;;  (22533 41800 0 0))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from window-purpose-switch.el
 
 (autoload 'purpose-switch-buffer "window-purpose-switch" "\
@@ -212,10 +236,20 @@ current buffer's purpose.
 
 \(fn &optional PURPOSE)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "window-purpose-switch" '("pop-to-buffer" "purpose-" "without-purpose" "switch-to-buffer" "display-buffer")))
+
 ;;;***
 
-;;;### (autoloads nil "window-purpose-x" "window-purpose-x.el" (22533
-;;;;;;  41800 0 0))
+;;;### (autoloads nil "window-purpose-utils" "window-purpose-utils.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from window-purpose-utils.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "window-purpose-utils" '("purpose-" "define-purpose-compatible-advice")))
+
+;;;***
+
+;;;### (autoloads nil "window-purpose-x" "window-purpose-x.el" (0
+;;;;;;  0 0 0))
 ;;; Generated autoloads from window-purpose-x.el
 
 (autoload 'purpose-x-code1-setup "window-purpose-x" "\
@@ -312,11 +346,11 @@ This is implemented by overriding `replace-buffer-in-windows' with
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "window-purpose-x" '("purpose-x-" "replace-buffer-in-windows")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("window-purpose-fixes.el" "window-purpose-pkg.el"
-;;;;;;  "window-purpose-prefix-overload.el" "window-purpose-utils.el")
-;;;;;;  (22533 41800 0 0))
+;;;### (autoloads nil nil ("window-purpose-pkg.el") (0 0 0 0))
 
 ;;;***
 
