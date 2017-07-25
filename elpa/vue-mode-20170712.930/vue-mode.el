@@ -4,7 +4,7 @@
 
 ;; Author: codefalling <code.falling@gmail.com>
 ;; Keywords: languages
-;; Package-Version: 20170706.1942
+;; Package-Version: 20170712.930
 
 ;; Version: 0.2
 ;; Package-Requires: ((mmm-mode "0.5.4") (vue-html-mode "0.1") (ssass-mode "0.1"))
@@ -44,11 +44,14 @@
     (:type template :name html :mode vue-html-mode)
     (:type template :name jade :mode jade-mode)
     (:type template :name pug :mode pug-mode)
+    (:type template :name slm :mode slim-mode)
+    (:type template :name slim :mode slim-mode)
     (:type script :name nil :mode js-mode)
     (:type script :name js :mode js-mode)
     (:type script :name es6 :mode js-mode)
     (:type script :name babel :mode js-mode)
     (:type script :name coffee :mode coffee-mode)
+    (:type script :name ts :mode typescript-mode)
     (:type script :name typescript :mode typescript-mode)
     (:type style :name nil :mode css-mode)
     (:type style :name css :mode css-mode)
@@ -94,6 +97,8 @@
 
 ;;;###autoload
 (setq mmm-global-mode 'maybe)
+
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.vue\\'" . vue-mode))
 
 (provide 'vue-mode)
