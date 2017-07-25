@@ -2,10 +2,11 @@
 
 ;; Copyright 2013 Kris Jenkins
 
+;; License: GNU General Public License version 3, or (at your option) any later version
 ;; Author: Kris Jenkins <krisajenkins@gmail.com>
 ;; Maintainer: Kris Jenkins <krisajenkins@gmail.com>
 ;; Keywords: lisp languages
-;; Package-Version: 20130828.719
+;; Package-Version: 20170720.1217
 ;; URL: https://github.com/krisajenkins/lispyscript-mode
 ;; Created: 16th April 2013
 ;; Version: 0.3.6
