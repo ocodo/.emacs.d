@@ -1,4 +1,4 @@
-(define-package "ycmd" "20170622.146" "emacs bindings to the ycmd completion server"
+(define-package "ycmd" "20170723.1458" "emacs bindings to the ycmd completion server"
   '((emacs "24.4")
     (dash "2.13.0")
     (s "1.11.0")
