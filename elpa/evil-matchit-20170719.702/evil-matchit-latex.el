@@ -1,6 +1,6 @@
-;;; evil-matchit-c.el --c like language (c/c++/perl/java/javascript) plugin of evil-matchit
+;;; evil-matchit-latex.el ---latex plugin of evil-matchit
 
-;; Copyright (C) 2014-2016 Chen Bin <chenbin.sh@gmail.com>
+;; Copyright (C) 2014-2017 Chen Bin <chenbin.sh@gmail.com>
 
 ;; Author: Chen Bin <chenbin.sh@gmail.com>
 
@@ -27,23 +27,26 @@
 ;;; Code:
 (require 'evil-matchit-sdk)
 
-;; ruby/bash/lua/vimrc
-(defvar evilmi-c-match-tags
-  '((("# *ifdef" "# *ifndef" "# *if") ("# *elif" "# *else")  "# *endif" "MONOGAMY")
-    ("switch" "case" "default" "MONOGAMY")
+(defvar evilmi-latex-extract-keyword-howtos
+  '(("\\\\\\([a-zA-Z]+\\(\{[a-zA-Z0-9+*_-]+\}\\)?\\)" 1)
     ))
+;; (defvar evilmi-latex-regexp "\\\\\\([a-zA-Z]+\\(\{[a-zA-Z0-9+*_-]+\}\\)?\\)")
 
-(defvar evilmi-c-extract-keyword-howtos
-  '(("^[ \t]*\\(# *[a-z]+\\)" 1)
-    ("^[ \t]*\\([a-z]+\\)\\([ (:].*\\| *\\)$" 1)
+(defvar evilmi-latex-match-tags
+  '((("if[a-zA-Z]+" "if") "else" "fi" "MONOGAMY")
+    ("left" nil "right" "MONOGAMY")
+    ("begin[a-z]+" nil "end[a-z]+")
+    ("begin\{[a-zA-Z0-9+*_-]+\}" nil "end\{[a-zA-Z0-9+*_-]+\}")
     ))
 
 ;;;###autoload
-(defun evilmi-c-get-tag ()
-  (evilmi-sdk-get-tag evilmi-c-match-tags evilmi-c-extract-keyword-howtos))
+(defun evilmi-latex-get-tag ()
+  (let (rlt)
+    (setq rlt (evilmi-sdk-get-tag evilmi-latex-match-tags evilmi-latex-extract-keyword-howtos))
+    rlt))
 
 ;;;###autoload
-(defun evilmi-c-jump (rlt NUM)
-  (evilmi-sdk-jump rlt NUM evilmi-c-match-tags evilmi-c-extract-keyword-howtos))
+(defun evilmi-latex-jump (rlt NUM)
+  (evilmi-sdk-jump rlt NUM evilmi-latex-match-tags evilmi-latex-extract-keyword-howtos))
 
-(provide 'evil-matchit-c)
+(provide 'evil-matchit-latex)

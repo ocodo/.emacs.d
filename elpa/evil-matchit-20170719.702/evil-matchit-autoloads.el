@@ -196,6 +196,41 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 
 ;;;***
 
+;;;### (autoloads nil "evil-matchit-markdown" "evil-matchit-markdown.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from evil-matchit-markdown.el
+
+(autoload 'evilmi-markdown-get-tag "evil-matchit-markdown" "\
+Get current tag.
+Return (list start-position tag).
+
+\(fn)" nil nil)
+
+(autoload 'evilmi-markdown-jump "evil-matchit-markdown" "\
+Jump to the next tag.
+
+\(fn INFO NUM)" nil nil)
+
+;;;***
+
+;;;### (autoloads nil "evil-matchit-ocaml" "evil-matchit-ocaml.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from evil-matchit-ocaml.el
+
+(autoload 'evilmi-ocaml-get-tag "evil-matchit-ocaml" "\
+Return information of current tag: (list position-of-word word).
+
+\(fn)" nil nil)
+
+(autoload 'evilmi-ocaml-jump "evil-matchit-ocaml" "\
+
+
+\(fn RLT NUM)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-ocaml" '("evilmi-ocaml-")))
+
+;;;***
+
 ;;;### (autoloads nil "evil-matchit-org" "evil-matchit-org.el" (0
 ;;;;;;  0 0 0))
 ;;; Generated autoloads from evil-matchit-org.el
