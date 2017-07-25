@@ -2,7 +2,7 @@
 
 ;; Author: John Andrews
 ;; URL: http://github.com/jxa/pivotal-tracker
-;; Package-Version: 20161028.618
+;; Package-Version: 20170720.816
 ;; Created: 2010.11.14
 ;; Version: 1.3.1
 
@@ -34,7 +34,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 (require 'xml)
 (require 'url)
 (require 'json)
@@ -547,7 +547,7 @@ ESTIMATE the story points estimation."
 
 (defun assert-pivotal-api-token ()
   "Notify the user if the `pivotal-api-token' is not set."
-  (assert (not (string-equal "" pivotal-api-token)) nil "Please set pivotal-api-token: M-x customize-group RET pivotal RET"))
+  (cl-assert (not (string-equal "" pivotal-api-token)) nil "Please set pivotal-api-token: M-x customize-group RET pivotal RET"))
 
 (defun pivotal-get-xml-from-current-buffer ()
   "Get Pivotal API XML from the current buffer."
