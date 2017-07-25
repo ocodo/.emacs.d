@@ -4,7 +4,7 @@
 
 ;; Author: Rustem Muslimov <r.muslimov@gmail.com>
 ;; Keywords: jenkins, convenience
-;; Package-Version: 20160903.1556
+;; Package-Version: 20170721.236
 ;; Package-Requires: ((dash "2.12") (emacs "24.3") (json "1.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -37,7 +37,7 @@
 (require 'json)
 
 (defconst jenkins-buffer-name
-  "*jenkins-status*"
+  "*jenkins: status*"
   "Name of jenkins buffer.")
 
 (defvar jenkins-mode-map
@@ -115,7 +115,11 @@
 
 (defun get-jenkins-url ()
   "This function is for backward compatibility."
-  (or jenkins-url jenkins-hostname))
+  (let ((url (or jenkins-url jenkins-hostname)))
+    ;; Ensure URL ends with /.
+    (if (string-match-p (rx "/" string-end) url)
+        url
+      (concat url "/"))))
 
 
 (defvar *jenkins-jobs-list*
@@ -306,7 +310,7 @@
     (let* (
          (job-url (jenkins-job-url jobname))
          (raw-data (jenkins--retrieve-page-as-json job-url))
-         (builds (-map #'convert-item (vector-take 25 (cdar raw-data))))
+         (builds (-map #'convert-item (vector-take 25 (alist-get 'builds raw-data))))
          (latestSuccessful
           (caar (--filter (equal (plist-get (cdr it) :result) "SUCCESS") builds)))
          (latestFailed
@@ -397,7 +401,7 @@
   "Open JOBNAME details screen."
   (interactive)
   (setq jenkins-local-jobs-shown t)
-  (let ((details-buffer-name (format "*%s details*" jobname)))
+  (let ((details-buffer-name (format "*jenkins: %s details*" jobname)))
     (switch-to-buffer details-buffer-name)
     (jenkins-job-render jobname)
     (jenkins-job-view-mode)))
@@ -482,8 +486,9 @@
   "Initialize jenkins buffer."
   (interactive)
   (jenkins--setup-variables)
-  (switch-to-buffer-other-window jenkins-buffer-name)
-  (erase-buffer)
+  (pop-to-buffer jenkins-buffer-name)
+  (let ((inhibit-read-only t))
+    (erase-buffer))
   (setq buffer-read-only t)
   (jenkins-mode))
 
