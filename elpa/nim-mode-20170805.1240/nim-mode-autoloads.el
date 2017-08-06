@@ -56,9 +56,10 @@ Setup.
 ;;; Generated autoloads from nim-compile.el
 
 (autoload 'nim-compile "nim-compile" "\
-Compile and execute the current buffer as a nim file.  All output is writton into the *compilation* buffer.
+Compile and execute the current buffer as a nim file.
+All output is written into the *nim-compile* buffer.
 
-\(fn)" t nil)
+\(fn &optional COMMAND)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nim-compile" '("nim-")))
 
@@ -179,7 +180,7 @@ instead.  The default regex’s matching word is [Package].
 
 (add-to-list 'auto-mode-alist '("\\.nim\\(ble\\|s\\)\\'" . nimscript-mode-maybe))
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nimscript-mode" '("nimscirpt-mode-syntax-table")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "nimscript-mode" '("nimscript-mode-syntax-table")))
 
 ;;;***
 

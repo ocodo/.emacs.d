@@ -53,7 +53,6 @@
 (require 'nim-smie)
 (require 'paren) ; for ‘show-paren-data-function’
 (require 'nim-fill)
-(require 'nim-compile)
 (require 'commenter)
 
 (put 'nim-mode 'font-lock-defaults '(nim-font-lock-keywords nil t))
@@ -132,7 +131,9 @@
 
   ;; Because indentation is not redundant, we cannot safely reindent code.
   (setq-local electric-indent-inhibit t)
-  (setq-local electric-indent-chars '(?: ?\s))
+  ;; ?\C-m ?\C-j: needed for `electric-indent-mode' to activate `newline-and-indent'
+  ;; by Return/Enter key.
+  (setq-local electric-indent-chars '(?: ?\s ?\C-m ?\C-j))
   (when electric-indent-mode
     (define-key nim-mode-map [remap delete-backward-char] 'nim-electric-backspace)))
 
@@ -312,24 +313,6 @@ Argument ARG is ignored."
    nil))
 
 
-;; enable the regular for nim error messages in compilation buffers
-(add-to-list 'compilation-error-regexp-alist 'nim)
-
-;; \\( \\) groups sub expression
-;; \\(?: \\) group with no backreference (required to apply ? or \\| on more than a single char)
-;; 1 index of subexpression for file
-;; 2 index of subexpression for line number
-;; 3 index of subexpression for column number
-;; (4 . 5) weird emacs magic to detect type of message
-;; when optional subgroup 4 matches, it is a warning
-;; when optional subgroup 5 matches, it is just a message
-;; when none of them match, it is an error
-;; when you want to develop a regular expression, do it with re-builder (very helpful)
-
-;; add the regular expression to the list of available regular expressions with the symbol nim
-(add-to-list
- 'compilation-error-regexp-alist-alist
- '(nim "^\\([[:alnum:]\\/_.-]*\\.nims?\\)(\\([[:digit:]]*\\)\\(?:, ?\\([[:digit:]]*\\)\\)?)\\( \\(?:Warning\\)\\|\\(?:Hint\\):\\)?\\(template/generic instantiation from here\\)?\\(?: Error\\)?" 1 2 3 (4 . 5)))
 ;; capf
 (autoload 'nim-capf-setup "nim-capf")
 
