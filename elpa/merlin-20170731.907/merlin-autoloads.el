@@ -15,7 +15,7 @@ Short cuts:
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "merlin" '("merlin" "lookup-default" "bounds-of-ocaml-atom-at-point")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "merlin" '("merlin" "bounds-of-ocaml-atom-at-point")))
 
 ;;;***
 
@@ -46,13 +46,6 @@ Short cuts:
 
 ;;;***
 
-;;;### (autoloads nil "merlin-compat" "merlin-compat.el" (0 0 0 0))
-;;; Generated autoloads from merlin-compat.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "merlin-compat" '("merlin")))
-
-;;;***
-
 ;;;### (autoloads nil "merlin-iedit" "merlin-iedit.el" (0 0 0 0))
 ;;; Generated autoloads from merlin-iedit.el
 
@@ -63,7 +56,7 @@ Short cuts:
 ;;;### (autoloads nil "merlin-imenu" "merlin-imenu.el" (0 0 0 0))
 ;;; Generated autoloads from merlin-imenu.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "merlin-imenu" '("merlin-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "merlin-imenu" '("module-list" "misc-list" "merlin-" "parse-outline-" "class-list" "label-list" "exception-list" "type-list" "value-list")))
 
 ;;;***
 

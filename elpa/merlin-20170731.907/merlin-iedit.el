@@ -7,7 +7,7 @@
 ;; Created: 27 June 2014
 ;; Version: 0.1
 ;; Keywords: ocaml languages
-;; URL: http://github.com/the-lambda-church/merlin
+;; URL: http://github.com/ocaml/merlin
 
 (require 'iedit)
 
@@ -39,17 +39,17 @@
 (defun merlin-iedit-occurrences ()
   "Edit occurrences of identifier under cursor using `iedit'"
   (interactive)
-  (merlin/sync)
-  (let* ((pos (merlin/unmake-point (point)))
-         (r (merlin/send-command `(occurrences ident at ,pos))))
-    (when r
-      (if (listp r)
-          (flet ((iedit-printable (a)
-                   (merlin-iedit--printable))
-                 (iedit-make-occurrences-overlays (a b c)
-                   (merlin-iedit--make-occurrences-overlays a)))
-            (iedit-start r (point-min) (point-max)))
-        (message r)))))
+  (if (bound-and-true-p iedit-mode) (iedit-mode -1)
+    (let ((r (merlin/call "occurrences"
+                          "-identifier-at" (merlin/unmake-point (point)))))
+      (when r
+        (if (listp r)
+            (flet ((iedit-printable (a)
+                     (merlin-iedit--printable))
+                   (iedit-make-occurrences-overlays (a b c)
+                     (merlin-iedit--make-occurrences-overlays a)))
+              (iedit-start r (point-min) (point-max)))
+          (message r))))))
 
 (provide 'merlin-iedit)
 ;;; merlin.el ends here
