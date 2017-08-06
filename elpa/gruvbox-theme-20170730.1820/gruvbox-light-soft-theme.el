@@ -1,4 +1,4 @@
-;;; gruvbox-light-hard-theme.el --- A retro-groove colour theme for Emacs
+;;; gruvbox-light-soft-theme.el --- A retro-groove colour theme for Emacs
 
 ;; Copyright (c) 2013 Lee Machin
 ;; Copyright (c) 2013-2016 Greduan
@@ -51,19 +51,19 @@
 (require 'gruvbox)
 
 (gruvbox-deftheme
- gruvbox-light-hard
- "A retro-groove colour theme (light version, hard contrast)"
+ gruvbox-light-soft
+ "A retro-groove colour theme (light version)"
 
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
 
   (gruvbox-dark0_hard      "#f9f5d7" "#ffffd7")
-  (gruvbox-dark0           "#fbf1c7" "#ffffaf")
-  (gruvbox-dark0_soft      "#f2e5bc" "#ffffaf")
-  (gruvbox-dark1           "#ebdbb2" "#ffdfaf")
-  (gruvbox-dark2           "#d5c4a1" "#bcbcbc")
-  (gruvbox-dark3           "#bdae93" "#a8a8a8")
-  (gruvbox-dark4           "#a89984" "#949494")
+  (gruvbox-dark0           "#fbf1c7" "#ffffd7")
+  (gruvbox-dark0_soft      "#f2e5bc" "#ffffd7")
+  (gruvbox-dark1           "#ebdbb2" "#ffffaf")
+  (gruvbox-dark2           "#d5c4a1" "#d7d6af")
+  (gruvbox-dark3           "#bdae93" "#afaf87")
+  (gruvbox-dark4           "#a89984" "#afafaf")
 
   (gruvbox-gray            "#928374" "#8a8a8a")
 
@@ -116,9 +116,9 @@
   (gruvbox-aquamarine4     "#83A598" "#87af87")
   (gruvbox-turquoise4      "#61ACBB" "#5fafaf")
 
-  (gruvbox-bg gruvbox-dark0_hard))
+  (gruvbox-bg gruvbox-dark0_soft))
 
- (custom-theme-set-variables 'gruvbox-light-hard
+ (custom-theme-set-variables 'gruvbox-light-soft
                              `(ansi-color-names-vector
                                [,gruvbox-dark1
                                 ,gruvbox-neutral_red
@@ -136,10 +136,10 @@
                   (file-name-as-directory
                    (file-name-directory load-file-name))))
 
-(provide-theme 'gruvbox-light-hard)
+(provide-theme 'gruvbox-light-soft)
 
 ;; Local Variables:
 ;; eval: (when (fboundp 'rainbow-mode) (rainbow-mode +1))
 ;; End:
 
-;;; gruvbox-light-hard-theme.el ends here
+;;; gruvbox-light-theme.el ends here
