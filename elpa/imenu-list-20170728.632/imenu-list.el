@@ -3,8 +3,8 @@
 ;; Copyright (C) 2015-2017 Bar Magal & Contributors
 
 ;; Author: Bar Magal (2015)
-;; Version: 0.7
-;; Package-Version: 20170215.125
+;; Version: 0.8
+;; Package-Version: 20170728.632
 ;; Homepage: https://github.com/bmag/imenu-list
 ;; Package-Requires: ((cl-lib "0.5"))
 
@@ -279,6 +279,14 @@ function)."
 
 ;;; goto entries
 
+(defcustom imenu-list-after-jump-hook '(recenter)
+  "Hook to run after jumping to an entry from the imenu-list buffer.
+This hook is ran also when the focus remains on the imenu-list
+buffer, or in other words: this hook is ran by both
+`imenu-list-goto-entry' and `imenu-list-display-entry'."
+  :group 'imenu-list
+  :type 'hook)
+
 (defun imenu-list--find-entry ()
   "Find in `imenu-list--line-entries' the entry in the current line."
   (nth (1- (line-number-at-pos)) imenu-list--line-entries))
@@ -289,6 +297,7 @@ function)."
   (let ((entry (imenu-list--find-entry)))
     (pop-to-buffer imenu-list--displayed-buffer)
     (imenu entry)
+    (run-hooks 'imenu-list-after-jump-hook)
     (imenu-list--show-current-entry)))
 
 (defun imenu-list-display-entry ()
@@ -298,6 +307,7 @@ function)."
     (save-selected-window
       (pop-to-buffer imenu-list--displayed-buffer)
       (imenu entry)
+      (run-hooks 'imenu-list-after-jump-hook)
       (imenu-list--show-current-entry))))
 
 (defalias 'imenu-list-<=
@@ -386,7 +396,7 @@ Either 'right, 'left, 'above or 'below. This value is passed directly to
 Resizing the width works only for emacs 24.4 and newer.  Resizing the
 height doesn't suffer that limitation."
   :group 'imenu-list
-  :type 'hook)
+  :type 'boolean)
 
 (defcustom imenu-list-update-hook nil
   "Hook to run after updating the imenu-list buffer."
@@ -602,10 +612,20 @@ ARG is ignored."
 
 (defvar imenu-list--timer nil)
 
+(defcustom imenu-list-idle-update-delay idle-update-delay
+  "Idle time delay before automatically updating the imenu-list buffer."
+  :group 'imenu-list
+  :type 'number
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (prog1 (set-default sym val)
+           (when imenu-list--timer (imenu-list-start-timer)))))
+
 (defun imenu-list-start-timer ()
   (imenu-list-stop-timer)
   (setq imenu-list--timer
-        (run-with-idle-timer 1 t #'imenu-list-update-safe)))
+        (run-with-idle-timer imenu-list-idle-update-delay t
+                             #'imenu-list-update-safe)))
 
 (defun imenu-list-stop-timer ()
   (when imenu-list--timer
