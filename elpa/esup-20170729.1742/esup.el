@@ -6,7 +6,7 @@
 ;; Maintainer:  Joe Schafer <joe@jschaf.com>
 ;; Created: 19 May 2013
 ;; URL: http://github.com/jschaf/esup
-;; Version:  0.5
+;; Version:  0.6
 ;; Package-Requires: ((cl-lib "0.5") (emacs "24"))
 ;; Keywords: convenience, processes
 
@@ -80,7 +80,7 @@
 (defgroup esup nil
   "A major mode for the Emacs Start Up Profiler."
   :prefix "esup-"
-  :version "0.5"
+  :version "0.6"
   :group 'languages)
 
 (defcustom esup-user-init-file user-init-file
@@ -133,11 +133,20 @@ Includes execution time, gc time and number of gc pauses."
   :group 'esup
   :version "24.3")
 
+(defface esup-error-face
+  '((t :inherit font-lock-warning-face))
+  "Face for displaying errors in the *esup* buffer."
+  :group 'esup
+  :version "25.1")
+
 (defvar esup-child-process nil
   "The current esup child process, i.e the Emacs being timed.")
 
 (defvar esup-emacs-path (concat invocation-directory invocation-name)
   "Path to the Emacs binary used for profiling.")
+
+(defvar esup-errors '()
+  "A list of error messages from the child Emacs.")
 
 
 (defun esup-total-exec-time (results)
@@ -309,7 +318,7 @@ port."
    :log 'esup--server-logger))
 
 (defun esup--server-filter (proc string)
-  "Filter log and result entries recieved at the parent process.
+  "Filter the log and result entries recieved at the parent process.
 PROC is the process and STRING is the message.  `esup-child'
 starts messages with LOGSTREAM or RESULTSSTREAM to indicate the
 type of message."
@@ -336,6 +345,8 @@ type of message."
     (esup-store-partial-result string))
 
    ((eq esup-child-log-port (process-contact proc :service))
+    (when (string-prefix-p "LOG: ERROR" string)
+      (push (substring string (length "LOG: ")) esup-errors))
     (esup-server-log string))
 
    (t
@@ -355,6 +366,17 @@ Provides a useful default for SERVER, CONNECTION and MESSAGE."
 (defvar esup-last-result-start-point 1
   "The end point of the last read result from `esup-incoming-results-buffer'.")
 
+(defun esup-reset ()
+  "Reset all variables and buffers for another run of `esup'."
+  (setq esup-last-result-start-point 1)
+  (with-current-buffer (get-buffer-create esup-server-log-buffer)
+    (erase-buffer))
+  (with-current-buffer (get-buffer-create esup-incoming-results-buffer)
+    (erase-buffer))
+  (setq esup-errors '())
+  (when esup-server-process
+    (delete-process esup-server-process)))
+
 ;;;###autoload
 (defun esup (&optional init-file)
   "Profile the startup time of Emacs in the background.
@@ -368,15 +390,8 @@ If INIT-FILE is non-nil, profile that instead of USER-INIT-FILE."
          (t esup-user-init-file)))
 
   (message "Starting esup...")
+  (esup-reset)
 
-  (setq esup-last-result-start-point 1)
-  (with-current-buffer (get-buffer-create esup-server-log-buffer)
-    (erase-buffer))
-  (with-current-buffer (get-buffer-create esup-incoming-results-buffer)
-    (erase-buffer))
-
-  (when esup-server-process
-    (delete-process esup-server-process))
   (setq esup-server-process (esup-server-create (esup-select-port)))
   (setq esup-server-port (process-contact esup-server-process :service))
   (message "esup process started on port %s" esup-server-port)
@@ -447,6 +462,7 @@ If INIT-FILE is non-nil, profile that instead of USER-INIT-FILE."
     (with-current-buffer (esup-buffer)
       (erase-buffer)
       (esup-update-percentages results)
+      (insert (esup-render-errors esup-errors) result-break)
       (insert (esup-render-summary results) result-break)
       (cl-loop for result in results
                do (insert (render result) result-break))
@@ -455,6 +471,22 @@ If INIT-FILE is non-nil, profile that instead of USER-INIT-FILE."
       (goto-char (point-min))
       (pop-to-buffer (current-buffer))))
   (message "esup finished"))
+
+(defun esup-render-errors (errors)
+  "Return a fontified string of ERRORS."
+  (if esup-errors
+      (concat
+       (esup-fontify-string
+        "ERROR: the child emacs had the following errors:\n"
+        'esup-error-face)
+       (mapconcat 'identity
+                  (cl-loop for error-string in errors
+                           collect (format "  %s" error-string))
+                  "\n")
+       "\n\n"
+       (esup-fontify-string "Results will be incomplete due to errors.\n\n"
+                            'esup-error-face))
+    ""))
 
 (defun esup-render-summary (results)
   "Return a summary string for RESULTS."
@@ -524,9 +556,9 @@ If INIT-FILE is non-nil, profile that instead of USER-INIT-FILE."
 (defun esup-read-result (start-point)
   "Return one `esup-result' object from the current buffer.
 Begins reading at START-POINT.
-Returns either an symbol `esup-result' or nil."
+Returns either a class `esup-result' or nil."
   (goto-char start-point)
-  (read (current-buffer)))
+  (eval (read (current-buffer))))
 
 (defun esup-next-separator-end-point ()
   "Return the end point of the next `esup-child-result-separator'."
