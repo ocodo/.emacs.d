@@ -4,8 +4,8 @@
 
 ;; Author: Masashı Mıyaura
 ;; URL: https://github.com/masasam/emacs-easy-hugo
-;; Package-Version: 20170724.1123
-;; Version: 1.3.1
+;; Package-Version: 20170801.958
+;; Version: 1.5.6
 ;; Package-Requires: ((emacs "24.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -29,6 +29,8 @@
 ;; or Amazon S3 or Google Cloud Storage.
 
 ;;; Code:
+
+(require 'cl-lib)
 
 (defgroup easy-hugo nil
   "Writing blogs made with hugo."
@@ -92,6 +94,16 @@
   "Default setting to sort with charactor."
   :group 'easy-hugo
   :type 'integer)
+
+(defcustom easy-hugo-publish-chmod "Du=rwx,Dgo=rx,Fu=rw,Fog=r"
+  "Permission when publish.The default is drwxr-xr-x."
+  :group 'easy-hugo
+  :type 'string)
+
+(defcustom easy-hugo-github-deploy-script "deploy.sh"
+  "Github-deploy-script file name."
+  :group 'easy-hugo
+  :type 'string)
 
 (defcustom easy-hugo-markdown-extension "md"
   "Markdown extension.
@@ -400,6 +412,12 @@ Because only two are supported by hugo."
 (defvar easy-hugo--unmovable-line 10
   "Impossible to move below this line.")
 
+(defvar easy-hugo--draft-list nil
+  "Draft list flg.")
+
+(defvar easy-hugo--draft-mode nil
+  "Display draft-mode.")
+
 (defvar easy-hugo--publish-timer nil
   "Easy-hugo-publish-timer.")
 
@@ -544,7 +562,7 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
    (when (file-directory-p "public")
      (delete-directory "public" t nil))
    (shell-command-to-string "hugo --destination public")
-   (shell-command-to-string (concat "rsync -rtpl --delete public/ " easy-hugo-sshdomain ":" (shell-quote-argument easy-hugo-root)))
+   (shell-command-to-string (concat "rsync -rtpl --chmod=" easy-hugo-publish-chmod " --delete public/ " easy-hugo-sshdomain ":" (shell-quote-argument easy-hugo-root)))
    (message "Blog published")
    (when easy-hugo-url
      (browse-url easy-hugo-url))))
@@ -591,7 +609,7 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
    (when (file-directory-p "public")
      (delete-directory "public" t nil))
    (shell-command-to-string "hugo --destination public")
-   (shell-command-to-string (concat "rsync -rtpl --delete public/ " easy-hugo-sshdomain ":" (shell-quote-argument easy-hugo-root)))
+   (shell-command-to-string (concat "rsync -rtpl --chmod=" easy-hugo-publish-chmod " --delete public/ " easy-hugo-sshdomain ":" (shell-quote-argument easy-hugo-root)))
    (message "Blog published")
    (when easy-hugo-url
      (browse-url easy-hugo-url))
@@ -627,15 +645,19 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
     (easy-hugo-with-env
      (when (file-exists-p (file-truename (concat "content/" filename)))
        (error "%s already exists!" (concat easy-hugo-basedir "content/" filename)))
-     (if (or (string-equal file-ext easy-hugo-markdown-extension)
-	     (string-equal file-ext easy-hugo-asciidoc-extension)
-	     (string-equal file-ext "rst")
-	     (string-equal file-ext "mmark")
-	     (string-equal file-ext easy-hugo-html-extension))
-	 (call-process "hugo" nil "*hugo*" t "new" filename))
+     (if (<= 0.25 (easy-hugo--version))
+	 (call-process "hugo" nil "*hugo*" t "new" filename)
+       (progn
+	 (if (or (string-equal file-ext easy-hugo-markdown-extension)
+		 (string-equal file-ext easy-hugo-asciidoc-extension)
+		 (string-equal file-ext "rst")
+		 (string-equal file-ext "mmark")
+		 (string-equal file-ext easy-hugo-html-extension))
+	     (call-process "hugo" nil "*hugo*" t "new" filename))))
      (find-file (concat "content/" filename))
-     (if (string-equal file-ext "org")
-         (insert (easy-hugo--org-headers (file-name-base post-file))))
+     (when (and (> 0.25 (easy-hugo--version))
+		(string-equal file-ext "org"))
+       (insert (easy-hugo--org-headers (file-name-base post-file))))
      (goto-char (point-max))
      (save-buffer))))
 
@@ -645,7 +667,7 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
 		 (with-temp-buffer
 		   (shell-command-to-string "hugo version"))
 		 " ")))
-    (substring (nth 4 source) 1)))
+    (string-to-number (substring (nth 4 source) 1))))
 
 ;;;###autoload
 (defun easy-hugo-preview ()
@@ -655,7 +677,7 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
    (if (process-live-p easy-hugo--server-process)
        (browse-url easy-hugo-preview-url)
      (progn
-       (if (<= 0.25 (string-to-number (easy-hugo--version)))
+       (if (<= 0.25 (easy-hugo--version))
 	   (setq easy-hugo--server-process
 	   	 (start-process "hugo-server" easy-hugo--preview-buffer "hugo" "server" "--navigateToChanged"))
 	 (setq easy-hugo--server-process
@@ -676,10 +698,10 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
 
 ;;;###autoload
 (defun easy-hugo-github-deploy ()
-  "Execute deploy.sh script locate at `easy-hugo-basedir'."
+  "Execute `easy-hugo-github-deploy-script' script locate at `easy-hugo-basedir'."
   (interactive)
   (easy-hugo-with-env
-   (let ((deployscript (file-truename (concat easy-hugo-basedir "deploy.sh"))))
+   (let ((deployscript (file-truename (concat easy-hugo-basedir easy-hugo-github-deploy-script))))
      (unless (executable-find deployscript)
        (error "%s do not execute" deployscript))
      (shell-command-to-string (shell-quote-argument deployscript))
@@ -706,13 +728,13 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
     (message "Easy-hugo-github-deploy-timer canceled")))
 
 (defun easy-hugo-github-deploy-on-timer ()
-  "Execute deploy.sh script on timer locate at `easy-hugo-basedir'."
+  "Execute `easy-hugo-github-deploy-script' script on timer locate at `easy-hugo-basedir'."
   (setq easy-hugo--github-deploy-basedir easy-hugo-basedir)
   (setq easy-hugo-basedir easy-hugo--github-deploy-basedir-timer)
   (setq easy-hugo--github-deploy-url easy-hugo-url)
   (setq easy-hugo-url easy-hugo--github-deploy-url-timer)
   (easy-hugo-with-env
-   (let ((deployscript (file-truename (concat easy-hugo-basedir "deploy.sh"))))
+   (let ((deployscript (file-truename (concat easy-hugo-basedir easy-hugo-github-deploy-script))))
      (unless (executable-find deployscript)
        (error "%s do not execute" deployscript))
      (shell-command-to-string (shell-quote-argument deployscript))
@@ -856,8 +878,6 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
   "Open Hugo's config file."
   (interactive)
   (easy-hugo-with-env
-   (unless easy-hugo-basedir
-     (error "Please set easy-hugo-basedir variable"))
    (cond ((file-exists-p (expand-file-name "config.toml" easy-hugo-basedir))
 	  (find-file (expand-file-name "config.toml" easy-hugo-basedir)))
 	 ((file-exists-p (expand-file-name "config.yaml" easy-hugo-basedir))
@@ -869,19 +889,19 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
 (defconst easy-hugo--help
   (if (null easy-hugo-sort-default-char)
       (progn
-	"n .. New blog post    R .. Rename file   G .. Deploy GitHub    O .. Open basedir
-p .. Preview          g .. Refresh       A .. Deploy AWS S3    S .. Sort character
+	"n .. New blog post    R .. Rename file   G .. Deploy GitHub    D .. Draft list
+p .. Preview          g .. Refresh       A .. Deploy AWS S3    u .. Undraft file
 v .. Open view-mode   s .. Sort time     T .. Publish timer    N .. No help-mode
-d .. Delete post      c .. Open config   ? .. Help easy-hugo   L .. Deploy GCS timer
+d .. Delete post      c .. Open config   ? .. Help easy-hugo   I .. Deploy GCS timer
 P .. Publish server   C .. Deploy GCS    a .. Search helm-ag   H .. Deploy GitHub timer
 < .. Previous blog    > .. Next blog     q .. Quit easy-hugo   W .. Deploy AWS S3 timer
 
 ")
     (progn
-      "n .. New blog post    R .. Rename file   G .. Deploy GitHub    O .. Open basedir
+      "n .. New blog post    R .. Rename file   G .. Deploy GitHub    D .. Draft list
 p .. Preview          g .. Refresh       A .. Deploy AWS S3    s .. Sort character
-v .. Open view-mode   S .. Sort time     T .. Publish timer    N .. No help-mode
-d .. Delete post      c .. Open config   ? .. Help easy-hugo   L .. Deploy GCS timer
+v .. Open view-mode   u .. Undraft file  T .. Publish timer    N .. No help-mode
+d .. Delete post      c .. Open config   ? .. Help easy-hugo   I .. Deploy GCS timer
 P .. Publish server   C .. Deploy GCS    a .. Search helm-ag   H .. Deploy GitHub timer
 < .. Previous blog    > .. Next blog     q .. Quit easy-hugo   W .. Deploy AWS S3 timer
 
@@ -904,9 +924,9 @@ Enjoy!
 (defvar easy-hugo-mode-map
   (let ((map (make-keymap)))
     (define-key map "n" 'easy-hugo-newpost)
+    (define-key map "w" 'easy-hugo-newpost)
     (define-key map "a" 'easy-hugo-helm-ag)
     (define-key map "c" 'easy-hugo-open-config)
-    (define-key map "D" 'easy-hugo-article)
     (define-key map "p" 'easy-hugo-preview)
     (define-key map "P" 'easy-hugo-publish)
     (define-key map "T" 'easy-hugo-publish-timer)
@@ -951,8 +971,10 @@ Enjoy!
     (define-key map "A" 'easy-hugo-amazon-s3-deploy)
     (define-key map "m" 'easy-hugo-cancel-amazon-s3-deploy-timer)
     (define-key map "C" 'easy-hugo-google-cloud-storage-deploy)
-    (define-key map "L" 'easy-hugo-google-cloud-storage-deploy-timer)
+    (define-key map "I" 'easy-hugo-google-cloud-storage-deploy-timer)
     (define-key map "i" 'easy-hugo-cancel-google-cloud-storage-deploy-timer)
+    (define-key map "D" 'easy-hugo-list-draft)
+    (define-key map "u" 'easy-hugo-undraft)
     (define-key map "q" 'easy-hugo-quit)
     (define-key map "<" 'easy-hugo-previous-blog)
     (define-key map ">" 'easy-hugo-next-blog)
@@ -1029,33 +1051,66 @@ Enjoy!
     (progn
       (setq easy-hugo-no-help 1)
       (setq easy-hugo--unmovable-line 3)))
-  (easy-hugo))
+  (if easy-hugo--draft-list
+      (easy-hugo-draft-list)
+    (easy-hugo)))
+
+(defun easy-hugo-list-draft ()
+  "List drafts."
+  (interactive)
+  (if easy-hugo--draft-list
+      (progn
+	(setq easy-hugo--draft-list nil)
+	(setq easy-hugo--draft-mode nil)
+	(easy-hugo))
+    (progn
+      (setq easy-hugo--draft-list 1)
+      (setq easy-hugo--draft-mode "  Draft")
+      (easy-hugo-draft-list))))
 
 (defun easy-hugo-refresh ()
   "Refresh easy hugo."
   (interactive)
   (setq easy-hugo--cursor (point))
   (setq easy-hugo--refresh 1)
-  (easy-hugo)
+  (if easy-hugo--draft-list
+      (easy-hugo-draft-list)
+    (easy-hugo))
   (setq easy-hugo--refresh nil))
 
 (defun easy-hugo-sort-time ()
   "Sort time easy hugo."
   (interactive)
-  (setq easy-hugo--sort-char-flg nil)
-  (if (eq 1 easy-hugo--sort-time-flg)
-      (setq easy-hugo--sort-time-flg 2)
-    (setq easy-hugo--sort-time-flg 1))
-  (easy-hugo))
+  (if easy-hugo--draft-list
+      (progn
+	(setq easy-hugo--sort-char-flg nil)
+	(if (eq 1 easy-hugo--sort-time-flg)
+	    (setq easy-hugo--sort-time-flg 2)
+	  (setq easy-hugo--sort-time-flg 1))
+	(easy-hugo-draft-list))
+    (progn
+      (setq easy-hugo--sort-char-flg nil)
+      (if (eq 1 easy-hugo--sort-time-flg)
+	  (setq easy-hugo--sort-time-flg 2)
+	(setq easy-hugo--sort-time-flg 1))
+      (easy-hugo))))
 
 (defun easy-hugo-sort-char ()
   "Sort char easy hugo."
   (interactive)
-  (setq easy-hugo--sort-time-flg nil)
-  (if (eq 1 easy-hugo--sort-char-flg)
-      (setq easy-hugo--sort-char-flg 2)
-    (setq easy-hugo--sort-char-flg 1))
-  (easy-hugo))
+  (if easy-hugo--draft-list
+      (progn
+	(setq easy-hugo--sort-time-flg nil)
+	(if (eq 1 easy-hugo--sort-char-flg)
+	    (setq easy-hugo--sort-char-flg 2)
+	  (setq easy-hugo--sort-char-flg 1))
+	(easy-hugo-draft-list))
+    (progn
+      (setq easy-hugo--sort-time-flg nil)
+      (if (eq 1 easy-hugo--sort-char-flg)
+	  (setq easy-hugo--sort-char-flg 2)
+	(setq easy-hugo--sort-char-flg 1))
+      (easy-hugo))))
 
 (defun easy-hugo-forward-char (arg)
   "Forward-char as ARG."
@@ -1124,6 +1179,23 @@ Optional prefix ARG says how many lines to move; default is one line."
 	 (rename-file name (concat "content/" filename) 1)
 	 (easy-hugo-refresh))))))
 
+(defun easy-hugo-undraft ()
+  "Undraft file on the pointer."
+  (interactive)
+  (easy-hugo-with-env
+   (when (> 0.25 (easy-hugo--version))
+     (error "'easy-hugo-undraft' requires hugo 0.25 or higher"))
+   (unless (or (string-match "^$" (thing-at-point 'line))
+	       (eq (point) (point-max))
+	       (> (+ 1 easy-hugo--forward-char) (length (thing-at-point 'line))))
+     (let ((file (expand-file-name
+		  (concat easy-hugo-postdir "/" (substring (thing-at-point 'line) easy-hugo--forward-char -1))
+		  easy-hugo-basedir)))
+       (when (and (file-exists-p file)
+		  (not (file-directory-p file)))
+	 (shell-command-to-string (concat "hugo undraft " file))
+	 (easy-hugo-refresh))))))
+
 (defun easy-hugo-open ()
   "Open the file on the pointer."
   (interactive)
@@ -1140,7 +1212,8 @@ Optional prefix ARG says how many lines to move; default is one line."
 (defun easy-hugo-open-basedir ()
   "Open `easy-hugo-basedir' with dired."
   (interactive)
-  (switch-to-buffer (find-file-noselect easy-hugo-basedir)))
+  (easy-hugo-with-env
+   (switch-to-buffer (find-file-noselect easy-hugo-basedir))))
 
 (defun easy-hugo-view ()
   "Open the file on the pointer with 'view-mode'."
@@ -1171,7 +1244,9 @@ Optional prefix ARG says how many lines to move; default is one line."
 	      (setq easy-hugo--line (- (line-number-at-pos) 4))
 	    (setq easy-hugo--line (- (line-number-at-pos) easy-hugo--delete-line)))
 	  (delete-file file)
-	  (easy-hugo)
+	  (if easy-hugo--draft-list
+	      (easy-hugo-draft-list)
+	    (easy-hugo))
 	  (when (> easy-hugo--line 0)
 	    (forward-line easy-hugo--line)
 	    (forward-char easy-hugo--forward-char)))))))
@@ -1430,6 +1505,63 @@ Optional prefix ARG says how many lines to move; default is one line."
       (easy-hugo--preview-end)
       (easy-hugo))))
 
+(defun easy-hugo-draft-list ()
+  "List drafts."
+  (easy-hugo-with-env
+   (when (> 0.25 (easy-hugo--version))
+     (error "'List draft' requires hugo 0.25 or higher"))
+   (let ((source (split-string
+		  (with-temp-buffer
+		    (let ((ret (call-process-shell-command "hugo list drafts" nil t)))
+		      (unless (zerop ret)
+			(error "'Hugo list drafts' comaand does not end normally"))
+		      (buffer-string)))
+		  "\n"))
+	 (lists (list))
+	 (files (list)))
+     (dolist (file source)
+       (when (string-match ".*/\\(.+?\\)$" file)
+	 (push (match-string 1 file) files)))
+     (unless (file-directory-p (expand-file-name easy-hugo-postdir easy-hugo-basedir))
+       (error "Did you execute hugo new site bookshelf?"))
+     (setq easy-hugo--mode-buffer (get-buffer-create easy-hugo--buffer-name))
+     (switch-to-buffer easy-hugo--mode-buffer)
+     (setq-local default-directory easy-hugo-basedir)
+     (setq buffer-read-only nil)
+     (erase-buffer)
+     (insert (propertize (concat "Easy-hugo  " easy-hugo-url easy-hugo--draft-mode "\n\n") 'face 'easy-hugo-help-face))
+     (unless easy-hugo-no-help
+       (insert (propertize easy-hugo--help 'face 'easy-hugo-help-face)))
+     (unless easy-hugo--refresh
+       (setq easy-hugo--cursor (point)))
+     (cond ((eq 1 easy-hugo--sort-char-flg) (setq files (reverse (sort files 'string<))))
+	   ((eq 2 easy-hugo--sort-char-flg) (setq files (sort files 'string<))))
+     (while files
+       (push
+	(concat
+	 (format-time-string "%Y-%m-%d %H:%M:%S " (nth 5 (file-attributes
+							  (expand-file-name
+							   (concat easy-hugo-postdir "/" (car files))
+							   easy-hugo-basedir))))
+	 (car files))
+	lists)
+       (pop files))
+     (cond ((eq 1 easy-hugo--sort-time-flg) (setq lists (reverse (sort lists 'string<))))
+	   ((eq 2 easy-hugo--sort-time-flg) (setq lists (sort lists 'string<))))
+     (while lists
+       (insert (concat (car lists) "\n"))
+       (pop lists))
+     (goto-char easy-hugo--cursor)
+     (if easy-hugo--refresh
+	 (progn
+	   (when (< (line-number-at-pos) easy-hugo--unmovable-line)
+	     (goto-char (point-min))
+	     (forward-line (- easy-hugo--unmovable-line 1)))
+	   (beginning-of-line)
+	   (forward-char easy-hugo--forward-char))
+       (forward-char easy-hugo--forward-char))
+     (easy-hugo-mode))))
+
 ;;;###autoload
 (defun easy-hugo ()
   "Easy hugo."
@@ -1438,6 +1570,7 @@ Optional prefix ARG says how many lines to move; default is one line."
    (unless (file-directory-p (expand-file-name easy-hugo-postdir easy-hugo-basedir))
      (error "Did you execute hugo new site bookshelf?"))
    (setq easy-hugo--mode-buffer (get-buffer-create easy-hugo--buffer-name))
+   (setq easy-hugo--draft-list nil)
    (switch-to-buffer easy-hugo--mode-buffer)
    (setq-local default-directory easy-hugo-basedir)
    (setq buffer-read-only nil)

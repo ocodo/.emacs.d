@@ -38,7 +38,7 @@ Preview hugo at localhost.
 \(fn)" t nil)
 
 (autoload 'easy-hugo-github-deploy "easy-hugo" "\
-Execute deploy.sh script locate at `easy-hugo-basedir'.
+Execute `easy-hugo-github-deploy-script' script locate at `easy-hugo-basedir'.
 
 \(fn)" t nil)
 
