@@ -2843,13 +2843,13 @@ local context."
   (let ((ns-import (js2-import-clause-node-namespace-import n))
         (named-imports (js2-import-clause-node-named-imports n))
         (default (js2-import-clause-node-default-binding n)))
+    (when default
+      (js2-visit-ast default v))
     (when ns-import
       (js2-visit-ast ns-import v))
     (when named-imports
       (dolist (import named-imports)
-        (js2-visit-ast import v)))
-    (when default
-      (js2-visit-ast default v))))
+        (js2-visit-ast import v)))))
 
 (defun js2-print-import-clause (n)
   (let ((ns-import (js2-import-clause-node-namespace-import n))
@@ -9044,14 +9044,14 @@ invalid export statements."
         (setq from-clause (js2-parse-from-clause))))
      ((js2-match-token js2-DEFAULT)
       (setq default (cond ((js2-match-token js2-CLASS)
-                           (js2-parse-class-stmt))
+                           (js2-parse-class-expr))
                           ((js2-match-token js2-NAME)
                            (if (js2-match-async-function)
-                               (js2-parse-async-function-stmt)
+                               (js2-parse-function-expr t)
                              (js2-unget-token)
                              (js2-parse-expr)))
                           ((js2-match-token js2-FUNCTION)
-                           (js2-parse-function-stmt))
+                           (js2-parse-function-expr))
                           (t (js2-parse-expr)))))
      ((or (js2-match-token js2-VAR) (js2-match-token js2-CONST) (js2-match-token js2-LET))
       (setq declaration (js2-parse-variables (js2-current-token-type) (js2-current-token-beg))))
