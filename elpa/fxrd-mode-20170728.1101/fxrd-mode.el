@@ -7,12 +7,26 @@
 ;; Package-Requires: ((s "1.2"))
 ;; Keywords: convenience
 
+;; This file is not part of GNU Emacs.
+
+;; This file is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+
+;; This file is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 ;;; Commentary:
 
-;; This package implements `fxrd-mode', a major mode for editing files with fixed
-;; field widths. These files are commonly used in the financial industry, such
-;; as in ACH transactions. This package provides:
+;; This package implements `fxrd-mode', a major mode for editing files with
+;; fixed field widths.  These files are commonly used in the financial
+;; industry, such as in ACH transactions.  This package provides:
 
 ;; - `nacha-mode': a mode for editing NACHA (ACH transaction) files
 ;; - `rm37-mode': a mode for editing RM37 (Mastercard rebate transaction) files
@@ -21,7 +35,7 @@
 
 ;; In each mode, the current field is highlighted with
 ;; `fxrd-current-field-face', and the field's name is shown in the
-;; modeline. All fields with errors are highlighted with
+;; modeline.  All fields with errors are highlighted with
 ;; `fxrd-invalid-field-face', and if the current field has an error, the error
 ;; is also displayed in the modeline.
 
@@ -78,7 +92,7 @@
   (list
    '()
    '("\\('\\w*'\\)" . font-lock-variable-name-face))
-  "Minimal highlighting expressions for FXRD mode")
+  "Minimal highlighting expressions for FXRD mode.")
 
 (defvar fxrd-mode-map
   (let ((map (make-sparse-keymap)))
