@@ -12,13 +12,13 @@
        ((:keywords "tools" "processes" "convenience")
 	(:url . "https://github.com/leoliu/ack-el"))])
  (ada-mode .
-	   [(5 2 1)
+	   [(5 2 2)
 	    ((wisi
-	      (1 1 4))
+	      (1 1 5))
 	     (cl-lib
 	      (0 4))
 	     (emacs
-	      (24 2)))
+	      (24 3)))
 	    "major-mode for editing Ada sources" tar
 	    ((:keywords "languages" "ada")
 	     (:url . "http://www.nongnu.org/ada-mode/"))])
@@ -80,7 +80,7 @@
 	 ((:keywords "async")
 	  (:url . "http://elpa.gnu.org/packages/async.html"))])
  (auctex .
-	 [(11 90 2)
+	 [(11 91 0)
 	  nil "Integrated environment for *TeX*" tar
 	  ((:url . "http://www.gnu.org/software/auctex/"))])
  (aumix-mode .
@@ -149,7 +149,9 @@
 	     (:keywords))])
  (cobol-mode .
 	     [(1 0 0)
-	      nil "Mode for editing COBOL code" single
+	      ((cl-lib
+		(0 5)))
+	      "Mode for editing COBOL code" single
 	      ((:url . "http://elpa.gnu.org/packages/cobol-mode.html")
 	       (:keywords "languages"))])
  (coffee-mode .
@@ -163,7 +165,7 @@
 		      ((:url . "https://github.com/cpitclaudel/compact-docstrings")
 		       (:keywords "convenience" "faces" "lisp" "maint" "c"))])
  (company .
-	  [(0 9 3)
+	  [(0 9 4)
 	   ((emacs
 	     (24 3)))
 	   "Modular text completion framework" tar
@@ -363,7 +365,7 @@
 	       ((:keywords "calendar")
 		(:url . "http://elpa.gnu.org/packages/excorporate.html"))])
  (exwm .
-       [(0 14)
+       [(0 15)
 	((xelb
 	  (0 12)))
 	"Emacs X Window Manager" tar
@@ -402,7 +404,7 @@
 	  ((:url . "https://github.com/leoliu/ggtags")
 	   (:keywords "tools" "convenience"))])
  (gited .
-	[(0 3 1)
+	[(0 3 2)
 	 ((emacs
 	   (24 4))
 	  (cl-lib
@@ -456,7 +458,7 @@
 		((:keywords "html" "xml")
 		 (:url . "https://github.com/validator/validator"))])
  (hydra .
-	[(0 13 5)
+	[(0 14 0)
 	 ((cl-lib
 	   (0 5)))
 	 "Make bindings that stick around." tar
@@ -501,7 +503,7 @@
 	       ((:url . "http://elpa.gnu.org/packages/jgraph-mode.html")
 		(:keywords "tex" "wp"))])
  (js2-mode .
-	   [(20170116)
+	   [(20170721)
 	    ((emacs
 	      (24 1))
 	     (cl-lib
@@ -534,12 +536,12 @@
 	    ((:url . "http://elpa.gnu.org/packages/landmark.html")
 	     (:keywords "games" "neural network" "adaptive search" "chemotaxis"))])
  (let-alist .
-	    [(1 0 5)
-	     ((emacs
-	       (24 1)))
-	     "Easily let-bind values of an assoc-list by their names" single
-	     ((:url . "http://elpa.gnu.org/packages/let-alist.html")
-	      (:keywords "extensions" "lisp"))])
+   [(1 0 5)
+    ((emacs
+      (24 1)))
+    "Easily let-bind values of an assoc-list by their names" single
+    ((:url . "http://elpa.gnu.org/packages/let-alist.html")
+     (:keywords "extensions" "lisp"))])
  (lex .
       [(1 1)
        nil "Lexical analyser construction" tar
@@ -695,7 +697,7 @@
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
  (org .
-      [(20170703)
+      [(20170731)
        nil "Outline-based notes management and organizer" tar nil])
  (org-edna .
 	   [(1 0 -3 1)
@@ -714,7 +716,7 @@
        ((:url . "http://elpa.gnu.org/packages/osc.html")
 	(:keywords "comm" "processes" "multimedia"))])
  (other-frame-window .
-		     [(1 0 3)
+		     [(1 0 4)
 		      ((emacs
 			(24 4)))
 		      "Minor mode to enable global prefix keys for other frame/window buffer placement" single
@@ -865,7 +867,7 @@
 	       ((:keywords "soap" "web-services" "comm" "hypermedia")
 		(:url . "http://elpa.gnu.org/packages/soap-client.html"))])
  (sokoban .
-	  [(1 4)
+	  [(1 4 5)
 	   nil "Implementation of Sokoban for Emacs." tar
 	   ((:keywords "games")
 	    (:url . "http://elpa.gnu.org/packages/sokoban.html"))])
@@ -1038,7 +1040,7 @@
 	      ((:url . "http://elpa.gnu.org/packages/windresize.html")
 	       (:keywords "window"))])
  (wisi .
-       [(1 1 4)
+       [(1 1 5)
 	((cl-lib
 	  (0 4))
 	 (emacs
@@ -1071,7 +1073,7 @@
        ((:keywords "multimedia" "xpm")
 	(:url . "http://www.gnuvola.org/software/xpm/"))])
  (yasnippet .
-	    [(0 11 0)
+	    [(0 12 1)
 	     ((cl-lib
 	       (0 5)))
 	     "Yet another snippet extension for Emacs." tar
