@@ -4,7 +4,7 @@
 
 ;; Author: Chunyang Xu <xuchunyang.me@gmail.com>
 ;; URL: https://github.com/xuchunyang/DevDocs.el
-;; Package-Version: 20160607.540
+;; Package-Version: 20170731.150
 ;; Version: 0.02
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -33,7 +33,7 @@
   "Searching in DevDocs."
   :group 'external)
 
-(defcustom devdocs-url "http://devdocs.io"
+(defcustom devdocs-url "https://devdocs.io"
   "DevDocs URL.
 
 Don't change this unless you setup your own DevDocs locally."
