@@ -89,9 +89,9 @@ If you set nil to this variable, then do not use delay timer.")
   (cond
    ((bound-and-true-p flycheck-mode)
     (cl-case element
-      (file    (elt err 3))
-      (line    (elt err 4))
-      (message (elt err 6))))
+      (file    (flycheck-error-filename err))
+      (line    (flycheck-error-line     err))
+      (message (flycheck-error-message  err))))
    ((bound-and-true-p eclim-mode)
     (cl-case element
       (line    (assoc-default 'line     err))

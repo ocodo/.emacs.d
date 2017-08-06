@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "eclim-tip" "eclim-tip.el" (22483 30688 200083
-;;;;;;  357000))
+;;;### (autoloads nil "eclim-tip" "eclim-tip.el" (0 0 0 0))
 ;;; Generated autoloads from eclim-tip.el
 
 (autoload 'eclim-tip-cycle "eclim-tip" "\
@@ -19,8 +18,7 @@
 
 ;;;***
 
-;;;### (autoloads nil "error-tip" "error-tip.el" (22483 30688 196083
-;;;;;;  353000))
+;;;### (autoloads nil "error-tip" "error-tip.el" (0 0 0 0))
 ;;; Generated autoloads from error-tip.el
 
 (autoload 'error-tip-error-p "error-tip" "\
@@ -42,10 +40,11 @@ Same as ‘error-tip-cycle-dwim’, but it jumps to inverse direction.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "error-tip" '("error-tip-")))
+
 ;;;***
 
-;;;### (autoloads nil "flycheck-tip" "flycheck-tip.el" (22483 30688
-;;;;;;  164083 319000))
+;;;### (autoloads nil "flycheck-tip" "flycheck-tip.el" (0 0 0 0))
 ;;; Generated autoloads from flycheck-tip.el
 
 (autoload 'flycheck-tip-cycle "flycheck-tip" "\
@@ -60,10 +59,11 @@ Do `flycheck-tip-cycle by reverse order.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flycheck-tip" '("flycheck-tip-")))
+
 ;;;***
 
-;;;### (autoloads nil "flymake-tip" "flymake-tip.el" (22483 30688
-;;;;;;  188083 344000))
+;;;### (autoloads nil "flymake-tip" "flymake-tip.el" (0 0 0 0))
 ;;; Generated autoloads from flymake-tip.el
 
 (autoload 'flymake-tip-cycle "flymake-tip" "\
@@ -76,10 +76,11 @@ Do `flycheck-tip-cycle by reverse order.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flymake-tip" '("flymake-tip-collect-current-line-errors")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("flycheck-tip-pkg.el") (22483 30688 192083
-;;;;;;  348000))
+;;;### (autoloads nil nil ("flycheck-tip-pkg.el") (0 0 0 0))
 
 ;;;***
 
