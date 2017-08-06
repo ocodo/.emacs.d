@@ -74,7 +74,7 @@ suffix commands.
 
    Invoking such a prefix command displays a popup buffer which lists
 the associated infix arguments and suffix commands.  In that buffer each
-argument is prefixes with the key sequence that can be used to toggle it
+argument is prefixed with the key sequence that can be used to toggle it
 or change its value.  Likewise each suffix command is prefixed with the
 key used to invoke it.  Such a popup buffer might look like this:
 
@@ -97,7 +97,7 @@ key used to invoke it.  Such a popup buffer might look like this:
 or ‘=m’ to change the value of the *option* ‘--grep’.
 
    Once all arguments are as desired one invokes a suffix command, which
-causes the popup buffer to disappears.  The suffix command should then
+causes the popup buffer to disappear.  The suffix command should then
 retrieve the infix arguments in its ‘interactive’ form like this is done
 for prefix arguments.
 
@@ -687,12 +687,12 @@ directly.
 Tag Table:
 Node: Top768
 Node: Introduction1944
-Node: Usage4644
-Node: Customizing Existing Popups9341
-Node: Other Options14844
-Node: Defining Prefix and Suffix Commands16386
-Node: Defining Prefix Commands18538
-Node: Defining Suffix Commands25513
+Node: Usage4643
+Node: Customizing Existing Popups9340
+Node: Other Options14843
+Node: Defining Prefix and Suffix Commands16385
+Node: Defining Prefix Commands18537
+Node: Defining Suffix Commands25512
 
 End Tag Table
 
