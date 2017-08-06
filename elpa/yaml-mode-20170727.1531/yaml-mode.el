@@ -6,7 +6,7 @@
 ;;         Marshall T. Vandegrift <llasram@gmail.com>
 ;; Maintainer: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; Package-Requires: ((emacs "24.1"))
-;; Package-Version: 20170406.241
+;; Package-Version: 20170727.1531
 ;; Keywords: data yaml
 ;; Version: 0.0.13
 
@@ -126,7 +126,7 @@ that key is pressed to begin a block literal."
 (defconst yaml-directive-re "^\\(?:--- \\)? *%\\(\\w+\\)"
   "Regexp matching a line contatining a YAML directive.")
 
-(defconst yaml-document-delimiter-re "^ *\\(?:---\\|[.][.][.]\\)"
+(defconst yaml-document-delimiter-re "^\\(?:---\\|[.][.][.]\\)"
   "Rexexp matching a YAML document delimiter line.")
 
 (defconst yaml-node-anchor-alias-re "[&*][a-zA-Z0-9_-]+"
