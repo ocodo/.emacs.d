@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "async" "async.el" (22873 40178 0 0))
+;;;### (autoloads nil "async" "async.el" (0 0 0 0))
 ;;; Generated autoloads from async.el
 
 (autoload 'async-start-process "async" "\
@@ -66,10 +66,12 @@ returns nil.  It can still be useful, however, as an argument to
 
 \(fn START-FUNC &optional FINISH-FUNC)" nil nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "async" '("async-")))
+
 ;;;***
 
-;;;### (autoloads nil "async-bytecomp" "async-bytecomp.el" (22873
-;;;;;;  40178 0 0))
+;;;### (autoloads nil "async-bytecomp" "async-bytecomp.el" (0 0 0
+;;;;;;  0))
 ;;; Generated autoloads from async-bytecomp.el
 
 (autoload 'async-byte-recompile-directory "async-bytecomp" "\
@@ -95,10 +97,11 @@ Async compilation of packages can be controlled by
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "async-bytecomp" '("async-byte")))
+
 ;;;***
 
-;;;### (autoloads nil "dired-async" "dired-async.el" (22873 40178
-;;;;;;  0 0))
+;;;### (autoloads nil "dired-async" "dired-async.el" (0 0 0 0))
 ;;; Generated autoloads from dired-async.el
 
 (defvar dired-async-mode nil "\
@@ -116,10 +119,19 @@ Do dired actions asynchronously.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dired-async" '("dired-async-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("async-pkg.el" "smtpmail-async.el") (22873
-;;;;;;  40178 0 0))
+;;;### (autoloads nil "smtpmail-async" "smtpmail-async.el" (0 0 0
+;;;;;;  0))
+;;; Generated autoloads from smtpmail-async.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "smtpmail-async" '("async-smtpmail-")))
+
+;;;***
+
+;;;### (autoloads nil nil ("async-pkg.el") (0 0 0 0))
 
 ;;;***
 
