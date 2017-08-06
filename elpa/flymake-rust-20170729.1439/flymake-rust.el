@@ -2,10 +2,23 @@
 ;;
 ;;; Author: Joao Oliveira <joaoxsouls@gmail.com>
 ;;; URL: https://github.com/joaoxsouls/flymake-rust
-;; Version: 20141004.1552
-;;; X-Original-Version: DEV
+;; Package-Version: 20170729.1439
+;;; Version: DEV
 ;;; Package-Requires: ((flymake-easy "0.1"))
-;;;
+
+;; This file is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+
+;; This file is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.;;;
+
 ;;; Commentary:
 ;; Usage:
 ;;   (require 'flymake-rust)
@@ -21,8 +34,9 @@
 (require 'flymake-easy)
 
 (defconst flymake-rust-err-line-patterns
-  '(("^\\(.*.rs\\):\\([0-9]+\\):[0-9]+: [0-9]+:[0-9]+ [a-z]+: \\(.*\\)$" 1 2 nil 3))
-  '(("^\\(.*.rs\\):\\([0-9]+\\) \\(.*\\)$" 1 2 nil 3)))
+  '(("^\\(.*\\)\n   --> \\(.*.rs\\):\\([0-9]+\\):\\([0-9]+\\)$" 2 3 4 1)
+    ("^\\(.*.rs\\):\\([0-9]+\\):[0-9]+: [0-9]+:[0-9]+ [a-z]+: \\(.*\\)$" 1 2 nil 3)
+    ("^\\(.*.rs\\):\\([0-9]+\\) \\(.*\\)$" 1 2 nil 3)))
 
 (setq-default flymake-rust-use-cargo 1)
 
