@@ -3709,7 +3709,7 @@ without recomputing them, it should be a list of lists."
       ;; present and running in BG.
       (let ((src (or source (helm-get-current-source))))
         (unless (assq 'candidates-process src)
-          (helm-display-mode-line src)
+          (helm-display-mode-line src 'force)
           (helm-log-run-hook 'helm-after-update-hook)))
       (when preselect
         (helm-log "Update preselect candidate %s" preselect)
@@ -5909,7 +5909,8 @@ sources."
           (goto-char (point-min))
           (search-forward o-src-str nil t)
           (while (and (search-forward o-str nil t)
-                      (not (overlays-at (point-at-bol 0)))
+                      (cl-loop for ov in (overlays-at (point-at-bol 0))
+                               never (overlay-get ov 'visible-mark))
                       (helm-current-source-name= o-src-str))
             (setq beg (match-beginning 0)
                   end (match-end 0))
