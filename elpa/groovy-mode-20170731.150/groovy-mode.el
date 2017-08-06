@@ -78,8 +78,11 @@
     table)
   "Syntax table used in Groovy mode buffers.")
 
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.g\\(?:ant\\|roovy\\|radle\\)\\'\\|Jenkinsfile\\'" . groovy-mode))
-;;;###autoload (add-to-list 'interpreter-mode-alist '("groovy" . groovy-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.g\\(?:ant\\|roovy\\|radle\\)\\'" . groovy-mode))
+(add-to-list 'auto-mode-alist '("Jenkinsfile" . groovy-mode))
+;;;###autoload
+(add-to-list 'interpreter-mode-alist '("groovy" . groovy-mode))
 
 (defconst groovy-type-regexp
   (rx symbol-start
@@ -512,14 +515,25 @@ Then this function returns (\"def\" \"if\" \"switch\")."
          (syntax-bol (syntax-ppss (line-beginning-position)))
          (multiline-string-p (nth 3 syntax-bol))
          (multiline-comment-p (nth 4 syntax-bol))
-         (current-paren-depth (car syntax-bol))
-         (current-line (s-trim (groovy--current-line))))
+         (current-paren-depth (nth 0 syntax-bol))
+         (current-paren-pos (nth 1 syntax-bol))
+         (text-after-paren
+          (when current-paren-pos
+            (save-excursion
+              (goto-char current-paren-pos)
+              (s-trim
+               (buffer-substring
+                (1+ current-paren-pos)
+                (line-end-position))))))
+         (current-line (s-trim (groovy--current-line)))
+         has-closing-paren)
     ;; If this line starts with a closing paren, unindent by one level.
     ;;   if {
     ;;   } <- this should not be indented.
     (when (or (s-starts-with-p "}" current-line)
               (s-starts-with-p ")" current-line)
               (s-starts-with-p "]" current-line))
+      (setq has-closing-paren t)
       (setq current-paren-depth (1- current-paren-depth)))
 
     ;; `current-paren-depth' should never be negative, unless the code
@@ -537,6 +551,21 @@ Then this function returns (\"def\" \"if\" \"switch\")."
      ;;  correctly.
      (multiline-comment-p
       (indent-line-to (1+ (* groovy-indent-offset current-paren-depth))))
+
+     ;; Ensure we indent
+     ;; def x = [1,
+     ;;          2,
+     ;; ]
+     ;; correctly.
+     ((and (not (s-blank-str? text-after-paren))
+           (not has-closing-paren)
+           (not (equal text-after-paren "->")))
+      (let (open-paren-column)
+        (save-excursion
+          (goto-char current-paren-pos)
+          (setq open-paren-column (current-column)))
+        (indent-line-to (1+ open-paren-column))))
+
      ;; Indent according to the number of parens.
      (t
       (let ((indent-level current-paren-depth)

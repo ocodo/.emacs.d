@@ -26,8 +26,10 @@ have Font Lock enabled. ${ } is expanded when in a GString
 
 ;;;### (autoloads nil "groovy-mode" "groovy-mode.el" (0 0 0 0))
 ;;; Generated autoloads from groovy-mode.el
- (add-to-list 'auto-mode-alist '("\\.g\\(?:ant\\|roovy\\|radle\\)\\'\\|Jenkinsfile\\'" . groovy-mode))
- (add-to-list 'interpreter-mode-alist '("groovy" . groovy-mode))
+
+(add-to-list 'auto-mode-alist '("\\.g\\(?:ant\\|roovy\\|radle\\)\\'" . groovy-mode))
+
+(add-to-list 'interpreter-mode-alist '("groovy" . groovy-mode))
 
 (autoload 'groovy-mode "groovy-mode" "\
 Major mode for editing Groovy code.
