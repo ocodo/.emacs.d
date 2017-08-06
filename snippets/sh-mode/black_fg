@@ -1,0 +1,4 @@
+# -*- mode: snippet -*-
+#name : black_fg
+# --
+\e[30m

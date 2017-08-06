@@ -1,0 +1,4 @@
+# -*- mode: snippet -*-
+#name : black_bg
+# --
+\e[40m

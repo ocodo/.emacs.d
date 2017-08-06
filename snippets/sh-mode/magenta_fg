@@ -1,0 +1,4 @@
+# -*- mode: snippet -*-
+#name : magenta_fg
+# --
+\e[35m

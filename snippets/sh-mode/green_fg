@@ -1,0 +1,4 @@
+# -*- mode: snippet -*-
+#name : green_fg
+# --
+\e[32m

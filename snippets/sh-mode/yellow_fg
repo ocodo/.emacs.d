@@ -1,0 +1,4 @@
+# -*- mode: snippet -*-
+#name : yellow_fg
+# --
+\e[33m

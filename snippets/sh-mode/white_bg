@@ -1,0 +1,4 @@
+# -*- mode: snippet -*-
+#name : white_bg
+# --
+\e[47m

@@ -1,0 +1,4 @@
+# -*- mode: snippet -*-
+#name : white_fg
+# --
+\e[37m
