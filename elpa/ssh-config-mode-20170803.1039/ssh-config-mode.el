@@ -1,6 +1,6 @@
 ;;; ssh-config-mode.el --- Mode for fontification of ~/.ssh/config
 ;;
-;; ~harley/share/emacs/pkg/ssh/ssh-config-mode.el ---
+;; ssh-config-mode-el/ssh-config-mode.el ---
 ;;
 ;; $Id: ssh-config-mode.el,v 1.14 2012/05/14 05:29:26 harley Exp $
 ;;
@@ -8,7 +8,7 @@
 ;; Author:    Harley Gorrell <harley@panix.com>
 ;; URL:       https://github.com/jhgorrell/ssh-config-mode-el
 ;; Github:    https://raw.github.com/jhgorrell/ssh-config-mode-el/master/ssh-config-mode.el
-;; License:   GPL v2
+;; License:   GPL v3+ (https://www.gnu.org/licenses/gpl-3.0.txt)
 ;; Keywords:  ssh, config, emacs
 ;; Version:   $Revision: 1.14 $
 ;; Tag:       20170413T0010
@@ -26,6 +26,21 @@
 
 ;;; History:
 ;; * This keeps checkdoc happy.
+
+;;; License
+;;
+;; This file is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+
+;; This file is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 ;; (eval-buffer)
