@@ -31,13 +31,17 @@ Thread by one more level an existing threading macro.
 
 (autoload 'clojure-thread-first-all "clojure-mode" "\
 Fully thread the form at point using ->.
-When BUT-LAST is passed the last expression is not threaded.
+
+When BUT-LAST is non-nil, the last expression is not threaded.
+Default value is `clojure-thread-all-but-last'.
 
 \(fn BUT-LAST)" t nil)
 
 (autoload 'clojure-thread-last-all "clojure-mode" "\
 Fully thread the form at point using ->>.
-When BUT-LAST is passed the last expression is not threaded.
+
+When BUT-LAST is non-nil, the last expression is not threaded.
+Default value is `clojure-thread-all-but-last'.
 
 \(fn BUT-LAST)" t nil)
 
