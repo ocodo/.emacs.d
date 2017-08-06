@@ -5,10 +5,10 @@
 
 ;; Author: Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/flycheck/flycheck-ocaml
-;; Package-Version: 20151103.212
+;; Package-Version: 20170730.1453
 ;; Keywords: convenience, tools, languages
 ;; Version: 0.4-cvs
-;; Package-Requires: ((emacs "24.1") (flycheck "0.22") (merlin "2.3") (let-alist "1.0.3"))
+;; Package-Requires: ((emacs "24.1") (flycheck "0.22") (merlin "3.0.1") (let-alist "1.0.3"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -68,9 +68,9 @@
       ;; Skip over leading spaces and punctuation
       (zero-or-more (any punct space control))
       ;; Take the level...
-      (group-n 1 (or "Warning" "Error"))
+      (opt (: (group-n 1 (or "Warning" "Error"))
       ;; ...and skip over trailing digits (e.g. Warning 8:)
-      (zero-or-more (any space digit)) ": "
+              (zero-or-more (any space digit)) ": "))
       ;; The rest is the real error message
       (group-n 2 (one-or-more anything)) string-end)
   "Regular expression to parse a Merlin error message.")
@@ -84,14 +84,10 @@ irrelevant parts removed."
   (when (string-match flycheck-ocaml-merlin-message-re message)
     (let ((level (pcase (match-string 1 message)
                    (`"Warning" 'warning)
-                   (`"Error" 'error)
+                   ((or `"Error" `nil) 'error)
                    (level (lwarn 'flycheck-ocaml :error
                                  "Unknown error level %S" level)))))
-      (cons level
-            ;; Collapse whitespace in error messages
-            (replace-regexp-in-string (rx (one-or-more (any space "\n" "\r")))
-                                      " " (string-trim (match-string 2 message))
-                                      'fixed-case 'literal)))))
+      (cons level (string-trim (match-string 2 message))))))
 
 (defun flycheck-ocaml-merlin-parse-error (alist checker)
   "Parse a Merlin error ALIST from CHECKER into a `flycheck-error'.
@@ -129,23 +125,15 @@ Return the corresponding `flycheck-error'."
   "Start a Merlin syntax check with CHECKER.
 
 CALLBACK is the status callback passed by Flycheck."
-  (let ((callback-err (lambda (msg) (funcall callback 'errored msg))))
-    (merlin/sync-async
-      (lambda ()
-        (merlin/send-command-async
-         'errors
-         (lambda (data)
-           (condition-case err
-               (let ((errors (delq nil
-                                   (mapcar
-                                    (lambda (alist)
-                                      (flycheck-ocaml-merlin-parse-error alist
-                                                                         checker))
-                                    data))))
-                 (funcall callback 'finished errors))
-             (error (funcall callback 'errored (error-message-string err)))))
-         callback-err))
-      callback-err)))
+  (condition-case err
+      (let ((errors (delq nil
+                          (mapcar
+                           (lambda (alist)
+                             (flycheck-ocaml-merlin-parse-error alist
+                                                                checker))
+                           (merlin/call "errors")))))
+        (funcall callback 'finished errors))
+    (error (funcall callback 'errored (error-message-string err)))))
 
 (flycheck-define-generic-checker 'ocaml-merlin
   "A syntax checker for OCaml using Merlin Mode.
