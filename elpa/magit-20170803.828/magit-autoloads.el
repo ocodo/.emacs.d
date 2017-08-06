@@ -46,7 +46,7 @@ Merge commit REV into the current branch; and edit message.
 Perform the merge and prepare a commit message but let the user
 edit it.
 
-\(git merge --edit --no-ff [ARGS] rev)
+\(git merge --edit --no-ff [ARGS] REV)
 
 \(fn REV &optional ARGS)" t nil)
 
@@ -55,7 +55,7 @@ Merge commit REV into the current branch; pretending it failed.
 Pretend the merge failed to give the user the opportunity to
 inspect the merge and change the commit message.
 
-\(git merge --no-commit --no-ff [ARGS] rev)
+\(git merge --no-commit --no-ff [ARGS] REV)
 
 \(fn REV &optional ARGS)" t nil)
 
@@ -1266,7 +1266,8 @@ Show log for all references and `HEAD'.
 (autoload 'magit-log-buffer-file "magit-log" "\
 Show log for the blob or file visited in the current buffer.
 With a prefix argument or when `--follow' is part of
-`magit-log-arguments', then follow renames.
+`magit-log-arguments', then follow renames.  When the region is
+active, restrict the log to the lines that the region touches.
 
 \(fn &optional FOLLOW BEG END)" t nil)
 
@@ -1953,7 +1954,15 @@ Unregister the submodule at PATH.
 
 \(fn PATH)" t nil)
 
-(autoload 'magit-insert-submodules "magit-submodule" "\
+(autoload 'magit-insert-modules "magit-submodule" "\
+Insert submodule sections.
+Hook `magit-module-sections-hook' controls which module sections
+are inserted, and option `magit-insert-modules-nested' controls
+whether they are wrapped in an additional section.
+
+\(fn)" nil nil)
+
+(autoload 'magit-insert-modules-overview "magit-submodule" "\
 Insert sections for all modules.
 For each section insert the path and the output of `git describe --tags'.
 

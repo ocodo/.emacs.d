@@ -125,6 +125,7 @@ Status Buffer
 
 * Status Sections::
 * Status Header Sections::
+* Status Module Sections::
 * Status Options::
 
 
@@ -1892,6 +1893,7 @@ that it should be bound globally.  We recommend using ‘C-x g’:
 
 * Status Sections::
 * Status Header Sections::
+* Status Module Sections::
 * Status Options::
 
 
@@ -2012,40 +2014,6 @@ default the following functions are also members of that hook:
      ‘magit-insert-unpulled-or-recent-commits’ (provided there are no
      unpulled commits) show.
 
- -- Function: magit-insert-modules-unpulled-from-upstream
-
-     Insert sections for modules that haven’t been pulled from the
-     upstream yet.  These sections can be expanded to show the
-     respective commits.
-
- -- Function: magit-insert-modules-unpulled-from-pushremote
-
-     Insert sections for modules that haven’t been pulled from the
-     push-remote yet.  These sections can be expanded to show the
-     respective commits.
-
- -- Function: magit-insert-modules-unpushed-to-upstream
-
-     Insert sections for modules that haven’t been pushed to the
-     upstream yet.  These sections can be expanded to show the
-     respective commits.
-
- -- Function: magit-insert-modules-unpushed-to-pushremote
-
-     Insert sections for modules that haven’t been pushed to the
-     push-remote yet.  These sections can be expanded to show the
-     respective commits.
-
- -- Function: magit-insert-submodules
-
-     Insert sections for all submodules.  For each section insert the
-     path, the branch, and the output of ‘git describe --tags’.
-
-     Press ‘RET’ on such a submodule section to show its own status
-     buffer.  Press ‘RET’ on the "Modules" section to display a list of
-     submodules in a separate buffer.  This shows additional information
-     not displayed in the super-repository’s status buffer.
-
  -- Function: magit-insert-unpulled-cherries
 
      Insert section showing unpulled commits.  Like
@@ -2065,15 +2033,16 @@ default the following functions are also members of that hook:
 could be used here.
 
 
-File: magit.info,  Node: Status Header Sections,  Next: Status Options,  Prev: Status Sections,  Up: Status Buffer
+File: magit.info,  Node: Status Header Sections,  Next: Status Module Sections,  Prev: Status Sections,  Up: Status Buffer
 
 5.1.2 Status Header Sections
 ----------------------------
 
 The contents of status buffers is controlled using the hook
-‘magit-status-sections-hook’, as described in the previous section.  By
-default ‘magit-insert-status-headers’ is the first member of that hook
-variable.
+‘magit-status-sections-hook’ (see *note Status Sections::).
+
+   By default ‘magit-insert-status-headers’ is the first member of that
+hook variable.
 
  -- Function: magit-insert-status-headers
 
@@ -2142,9 +2111,76 @@ variable.
      Insert a header line about the current user.
 
 
-File: magit.info,  Node: Status Options,  Prev: Status Header Sections,  Up: Status Buffer
+File: magit.info,  Node: Status Module Sections,  Next: Status Options,  Prev: Status Header Sections,  Up: Status Buffer
 
-5.1.3 Status Options
+5.1.3 Status Module Sections
+----------------------------
+
+The contents of status buffers is controlled using the hook
+‘magit-status-sections-hook’ (see *note Status Sections::).
+
+   By default ‘magit-insert-modules’ is _not_ a member of that hook
+variable.
+
+ -- Function: magit-insert-modules
+
+     Insert submodule sections.
+
+     Hook ‘magit-module-sections-hook’ controls which module sections
+     are inserted, and option ‘magit-insert-modules-nested’ controls
+     whether they are wrapped in an additional section.
+
+   • Option: magit-module-sections-hook
+
+     Hook run by ‘magit-insert-modules’.
+
+   • Option: magit-module-sections-nested
+
+     This option controls whether ‘magit-insert-modules’ wraps inserted
+     sections in an additional section.
+
+     If this is non-nil, then only a single top-level section is
+     inserted.  If it is nil, then all sections listed in
+     ‘magit-module-sections-hook’ become top-level sections.
+
+ -- Function: magit-insert-modules-overview
+
+     Insert sections for all submodules.  For each section insert the
+     path, the branch, and the output of ‘git describe --tags’.
+
+     Press ‘RET’ on such a submodule section to show its own status
+     buffer.  Press ‘RET’ on the "Modules" section to display a list of
+     submodules in a separate buffer.  This shows additional information
+     not displayed in the super-repository’s status buffer.
+
+ -- Function: magit-insert-modules-unpulled-from-upstream
+
+     Insert sections for modules that haven’t been pulled from the
+     upstream yet.  These sections can be expanded to show the
+     respective commits.
+
+ -- Function: magit-insert-modules-unpulled-from-pushremote
+
+     Insert sections for modules that haven’t been pulled from the
+     push-remote yet.  These sections can be expanded to show the
+     respective commits.
+
+ -- Function: magit-insert-modules-unpushed-to-upstream
+
+     Insert sections for modules that haven’t been pushed to the
+     upstream yet.  These sections can be expanded to show the
+     respective commits.
+
+ -- Function: magit-insert-modules-unpushed-to-pushremote
+
+     Insert sections for modules that haven’t been pushed to the
+     push-remote yet.  These sections can be expanded to show the
+     respective commits.
+
+
+File: magit.info,  Node: Status Options,  Prev: Status Module Sections,  Up: Status Buffer
+
+5.1.4 Status Options
 --------------------
 
  -- User Option: magit-status-refresh-hook
@@ -2807,6 +2843,16 @@ the status buffer.
      This command swaps revisions in the diff range from "revA..revB" to
      "revB..revA", or vice versa.
 
+‘D F’     (‘magit-diff-toggle-file-filter’)
+
+     This command toggles the file restriction of the diffs in the
+     current buffer, allowing you to quickly switch between viewing all
+     the changes in the commit and the restricted subset.  As a special
+     case, when this command is called from a log buffer, it toggles the
+     file restriction in the repository’s revision buffer, which is
+     useful when you display a revision from a log buffer that is
+     restricted to a file or files.
+
    In addition to the above popup, which allows changing any of the
 supported arguments, there also exist some commands which change a
 particular argument.
@@ -3024,7 +3070,8 @@ File: magit.info,  Node: Revision Buffer,  Prev: Diff Options,  Up: Diffing
    The diffs shown in the revision buffer may be automatically
 restricted to a subset of the changed files.  If the revision buffer is
 displayed from a log buffer, the revision buffer will share the same
-file restriction as that log buffer.  Note, however, that the log’s file
+file restriction as that log buffer (also see the command
+‘magit-diff-toggle-file-filter’).  Note, however, that the log’s file
 restriction will be ignored when ‘magit-log-arguments’ includes
 ‘--follow’.  In this case, the ‘-u’ argument of the log popup can be
 used to show the file-restricted diffs inline.
@@ -3033,14 +3080,6 @@ used to show the file-restricted diffs inline.
 restriction is determined by the file restriction in the repository’s
 diff buffer, if it exists, and the value of the option
 ‘magit-use-sticky-arguments’.
-
-‘M-x magit-revision-toggle-file-filter’     (‘magit-revision-toggle-file-filter’)
-
-     This command toggles the file restriction of the current revision
-     buffer, allowing you to quickly switch between viewing all the
-     changes in the commit and the restricted subset.  It is
-     particularly useful when you display a revision from a log buffer
-     that is restricted to a file or files.
 
 
 File: magit.info,  Node: Ediffing,  Next: References Buffer,  Prev: Diffing,  Up: Inspecting
@@ -4327,23 +4366,22 @@ features are available from separate popups.
      This option specifies whether remote upstreams are favored over
      local upstreams when creating new branches.
 
-     When a new branch is created, Magit offers the branch, commit, or
-     stash as the default starting point of the new branch.  If there is
-     no such thing at point, then it falls back to offer the current
-     branch as starting-point.  The user may then accept that default or
-     pick something else.
+     When a new branch is created, then the branch, commit, or stash at
+     point is suggested as the starting point of the new branch, or if
+     there is no such revision at point the current branch.  In either
+     case the user may choose another starting point.
 
-     If the chosen starting-point is a branch, then it may also be set
+     If the chosen starting point is a branch, then it may also be set
      as the upstream of the new branch, depending on the value of the
      Git variable ‘branch.autoSetupMerge’.  By default this is done for
      remote branches, but not for local branches.
 
      You might prefer to always use some remote branch as upstream.  If
-     the chosen starting-point is (1) a local branch, (2) whose name
+     the chosen starting point is (1) a local branch, (2) whose name
      matches a member of the value of this option, (3) the upstream of
      that local branch is a remote branch with the same name, and (4)
      that remote branch can be fast-forwarded to the local branch, then
-     the chosen branch is used as starting-point, but its own upstream
+     the chosen branch is used as starting point, but its own upstream
      is used as the upstream of the new branch.
 
      Members of this option’s value are treated as branch names that
@@ -6192,7 +6230,8 @@ few key bindings, but this might be extended in the future.
 
      This command shows the log for the file of blob that the current
      buffer visits.  Renames are followed when a prefix argument is used
-     or when ‘--follow’ is part of ‘magit-log-arguments’.
+     or when ‘--follow’ is part of ‘magit-log-arguments’.  When the
+     region is active, the log is restricted to the selected line range.
 
  -- User Option: magit-log-buffer-file-locked
 
@@ -7773,9 +7812,9 @@ Appendix C Keystroke Index
                                                               (line  39)
 * $:                                     Viewing Git Output.  (line  11)
 * +:                                     Log Buffer.          (line  59)
-* + <1>:                                 Refreshing Diffs.    (line  58)
-* -:                                     Refreshing Diffs.    (line  54)
-* 0:                                     Refreshing Diffs.    (line  62)
+* + <1>:                                 Refreshing Diffs.    (line  68)
+* -:                                     Refreshing Diffs.    (line  64)
+* 0:                                     Refreshing Diffs.    (line  72)
 * 1:                                     Section Visibility.  (line  26)
 * 2:                                     Section Visibility.  (line  27)
 * 3:                                     Section Visibility.  (line  28)
@@ -7822,7 +7861,7 @@ Appendix C Keystroke Index
 * C-c C-a:                               Editing Commit Messages.
                                                               (line 128)
 * C-c C-b:                               Log Buffer.          (line  19)
-* C-c C-b <1>:                           Refreshing Diffs.    (line  80)
+* C-c C-b <1>:                           Refreshing Diffs.    (line  90)
 * C-c C-c:                               Popup Buffers and Prefix Commands.
                                                               (line  20)
 * C-c C-c <1>:                           Select from Log.     (line  20)
@@ -7830,11 +7869,11 @@ Appendix C Keystroke Index
                                                               (line  19)
 * C-c C-c <3>:                           Editing Rebase Sequences.
                                                               (line   6)
-* C-c C-d:                               Refreshing Diffs.    (line  70)
+* C-c C-d:                               Refreshing Diffs.    (line  80)
 * C-c C-d <1>:                           Editing Commit Messages.
                                                               (line  57)
 * C-c C-f:                               Log Buffer.          (line  23)
-* C-c C-f <1>:                           Refreshing Diffs.    (line  84)
+* C-c C-f <1>:                           Refreshing Diffs.    (line  94)
 * C-c C-i:                               Editing Commit Messages.
                                                               (line 153)
 * C-c C-k:                               Select from Log.     (line  26)
@@ -7858,7 +7897,7 @@ Appendix C Keystroke Index
 * C-c M-g:                               Minor Mode for Buffers Visiting Files.
                                                               (line  19)
 * C-c M-g b:                             Minor Mode for Buffers Visiting Files.
-                                                              (line  75)
+                                                              (line  76)
 * C-c M-g c:                             Minor Mode for Buffers Visiting Files.
                                                               (line  33)
 * C-c M-g D:                             Minor Mode for Buffers Visiting Files.
@@ -7870,7 +7909,7 @@ Appendix C Keystroke Index
 * C-c M-g l:                             Minor Mode for Buffers Visiting Files.
                                                               (line  64)
 * C-c M-g p:                             Minor Mode for Buffers Visiting Files.
-                                                              (line  81)
+                                                              (line  82)
 * C-c M-g s:                             Minor Mode for Buffers Visiting Files.
                                                               (line  24)
 * C-c M-g u:                             Minor Mode for Buffers Visiting Files.
@@ -7886,6 +7925,7 @@ Appendix C Keystroke Index
 * d c:                                   Diffing.             (line  67)
 * d d:                                   Diffing.             (line  25)
 * D f:                                   Refreshing Diffs.    (line  45)
+* D F:                                   Refreshing Diffs.    (line  50)
 * D g:                                   Refreshing Diffs.    (line  16)
 * d p:                                   Diffing.             (line  59)
 * d r:                                   Diffing.             (line  29)
@@ -8003,7 +8043,6 @@ Appendix C Keystroke Index
                                                               (line  87)
 * M-x magit-reverse-in-index:            Staging and Unstaging.
                                                               (line  62)
-* M-x magit-revision-toggle-file-filter: Revision Buffer.     (line  39)
 * M-x magit-stage-file:                  Staging from File-Visiting Buffers.
                                                               (line  10)
 * M-x magit-toggle-buffer-lock:          Modes and Buffers.   (line  17)
