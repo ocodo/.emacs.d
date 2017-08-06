@@ -4,8 +4,8 @@
 
 ;; Author: edkolev <evgenysw@gmail.com>
 ;; URL: http://github.com/edkolev/evil-lion
-;; Package-Version: 20170523.450
-;; Package-Requires: ((emacs "24") (evil "1.0.0"))
+;; Package-Version: 20170801.2232
+;; Package-Requires: ((emacs "24.3") (evil "1.0.0"))
 ;; Version: 0.0.2
 ;; Keywords: emulations, evil, vim
 
@@ -120,10 +120,14 @@ BEG and END specify the region."
   "Return nil if the CHAR is invalid align character, e.g. DEL."
   (not (memq char '(?\e ?\d ?\b)))) ;; ESC, DEL, BS
 
+(defvar evil-lion--prev-user-regex "/"
+  "The last regex used for alignment, specified by the user.")
+
 (defun evil-lion--maybe-read-regex (char)
   "If CHAR is \"/\", ask the user for a regex. Otherwise regexp-quote CHAR."
   (if (eq char ?/)
-      (read-string "Pattern [/]: " nil nil "/")
+      (let ((regex (read-string (format "Pattern [%s]: " evil-lion--prev-user-regex) nil nil evil-lion--prev-user-regex)))
+        (setq evil-lion--prev-user-regex regex))
     (regexp-quote (format  "%c" char))))
 
 (declare-function align-region "align")
