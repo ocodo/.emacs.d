@@ -5,7 +5,7 @@
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Maintainer: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-window
-;; Package-Version: 20170421.428
+;; Package-Version: 20170801.1334
 ;; Version: 0.9.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: window, location
@@ -95,7 +95,7 @@ Use M-0 `ace-window' to toggle this value."
   :type 'boolean)
 
 (defcustom aw-background t
-  "When t, `ace-window' will dim out all buffers temporarily when used.'."
+  "When t, `ace-window' will dim out all buffers temporarily when used."
   :type 'boolean)
 
 (defcustom aw-leading-char-style 'char

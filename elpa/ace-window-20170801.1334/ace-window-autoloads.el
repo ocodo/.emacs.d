@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ace-window" "ace-window.el" (22873 40165 0
-;;;;;;  0))
+;;;### (autoloads nil "ace-window" "ace-window.el" (0 0 0 0))
 ;;; Generated autoloads from ace-window.el
 
 (autoload 'ace-select-window "ace-window" "\
@@ -57,6 +56,8 @@ or call the function `ace-window-display-mode'.")
 Minor mode for showing the ace window key in the mode line.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ace-window" '("ace-window-mode" "aw-")))
 
 ;;;***
 
