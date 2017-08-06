@@ -117,7 +117,7 @@ Insert current class name if cursor in class context.
 \(fn)" t nil)
 
 (autoload 'php-current-namespace "php-mode" "\
-Insert current namespace if cursor in in namespace context.
+Insert current namespace if cursor in namespace context.
 
 \(fn)" t nil)
 
