@@ -7,7 +7,7 @@
 ;; Maintainer: Jason R. Blevins <jblevins@xbeta.org>
 ;; Created: May 24, 2007
 ;; Version: 2.3-dev
-;; Package-Version: 20170724.2018
+;; Package-Version: 20170803.1101
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: http://jblevins.org/projects/markdown-mode/
@@ -4874,6 +4874,15 @@ if three backquotes inserted at the beginning of line."
   (setq markdown-gfm-used-languages
           (cons lang (remove lang markdown-gfm-used-languages))))
 
+(defcustom markdown-spaces-after-code-fence 1
+  "Number of space characters to insert after a code fence.
+\\<gfm-mode-map>\\[markdown-insert-gfm-code-block] inserts this many spaces between an
+opening code fence and an info string."
+  :group 'markdown
+  :type 'integer
+  :safe #'natnump
+  :package-version '(markdown-mode . "2.3"))
+
 (defun markdown-insert-gfm-code-block (&optional lang)
   "Insert GFM code block for language LANG.
 If LANG is nil, the language will be queried from user.  If a
@@ -4891,14 +4900,18 @@ automatically in order to have the correct markup."
                  'markdown-gfm-language-history))
              (quit "")))))
   (unless (string= lang "") (markdown-gfm-add-used-language lang))
-  (when (> (length lang) 0) (setq lang (concat " " lang)))
+  (when (> (length lang) 0)
+    (setq lang (concat (make-string markdown-spaces-after-code-fence ?\s)
+                       lang)))
   (if (markdown-use-region-p)
-      (let ((b (region-beginning)) (e (region-end)))
+      (let* ((b (region-beginning)) (e (region-end))
+             (indent (progn (goto-char b) (current-indentation))))
         (goto-char e)
         ;; if we're on a blank line, don't newline, otherwise the ```
         ;; should go on its own line
         (unless (looking-back "\n" nil)
           (newline))
+        (indent-to indent)
         (insert "```")
         (markdown-ensure-blank-line-after)
         (goto-char b)
@@ -4908,11 +4921,19 @@ automatically in order to have the correct markup."
           (newline)
           (forward-line -1))
         (markdown-ensure-blank-line-before)
+        (indent-to indent)
         (insert "```" lang))
-    (markdown-ensure-blank-line-before)
-    (insert "```" lang "\n\n```")
-    (markdown-ensure-blank-line-after)
-    (forward-line -1)))
+    (let ((indent (current-indentation)))
+      (delete-horizontal-space :backward-only)
+      (markdown-ensure-blank-line-before)
+      (indent-to indent)
+      (insert "```" lang "\n")
+      (indent-to indent)
+      (insert ?\n)
+      (indent-to indent)
+      (insert "```")
+      (markdown-ensure-blank-line-after))
+    (end-of-line 0)))
 
 (defun markdown-code-block-lang (&optional pos-prop)
   "Return the language name for a GFM or tilde fenced code block.
@@ -8851,8 +8872,6 @@ position."
   ;; Inhibiting line-breaking:
   ;; Separating out each condition into a separate function so that users can
   ;; override if desired (with remove-hook)
-  (add-hook 'fill-nobreak-predicate
-            #'markdown-inside-link-p nil t)
   (add-hook 'fill-nobreak-predicate
             #'markdown-line-is-reference-definition-p nil t)
   (add-hook 'fill-nobreak-predicate
