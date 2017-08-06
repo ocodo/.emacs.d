@@ -4,7 +4,7 @@
 
 ;; Author: Paul Rankin <hello@paulwrankin.com>
 ;; Keywords: wp
-;; Package-Version: 20161207.141
+;; Package-Version: 20170728.507
 ;; Version: 2.3.0
 ;; Package-Requires: ((emacs "24.4"))
 ;; URL: https://github.com/rnkn/fountain-mode
@@ -4085,4 +4085,12 @@ fountain-hide-ELEMENT is non-nil, adds fountain-ELEMENT to
   (fountain-outline-hide-level fountain-outline-startup-level t))
 
 (provide 'fountain-mode)
+
+;; Local Variables:
+;; coding: utf-8
+;; fill-column: 80
+;; indent-tabs-mode: nil
+;; require-final-newline: t
+;; End:
+
 ;;; fountain-mode.el ends here
