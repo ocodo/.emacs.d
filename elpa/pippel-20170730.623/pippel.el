@@ -5,7 +5,7 @@
 ;; Author: Fritz Stelzer <brotzeitmacher@gmail.com>
 ;; URL: https://github.com/brotzeitmacher/pippel
 ;; Version: 1.1
-;; Package-Requires: ((emacs "25.1") (s "1.11.0"))
+;; Package-Requires: ((emacs "25.1") (s "1.11.0") (dash "2.12.0"))
 
 ;;; License:
 ;;
@@ -26,6 +26,7 @@
 (require 'json)
 (require 's)
 (require 'sort)
+(require 'dash)
 
 (defgroup pippel nil
   "Manager for pip packages."
