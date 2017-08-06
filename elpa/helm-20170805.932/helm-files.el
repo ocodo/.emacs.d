@@ -323,6 +323,11 @@ Of course you can also write your own function to do something else."
   :group 'helm-files
   :type 'function)
 
+(defcustom helm-modes-using-escaped-strings
+  '(eshell-mode shell-mode term-mode)
+  "Modes that requires string's insertion to be escaped."
+  :group 'helm-files
+  :type '(repeat symbol))
 
 ;;; Faces
 ;;
@@ -627,22 +632,46 @@ Should not be used among other sources.")
     (message "Helm find files session bookmarked! ")))
 (put 'helm-ff-bookmark-set 'helm-only t)
 
+(defcustom helm-dwim-target nil
+  "Default target directory for file actions.
+
+Define the directory where you want to start navigating for the target
+directory when copying, renaming etc... You can use the
+`default-directory' of `next-window', the current
+`default-directory' or have completion on all the directories
+belonging to each window."
+  :group 'helm-files
+  :type '(radio :tag "Define default target directory for file actions."
+          (const :tag "Directory belonging to next window" next-window)
+          (const :tag "Completion on directories belonging to each window" completion)
+          (const :tag "Use initial directory or `default-directory'" nil)))
+
 (defun helm-dwim-target-directory ()
-  "Return value of `default-directory' of buffer in other window.
-If there is only one window return the value of currently visited directory
-if found in `helm-ff-history' or fallback to `default-directory'
-of current buffer."
+  "Try to return a suitable directory according to `helm-dwim-target'."
   (with-helm-current-buffer
-    (let ((num-windows (length (remove (get-buffer-window helm-marked-buffer-name)
-                                       (window-list)))))
+    (let* ((wins (remove (get-buffer-window helm-marked-buffer-name)
+                         (window-list)))
+           (num-windows (length wins)))
       (expand-file-name
-       (if (> num-windows 1)
-           (save-selected-window
-             (other-window 1)
-             default-directory)
-           ;; Using the car of *ff-history allow
-           ;; staying in the directory visited instead of current.
-           (or (car-safe helm-ff-history) default-directory))))))
+       (cond ((and (> num-windows 1)
+                   (eq helm-dwim-target 'completion))
+              (helm-comp-read "Browse target starting from: "
+                              (append (list (or (car-safe helm-ff-history)
+                                                default-directory)
+                                            default-directory)
+                                      (cl-loop for w in wins collect
+                                               (with-selected-window w
+                                                 default-directory)))))
+             ((and (> num-windows 1)
+                   (eq helm-dwim-target 'next-window))
+              (with-selected-window (next-window)
+                default-directory))
+             ((or (= num-windows 1)
+                  (null helm-dwim-target))
+              ;; Using the car of *ff-history allow
+              ;; staying in the directory visited instead of
+              ;; current.
+              (or (car-safe helm-ff-history) default-directory)))))))
 
 (defun helm-ff--count-and-collect-dups (files)
   (cl-loop with dups = (make-hash-table :test 'equal)
@@ -746,7 +775,8 @@ This reproduce the behavior of \"cp --backup=numbered from to\"."
 
 (defun helm-find-files-ediff-files-1 (candidate &optional merge)
   "Generic function to ediff/merge files in `helm-find-files'."
-  (let* ((bname  (helm-basename candidate))
+  (let* ((helm-dwim-target 'next-window) 
+         (bname  (helm-basename candidate))
          (marked (helm-marked-candidates :with-wildcard t))
          (prompt (if merge "Ediff Merge `%s' With File: "
                    "Ediff `%s' With File: "))
@@ -1920,10 +1950,15 @@ With a prefix arg toggle dired buffer to wdired mode."
          ;; symbol (`tramp-file-name') which is not needed as argument
          ;; for `tramp-make-tramp-file-name' so transform the cdr in
          ;; vector, and for 24.5 use directly the returned value.
-         (cl-loop with v = (pcase (tramp-dissect-file-name fname)
-                             (`(,_l . ,ll) (vconcat ll))
-                             ((and vec (pred vectorp)) vec))
+         (cl-loop with v = (helm--tramp-cons-or-vector
+                            (tramp-dissect-file-name fname))
                   for i across v collect i)))
+
+(defun helm--tramp-cons-or-vector (vector-or-cons)
+  "Return VECTOR-OR-CONS as a vector."
+  (pcase vector-or-cons
+    (`(,_l . ,ll) (vconcat ll))
+    ((and vec (pred vectorp)) vec)))
 
 (defun helm-ff-get-tramp-methods ()
   "Returns a list of the car of `tramp-methods'."
@@ -2858,24 +2893,31 @@ If a prefix arg is given or `helm-follow-mode' is on open file."
                                     guess)
                                    (string-match-p
                                     "\\`\\(/\\|[[:lower:][:upper:]]:/\\)"
-                                    guess)))))
+                                    guess))))
+             (escape-fn (with-helm-current-buffer
+                          (if (memq major-mode
+                                    helm-modes-using-escaped-strings)
+                              #'shell-quote-argument #'identity))))
         (set-text-properties 0 (length candidate) nil candidate)
-        (if (and guess (not (string= guess ""))
-                 (or (string-match "^\\(~/\\|/\\|[[:lower:][:upper:]]:/\\)"
-                                   guess)
-                     (file-exists-p candidate)))
-            (progn
-              (delete-region beg end)
-              (insert (cond (full-path-p
-                             (expand-file-name candidate))
-                            ((string= (match-string 1 guess) "~/")
-                              (abbreviate-file-name candidate))
-                            (t (file-relative-name candidate)))))
-            (insert (cond ((equal helm-current-prefix-arg '(4))
+        (insert
+         (funcall escape-fn
+                  (if (and guess (not (string= guess ""))
+                           (or (string-match
+                                "^\\(~/\\|/\\|[[:lower:][:upper:]]:/\\)"
+                                guess)
+                               (file-exists-p candidate)))
+                      (prog1
+                          (cond (full-path-p
+                                 (expand-file-name candidate))
+                                ((string= (match-string 1 guess) "~/")
+                                 (abbreviate-file-name candidate))
+                                (t (file-relative-name candidate)))
+                        (delete-region beg end))
+                    (cond ((equal helm-current-prefix-arg '(4))
                            (abbreviate-file-name candidate))
                           ((equal helm-current-prefix-arg '(16))
                            (file-relative-name candidate))
-                          (t candidate))))))))
+                          (t candidate)))))))))
 
 (cl-defun helm-find-files-history (&key (comp-read t))
   "The `helm-find-files' history.
@@ -4153,7 +4195,8 @@ It allows additionally to delete more than one connection at once."
                      :candidate-transformer (lambda (candidates)
                                               (cl-loop for v in candidates
                                                        for name = (apply #'tramp-make-tramp-file-name
-                                                                         (cl-loop for i across v collect i))
+                                                                         (cl-loop with v = (helm--tramp-cons-or-vector v)
+                                                                                  for i across v collect i))
                                                        when (or (processp (tramp-get-connection-process v))
                                                                 (buffer-live-p (get-buffer (tramp-buffer-name v))))
                                                        collect (cons name v)))
