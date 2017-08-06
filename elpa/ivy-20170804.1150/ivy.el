@@ -959,7 +959,7 @@ If the input is empty, select the previous history element instead."
   "Move cursor vertically up ARG candidates.
 If the input is empty, select the previous history element instead."
   (interactive "p")
-  (when (string= ivy-text "")
+  (when (and (zerop ivy--index) (string= ivy-text ""))
     (ivy-previous-history-element 1))
   (ivy-previous-line arg))
 
@@ -1313,6 +1313,8 @@ On error (read-only), call `ivy-on-del-error-function'."
              (avy--style-fn avy-style)))))
     (when (number-or-marker-p candidate)
       (goto-char candidate)
+      (when (eq ivy-format-function 'ivy-format-function-arrow)
+        (forward-char 2))
       (ivy--done
        (buffer-substring-no-properties
         (point) (line-end-position))))))
@@ -1442,11 +1444,11 @@ like.")
   "Sorting won't be done for collections larger than this."
   :type 'integer)
 
-(defun ivy--sorted-files (dir &optional predicate)
+(defun ivy--sorted-files (dir)
   "Return the list of files in DIR.
-When PREDICATE is not nil, use it to filter the result.
 Directories come first."
   (let* ((default-directory dir)
+         (predicate (ivy-state-predicate ivy-last))
          (seq (condition-case nil
                   (all-completions "" 'read-file-name-internal)
                 (error
@@ -1655,7 +1657,7 @@ This is useful for recursive `ivy-read'."
         (caller (ivy-state-caller state))
         (def (ivy-state-def state)))
     (unless initial-input
-      (setq initial-input (cdr (assoc this-command
+      (setq initial-input (cdr (assoc (or caller this-command)
                                       ivy-initial-inputs-alist))))
     (setq ivy--directory nil)
     (setq ivy-case-fold-search ivy-case-fold-search-default)
@@ -1729,7 +1731,7 @@ This is useful for recursive `ivy-read'."
                  (setf
                   (ivy-state-preselect state)
                   (setq preselect (file-name-nondirectory preselect)))))
-             (setq coll (ivy--sorted-files ivy--directory predicate))
+             (setq coll (ivy--sorted-files ivy--directory))
              (when initial-input
                (unless (or require-match
                            (equal initial-input default-directory)
@@ -2237,6 +2239,10 @@ tries to ensure that it does not change depending on the number of candidates."
   :type 'boolean)
 
 ;;** Rest
+(defcustom ivy-truncate-lines t
+  "Minibuffer setting for `truncate-lines'."
+  :type 'boolean)
+
 (defun ivy--minibuffer-setup ()
   "Setup ivy completion in the minibuffer."
   (set (make-local-variable 'completion-show-inline-help) nil)
@@ -2245,7 +2251,7 @@ tries to ensure that it does not change depending on the number of candidates."
          (list ivy--default)))
   (set (make-local-variable 'inhibit-field-text-motion) nil)
   (when (display-graphic-p)
-    (setq truncate-lines t))
+    (setq truncate-lines ivy-truncate-lines))
   (setq-local max-mini-window-height ivy-height)
   (when (and ivy-fixed-height-minibuffer
              (not (eq (ivy-state-caller ivy-last) 'ivy-completion-in-region)))
@@ -3863,7 +3869,7 @@ EVENT gives the mouse position."
                      (assoc str coll)
                    str))
         (if (memq (ivy-state-caller ivy-last)
-                  '(swiper counsel-git-grep counsel-grep))
+                  '(swiper counsel-git-grep counsel-grep counsel-ag counsel-rg))
             (with-current-buffer (window-buffer (selected-window))
               (swiper--cleanup)
               (swiper--add-overlays
