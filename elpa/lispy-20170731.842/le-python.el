@@ -138,6 +138,11 @@ Stripping them will produce code that's valid for an eval."
   (setq lispy-python-proc
         (cond ((consp x)
                (cdr x))
+              ((fboundp 'mash-new-lispy-python)
+               (save-window-excursion
+                 (get-buffer-process
+                  (let ((shell-name (format "*python  %s*" x)))
+                    (mash-make-shell shell-name 'mash-new-lispy-python)))))
               (t
                (lispy--python-proc (concat "lispy-python-" x))))))
 
@@ -176,17 +181,13 @@ it at one time."
          (process (get-process proc-name)))
     (if (process-live-p process)
         process
-      (let ((python-shell-font-lock-enable nil)
-            (inferior-python-mode-hook nil)
-            (python-binary-name (python-shell-calculate-command)))
-        (save-excursion
-          (goto-char (point-min))
-          (when (looking-at "#!\\(.*\\)$")
-            (setq python-binary-name
-                  (concat
-                   (match-string-no-properties 1)
-                   " "
-                   python-shell-interpreter-args))))
+      (let* ((python-shell-font-lock-enable nil)
+             (inferior-python-mode-hook nil)
+             (python-shell-interpreter
+              (if (file-exists-p python-shell-interpreter)
+                  (expand-file-name python-shell-interpreter)
+                python-shell-interpreter))
+             (python-binary-name (python-shell-calculate-command)))
         (setq process (get-buffer-process
                        (python-shell-make-comint
                         python-binary-name proc-name nil nil))))
@@ -525,6 +526,8 @@ Otherwise, fall back to Jedi (static)."
   (setq lispy--python-middleware-loaded-p nil)
   (lispy--python-middleware-load))
 
+(defvar lispy-python-init-file "~/git/site-python/init.py")
+
 (defun lispy--python-middleware-load ()
   "Load the custom Python code in \"lispy-python.py\"."
   (unless lispy--python-middleware-loaded-p
@@ -532,7 +535,12 @@ Otherwise, fall back to Jedi (static)."
               (format "import imp;lp=imp.load_source('lispy-python','%s');__name__='__repl__'"
                       (expand-file-name "lispy-python.py" lispy-site-directory)))))
       (if r
-          (setq lispy--python-middleware-loaded-p t)
+          (progn
+            (when (file-exists-p lispy-python-init-file)
+              (lispy--eval-python
+               (format "exec (open ('%s').read(), globals ())"
+                       (expand-file-name lispy-python-init-file))))
+            (setq lispy--python-middleware-loaded-p t))
         (lispy-message lispy-eval-error)))))
 
 (defun lispy--python-arglist (symbol filename line column)
