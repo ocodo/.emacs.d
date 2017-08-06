@@ -2,7 +2,7 @@
 
 ;; Created: 2011-10-16 13:17
 ;; Version: 1.0
-;; Package-Version: 20170120.2313
+;; Package-Version: 20170728.58
 ;; Author: Joseph(纪秀峰)  jixiuf@gmail.com
 ;; Keywords: exuberant-ctags etags
 ;; URL: https://github.com/jixiuf/ctags-update
@@ -25,6 +25,11 @@
 ;;; Commentary:
 
 ;; And the following to your ~/.emacs startup file.
+
+;; (ctags-global-auto-update-mode)
+;; (setq ctags-update-prompt-create-tags nil);you need manually create TAGS in your project
+
+;; or only turn it on for some special mode
 ;;
 ;;(autoload 'turn-on-ctags-auto-update-mode "ctags-update" "turn on `ctags-auto-update-mode'." t)
 ;;(add-hook 'c-mode-common-hook  'turn-on-ctags-auto-update-mode)
@@ -92,6 +97,11 @@ then `ctags-update' will be called"
 (defcustom ctags-update-lighter " ctagsU"
   "Lighter displayed in mode line when `ctags-auto-update-mode'
 is enabled."
+  :group 'ctags-update
+  :type 'string)
+
+(defcustom ctags-update-prompt-create-tags t
+  "Promtp create `TAGS' when tag file not exists."
   :group 'ctags-update
   :type 'string)
 
@@ -200,10 +210,12 @@ this return t if current buffer file name is TAGS."
       (unless tags
         (setq ctags-update-last-update-time
               (- (float-time (current-time)) ctags-update-delay-seconds 1))
-        (setq tags
-              (expand-file-name
-               "TAGS" (read-directory-name
-                       "Generate TAGS in dir(or disable `ctags-auto-update-mode'):"))))))
+        (when ctags-update-prompt-create-tags
+          (setq tags
+                (expand-file-name
+                 "TAGS" (read-directory-name
+                         "Generate TAGS in dir(or disable `ctags-auto-update-mode'):")))
+          ))))
     tags))
 
 ;;;###autoload
@@ -261,6 +273,11 @@ this return t if current buffer file name is TAGS."
   "turn on `ctags-auto-update-mode'."
   (interactive)
   (ctags-auto-update-mode 1))
+
+;;;###autoload
+(define-global-minor-mode ctags-global-auto-update-mode
+  ctags-auto-update-mode
+  turn-on-ctags-auto-update-mode)
 
 (provide 'ctags-update)
 

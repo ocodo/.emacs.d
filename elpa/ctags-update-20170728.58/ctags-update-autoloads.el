@@ -25,6 +25,28 @@ turn on `ctags-auto-update-mode'.
 
 \(fn)" t nil)
 
+(defvar ctags-global-auto-update-mode nil "\
+Non-nil if Ctags-Global-Auto-Update mode is enabled.
+See the `ctags-global-auto-update-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `ctags-global-auto-update-mode'.")
+
+(custom-autoload 'ctags-global-auto-update-mode "ctags-update" nil)
+
+(autoload 'ctags-global-auto-update-mode "ctags-update" "\
+Toggle Ctags-Auto-Update mode in all buffers.
+With prefix ARG, enable Ctags-Global-Auto-Update mode if ARG is positive;
+otherwise, disable it.  If called from Lisp, enable the mode if
+ARG is omitted or nil.
+
+Ctags-Auto-Update mode is enabled in all buffers where
+`turn-on-ctags-auto-update-mode' would do it.
+See `ctags-auto-update-mode' for more information on Ctags-Auto-Update mode.
+
+\(fn &optional ARG)" t nil)
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ctags-update" '("ctags-")))
 
 ;;;***
