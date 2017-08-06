@@ -6,9 +6,9 @@
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
 ;; Copyright (C) 1996-2017, Drew Adams, all rights reserved.
 ;; Created: Mon Feb 27 09:25:04 2006
-;; Last-Updated: Fri Jul  7 05:47:04 2017 (-0700)
+;; Last-Updated: Wed Jul 26 08:20:27 2017 (-0700)
 ;;           By: dradams
-;;     Update #: 19834
+;;     Update #: 19836
 ;; URL: https://www.emacswiki.org/emacs/download/icicles-mcmd.el
 ;; Doc URL: https://www.emacswiki.org/emacs/Icicles
 ;; Keywords: internal, extensions, help, abbrev, local, minibuffer,
@@ -373,7 +373,7 @@
 ;;  navigate around the sections of this doc.  Linkd mode will
 ;;  highlight this Index, as well as the cross-references and section
 ;;  headings throughout this file.  You can get `linkd.el' here:
-;;  http://www.emacswiki.org/emacs/download/linkd.el.
+;;  https://www.emacswiki.org/emacs/download/linkd.el.
 ;;
 ;;  (@> "Redefined standard commands")
 ;;  (@> "Icicles commands")
@@ -3143,7 +3143,7 @@ These are the minibuffer bindings when not completing input:
            (get 'help-xref 'button-category-symbol)) ; In `button.el'
   (define-button-type 'icicle-help-button
       :supertype 'help-xref
-      'help-function (lambda () (browse-url "http://www.emacswiki.org/cgi-bin/wiki/Icicles"))
+      'help-function (lambda () (browse-url "https://www.emacswiki.org/emacs/Icicles"))
       'help-echo
       (purecopy "mouse-2, RET: Icicles documentation on the Emacs Wiki (requires Internet access)"))
   (define-button-type 'icicle-commentary1-button
@@ -3616,9 +3616,7 @@ is as follows.
 
   Yes, this means you need to know when the particular ALTERNATIVES
   function that you want is coming up next, and use, say, `C-9' just
-  before hitting `M-.' for that alternative.  So if, e.g., you want to
-  evaluate the active region and insert the value, then you use
-  `M-. C-9 M-.', since it is the second `M-.' that grabs the region.
+  before hitting `M-.' for that alternative.
 
 * If the FORWARD-THING is being used, then the prefix arg determines
   the number of things to grab, and the direction of grabbing.: A
