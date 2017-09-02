@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: QMK macro alias
+# key: qmkma
+# group: QMK Firmware
+# --
+#define _${1:NAME}  M(M_$1)

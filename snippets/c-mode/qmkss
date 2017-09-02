@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: QMK Macro send string
+# key: qmkss
+# group: QMK Firmware
+# --
+case M_${1:macro name}:
+  if (record->event.pressed) {
+    SEND_STRING("${2:string to send}");
+  }
+  break;
