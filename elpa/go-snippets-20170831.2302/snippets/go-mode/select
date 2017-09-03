@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# contributer: Yusuke Tsutsumi <tsutsumi.yusuke@gmail.com>
+# name: select
+# key: select
+# description: snippet for select
+# --
+select {
+case ${1:channel} <- ${2:message}:
+	${3:body}
+$0
+}

@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# key: q
+# name: exit
+# expand-env: ((yas-indent-line 'fixed))
+# uuid: E227B994
+# contributor: Grant Rettke <gcr@wisdomandwonder.com>
+# --
+os.Exit(${1:0})$0
