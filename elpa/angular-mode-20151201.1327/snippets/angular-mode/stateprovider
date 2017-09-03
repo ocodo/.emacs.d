@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: stateProvider
+# --
+$stateProvider.state('${1:name}', {
+  url: '${2:route}',
+  views: {
+    'main': {
+      controller: '${3:controller}',
+      templateUrl: '${4:templateUrl}'
+    }
+  },
+  data: {
+  }
+});

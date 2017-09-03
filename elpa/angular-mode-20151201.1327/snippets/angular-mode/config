@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: config
+# --
+.config(function config(${1:dependencies}) {
+  $0
+})
