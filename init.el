@@ -15,6 +15,11 @@
 (let ((default-directory user-emacs-directory))
   (add-to-list 'load-path (expand-file-name "init-helpers")))
 
+;; Append .0 to Emacs version if it doesn't contain the last version point
+;; This is specifically for Termux at the moment.
+(when (eq 2 (length (split-string emacs-version "[.]")))
+  (setq emacs-version (format "%s.0" emacs-version)))
+
 (setq confirm-kill-emacs 'y-or-n-p)
 
 (load-library "init-helpers")
