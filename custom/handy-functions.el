@@ -716,6 +716,16 @@ when matches are equidistant from the current point."
       (browse-url (concat "https://github.com/" (github-browse-file--relative-url))))
   (message "Not a github repo"))
 
+(defun open-this-in-xcode ()
+  "Open the current file in XCode."
+  (interactive)
+  (when (file-exists-p (buffer-file-name))
+    (start-process-shell-command "open-in-xcode" nil
+                                 (format "open -a XCode %s"
+                                         (buffer-file-name)))
+    (start-process-shell-command "switch-to-xcode" nil
+                                 "osascript -e 'activate application \"XCode\"'")))
+
 (defun open-this-in-intellij-idea-15-osx ()
   "Open the current file in intellij IDEA 15 (OS X specific)."
   (interactive)
