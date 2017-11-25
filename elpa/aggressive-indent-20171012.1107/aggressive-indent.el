@@ -4,7 +4,7 @@
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/aggressive-indent-mode
-;; Package-Version: 20170627.1223
+;; Package-Version: 20171012.1107
 ;; Version: 1.8.4
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: indent lisp maint tools
@@ -281,6 +281,12 @@ erroring again."
                   (message aggressive-indent--error-message er))))))
 
 ;;; Indenting defun
+(defcustom aggressive-indent-region-function #'indent-region
+  "Function called to indent a region.
+It is called with two arguments, the region beginning and end."
+  :risky t
+  :type 'function)
+
 ;;;###autoload
 (defun aggressive-indent-indent-defun (&optional l r)
   "Indent current defun.
@@ -289,13 +295,13 @@ If L and R are provided, use them for finding the start and end of defun."
   (interactive)
   (let ((p (point-marker)))
     (set-marker-insertion-type p t)
-    (indent-region
-     (save-excursion
-       (when l (goto-char l))
-       (beginning-of-defun 1) (point))
-     (save-excursion
-       (when r (goto-char r))
-       (end-of-defun 1) (point)))
+    (funcall aggressive-indent-region-function
+             (save-excursion
+               (when l (goto-char l))
+               (beginning-of-defun 1) (point))
+             (save-excursion
+               (when r (goto-char r))
+               (end-of-defun 1) (point)))
     (goto-char p)))
 
 (defun aggressive-indent--softly-indent-defun (&optional l r)
@@ -328,7 +334,7 @@ Return non-nil only if the line's indentation actually changed."
           (forward-sexp 1)
           (comment-forward (point-max)))
         (when (looking-at "^")
-          (indent-region line-end (1- (point))))
+          (funcall aggressive-indent-region-function line-end (1- (point))))
         (skip-chars-forward "[:blank:]")))))
 
 (defun aggressive-indent--extend-end-to-whole-sexps (beg end)
@@ -343,8 +349,8 @@ Return non-nil only if the line's indentation actually changed."
 ;;;###autoload
 (defun aggressive-indent-indent-region-and-on (l r)
   "Indent region between L and R, and then some.
-Call `indent-region' between L and R, and then keep indenting
-until nothing more happens."
+Call `aggressive-indent-region-function' between L and R, and
+then keep indenting until nothing more happens."
   (interactive "r")
   (let ((p (point-marker))
         was-begining-of-line)
@@ -360,7 +366,7 @@ until nothing more happens."
               (cl-incf l)))
           ;; Indent the affected region.
           (goto-char r)
-          (unless (= l r) (indent-region l r))
+          (unless (= l r) (funcall aggressive-indent-region-function l r))
           ;; And then we indent each following line until nothing happens.
           (forward-line 1)
           (skip-chars-forward "[:blank:]\n\r\xc")

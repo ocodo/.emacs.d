@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "aggressive-indent" "aggressive-indent.el"
-;;;;;;  (22873 40167 0 0))
+;;;;;;  (23064 61982 446465 959000))
 ;;; Generated autoloads from aggressive-indent.el
 
 (autoload 'aggressive-indent-indent-defun "aggressive-indent" "\
@@ -16,8 +16,8 @@ If L and R are provided, use them for finding the start and end of defun.
 
 (autoload 'aggressive-indent-indent-region-and-on "aggressive-indent" "\
 Indent region between L and R, and then some.
-Call `indent-region' between L and R, and then keep indenting
-until nothing more happens.
+Call `aggressive-indent-region-function' between L and R, and
+then keep indenting until nothing more happens.
 
 \(fn L R)" t nil)
 
