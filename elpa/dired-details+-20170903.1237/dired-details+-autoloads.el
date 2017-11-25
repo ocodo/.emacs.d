@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dired-details+" "dired-details+.el" (0 0 0
-;;;;;;  0))
+;;;### (autoloads nil "dired-details+" "dired-details+.el" (23064
+;;;;;;  61795 694915 238000))
 ;;; Generated autoloads from dired-details+.el
 
 (defvar dired-details-hidden-string "" "\
@@ -18,8 +18,6 @@ The last `dired-details-state' value set is used by the next Dired
 buffer created.")
 
 (custom-autoload 'dired-details-propagate-flag "dired-details+" t)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dired-details+" '("dired-details-")))
 
 ;;;***
 
