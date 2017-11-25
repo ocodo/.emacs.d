@@ -42,18 +42,12 @@
   :group 'elm-format
   :type 'string)
 
-
-(defun elm-format--display-error (err-file)
-  "Displays the error in file ERR-FILE to the user."
-  (with-temp-buffer
-    (insert-file-contents err-file nil nil nil t)
-    (ansi-color-apply-on-region (point-min) (point-max))
-    (message "Error: elm-format failed on current buffer.\n\n%s" (buffer-string))))
-
 ;;;###autoload
-(defun elm-mode-format-buffer ()
-  "Apply `elm-format' to the current buffer."
-  (interactive)
+(defun elm-mode-format-buffer (&optional is-interactive)
+  "Apply `elm-format' to the current buffer.
+When called interactively, or with prefix argument
+IS-INTERACTIVE, show a buffer if the formatting fails."
+  (interactive "p")
   (let* (;; elm-format requires that the file have a .elm extension
          (in-file (make-temp-file "elm-format" nil ".elm"))
          (err-file (make-temp-file "elm-format"))
@@ -64,6 +58,7 @@
     (unwind-protect
         (let* ((command elm-format-command)
                (version elm-format-elm-version)
+               (error-buffer (get-buffer-create "*elm-format errors*"))
                (retcode
                 (with-temp-buffer
                   (call-process command
@@ -73,9 +68,18 @@
                                 "--output" out-file
                                 "--elm-version" version
                                 "--yes"))))
-          (if (/= retcode 0)
-              (elm-format--display-error err-file)
-            (insert-file-contents out-file nil nil nil t)))
+          (with-current-buffer error-buffer
+            (read-only-mode 0)
+            (insert-file-contents err-file nil nil nil t)
+            (ansi-color-apply-on-region (point-min) (point-max))
+            (special-mode))
+          (if (eq retcode 0)
+              (progn
+                (insert-file-contents out-file nil nil nil t)
+                (message "elm-format applied"))
+            (if is-interactive
+                (display-buffer error-buffer)
+              (message "elm-format failed: see %s" (buffer-name error-buffer)))))
       (delete-file in-file)
       (delete-file err-file)
       (delete-file out-file))))
