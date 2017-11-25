@@ -4,7 +4,7 @@
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20161110.455
+;; Package-Version: 20171123.201
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -635,14 +635,25 @@ Commands:
 
 (defvar ahg-status-consider-extra-switches nil)
 
+(defun ahg-status-get-root (is-interactive)
+  (if is-interactive
+      (condition-case nil (ahg-root)
+        (error
+         (with-temp-buffer
+           (setq default-directory
+                 (file-name-as-directory
+                  (read-directory-name "Hg repository: " default-directory)))
+           (ahg-root))))
+    (ahg-root)))
+
 (defun ahg-status (&rest extra-switches)
   "Run hg status. When called non-interactively, it is possible
 to pass extra switches to hg status."
   (interactive)
   (let ((buf (get-buffer-create "*aHg-status*"))
-        (curdir default-directory)
+        (curdir (expand-file-name (file-name-as-directory default-directory)))
         (show-message (called-interactively-p 'interactive))
-        (root (ahg-root)))
+        (root (ahg-status-get-root (called-interactively-p 'interactive))))
     (when ahg-status-consider-extra-switches
       (let ((sbuf (ahg-get-status-buffer root)))
         (when sbuf
@@ -651,17 +662,17 @@ to pass extra switches to hg status."
     (with-current-buffer buf
       (let ((inhibit-read-only t))
         (erase-buffer))
-      (setq default-directory (file-name-as-directory curdir))
+      (setq default-directory root)
       (set (make-local-variable 'ahg-root) root)
       (set (make-local-variable 'ahg-status-extra-switches) extra-switches)
-      (ahg-push-window-configuration))
-    (ahg-generic-command
-     "status" extra-switches
-     (lexical-let ((no-pop ahg-status-no-pop)
-                   (point-pos ahg-status-point-pos))
-       (lambda (process status)
-         (ahg-status-sentinel process status no-pop point-pos))) buf
-         nil (not show-message))))
+      (ahg-push-window-configuration)
+      (ahg-generic-command
+       "status" extra-switches
+       (lexical-let ((no-pop ahg-status-no-pop)
+                     (point-pos ahg-status-point-pos))
+         (lambda (process status)
+           (ahg-status-sentinel process status no-pop point-pos))) buf
+           nil (not show-message)))))
 
 (defun ahg-status-pp (data)
   "Pretty-printer for data elements in a *hg status* buffer."
@@ -956,44 +967,6 @@ wrt. its parent revision, using Ediff."
                  (kill-buffer buffer))))
         (message "hg rm aborted")))))
 
-(defun ahg-status-merge ()
-  "Runs hg merge on the repo.  Called when user clicks on or presses RET on 
-the `merge' text in the status view. See propertize-summary-info below." 
-  (interactive)
-  (lexical-let ((status-buffer (current-buffer))
-                (merge-buffer 
-                 (get-buffer-create
-                  (concat "*hg merge: " (ahg-root)))))
-    (pop-to-buffer merge-buffer)
-    (ahg-generic-command 
-     "merge" nil
-     (lambda (process status)
-       (if (string= status "finished\n")
-           (progn
-             (pop-to-buffer status-buffer)
-             (ahg-status-refresh)
-             (ahg-status-commit "Merge"))
-         (ahg-show-error process)))
-     merge-buffer)))
-
-(defun propertize-summary-info (summary)
-  "If the repo is in need of a merge, then the summary info will contain the
-text `heads (merge)'.  This function makes that text active, so that clicking
-it or pressing RET on it will initiate a merge."
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-1] 'ahg-status-merge)
-    (define-key map (kbd "RET") 'ahg-status-merge)
-    (replace-regexp-in-string 
-     "heads (merge)" 
-     (concat "heads " 
-             (propertize 
-              "(merge)" 
-              'mouse-face 'highlight 
-              'help-echo "Run hg merge"
-              'face 'info-xref
-              'keymap map))
-     summary))
-  )
 
 (defun ahg-get-status-ewoc (root)
   "Returns an *hg status* buffer for ROOT. The buffer's major mode is
@@ -1005,8 +978,7 @@ ahg-status, and it has an ewoc associated with it."
                  (propertize root 'face ahg-header-line-root-face) "\n"))
         (footer (concat "\n"
                         (make-string (1- (window-width (selected-window))) ?-)
-                        "\n" (propertize-summary-info
-                              (ahg-summary-info root)))))
+                        "\n" (ahg-summary-info root))))
     (with-current-buffer buf
       (erase-buffer)
       (let ((ew (ewoc-create 'ahg-status-pp

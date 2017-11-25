@@ -3,10 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ahg" "ahg.el" (0 0 0 0))
-;;; Generated autoloads from ahg.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ahg" '("ahg-" "propertize-summary-info")))
+;;;### (autoloads nil nil ("ahg.el") (23064 61979 6473 833000))
 
 ;;;***
 
