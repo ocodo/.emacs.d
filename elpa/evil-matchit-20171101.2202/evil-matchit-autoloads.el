@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "evil-matchit" "evil-matchit.el" (0 0 0 0))
+;;;### (autoloads nil "evil-matchit" "evil-matchit.el" (23064 61716
+;;;;;;  495121 871000))
 ;;; Generated autoloads from evil-matchit.el
 
 (autoload 'evilmi-select-items "evil-matchit" "\
@@ -68,12 +69,10 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit" '("evilmi-")))
-
 ;;;***
 
-;;;### (autoloads nil "evil-matchit-c" "evil-matchit-c.el" (0 0 0
-;;;;;;  0))
+;;;### (autoloads nil "evil-matchit-c" "evil-matchit-c.el" (23064
+;;;;;;  61716 491121 881000))
 ;;; Generated autoloads from evil-matchit-c.el
 
 (autoload 'evilmi-c-get-tag "evil-matchit-c" "\
@@ -86,12 +85,10 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-c" '("evilmi-c-")))
-
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-cmake" "evil-matchit-cmake.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61716 487121 892000))
 ;;; Generated autoloads from evil-matchit-cmake.el
 
 (autoload 'evilmi-cmake-get-tag "evil-matchit-cmake" "\
@@ -104,12 +101,10 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-cmake" '("evilmi-cmake-")))
-
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-diff" "evil-matchit-diff.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61716 495121 871000))
 ;;; Generated autoloads from evil-matchit-diff.el
 
 (autoload 'evilmi-diff-get-tag "evil-matchit-diff" "\
@@ -122,12 +117,10 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-diff" '("evilmi-diff-guess-final-pos")))
-
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-fortran" "evil-matchit-fortran.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61716 207122 641000))
 ;;; Generated autoloads from evil-matchit-fortran.el
 
 (autoload 'evilmi-fortran-get-tag "evil-matchit-fortran" "\
@@ -140,12 +133,10 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-fortran" '("evilmi-fortran-")))
-
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-html" "evil-matchit-html.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61716 483121 902000))
 ;;; Generated autoloads from evil-matchit-html.el
 
 (autoload 'evilmi-html-get-tag "evil-matchit-html" "\
@@ -161,7 +152,7 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-javascript" "evil-matchit-javascript.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61716 507121 838000))
 ;;; Generated autoloads from evil-matchit-javascript.el
 
 (autoload 'evilmi-javascript-get-tag "evil-matchit-javascript" "\
@@ -174,12 +165,10 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-javascript" '("evilmi-")))
-
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-latex" "evil-matchit-latex.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61716 207122 641000))
 ;;; Generated autoloads from evil-matchit-latex.el
 
 (autoload 'evilmi-latex-get-tag "evil-matchit-latex" "\
@@ -192,12 +181,10 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-latex" '("evilmi-latex-")))
-
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-markdown" "evil-matchit-markdown.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61716 503121 849000))
 ;;; Generated autoloads from evil-matchit-markdown.el
 
 (autoload 'evilmi-markdown-get-tag "evil-matchit-markdown" "\
@@ -214,7 +201,7 @@ Jump to the next tag.
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-ocaml" "evil-matchit-ocaml.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61716 475121 924000))
 ;;; Generated autoloads from evil-matchit-ocaml.el
 
 (autoload 'evilmi-ocaml-get-tag "evil-matchit-ocaml" "\
@@ -227,12 +214,10 @@ Return information of current tag: (list position-of-word word).
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-ocaml" '("evilmi-ocaml-")))
-
 ;;;***
 
-;;;### (autoloads nil "evil-matchit-org" "evil-matchit-org.el" (0
-;;;;;;  0 0 0))
+;;;### (autoloads nil "evil-matchit-org" "evil-matchit-org.el" (23064
+;;;;;;  61716 215122 620000))
 ;;; Generated autoloads from evil-matchit-org.el
 
 (autoload 'evilmi-org-get-tag "evil-matchit-org" "\
@@ -245,12 +230,10 @@ Return information of current tag: (list position-of-word word).
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-org" '("evilmi-")))
-
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-python" "evil-matchit-python.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61716 199122 662000))
 ;;; Generated autoloads from evil-matchit-python.el
 
 (autoload 'evilmi-python-get-tag "evil-matchit-python" "\
@@ -263,12 +246,10 @@ Return information of current tag: (list position-of-word word).
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-python" '("evilmi--python-")))
-
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-ruby" "evil-matchit-ruby.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61716 491121 881000))
 ;;; Generated autoloads from evil-matchit-ruby.el
 
 (autoload 'evilmi-ruby-get-tag "evil-matchit-ruby" "\
@@ -281,12 +262,10 @@ Return information of current tag: (list position-of-word word).
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-ruby" '("evilmi-ruby-")))
-
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-script" "evil-matchit-script.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61716 487121 892000))
 ;;; Generated autoloads from evil-matchit-script.el
 
 (autoload 'evilmi-script-get-tag "evil-matchit-script" "\
@@ -299,12 +278,10 @@ Return information of current tag: (list position-of-word word).
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-script" '("evilmi-script-")))
-
 ;;;***
 
-;;;### (autoloads nil "evil-matchit-sdk" "evil-matchit-sdk.el" (0
-;;;;;;  0 0 0))
+;;;### (autoloads nil "evil-matchit-sdk" "evil-matchit-sdk.el" (23064
+;;;;;;  61716 499121 859000))
 ;;; Generated autoloads from evil-matchit-sdk.el
 
 (autoload 'evilmi-sdk-curline "evil-matchit-sdk" "\
@@ -334,12 +311,10 @@ Return '(start-point ((row column is-function-exit-point keyword)).
 
 \(fn RLT NUM MATCH-TAGS HOWTOS)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-sdk" '("evilmi-")))
-
 ;;;***
 
-;;;### (autoloads nil "evil-matchit-sh" "evil-matchit-sh.el" (0 0
-;;;;;;  0 0))
+;;;### (autoloads nil "evil-matchit-sh" "evil-matchit-sh.el" (23064
+;;;;;;  61716 203122 651000))
 ;;; Generated autoloads from evil-matchit-sh.el
 
 (autoload 'evilmi-sh-get-tag "evil-matchit-sh" "\
@@ -352,12 +327,10 @@ Return '(start-point ((row column is-function-exit-point keyword)).
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-sh" '("evilmi-sh-")))
-
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-simple" "evil-matchit-simple.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61716 211122 630000))
 ;;; Generated autoloads from evil-matchit-simple.el
 
 (autoload 'evilmi-simple-get-tag "evil-matchit-simple" "\
@@ -370,12 +343,10 @@ Return '(start-point ((row column is-function-exit-point keyword)).
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-simple" '("evilmi--simple-find-open-brace")))
-
 ;;;***
 
-;;;### (autoloads nil "evil-matchit-sql" "evil-matchit-sql.el" (0
-;;;;;;  0 0 0))
+;;;### (autoloads nil "evil-matchit-sql" "evil-matchit-sql.el" (23064
+;;;;;;  61716 503121 849000))
 ;;; Generated autoloads from evil-matchit-sql.el
 
 (autoload 'evilmi-sql-get-tag "evil-matchit-sql" "\
@@ -388,12 +359,10 @@ Return '(start-point ((row column is-function-exit-point keyword)).
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-sql" '("evilmi-sql-")))
-
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-template" "evil-matchit-template.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61716 215122 620000))
 ;;; Generated autoloads from evil-matchit-template.el
 
 (autoload 'evilmi-template-get-tag "evil-matchit-template" "\
@@ -406,12 +375,10 @@ Return '(start-point ((row column is-function-exit-point keyword)).
 
 \(fn RLT NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-template" '("evilmi-template-")))
-
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-verilog" "evil-matchit-verilog.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61716 479121 913000))
 ;;; Generated autoloads from evil-matchit-verilog.el
 
 (autoload 'evilmi-verilog-get-tag "evil-matchit-verilog" "\
@@ -424,11 +391,10 @@ Return '(start-point ((row column is-function-exit-point keyword)).
 
 \(fn ORIG-INFO NUM)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-matchit-verilog" '("evilmi-verilog-")))
-
 ;;;***
 
-;;;### (autoloads nil nil ("evil-matchit-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("evil-matchit-pkg.el") (23064 61716 479121
+;;;;;;  913000))
 
 ;;;***
 
