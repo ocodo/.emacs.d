@@ -3,7 +3,7 @@
 ;; Copyright (C) 2016  Dominic Charlesworth <dgc336@gmail.com>
 
 ;; Author: Dominic Charlesworth <dgc336@gmail.com>
-;; Version: 2.6.4
+;; Version: 3.1.4
 ;; Package-Requires: ((emacs "24.3") (font-lock+ "0") (memoize "1.0.1"))
 ;; URL: https://github.com/domtronn/all-the-icons.el
 ;; Keywords: convenient, lisp
@@ -149,8 +149,8 @@
     ("\\.node"          all-the-icons-alltheicon "nodejs"               :height 1.0  :face all-the-icons-green)
     ("\\.babelrc$"      all-the-icons-fileicon "babel"                  :face all-the-icons-yellow)
     ("\\.bashrc$"       all-the-icons-alltheicon "script"               :height 0.9  :face all-the-icons-dpink)
-    ("\\.bowerrc$"      all-the-icons-alltheicon "bower"                :height 1.2  :face all-the-icons-silver)
-    ("^bower.json$"     all-the-icons-alltheicon "bower"                :height 1.2  :face all-the-icons-lorange)
+    ("\\.bowerrc$"      all-the-icons-alltheicon "bower"                :height 1.0 :v-adjust 0.0 :face all-the-icons-silver)
+    ("^bower.json$"     all-the-icons-alltheicon "bower"                :height 1.0 :v-adjust 0.0 :face all-the-icons-lorange)
     ("\\.ini$"          all-the-icons-octicon "settings"                :v-adjust 0.0 :face all-the-icons-yellow)
     ("\\.eslintignore"  all-the-icons-fileicon "eslint"                 :height 0.9  :face all-the-icons-purple)
     ("\\.eslint"        all-the-icons-fileicon "eslint"                 :height 0.9  :face all-the-icons-lpurple)
@@ -242,6 +242,8 @@
     ("\\.scm$"          all-the-icons-fileicon   "scheme"               :height 1.2 :face all-the-icons-red)
     ("\\.swift$"        all-the-icons-alltheicon "swift"                :height 1.0 :v-adjust -0.1 :face all-the-icons-green)
 
+    ("-?spec\\.ts$"     all-the-icons-fileicon "test-typescript"        :height 1.0 :v-adjust 0.0 :face all-the-icons-blue)
+    ("-?test\\.ts$"     all-the-icons-fileicon "test-typescript"        :height 1.0 :v-adjust 0.0 :face all-the-icons-blue)
     ("-?spec\\.js$"     all-the-icons-fileicon "test-js"                :height 1.0 :v-adjust 0.0 :face all-the-icons-lpurple)
     ("-?test\\.js$"     all-the-icons-fileicon "test-js"                :height 1.0 :v-adjust 0.0 :face all-the-icons-lpurple)
     ("-?spec\\.jsx$"    all-the-icons-fileicon "test-react"             :height 1.0 :v-adjust 0.0 :face all-the-icons-blue-alt)
@@ -275,7 +277,7 @@
 
     ;; Lisps
     ("\\.cl$"           all-the-icons-fileicon "clisp"                  :face all-the-icons-lorange)
-    ("\\.l$"            all-the-icons-fileicon "lisp"                   :face all-the-icons-orange)
+    ("\\.l\\(isp\\)?$"  all-the-icons-fileicon "lisp"                   :face all-the-icons-orange)
     ("\\.el$"           all-the-icons-fileicon "elisp"                  :height 1.0 :v-adjust -0.2 :face all-the-icons-purple)
 
     ;; Stylesheeting
@@ -316,6 +318,8 @@
     ("\\.mli$"           all-the-icons-fileicon "ocaml"                 :height 1.0  :face all-the-icons-dpink)
 
     ("\\.react"         all-the-icons-alltheicon "react"                :height 1.1  :face all-the-icons-lblue)
+    ("\\.d\\.ts$"       all-the-icons-fileicon "typescript"             :height 1.0 :v-adjust -0.1 :face all-the-icons-cyan-alt)
+    ("\\.ts$"           all-the-icons-fileicon "typescript"             :height 1.0 :v-adjust -0.1 :face all-the-icons-blue-alt)
     ("\\.js$"           all-the-icons-alltheicon "javascript"           :height 1.0 :v-adjust 0.0 :face all-the-icons-yellow)
     ("\\.es[0-9]$"      all-the-icons-alltheicon "javascript"           :height 1.0 :v-adjust 0.0 :face all-the-icons-yellow)
     ("\\.jsx$"          all-the-icons-fileicon "jsx-2"                  :height 1.0 :v-adjust -0.1 :face all-the-icons-cyan-alt)
@@ -422,6 +426,7 @@
     (dired-mode                all-the-icons-octicon "file-directory"      :v-adjust 0.0)
     (lisp-interaction-mode     all-the-icons-fileicon "lisp"               :v-adjust -0.1 :face all-the-icons-orange)
     (org-mode                  all-the-icons-fileicon "org"                :v-adjust 0.0 :face all-the-icons-lgreen)
+    (typescript-mode           all-the-icons-fileicon "typescript"         :v-adjust -0.1 :face all-the-icons-blue-alt)
     (js-mode                   all-the-icons-alltheicon "javascript"       :v-adjust -0.1 :face all-the-icons-yellow)
     (js-jsx-mode               all-the-icons-alltheicon "javascript"       :v-adjust -0.1 :face all-the-icons-yellow)
     (js2-mode                  all-the-icons-alltheicon "javascript"       :v-adjust -0.1 :face all-the-icons-yellow)
@@ -464,6 +469,7 @@
     (apache-mode                        all-the-icons-alltheicon "apache"         :height 0.9  :face all-the-icons-dgreen)
     (makefile-mode                      all-the-icons-fileicon "gnu"              :face all-the-icons-dorange)
     (dockerfile-mode                    all-the-icons-fileicon "dockerfile"       :face all-the-icons-blue)
+    (docker-compose-mode                all-the-icons-fileicon "dockerfile"       :face all-the-icons-lblue)
     (xml-mode                           all-the-icons-faicon "file-code-o"        :height 0.95 :face all-the-icons-lorange)
     (json-mode                          all-the-icons-octicon "settings"          :face all-the-icons-yellow)
     (yaml-mode                          all-the-icons-octicon "settings"          :v-adjust 0.0 :face all-the-icons-dyellow)
@@ -579,23 +585,25 @@ icon."
   "Get the icon font family for the current buffer."
   (all-the-icons--icon-info-for-buffer "family"))
 
-(defun all-the-icons--web-mode-icon () "Get icon for a `web-mode' buffer." (all-the-icons--web-mode))
+(defun all-the-icons--web-mode-icon (&rest arg-overrides) "Get icon for a `web-mode' buffer with ARG-OVERRIDES." (all-the-icons--web-mode nil arg-overrides))
 (defun all-the-icons--web-mode-icon-family () "Get icon family for a `web-mode' buffer." (all-the-icons--web-mode t))
-(defun all-the-icons--web-mode (&optional family)
-  "Return icon or FAMILY for `web-mode' based on `web-mode-content-type'."
-  (cond
-   ((equal web-mode-content-type "jsx")
-    (if family (all-the-icons-fileicon-family) (all-the-icons-fileicon "jsx-2")))
-   ((equal web-mode-content-type "javascript")
-    (if family (all-the-icons-alltheicon-family) (all-the-icons-alltheicon "javascript")))
-   ((equal web-mode-content-type "json")
-    (if family (all-the-icons-alltheicon-family) (all-the-icons-alltheicon "less")))
-   ((equal web-mode-content-type "xml")
-    (if family (all-the-icons-faicon-family) (all-the-icons-faicon "file-code-o")))
-   ((equal web-mode-content-type "css")
-    (if family (all-the-icons-alltheicon-family) (all-the-icons-alltheicon "css3")))
-   (t
-    (if family (all-the-icons-alltheicon-family) (all-the-icons-alltheicon "html5")))))
+(defun all-the-icons--web-mode (&optional family arg-overrides)
+  "Return icon or FAMILY for `web-mode' based on `web-mode-content-type'.
+Providing ARG-OVERRIDES will modify the creation of the icon."
+  (let ((non-nil-args (cl-reduce (lambda (acc it) (if it (append acc (list it)) acc)) arg-overrides :initial-value '())))
+    (cond
+     ((equal web-mode-content-type "jsx")
+      (if family (all-the-icons-fileicon-family) (apply 'all-the-icons-fileicon (append '("jsx-2") non-nil-args))))
+     ((equal web-mode-content-type "javascript")
+      (if family (all-the-icons-alltheicon-family) (apply 'all-the-icons-alltheicon (append '("javascript") non-nil-args))))
+     ((equal web-mode-content-type "json")
+      (if family (all-the-icons-alltheicon-family) (apply 'all-the-icons-alltheicon (append '("less") non-nil-args))))
+     ((equal web-mode-content-type "xml")
+      (if family (all-the-icons-faicon-family) (apply 'all-the-icons-faicon (append '("file-code-o") non-nil-args))))
+     ((equal web-mode-content-type "css")
+      (if family (all-the-icons-alltheicon-family) (apply 'all-the-icons-alltheicon (append '("css3") non-nil-args))))
+     (t
+      (if family (all-the-icons-alltheicon-family) (apply 'all-the-icons-alltheicon (append '("html5") non-nil-args)))))))
 
 ;; Icon Functions
 
