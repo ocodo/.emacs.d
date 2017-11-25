@@ -5,7 +5,7 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Created: 11 January 2013
 ;; Version: 0.48
-;; Package-Version: 20170712.1549
+;; Package-Version: 20170915.1249
 ;; Package-Requires: ((dash "2.8.0") (s "1.9.0") (cl-lib "0.5"))
 ;;; Commentary:
 
@@ -60,6 +60,12 @@ specified here should not conflict.
 
 --line-number is required on Windows, as otherwise ag will not
 print line numbers when the input is a stream."
+  :type '(repeat (string))
+  :group 'ag)
+
+(defcustom ag-dired-arguments
+  (list "--nocolor" "-S")
+  "Additional arguments passed to ag-dired."
   :type '(repeat (string))
   :group 'ag)
 
@@ -540,7 +546,7 @@ See also `find-dired'."
          (buffer-name (if ag-reuse-buffers
                           "*ag dired*"
                         (format "*ag dired pattern:%s dir:%s*" regexp dir)))
-         (cmd (concat ag-executable " --nocolor -S -g '" regexp "' "
+         (cmd (concat ag-executable " " (string-join ag-dired-arguments " ") " -g '" regexp "' "
                       (shell-quote-argument dir)
                       " | grep -v '^$' | sed s/\\'/\\\\\\\\\\'/ | xargs -I '{}' "
                       insert-directory-program " "
