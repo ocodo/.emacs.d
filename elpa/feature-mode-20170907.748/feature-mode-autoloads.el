@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "feature-mode" "feature-mode.el" (0 0 0 0))
+;;;### (autoloads nil "feature-mode" "feature-mode.el" (23064 61691
+;;;;;;  115190 522000))
 ;;; Generated autoloads from feature-mode.el
 
 (autoload 'feature-mode "feature-mode" "\
@@ -13,11 +14,10 @@ Major mode for editing plain text stories
 
 (add-to-list 'auto-mode-alist '("\\.feature\\'" . feature-mode))
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "feature-mode" '("feature-" "expand-home-shellism" "can-run-bundle" "parse-gherkin-l10n" "project-file-exists" "given-when-then-wordlength" "build-keyword-matcher" "try-find-next" "load-gherkin-i10n")))
-
 ;;;***
 
-;;;### (autoloads nil nil ("feature-mode-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("feature-mode-pkg.el") (23064 61691 131190
+;;;;;;  478000))
 
 ;;;***
 

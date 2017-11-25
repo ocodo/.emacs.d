@@ -36,6 +36,9 @@
 ;; If using RVM, set `feature-use-rvm' to `t' to enable RVM
 ;; support. This requires `rvm.el'.
 ;;
+;; If using Chruby, set `feature-use-chruby' to `t' to enable
+;; Chruby support. This requires `chruby.el'
+;;
 ;; Language used in feature file is automatically detected from
 ;; "language: [2-letter ISO-code]" tag in feature file.  You can
 ;; choose the language feature-mode should use in case autodetection
@@ -104,6 +107,11 @@
   :type 'boolean
   :group 'feature-mode)
 
+(defcustom feature-use-chruby nil
+  "t when Chruby is in use. (Requires chruby.el)"
+  :type 'boolean
+  :group 'feature-mode)
+
 (defcustom feature-root-marker-file-name "features"
   "file to look for to find the project root."
   :group 'feature-mode
@@ -129,6 +137,21 @@
   :type 'string
   :group 'feature-mode)
 
+;; Docker related
+(defcustom feature-use-docker-compose t
+  "Use docker-compose when docker-compose.yml exists in project."
+  :type 'boolean
+  :group 'feature-mode)
+
+(defcustom feature-docker-compose-command "docker-compose"
+  "Command to run docker-compose."
+  :type 'string
+  :group 'feature-mode)
+
+(defcustom feature-docker-compose-container "app"
+  "The container to run cucumber in."
+  :type 'string
+  :group 'feature-mode)
 
 ;;
 ;; Keywords and font locking
@@ -639,14 +662,22 @@ are loaded on startup.  If nil, don't load snippets.")
   (and (project-file-exists "Gemfile")
        (executable-find "bundle")))
 
+(defun should-run-docker-compose ()
+  "Determines if docker-compose should be used."
+  (and (project-file-exists "docker-compose.yml")
+       feature-use-docker-compose))
+
 (defun construct-cucumber-command (command-template opts-str feature-arg)
   "Creates a complete command to launch cucumber"
   (let ((base-command
          (concat (replace-regexp-in-string
                   "{options}" opts-str
-                  (replace-regexp-in-string "{feature}" feature-arg command-template) t t))))
-    (concat (if (can-run-bundle) "bundle exec " "")
-            base-command)))
+                  (replace-regexp-in-string "{feature}"
+                                            (if (should-run-docker-compose) (replace-regexp-in-string (feature-project-root) "" feature-arg) feature-arg)
+                                            command-template) t t))))
+    (concat (if (should-run-docker-compose) (concat feature-docker-compose-command " run " feature-docker-compose-container " ") "")
+            (concat (if (can-run-bundle) "bundle exec " "")
+            base-command))))
 
 (defun* feature-run-cucumber (cuke-opts &key feature-file)
   "Runs cucumber with the specified options"
@@ -667,6 +698,8 @@ are loaded on startup.  If nil, don't load snippets.")
           (compilation-scroll-output t))
       (if feature-use-rvm
           (rvm-activate-corresponding-ruby))
+      (if feature-use-chruby
+          (chruby-use-corresponding))
       (compile (construct-cucumber-command command-template opts-str feature-arg) t))))
 
 (defun feature-root-directory-p (a-directory)
