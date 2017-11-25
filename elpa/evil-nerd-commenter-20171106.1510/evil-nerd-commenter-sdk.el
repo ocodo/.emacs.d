@@ -28,6 +28,7 @@
 ;;; Code:
 
 (defun evilnc--check-fonts (fonts-under-cursor fonts-list)
+  "Check whether FONTS-UNDER-CURSOR among FONTS-LIST."
   (delq nil
         (mapcar #'(lambda (f)
                     ;; learn this trick from flyspell
@@ -43,6 +44,7 @@
                  (eq (get-text-property pos 'part-token) 'comment)))))
 
 (defun evilnc-is-pure-comment (pos)
+  "Check character at POS is pure comment."
   (let* ((fontfaces (if (> pos 0) (get-text-property pos 'face))))
     (if (not (listp fontfaces))
         (setf fontfaces (list fontfaces)))
@@ -53,10 +55,17 @@
                                font-lock-comment-delimiter-face)))))
 
 (defun evilnc-is-whitespace (pos)
+  "Character at POS is white space."
   (member (evilnc-get-char pos) '(32 9)))
 
+(defun evilnc-is-line-end (pos)
+  "Character at POS is line end."
+  (member (evilnc-get-char pos) '(10 11)))
+
 (defun evilnc-is-comment (pos)
-  "Check whether the code at POS is comment by comparing font face."
+  "Check whether the code at POS is comment by comparing font face.
+Please note the white spaces out of comment is treated as comment,
+or else we can't select multiple lines comment."
   (let* ((fontfaces (if (> pos 0) (get-text-property pos 'face))))
     (if (not (listp fontfaces))
         (setf fontfaces (list fontfaces)))
@@ -71,11 +80,13 @@
       (evilnc-is-pure-comment pos)))))
 
 (defun evilnc-get-char (pos)
+  "Get character at POS."
   (save-excursion
     (goto-char pos)
     (following-char)))
 
 (defun evilnc-is-comment-delimiter (pos)
+  "Is character at POS a comment delimiter?"
   (let* ((fontfaces (if (> pos 0) (get-text-property pos 'face))))
     (if (not (listp fontfaces))
         (setf fontfaces (list fontfaces)))

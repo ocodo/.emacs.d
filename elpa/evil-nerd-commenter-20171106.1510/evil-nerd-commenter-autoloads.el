@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "evil-nerd-commenter" "evil-nerd-commenter.el"
-;;;;;;  (22955 53543 361712 128000))
+;;;;;;  (23064 61712 711132 27000))
 ;;; Generated autoloads from evil-nerd-commenter.el
 
 (autoload 'evilnc-comment-or-uncomment-paragraphs "evil-nerd-commenter" "\
@@ -75,7 +75,7 @@ Then we operate the expanded region.  NUM is ignored.
 \(fn &optional NUM)" t nil)
 
 (autoload 'evilnc-copy-to-line "evil-nerd-commenter" "\
-Copy from current line to LINENUM line. For non-evil user only.
+Copy from current line to LINENUM line.  For non-evil user only.
 
 \(fn &optional LINENUM)" t nil)
 
@@ -90,15 +90,15 @@ The version number.
 \(fn)" t nil)
 
 (autoload 'evilnc-default-hotkeys "evil-nerd-commenter" "\
-Set up the key bindings of evil-nerd-comment.
-If NO-EVIL-KEYBINDINGS is t, we don't define keybindings in evil-mode.
+Setup the key bindings of evil-nerd-comment.
+If NO-EVIL-KEYBINDINGS is t, we don't define keybindings in EVIL.
 
 \(fn &optional NO-EVIL-KEYBINDINGS)" t nil)
 
 ;;;***
 
 ;;;### (autoloads nil nil ("evil-nerd-commenter-operator.el" "evil-nerd-commenter-pkg.el"
-;;;;;;  "evil-nerd-commenter-sdk.el") (22955 53543 365712 131000))
+;;;;;;  "evil-nerd-commenter-sdk.el") (23064 61712 715132 16000))
 
 ;;;***
 

@@ -4,7 +4,7 @@
 
 ;; Author: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: http://github.com/redguardtoo/evil-nerd-commenter
-;; Version: 3.0.2
+;; Version: 3.1.2
 ;; Keywords: commenter vim line evil
 ;;
 ;; This file is not part of GNU Emacs.
@@ -38,7 +38,8 @@
 ;;
 ;; It helps you comment/uncomment multiple lines without selecting them.
 ;;
-;; `M-x evilnc-default-hotkeys` assigns hotkey `M-;` to `evilnc-comment-or-uncomment-lines`
+;; `M-x evilnc-default-hotkeys` assigns hotkey `M-;` to
+;; `evilnc-comment-or-uncomment-lines'
 ;;
 ;; `M-x evilnc-comment-or-uncomment-lines` comment or uncomment lines.
 ;;
@@ -71,21 +72,24 @@
 ;;   "ci" 'evilnc-comment-or-uncomment-lines
 ;;   "cl" 'evilnc-quick-comment-or-uncomment-to-the-line
 ;;   "ll" 'evilnc-quick-comment-or-uncomment-to-the-line
-;;   "cc" 'evilnc-copy-and-comment-lines ; Or use `evilnc-comment-and-kill-ring-save' instead
+;;   ;; Or use `evilnc-comment-and-kill-ring-save' instead
+;;   "cc" 'evilnc-copy-and-comment-lines
 ;;   "cp" 'evilnc-comment-or-uncomment-paragraphs
 ;;   "cr" 'comment-or-uncomment-region
 ;;   "cv" 'evilnc-toggle-invert-comment-line-by-line
 ;;   "."  'evilnc-copy-and-comment-operator
 ;;   "\\" 'evilnc-comment-operator)
 ;;
-;; You can setup `evilnc-original-above-comment-when-copy-and-comment' to decide which
-;; style to use when `evilnc-copy-and-comment-lines' or `evilnc-copy-and-comment-operator',
+;; You can setup `evilnc-original-above-comment-when-copy-and-comment'
+;; to decide which style to use when `evilnc-copy-and-comment-lines'
+;; or `evilnc-copy-and-comment-operator',
 ;;   - Place the commented out text above original text
 ;;   - Or place the original text above commented out text
 ;;
 ;; We defined comment text object "c" which can have multi-lines.
 ;; Press "vac" to select outer object (comment with limiters).
 ;; Press "vic" to select inner object (comment without limiter).
+;;
 ;; You can assign other key instead of "c" to the text object by
 ;; customizing `evilnc-comment-text-object'.
 
@@ -105,8 +109,8 @@
 (autoload 'count-lines "simple")
 
 (defvar evilnc-original-above-comment-when-copy-and-comment nil
-  "Original text is above commented out when using `evilnc-copy-and-comment-lines'
- and `evilnc-copy-and-comment-operator'.")
+  "Keep the original text above the commented copy, when using either:
+`evilnc-copy-and-comment-lines' or `evilnc-copy-and-comment-operator'.")
 
 (defvar evilnc-invert-comment-line-by-line nil
   "If t then invert region comment status line by line.
@@ -119,7 +123,7 @@ Please note it has NOT effect on evil text object!")
 (defvar evilnc-comment-text-object "c"
   "The comment object.
 `vic` to select inner object.
-`vac` to select outer objectselect outer object.")
+`vac` to select outer object.")
 
 (defun evilnc--count-lines (beg end)
   "Assume BEG is less than END."
@@ -352,6 +356,7 @@ Code snippets embedded in Org-mode is identified and right `major-mode' is used.
 (defvar web-mode-engine)
 
 (defun evilnc--warn-on-web-mode (is-comment)
+  "Check certain part of html code IS-COMMENT."
   (let* ((comment-operation (concat "web-mode-"
                                     (if is-comment "comment-" "uncomment-")
                                     web-mode-engine
@@ -362,6 +367,7 @@ Code snippets embedded in Org-mode is identified and right `major-mode' is used.
     is-comment))
 
 (defun evilnc--web-mode-is-region-comment (beg end)
+  "Is region between BEG and END is comment in web mode?"
   (let* ((rlt (and (save-excursion
                      (goto-char beg)
                      (goto-char (line-end-position))
@@ -601,23 +607,28 @@ Then we operate the expanded region.  NUM is ignored."
     (forward-line (1+ num))
     (setq num (- 0 num)))
 
-  (evilnc--operation-on-lines-or-region
-   '(lambda (beg end)
-      (evilnc--fix-buggy-major-modes)
-      (let* ((str (buffer-substring-no-properties beg end)))
-        (cond
-         (evilnc-original-above-comment-when-copy-and-comment
-          (let* ((p (point)))
-            (comment-region beg end)
-            (goto-char beg)
-            (insert-before-markers (concat str "\n"))
-            (goto-char p)))
-         (t
-          (goto-char end)
-          (newline 1)
-          (insert-before-markers str)
-          (comment-region beg end)))))
-   num))
+  (let* ((original-column (current-column)))
+    (evilnc--operation-on-lines-or-region
+     '(lambda (beg end)
+        (evilnc--fix-buggy-major-modes)
+        (let* ((str (buffer-substring-no-properties beg end)))
+          (cond
+           (evilnc-original-above-comment-when-copy-and-comment
+            (let* ((p (point)))
+              (comment-region beg end)
+              (goto-char beg)
+              (insert-before-markers (concat str "\n"))
+              (goto-char p)))
+           (t
+            (goto-char end)
+            (newline 1)
+            (insert-before-markers str)
+            (comment-region beg end)))))
+     num)
+    ;; Go to original column after evilnc-copy-and-comment-lines
+    ;; @see https://github.com/redguardtoo/evil-nerd-commenter/issues/79
+    ;; Thanks for Kevin Brubeck (AKA unhammer) for idea/implementation
+    (move-to-column original-column)))
 
 ;;;###autoload
 (defun evilnc-comment-and-kill-ring-save (&optional num)
@@ -645,7 +656,7 @@ Then we operate the expanded region.  NUM is ignored."
 ;; {{ for non-evil user only
 ;;;###autoload
 (defun evilnc-copy-to-line (&optional LINENUM)
-  "Copy from current line to LINENUM line. For non-evil user only."
+  "Copy from current line to LINENUM line.  For non-evil user only."
   (interactive "nCopy to line: ")
   (if (not (region-active-p))
       (let* ((b (line-beginning-position))
@@ -681,7 +692,7 @@ Then we operate the expanded region.  NUM is ignored."
 (defun evilnc-version ()
   "The version number."
   (interactive)
-  (message "3.0.2"))
+  (message "3.1.2"))
 
 (defvar evil-normal-state-map)
 (defvar evil-visual-state-map)
@@ -689,10 +700,9 @@ Then we operate the expanded region.  NUM is ignored."
 (defvar evil-outer-text-objects-map)
 ;;;###autoload
 (defun evilnc-default-hotkeys (&optional no-evil-keybindings)
-  "Set up the key bindings of evil-nerd-comment.
-If NO-EVIL-KEYBINDINGS is t, we don't define keybindings in evil-mode."
+  "Setup the key bindings of evil-nerd-comment.
+If NO-EVIL-KEYBINDINGS is t, we don't define keybindings in EVIL."
   (interactive)
-
   ;; Install hotkeys for Emacs mode
   (global-set-key (kbd "M-;") 'evilnc-comment-or-uncomment-lines)
   (global-set-key (kbd "C-c l") 'evilnc-quick-comment-or-uncomment-to-the-line)
@@ -704,9 +714,11 @@ If NO-EVIL-KEYBINDINGS is t, we don't define keybindings in evil-mode."
     (eval-after-load 'evil
       '(progn
          (define-key evil-normal-state-map ",ci" 'evilnc-comment-or-uncomment-lines)
+         (define-key evil-visual-state-map ",ci" 'evilnc-comment-or-uncomment-lines)
          (define-key evil-normal-state-map ",cl" 'evilnc-quick-comment-or-uncomment-to-the-line)
          (define-key evil-normal-state-map ",ll" 'evilnc-quick-comment-or-uncomment-to-the-line)
          (define-key evil-normal-state-map ",cc" 'evilnc-copy-and-comment-lines)
+         (define-key evil-visual-state-map ",cc" 'evilnc-copy-and-comment-lines)
          (define-key evil-normal-state-map ",cp" 'evilnc-comment-or-uncomment-paragraphs)
          (define-key evil-normal-state-map ",cr" 'comment-or-uncomment-region)
          (define-key evil-normal-state-map ",cv" 'evilnc-toggle-invert-comment-line-by-line)))
