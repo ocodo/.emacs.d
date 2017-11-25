@@ -4,7 +4,7 @@
 
 ;; Author: Greg Chapple <info@gregchapple.com>
 ;; URL: http://github.com/gregchapple/flatland-emacs
-;; Package-Version: 20140805.305
+;; Package-Version: 20171113.721
 ;; Version: 0.1.2
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -733,6 +733,8 @@ Also bind `class' to ((class color) (min-colors 89))."
                                         :background ,flatland-bg+1
                                         :box (:line-width -1 :style released-button)))))
 ;;;;; term
+   `(term             ((t (:foreground ,flatland-fg
+                                       :background ,flatland-bg))))
    `(term-color-black ((t (:foreground ,flatland-bg
                                        :background ,flatland-bg-1))))
    `(term-color-red ((t (:foreground ,flatland-red-2
@@ -795,7 +797,7 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(web-mode-symbol-face ((t (:inherit font-lock-constant-face))))
    `(web-mode-warning-face ((t (:inherit font-lock-warning-face))))
    `(web-mode-whitespaces-face ((t (:background ,flatland-red))))
-   
+
 ;;;;; css-mode
    `(css-property ((t (:foreground ,flatland-blue-2))))
    `(css-selector ((t (:foreground ,flatland-green+1))))

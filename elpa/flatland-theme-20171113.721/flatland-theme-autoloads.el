@@ -1,10 +1,10 @@
 ;;; flatland-theme-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "flatland-theme" "flatland-theme.el" (21818
-;;;;;;  58352 275401 0))
+;;;### (autoloads nil "flatland-theme" "flatland-theme.el" (23064
+;;;;;;  61687 99201 516000))
 ;;; Generated autoloads from flatland-theme.el
 
 (and load-file-name (boundp 'custom-theme-load-path) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
