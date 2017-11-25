@@ -584,8 +584,10 @@ Only a list of strings will be returned."
        nil))
     (nreverse res)))
 
-(defun elfeed-add-feed (url)
-  "Manually add a feed to the database."
+(cl-defun elfeed-add-feed (url &key save)
+  "Manually add a feed to the database.
+If SAVE is non-nil the new value of ‘elfeed-feeds’ is saved.  When
+called interactively, SAVE is set to t."
   (interactive
    (list
     (let* ((feeds (elfeed-candidate-feeds))
@@ -595,9 +597,10 @@ Only a list of strings will be returned."
            (result (elfeed-cleanup input)))
       (cond ((not (zerop (length result))) result)
             (feeds (car feeds))
-            ((user-error "No feed to add"))))))
-  (cl-pushnew url elfeed-feeds)
-  (when (called-interactively-p 'any)
+            ((user-error "No feed to add"))))
+    :save t))
+  (cl-pushnew url elfeed-feeds :test #'equal)
+  (when save
     (customize-save-variable 'elfeed-feeds elfeed-feeds))
   (elfeed-update-feed url))
 
