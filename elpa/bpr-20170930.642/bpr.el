@@ -5,6 +5,7 @@
 ;; Version: 1.5
 ;; Package-Requires: ((emacs "24"))
 ;; Keywords: background, async, process, management
+;; License: Unlicense
 
 ;;; Commentary:
 ;; This package provides functionality for running processes in background.
@@ -76,6 +77,13 @@ For this operation `ansi-color-apply-on-region' is used."
   :group 'bpr
   :type 'boolean)
 
+(defcustom bpr-on-start '(lambda (process))
+  "Function, which is called when the process starts.
+If function is interactive, it's called interactively;
+if not, it's called in normal way with one argument - process."
+  :group 'bpr
+  :type 'function)
+
 (defcustom bpr-on-success '(lambda (process))
   "Function, which is called in case of success.
 If function is interactive, it's called interactively;
@@ -103,7 +111,8 @@ if not, it's called in normal way with one argument - process."
 ;;;###autoload
 (defun bpr-spawn (cmd)
   "Executes string CMD asynchronously in background."
-  (interactive "sCommand: ")
+  (interactive
+   (list (read-shell-command "Command: ")))
   (let* ((proc-name (bpr-create-process-name cmd))
          (process (get-process proc-name)))
     (if process
@@ -131,7 +140,8 @@ if not, it's called in normal way with one argument - process."
     (set-process-plist process (bpr-create-process-plist))
     (set-process-sentinel process 'bpr-handle-result)
     (bpr-handle-progress process)
-    (bpr-config-process-buffer buffer)))
+    (bpr-config-process-buffer buffer)
+    (bpr-funcall (process-get process 'on-start) process)))
 
 (defun bpr-get-current-directory ()
   (if bpr-process-directory
@@ -144,7 +154,7 @@ if not, it's called in normal way with one argument - process."
     default-directory))
 
 (defun bpr-create-process-name (cmd)
-  (concat cmd " (" (bpr-get-current-directory) ")"))
+  (concat cmd " (" (abbreviate-file-name (bpr-get-current-directory)) ")"))
 
 (defun bpr-create-process-plist ()
   (list 'poll-timeout bpr-poll-timout
@@ -154,6 +164,7 @@ if not, it's called in normal way with one argument - process."
         'window-creator bpr-window-creator
         'colorize-output bpr-colorize-output
         'scroll-direction bpr-scroll-direction
+        'on-start bpr-on-start
         'on-success bpr-on-success
         'on-error bpr-on-error
         'on-completion bpr-on-completion
@@ -163,7 +174,8 @@ if not, it's called in normal way with one argument - process."
   (when buffer
     (with-current-buffer buffer
       (when (and bpr-erase-process-buffer (not buffer-read-only))
-        (erase-buffer))
+        (let ((inhibit-read-only t))
+          (erase-buffer)))
       (funcall bpr-process-mode))))
 
 (defun bpr-handle-progress (process)

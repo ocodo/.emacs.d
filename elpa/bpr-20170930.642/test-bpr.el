@@ -15,6 +15,14 @@
 (require 'bpr)
 (require 'buttercup)
 
+(defmacro with-fake-buffer (buffer-or-name &rest body)
+  `(save-current-buffer
+     (set-buffer ,buffer-or-name)
+     (fset 'old-get-buffer-create 'get-buffer-create)
+     (fset 'get-buffer-create (lambda (name) fake-buffer))
+     ,@body
+     (fset 'get-buffer-create 'old-get-buffer-create)))
+
 (describe "bpr-backage"
   (let* (default-directory fake-buffer fake-process fake-plist)
 
@@ -25,7 +33,6 @@
 
       (fset 'message (lambda (str &rest args) nil))
       (fset 'delete-window (lambda (window) nil))
-      (fset 'get-buffer-create (lambda (name) fake-buffer))
       (fset 'get-buffer-window (lambda (buffer) nil))
       (fset 'erase-buffer (lambda () nil))
       (fset 'shell-mode (lambda () nil))
@@ -65,48 +72,53 @@
       (it "should set correct name for process buffer"
         (bpr-spawn "ls")
         (expect 'get-buffer-create
-                :to-have-been-called-with
-                (concat "*ls (" default-directory ")*")))
+          :to-have-been-called-with
+          (concat "*ls (" default-directory ")*")))
 
       ;; All directory checks are made by checking process buffer name...
       ;; This is because I haven't found direct way to do it.
       (it "should set correct directory for process with default options"
         (bpr-spawn "ls")
         (expect 'get-buffer-create
-                :to-have-been-called-with
-                "*ls (/test/)*"))
+          :to-have-been-called-with
+          "*ls (/test/)*"))
 
       (it "should set correct directory for process using projectile"
-        (flet ((projectile-project-root () "/projects/root/"))
-          (bpr-spawn "ls")
-          (expect 'get-buffer-create
-                  :to-have-been-called-with
-                  "*ls (/projects/root/)*")))
+        (fset 'projectile-project-root (lambda () "/projects/root/"))
+        (bpr-spawn "ls")
+        (expect 'get-buffer-create
+          :to-have-been-called-with
+          "*ls (/projects/root/)*")
+        (fmakunbound 'projectile-project-root))
+
 
       (it "should not use projectile when bpr-use-projectile is nil"
-        (flet ((projectile-project-root () "/projects/root/"))
-          (let* ((default-directory ".")
-                 (bpr-use-projectile nil))
-            (bpr-spawn "ls")
-            (expect 'get-buffer-create
-                    :to-have-been-called-with
-                    "*ls (.)*"))))
+        (fset 'projectile-project-root (lambda () "/projects/root/"))
+        (let* ((default-directory ".")
+                (bpr-use-projectile nil))
+          (bpr-spawn "ls")
+          (expect 'get-buffer-create
+            :to-have-been-called-with
+            "*ls (.)*"))
+        (fmakunbound 'projectile-project-root))
 
       (it "should use bpr-process-directory if it's not nil"
-        (flet ((projectile-project-root () "/projects/root/"))
-          (let* ((default-directory ".")
-                 (bpr-process-directory "should/use/this"))
-            (bpr-spawn "ls")
-            (expect 'get-buffer-create
-                    :to-have-been-called-with
-                    "*ls (should/use/this)*"))))
+        (fset 'projectile-project-root (lambda () "/projects/root/"))
+        (let* ((default-directory ".")
+                (bpr-process-directory "should/use/this"))
+          (bpr-spawn "ls")
+          (expect 'get-buffer-create
+            :to-have-been-called-with
+            "*ls (should/use/this)*"))
+        (fmakunbound 'projectile-project-root))
 
       (it "should spawn process with correct name, buffer and command"
-        (let* ((default-directory "dev/null"))
-          (bpr-spawn "ls")
-          (expect 'start-process-shell-command
-                  :to-have-been-called-with
-                  "ls (dev/null)" fake-buffer "ls")))
+        (with-fake-buffer fake-buffer
+          (let* ((default-directory "dev/null"))
+            (bpr-spawn "ls")
+            (expect 'start-process-shell-command
+              :to-have-been-called-with
+              "ls (dev/null)" fake-buffer "ls"))))
 
       (it "shoud not start process if it already exists"
         (fset 'get-process (lambda (name) (when (equal name "ls (/test/)") fake-process)))
@@ -118,7 +130,7 @@
         (expect 'erase-buffer :to-have-been-called))
 
       (it "should not erase process buffer if it's read only"
-        (with-current-buffer fake-buffer
+        (with-fake-buffer fake-buffer
           (let* ((buffer-read-only t))
             (bpr-spawn "ls -la")
             (expect 'erase-buffer :not :to-have-been-called))))
@@ -129,11 +141,11 @@
           (expect 'erase-buffer :not :to-have-been-called)))
 
       (it "should call bpr-process-mode on process buffer"
-        (let* ((mode-func (lambda () nil))
-               (bpr-process-mode 'mode-func))
-          (spy-on 'mode-func)
+        (fset 'test-mode-func (lambda ()))
+        (let* ((bpr-process-mode 'test-mode-func))
+          (spy-on 'test-mode-func)
           (bpr-spawn "ls -la")
-          (expect 'mode-func :to-have-been-called)))
+          (expect 'test-mode-func :to-have-been-called)))
 
       (it "should display process buffer in case of error"
         (let* (test-sentiel-handler)
@@ -148,7 +160,7 @@
 
       (it "should not display process buffer in case of error if bpr-open-after-error is nil"
         (let* ((test-sentiel-handler nil)
-               (bpr-open-after-error nil))
+                (bpr-open-after-error nil))
           (fset 'set-process-sentinel (lambda (process handler)
                                         (when (eq process fake-process)
                                           (setq test-sentiel-handler handler))))
@@ -176,7 +188,7 @@
 
       (it "should close error buffer after success when bpr-close-after-success is t"
         (let* ((bpr-close-after-success t)
-               (test-sentiel-handler nil))
+                (test-sentiel-handler nil))
           (fset 'set-process-sentinel (lambda (process handler)
                                         (when (eq process fake-process)
                                           (setq test-sentiel-handler handler))))
@@ -193,7 +205,7 @@
 
       (it "should colorize process buffer"
         (let* ((bpr-colorize-output t)
-               (test-sentiel-handler nil))
+                (test-sentiel-handler nil))
           (fset 'set-process-sentinel (lambda (process handler)
                                         (when (eq process fake-process)
                                           (setq test-sentiel-handler handler))))
@@ -206,7 +218,7 @@
 
       (it "should not colorize process buffer if it's read only"
         (let* ((bpr-colorize-output t)
-               (test-sentiel-handler nil))
+                (test-sentiel-handler nil))
           (fset 'set-process-sentinel (lambda (process handler)
                                         (when (eq process fake-process)
                                           (setq test-sentiel-handler handler))))
@@ -220,76 +232,78 @@
           (expect 'ansi-color-apply-on-region :not :to-have-been-called)))
 
       (it "should call bpr-on-completion function in case of error and success"
-          (let* ((completion-flag nil)
-                 (bpr-on-completion (lambda (p) (setq completion-flag t)))
-                 (test-sentiel-handler nil))
-            (fset 'set-process-sentinel (lambda (process handler)
-                                          (when (eq process fake-process)
-                                            (setq test-sentiel-handler handler))))
-            (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 0)))
-            (bpr-spawn "make build")
-            (funcall test-sentiel-handler fake-process)
-            (expect completion-flag :to-be t)
+        (let* ((completion-flag nil)
+                (bpr-on-completion (lambda (p) (setq completion-flag t)))
+                (test-sentiel-handler nil))
+          (fset 'set-process-sentinel (lambda (process handler)
+                                        (when (eq process fake-process)
+                                          (setq test-sentiel-handler handler))))
+          (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 0)))
+          (bpr-spawn "make build")
+          (funcall test-sentiel-handler fake-process)
+          (expect completion-flag :to-be t)
 
-            (setq completion-flag nil)
-            (setq test-sentiel-handler nil)
-            (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 3)))
-            (bpr-spawn "make build")
-            (funcall test-sentiel-handler fake-process)
-            (expect completion-flag :to-be t)))
+          (setq completion-flag nil)
+          (setq test-sentiel-handler nil)
+          (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 3)))
+          (bpr-spawn "make build")
+          (funcall test-sentiel-handler fake-process)
+          (expect completion-flag :to-be t)))
 
       (it "should call bpr-on-success function in case of success and not call in case of error"
-          (let* ((success-flag nil)
-                 (bpr-on-success (lambda (p) (setq success-flag t)))
-                 (test-sentiel-handler nil))
-            (fset 'set-process-sentinel (lambda (process handler)
-                                          (when (eq process fake-process)
-                                            (setq test-sentiel-handler handler))))
-            (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 0)))
-            (bpr-spawn "make build")
-            (funcall test-sentiel-handler fake-process)
-            (expect success-flag :to-be t)
+        (let* ((success-flag nil)
+                (bpr-on-success (lambda (p) (setq success-flag t)))
+                (test-sentiel-handler nil))
+          (fset 'set-process-sentinel (lambda (process handler)
+                                        (when (eq process fake-process)
+                                          (setq test-sentiel-handler handler))))
+          (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 0)))
+          (bpr-spawn "make build")
+          (funcall test-sentiel-handler fake-process)
+          (expect success-flag :to-be t)
 
-            (setq success-flag nil)
-            (setq test-sentiel-handler nil)
-            (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 3)))
-            (bpr-spawn "make build")
-            (funcall test-sentiel-handler fake-process)
-            (expect success-flag :to-be nil)))
+          (setq success-flag nil)
+          (setq test-sentiel-handler nil)
+          (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 3)))
+          (bpr-spawn "make build")
+          (funcall test-sentiel-handler fake-process)
+          (expect success-flag :to-be nil)))
 
       (it "should not call bpr-on-error function in case of success and call in case of error"
-          (let* ((error-flag nil)
-                 (bpr-on-error (lambda (p) (setq error-flag t)))
-                 (test-sentiel-handler nil))
-            (fset 'set-process-sentinel (lambda (process handler)
-                                          (when (eq process fake-process)
-                                            (setq test-sentiel-handler handler))))
-            (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 0)))
-            (bpr-spawn "make build")
-            (funcall test-sentiel-handler fake-process)
-            (expect error-flag :to-be nil)
+        (let* ((error-flag nil)
+                (bpr-on-error (lambda (p) (setq error-flag t)))
+                (test-sentiel-handler nil))
+          (fset 'set-process-sentinel (lambda (process handler)
+                                        (when (eq process fake-process)
+                                          (setq test-sentiel-handler handler))))
+          (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 0)))
+          (bpr-spawn "make build")
+          (funcall test-sentiel-handler fake-process)
+          (expect error-flag :to-be nil)
 
-            (setq test-sentiel-handler nil)
-            (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 3)))
-            (bpr-spawn "make build")
-            (funcall test-sentiel-handler fake-process)
-            (expect error-flag :to-be t))))
+          (setq test-sentiel-handler nil)
+          (fset 'process-exit-status (lambda (process) (when (eq process fake-process) 3)))
+          (bpr-spawn "make build")
+          (funcall test-sentiel-handler fake-process)
+          (expect error-flag :to-be t)))))
 
 
-    (describe "bpr-open-last-buffer"
-      (it "should open last used buffer"
+  (describe "bpr-open-last-buffer"
+    (it "should open last used buffer"
+      (with-fake-buffer fake-buffer
         (bpr-spawn "ls")
         (bpr-open-last-buffer)
         (expect 'split-window-vertically :to-have-been-called)
-        (expect 'set-window-buffer :to-have-been-called-with nil fake-buffer))
+        (expect 'set-window-buffer :to-have-been-called-with nil fake-buffer)))
 
-      (it "should not open last used buffer if it isn't exist"
-        (let* ((bpr-last-buffer nil))
-          (bpr-open-last-buffer)
-          (expect 'split-window-vertically :not :to-have-been-called)
-          (expect 'set-window-buffer :not :to-have-been-called)))
+    (it "should not open last used buffer if it isn't exist"
+      (let* ((bpr-last-buffer nil))
+        (bpr-open-last-buffer)
+        (expect 'split-window-vertically :not :to-have-been-called)
+        (expect 'set-window-buffer :not :to-have-been-called)))
 
-      (it "should not open last used buffer if it have been killed"
+    (it "should not open last used buffer if it have been killed"
+      (with-fake-buffer fake-buffer
         (bpr-spawn "ls")
         (kill-buffer fake-buffer)
         (bpr-open-last-buffer)
