@@ -1,7 +1,9 @@
-;;; dockerfile-mode.el --- Major mode for editing Docker's Dockerfiles
-;; Package-Version: 20170418.1024
+;;; dockerfile-mode.el --- Major mode for editing Docker's Dockerfiles -*- lexical-binding: t -*-
 
 ;; Copyright (c) 2013 Spotify AB
+;; Package-Requires: ((emacs "24") (s "1.12"))
+;; Package-Version: 20171124.1647
+;; Homepage: https://github.com/spotify/dockerfile-mode
 ;;
 ;; Licensed under the Apache License, Version 2.0 (the "License"); you may not
 ;; use this file except in compliance with the License. You may obtain a copy of
@@ -15,14 +17,20 @@
 ;; License for the specific language governing permissions and limitations under
 ;; the License.
 
+;;; Commentary:
+
+;; Provides a major mode `dockerfile-mode' for use with the standard
+;; `Dockerfile' file format.  Additional convenience functions allow
+;; images to be built easily.
+
 ;;; Code:
 
 (require 'sh-script)
 (require 'rx)
+(require 's)
+
 
 (declare-function cygwin-convert-file-name-to-windows "cygw32.c" (file &optional absolute-p))
-
-(defvar docker-image-name nil)
 
 (defgroup dockerfile nil
   "dockerfile code editing commands for Emacs."
@@ -36,7 +44,9 @@
   :group 'dockerfile)
 
 (defcustom dockerfile-use-sudo nil
-  "Runs docker builder command with sudo.")
+  "Runs docker builder command with sudo."
+  :type 'boolean
+  :group 'dockerfile)
 
 (defcustom dockerfile-build-args nil
   "List of --build-arg to pass to docker build.
@@ -56,7 +66,7 @@ Each element of the list will be passed as a separate
     ,@(sh-font-lock-keywords)
     ,@(sh-font-lock-keywords-2)
     ,@(sh-font-lock-keywords-1))
-  "Default font-lock-keywords for `dockerfile mode'.")
+  "Default `font-lock-keywords' for `dockerfile mode'.")
 
 (defvar dockerfile-mode-map
   (let ((map (make-sparse-keymap))
@@ -94,61 +104,58 @@ Each element of the list will be passed as a separate
 
 (defun dockerfile-build-arg-string ()
   "Create a --build-arg string for each element in `dockerfile-build-args'."
-  (mapconcat (lambda (arg) (concat "--build-arg " "\"" arg "\""))
+  (mapconcat (lambda (arg) (concat "--build-arg " (shell-quote-argument arg)))
              dockerfile-build-args " "))
 
-(defun standard-filename (file)
-  "Convert the file name to OS standard.
+(defun dockerfile-standard-filename (file)
+  "Convert the FILE name to OS standard.
 If in Cygwin environment, uses Cygwin specific function to convert the
-file name. Otherwise, uses Emacs' standard conversion function."
-  (format "%s" (if (fboundp 'cygwin-convert-file-name-to-windows)
-                   (s-replace "\\" "\\\\" (cygwin-convert-file-name-to-windows file))
-                 (convert-standard-filename file))))
+file name.  Otherwise, uses Emacs' standard conversion function."
+  (if (fboundp 'cygwin-convert-file-name-to-windows)
+      (s-replace "\\" "\\\\" (cygwin-convert-file-name-to-windows file))
+    (convert-standard-filename file)))
+
+(defvar dockerfile-image-name nil
+  "Name of the dockerfile currently being used.
+This can be set in file or directory-local variables.")
+(define-obsolete-variable-alias 'docker-image-name 'dockerfile-image-name)
+
+(defvar dockerfile-image-name-history nil
+  "History of image names read by `dockerfile-read-image-name'.")
+
+(defun dockerfile-read-image-name ()
+  "Read a docker image name."
+  (read-string "Image name: " dockerfile-image-name 'dockerfile-image-name-history))
+
 
 ;;;###autoload
-(defun dockerfile-build-buffer (image-name)
-  "Build an image based upon the buffer"
-  (interactive
-   (if (null docker-image-name)
-       (list (read-string "image-name: " nil nil))
-     (list docker-image-name)))
+(defun dockerfile-build-buffer (image-name &optional no-cache)
+  "Build an image called IMAGE-NAME based upon the buffer.
+If prefix arg NO-CACHE is set, don't cache the image."
+  (interactive (list (dockerfile-read-image-name) prefix-arg))
   (save-buffer)
   (if (stringp image-name)
-      (async-shell-command
-       (format "%sdocker build -t %s %s -f \"%s\" \"%s\""
-               (if dockerfile-use-sudo "sudo " "")
-               image-name
-               (dockerfile-build-arg-string)
-               (standard-filename (buffer-file-name))
-               (standard-filename (file-name-directory (buffer-file-name))))
-       "*docker-build-output*")
-    (print "docker-image-name must be a string, consider surrounding it with double quotes")))
+      (compilation-start
+       (format
+        "%sdocker build %s -t %s %s -f %s %s"
+        (if dockerfile-use-sudo "sudo " "")
+        (if no-cache "--no-cache" "")
+        (shell-quote-argument image-name)
+        (dockerfile-build-arg-string)
+        (shell-quote-argument (dockerfile-standard-filename (buffer-file-name)))
+        (shell-quote-argument (dockerfile-standard-filename default-directory)))
+       nil
+       (lambda (_) (format "*docker-build-output: %s *" image-name)))
+    (print "dockerfile-image-name must be a string, consider surrounding it with double quotes")))
 
 ;;;###autoload
 (defun dockerfile-build-no-cache-buffer (image-name)
-  "Build an image based upon the buffer without cache"
-  (interactive
-   (if (null docker-image-name)
-       (list (read-string "image-name: " nil nil))
-     (list docker-image-name)))
-  (save-buffer)
-  (if (stringp image-name)
-      (async-shell-command
-       (format "%s docker build --no-cache -t %s %s -f \"%s\" \"%s\""
-               (if dockerfile-use-sudo "sudo" "")
-               image-name
-               (dockerfile-build-arg-string)
-               (standard-filename (buffer-file-name))
-               (standard-filename (file-name-directory (buffer-file-name))))
-       "*docker-build-output*")
-    (print "docker-image-name must be a string, consider surrounding it with double quotes")))
-
-;; Handle emacs < 24, which does not have prog-mode
-(defalias 'dockerfile-parent-mode
-  (if (fboundp 'prog-mode) 'prog-mode 'fundamental-mode))
+  "Build an image called IMAGE-NAME based upon the buffer without cache."
+  (interactive (list (dockerfile-read-image-name)))
+  (dockerfile-build-buffer image-name t))
 
 ;;;###autoload
-(define-derived-mode dockerfile-mode dockerfile-parent-mode "Dockerfile"
+(define-derived-mode dockerfile-mode prog-mode "Dockerfile"
   "A major mode to edit Dockerfiles.
 \\{dockerfile-mode-map}
 "
@@ -163,7 +170,7 @@ file name. Otherwise, uses Emacs' standard conversion function."
   (setq local-abbrev-table dockerfile-mode-abbrev-table))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("Dockerfile.*\\'" . dockerfile-mode))
+(add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-mode))
 
 (provide 'dockerfile-mode)
 
