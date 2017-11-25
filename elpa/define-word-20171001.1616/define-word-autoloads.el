@@ -1,10 +1,10 @@
 ;;; define-word-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "define-word" "define-word.el" (21920 42665
-;;;;;;  575401 0))
+;;;### (autoloads nil "define-word" "define-word.el" (23064 61798
+;;;;;;  346908 504000))
 ;;; Generated autoloads from define-word.el
 
 (autoload 'define-word "define-word" "\
