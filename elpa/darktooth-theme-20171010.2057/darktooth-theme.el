@@ -4,8 +4,8 @@
 
 ;; Authors: Jason Milkins <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20170715.1624
-;; Version: 0.3.7
+;; Package-Version: 20171010.2057
+;; Version: 0.3.8
 ;; Package-Requires: ((autothemer "0.2"))
 
 ;;; Commentary:
@@ -273,6 +273,17 @@
   (sp-pair-overlay-face                      (:background darktooth-dark2))
   (sp-show-pair-match-face                   (:background darktooth-dark2))
   (sp-show-pair-mismatch-face                (:background darktooth-neutral_red))
+
+  ;; MODE SUPPORT: flycheck
+  (flycheck-warning                          (:underline (:style 'wave :color darktooth-bright_yellow)))
+  (flycheck-error                            (:underline (:style 'wave :color darktooth-bright_red)))
+  (flycheck-info                             (:underline (:style 'wave :color darktooth-bright_blue)))
+  (flycheck-fringe-warning                   (:foreground darktooth-bright_yellow))
+  (flycheck-fringe-error                     (:foreground darktooth-bright_red))
+  (flycheck-fringe-info                      (:foreground darktooth-bright_blue))
+  (flycheck-error-list-warning               (:foreground darktooth-bright_yellow :bold t))
+  (flycheck-error-list-error                 (:foreground darktooth-bright_red :bold t))
+  (flycheck-error-list-info                  (:foreground darktooth-bright_blue :bold t))
 
   ;; MODE SUPPORT: auctex
   (font-latex-math-face                      (:foreground darktooth-lightblue4))
