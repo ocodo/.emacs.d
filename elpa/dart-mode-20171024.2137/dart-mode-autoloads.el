@@ -3,17 +3,9 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dart-mode" "dart-mode.el" (22873 40234 0 0))
+;;;### (autoloads nil "dart-mode" "dart-mode.el" (23064 61809 110881
+;;;;;;  292000))
 ;;; Generated autoloads from dart-mode.el
-
-(autoload 'dartfmt-before-save "dart-mode" "\
-Add this to .emacs to run dartfmt on the current buffer when saving:
- (add-hook 'before-save-hook 'dartfmt-before-save).
-
-Note that this will cause dart-mode to get loaded the first time
-you save any file, kind of defeating the point of autoloading.
-
-\(fn)" t nil)
  (add-to-list 'auto-mode-alist '("\\.dart\\'" . dart-mode))
 
 (autoload 'dart-mode "dart-mode" "\
