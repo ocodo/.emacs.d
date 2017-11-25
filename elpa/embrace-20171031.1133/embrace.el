@@ -4,7 +4,7 @@
 
 ;; Author: Junpeng Qiu <qjpchmail@gmail.com>
 ;; Package-Requires: ((cl-lib "0.5") (expand-region "0.10.0"))
-;; Package-Version: 20170615.1131
+;; Package-Version: 20171031.1133
 ;; Keywords: extensions
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -710,7 +710,12 @@
 
 (defun embrace--hide-help-buffer ()
   (and (buffer-live-p embrace--help-buffer)
-       (quit-windows-on embrace--help-buffer)))
+       (let ((win (get-buffer-window embrace--help-buffer)))
+         ;; Set `quit-restore' window parameter to fix evil-embrace/#5
+         (set-window-parameter
+          win 'quit-restore
+          (list 'window 'window (selected-window) embrace--help-buffer))
+         (quit-windows-on embrace--help-buffer))))
 
 ;; ------------------- ;;
 ;; funcions & commands ;;
