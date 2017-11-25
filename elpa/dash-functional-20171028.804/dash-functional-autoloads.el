@@ -1,10 +1,10 @@
 ;;; dash-functional-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("dash-functional.el") (22396 29127 349266
-;;;;;;  504000))
+;;;### (autoloads nil nil ("dash-functional.el") (23064 61802 398898
+;;;;;;  246000))
 
 ;;;***
 
