@@ -5,7 +5,7 @@
 ;; Author: Johan Andersson <johan.rejeep@gmail.com>
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
 ;; Version: 0.19.0
-;; Package-Version: 20170404.1039
+;; Package-Version: 20171119.723
 ;; Keywords: files, directories
 ;; URL: http://github.com/rejeep/f.el
 ;; Package-Requires: ((s "1.7.0") (dash "2.2.0"))
@@ -453,6 +453,15 @@ The extension, in a file name, is the part that follows the last
 
 (defalias 'f-hidden-p 'f-hidden?)
 
+(defun f-empty? (path)
+  "If PATH is a file, return t if the file in PATH is empty, nil otherwise.
+If PATH is directory, return t if directory has no files, nil otherwise."
+  (if (f-directory? path)
+      (equal (f-files path nil t) nil)
+    (= (f-size path) 0)))
+
+(defalias 'f-empty-p 'f-empty?)
+
 
 ;;;; Stats
 
@@ -484,9 +493,13 @@ detect the depth.
     byte-compile-current-file)
    (:else (buffer-file-name))))
 
+(defvar f--path-separator nil
+  "A variable to cache result of `f-path-separator'.")
+
 (defun f-path-separator ()
   "Return path separator."
-  (substring (f-join "x" "y") 1 2))
+  (or f--path-separator
+      (setq f--path-separator (substring (f-join "x" "y") 1 2))))
 
 (defun f-glob (pattern &optional path)
   "Find PATTERN in PATH."
