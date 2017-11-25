@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "docker" "docker.el" (0 0 0 0))
+;;;### (autoloads nil "docker" "docker.el" (23064 61787 22937 348000))
 ;;; Generated autoloads from docker.el
 
 (autoload 'docker-mode "docker" "\
@@ -33,12 +33,10 @@ See `docker-mode' for more information on Docker mode.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "docker" '("docker-")))
-
 ;;;***
 
 ;;;### (autoloads nil "docker-containers" "docker-containers.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23064 61787 14937 369000))
 ;;; Generated autoloads from docker-containers.el
 
 (autoload 'docker-start "docker-containers" "\
@@ -116,11 +114,10 @@ List docker containers.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "docker-containers" '("docker-")))
-
 ;;;***
 
-;;;### (autoloads nil "docker-images" "docker-images.el" (0 0 0 0))
+;;;### (autoloads nil "docker-images" "docker-images.el" (23064 61787
+;;;;;;  18937 358000))
 ;;; Generated autoloads from docker-images.el
 
 (autoload 'docker-pull "docker-images" "\
@@ -151,12 +148,10 @@ List docker images.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "docker-images" '("docker-")))
-
 ;;;***
 
-;;;### (autoloads nil "docker-machine" "docker-machine.el" (0 0 0
-;;;;;;  0))
+;;;### (autoloads nil "docker-machine" "docker-machine.el" (23064
+;;;;;;  61787 10937 379000))
 ;;; Generated autoloads from docker-machine.el
 
 (autoload 'docker-machine-config "docker-machine" "\
@@ -224,12 +219,10 @@ List docker machines.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "docker-machine" '("docker-")))
-
 ;;;***
 
-;;;### (autoloads nil "docker-networks" "docker-networks.el" (0 0
-;;;;;;  0 0))
+;;;### (autoloads nil "docker-networks" "docker-networks.el" (23064
+;;;;;;  61787 22937 348000))
 ;;; Generated autoloads from docker-networks.el
 
 (autoload 'docker-network-rm "docker-networks" "\
@@ -242,27 +235,10 @@ List docker networks.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "docker-networks" '("docker-")))
-
 ;;;***
 
-;;;### (autoloads nil "docker-process" "docker-process.el" (0 0 0
-;;;;;;  0))
-;;; Generated autoloads from docker-process.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "docker-process" '("docker")))
-
-;;;***
-
-;;;### (autoloads nil "docker-utils" "docker-utils.el" (0 0 0 0))
-;;; Generated autoloads from docker-utils.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "docker-utils" '("docker-utils-")))
-
-;;;***
-
-;;;### (autoloads nil "docker-volumes" "docker-volumes.el" (0 0 0
-;;;;;;  0))
+;;;### (autoloads nil "docker-volumes" "docker-volumes.el" (23064
+;;;;;;  61787 18937 358000))
 ;;; Generated autoloads from docker-volumes.el
 
 (autoload 'docker-volume-rm "docker-volumes" "\
@@ -275,11 +251,10 @@ List docker volumes.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "docker-volumes" '("docker-")))
-
 ;;;***
 
-;;;### (autoloads nil nil ("docker-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("docker-pkg.el" "docker-process.el" "docker-utils.el")
+;;;;;;  (23064 61787 18937 358000))
 
 ;;;***
 
