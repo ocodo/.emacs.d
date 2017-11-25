@@ -1,10 +1,10 @@
 ;;; flycheck-elixir-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("flycheck-elixir.el") (22396 29098 350606
-;;;;;;  941000))
+;;;### (autoloads nil nil ("flycheck-elixir.el") (23064 61677 295228
+;;;;;;  441000))
 
 ;;;***
 

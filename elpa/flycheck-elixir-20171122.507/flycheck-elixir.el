@@ -5,7 +5,7 @@
 ;; Author: Lorenzo Bolla <lbolla@gmail.com>
 ;; Created: 26 March 2016
 ;; Version: 1.0
-;; Package-Version: 20160629.59
+;; Package-Version: 20171122.507
 ;; Package-Requires: ((flycheck "0.25"))
 
 ;;; Commentary:
@@ -45,18 +45,33 @@
 (require 'flycheck)
 
 
+(defun elixirc-params (filename)
+  (let ((project-path (locate-dominating-file filename "mix.exs")))
+    (if project-path
+        (let ((lib-path (concat project-path "_build/dev/lib")))
+          (if (file-directory-p lib-path)
+              (let ((dep-paths (remove-if (lambda (p)
+                                            (let ((n (file-name-base p)))
+                                              (or (equal n ".") (equal n ".."))))
+                                          (directory-files lib-path t))))
+                (seq-reduce (lambda (a p) (cons "-pa" (cons (concat p "/ebin") a))) dep-paths ()))
+              )))))
+
 (flycheck-define-checker elixir
   "Elixir checker."
   :command ("elixirc"
             "--ignore-module-conflict"  ; Avoid module conflict warnings
+            (eval (list "-o" (flycheck-temp-dir-system)))
+            (eval (elixirc-params (buffer-file-name)))
             source-inplace)  ; Check as soon as possible, not just on file-save
   :error-patterns
   ((warning line-start
+            "warning: "
+            (message)
+            (one-or-more not-wordchar)
             (file-name)
             ":"
             line
-            ": warning: "
-            (message)
             line-end)
    (error line-start
           "** ("
@@ -68,7 +83,9 @@
           ": "
           (message)
           line-end))
-  :modes elixir-mode)
+  :modes elixir-mode
+  :predicate
+    (lambda () (not (string-equal "exs" (file-name-extension buffer-file-name)))))
 
 (add-to-list 'flycheck-checkers 'elixir t)
 
