@@ -6,7 +6,7 @@
 ;; Created: 24 Aug 2011
 ;; Updated: 16 Mar 2015
 ;; Version: 1.2
-;; Package-Version: 20170503.1714
+;; Package-Version: 20171024.1907
 ;; Package-Requires: ((gntp "0.1") (log4e "0.3.0"))
 ;; Keywords: notification emacs message
 ;; X-URL: https://github.com/jwiegley/alert
@@ -130,10 +130,12 @@
 ;;   libnotify     - Uses libnotify if notify-send is on the PATH
 ;;   log           - Logs the alert text to *Alerts*, with a timestamp
 ;;   message       - Uses the Emacs `message' facility
+;;   momentary     - Uses the Emacs `momentary-string-display' facility
 ;;   notifications - Uses notifications library via D-Bus
 ;;   notifier      - Uses terminal-notifier on OS X, if it is on the PATH
 ;;   osx-notifier  - Native OSX notifier using AppleScript
 ;;   toaster       - Use the toast notification system
+;;   x11 -         - Changes the urgency property of the window in the X Window System
 ;;
 ;; * Defining new styles
 ;;
@@ -176,6 +178,13 @@
 ;;                        ;; It is the same property list that was passed to
 ;;                        ;; the notifier function.
 ;;                        ))
+;;
+;; You can test a specific style with something like this:
+;;
+;; (let ((alert-user-configuration '((((:severity high)) momentary nil))))
+;;   (alert "Same buffer momentary alert" :title "My Alert" :severity 'high)
+;;   (alert "This is a momentary alert in another visible buffer" :title "My Alert"
+;;          :severity 'high :buffer (other-buffer (current-buffer) t)))
 
 ;;; Code:
 
@@ -584,6 +593,25 @@ fringe gets colored whenever people chat on BitlBee:
                     :notifier #'alert-message-notify
                     :remover #'alert-message-remove)
 
+(defun alert-momentary-notify (info)
+  (save-excursion
+    (with-current-buffer (or (plist-get info :buffer) (current-buffer))
+      (momentary-string-display
+       (format "%s: %s (%s/%s/%s)"
+               (or (plist-get info :title) "untitled")
+               (or (plist-get info :message) "no message")
+               (or (plist-get info :severity) "no priority")
+               (or (plist-get info :category) "no category")
+               (or (plist-get info :mode) "no mode"))
+       (progn
+         (beginning-of-line)
+         (point))))))
+
+(alert-define-style 'momentary :title "Display message momentarily in buffer"
+                    :notifier #'alert-momentary-notify
+                    ;; explicitly, we don't need a remover
+                    :remover #'ignore)
+
 (copy-face 'fringe 'alert-saved-fringe-face)
 
 (defun alert-fringe-notify (info)
@@ -822,6 +850,43 @@ From https://github.com/julienXX/terminal-notifier."
 (defun alert-frame-remove (info)
   (unless (eq this-command 'handle-switch-frame)
     (delete-frame (plist-get info :frame) t)))
+
+; This code was kindly borrowed from Arne Babenhauserheide:
+; http://www.draketo.de/proj/babcore/#sec-3-14-2
+(defun x-urgency-hint (frame arg &optional source)
+  "Set the x-urgency hint for the frame to arg:
+
+- If arg is nil, unset the urgency.
+- If arg is any other value, set the urgency.
+
+If you unset the urgency, you still have to visit the frame to make the urgency
+setting disappear (at least in KDE)."
+  (let* ((wm-hints (append (x-window-property
+                            "WM_HINTS" frame "WM_HINTS"
+                            source nil t) nil))
+         (flags (car wm-hints)))
+    (setcar wm-hints
+            (if arg
+                (logior flags #x00000100)
+              (logand flags #x1ffffeff)))
+    (x-change-window-property "WM_HINTS" wm-hints frame "WM_HINTS" 32 t)))
+
+(defun x-urgent (&optional arg)
+  "Mark the current emacs frame as requiring urgent attention.
+
+With a prefix argument which does not equal a boolean value of nil,
+remove the urgency flag (which might or might not change display, depending on
+the window manager)."
+  (interactive "P")
+  (let (frame (car (car (cdr (current-frame-configuration)))))
+  (x-urgency-hint frame (not arg))))
+
+(defun alert-x11-notify (info)
+  (x-urgent))
+
+(alert-define-style 'x11 :title "Set the X11 window property"
+                    :notifier #'alert-x11-notify)
+
 
 (defcustom alert-toaster-default-icon
   (let ((exec-bin (executable-find "emacs.exe")))
