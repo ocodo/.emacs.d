@@ -7,7 +7,7 @@
 ;; Created: December 5, 2014
 ;; Modified: July 02, 2017
 ;; Version: 2.0.9
-;; Package-Version: 20170806.1150
+;; Package-Version: 20170903.603
 ;; Keywords: emulation, vim, evil, sneak, seek
 ;; Homepage: https://github.com/hlissner/evil-snipe
 ;; Package-Requires: ((emacs "24.4") (evil "1.2.12") (cl-lib "0.5"))
@@ -476,7 +476,7 @@ interactive codes. KEYMAP is the transient map to activate afterwards."
 (evil-define-motion evil-snipe-repeat (count)
   "Repeat the last evil-snipe COUNT times."
   (interactive "<c>")
-  (unless (listp evil-snipe--last)
+  (unless evil-snipe--last
     (user-error "Nothing to repeat"))
   (let ((last-count (nth 0 evil-snipe--last))
         (last-keys (nth 1 evil-snipe--last))
@@ -487,12 +487,12 @@ interactive codes. KEYMAP is the transient map to activate afterwards."
         (evil-snipe-scope (or evil-snipe-repeat-scope evil-snipe-scope)))
     (let ((evil-snipe--consume-match last-consume-match)
           (evil-snipe--match-count last-match-count))
-      (evil-snipe-seek (* (or count 1) last-count) last-keys last-keymap))))
+      (evil-snipe-seek (* (or count 1) (or last-count 1)) last-keys last-keymap))))
 
 (evil-define-motion evil-snipe-repeat-reverse (count)
   "Repeat the inverse of the last evil-snipe `count' times"
   (interactive "<c>")
-  (evil-snipe-repeat (or (and count (- count)) -1)))
+  (evil-snipe-repeat (or (and (integerp count) (- count)) -1)))
 
 ;;;###autoload
 (defmacro evil-snipe-def (n type forward-key backward-key)
@@ -545,7 +545,7 @@ be inclusive or exclusive."
 (evil-snipe-def 1 'exclusive "t" "T")
 
 
-(defvar evil-snipe-mode-map
+(defvar evil-snipe-local-mode-map
   (let ((map (make-sparse-keymap)))
     (evil-define-key* '(normal motion) map
       "s" #'evil-snipe-s
@@ -561,7 +561,7 @@ be inclusive or exclusive."
         "X" #'evil-snipe-X))
     map))
 
-(defvar evil-snipe-override-mode-map
+(defvar evil-snipe-override-local-mode-map
   (let ((map (make-sparse-keymap)))
     (evil-define-key* 'motion map
       "f" #'evil-snipe-f
@@ -617,13 +617,11 @@ be inclusive or exclusive."
 (define-minor-mode evil-snipe-local-mode
   "evil-snipe minor mode."
   :lighter " snipe"
-  :keymap evil-snipe-mode-map
   :group 'evil-snipe)
 
 ;;;###autoload
 (define-minor-mode evil-snipe-override-local-mode
   "evil-snipe minor mode that overrides evil-mode f/F/t/T/;/, bindings."
-  :keymap evil-snipe-override-mode-map
   :group 'evil-snipe)
 
 ;;;###autoload
