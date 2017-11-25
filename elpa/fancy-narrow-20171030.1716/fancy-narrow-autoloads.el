@@ -1,26 +1,26 @@
 ;;; fancy-narrow-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "fancy-narrow" "fancy-narrow.el" (22200 34511
-;;;;;;  497309 886000))
+;;;### (autoloads nil "fancy-narrow" "fancy-narrow.el" (23064 61693
+;;;;;;  47185 254000))
 ;;; Generated autoloads from fancy-narrow.el
+
+(defvar fancy-narrow--beginning nil "\
+Beginning position.")
+
+(make-variable-buffer-local 'fancy-narrow--beginning)
+
+(defvar fancy-narrow--end nil "\
+End position.")
+
+(make-variable-buffer-local 'fancy-narrow--end)
 
 (autoload 'fancy-narrow-active-p "fancy-narrow" "\
 If the current buffer fancy-narrowed?
 
 \(fn)" nil nil)
-
-(defvar fancy-narrow--beginning nil "\
-")
-
-(make-variable-buffer-local 'fancy-narrow--beginning)
-
-(defvar fancy-narrow--end nil "\
-")
-
-(make-variable-buffer-local 'fancy-narrow--end)
 
 (autoload 'fancy-narrow-to-region "fancy-narrow" "\
 Like `narrow-to-region', except it still displays the unreachable text.
@@ -47,7 +47,8 @@ Undo narrowing from `fancy-narrow-to-region'.
 
 (defvar fancy-narrow-mode nil "\
 Non-nil if Fancy-Narrow mode is enabled.
-See the command `fancy-narrow-mode' for a description of this minor mode.")
+See the `fancy-narrow-mode' command
+for a description of this minor mode.")
 
 (custom-autoload 'fancy-narrow-mode "fancy-narrow" nil)
 

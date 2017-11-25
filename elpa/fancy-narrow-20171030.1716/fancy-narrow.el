@@ -4,7 +4,7 @@
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/Bruce-Connor/fancy-narrow
-;; Package-Version: 20160124.403
+;; Package-Version: 20171030.1716
 ;; Version: 0.9.4
 ;; Keywords: faces convenience
 ;; Prefix: fancy-narrow
@@ -92,6 +92,15 @@ Please include your emacs and fancy-narrow-region versions."
 (make-variable-buffer-local 'fancy-narrow--was-semantic)
 
 ;;;###autoload
+(defvar fancy-narrow--beginning nil "Beginning position.")
+;;;###autoload
+(make-variable-buffer-local 'fancy-narrow--beginning)
+;;;###autoload
+(defvar fancy-narrow--end nil "End position.")
+;;;###autoload
+(make-variable-buffer-local 'fancy-narrow--end)
+
+;;;###autoload
 (defun fancy-narrow-active-p ()
   "If the current buffer fancy-narrowed?"
   (and (boundp 'fancy-narrow--beginning) (boundp 'fancy-narrow--end)
@@ -155,15 +164,6 @@ Please include your emacs and fancy-narrow-region versions."
         beginning-of-buffer end-of-buffer
         end-of-defun beginning-of-defun
         goto-char  eobp bobp))
-
-;;;###autoload
-(defvar fancy-narrow--beginning nil "")
-;;;###autoload
-(make-variable-buffer-local 'fancy-narrow--beginning)
-;;;###autoload
-(defvar fancy-narrow--end nil "")
-;;;###autoload
-(make-variable-buffer-local 'fancy-narrow--end)
 
 (defun fancy-narrow--motion-function (&rest ignore)
   "Keep point from going past the boundaries."
