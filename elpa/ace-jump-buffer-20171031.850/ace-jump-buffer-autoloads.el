@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ace-jump-buffer" "ace-jump-buffer.el" (0 0
-;;;;;;  0 0))
+;;;### (autoloads nil "ace-jump-buffer" "ace-jump-buffer.el" (23064
+;;;;;;  61992 502443 18000))
 ;;; Generated autoloads from ace-jump-buffer.el
 
 (autoload 'ace-jump-buffer "ace-jump-buffer" "\
@@ -36,8 +36,6 @@ It will displays buffers that don't get rejected by the body of
 \(fn NAME &rest BUFFER-LIST-REJECT-FILTER)" nil t)
 
 (function-put 'make-ace-jump-buffer-function 'lisp-indent-function '1)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ace-jump-buffer" '("ajb" "bs--sort-by-recentf")))
 
 ;;;***
 

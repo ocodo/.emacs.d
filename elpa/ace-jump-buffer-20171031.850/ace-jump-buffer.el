@@ -4,8 +4,8 @@
 ;;
 ;; Author: Justin Talbott <justin@waymondo.com>
 ;; URL: https://github.com/waymondo/ace-jump-buffer
-;; Package-Version: 20170717.1148
-;; Version: 0.4.0
+;; Package-Version: 20171031.850
+;; Version: 0.4.1
 ;; Package-Requires: ((avy "0.4.0") (dash "2.4.0"))
 ;; License: GNU General Public License version 3, or (at your option) any later version
 
@@ -32,9 +32,16 @@
   :group 'ace-jump-buffer
   :type 'integer)
 
-(defcustom ajb-sort-function 'bs--sort-by-recentf
+(defcustom ajb-sort-function nil
   "The `bs-sort-function' function used when displaying `ace-jump-buffer'."
-  :group 'ace-jump-buffer)
+  :group 'ace-jump-buffer
+  :type '(radio (const :tag "No custom sorting" nil)
+                (function-item bs--sort-by-recentf)
+                (function-item bs--sort-by-name)
+                (function-item bs--sort-by-size)
+                (function-item bs--sort-by-filename)
+                (function-item bs--sort-by-mode)
+                (function :tag "Other function")))
 
 (defcustom ajb-bs-configuration "all"
   "The `bs-configuration' used when displaying `ace-jump-buffer'."
@@ -43,6 +50,16 @@
 (defface ajb-face '((t :background unspecified :foreground unspecified))
   "Customizable face to use within the `ace-jump-buffer' menu. The default is unspecified."
   :group 'ace-jump-buffer)
+
+(defcustom ajb-style 'at-full
+  "The default method of displaying the overlays for `ace-jump-buffer'."
+  :type '(choice
+          (const :tag "Pre" pre)
+          (const :tag "At" at)
+          (const :tag "At Full" at-full)
+          (const :tag "Post" post)
+          (const :tag "De Bruijn" de-bruijn)
+          (const :tag "Words" words)))
 
 ;; interval settings
 (defvar ajb/showing nil)
@@ -56,9 +73,17 @@
                                  ("" 1 1 left " ")
                                  ("Buffer" bs--get-name-length 10 left bs--get-name)))
 
-(defadvice bs--show-header (around maybe-disable-bs-header activate)
+(defun ajb/bs--show-header--around (oldfun)
   "Don't show the `bs' header when doing `ace-jump-buffer'."
-  (unless ajb/showing ad-do-it))
+  (unless ajb/showing (funcall oldfun)))
+
+(advice-add 'bs--show-header :around 'ajb/bs--show-header--around)
+
+(defun ajb/bs-set-configuration--after (name)
+  "Set `bs-buffer-sort-function' to the value of `ajb-sort-function'."
+  (when ajb/showing (setq bs-buffer-sort-function ajb-sort-function)))
+
+(advice-add 'bs-set-configuration :after 'ajb/bs-set-configuration--after)
 
 (defun bs--sort-by-recentf (b1 b2)
   "Sort function for comparing buffers `B1' and `B2' by recentf order."
@@ -103,9 +128,9 @@
   (interactive)
   (let ((avy-background nil)
         (avy-all-windows nil)
-        (bs-buffer-sort-function ajb-sort-function)
         (bs-attributes-list ajb/bs-attributes-list)
         (avy-handler-function 'ajb/exit)
+        (avy-style ajb-style)
         (ajb/showing t))
     (save-excursion
       (bs--show-with-configuration ajb-bs-configuration)
@@ -169,6 +194,11 @@ It will displays buffers that don't get rejected by the body of
   (make-ace-jump-buffer-function "persp"
     (with-current-buffer buffer
       (not (member buffer (persp-buffers persp-curr))))))
+
+(when (require 'persp-mode nil 'noerror)
+  (make-ace-jump-buffer-function "persp"
+    (with-current-buffer buffer
+      (not (memq buffer (persp-buffer-list))))))
 
 (when (require 'projectile nil 'noerror)
   (make-ace-jump-buffer-function "projectile"
