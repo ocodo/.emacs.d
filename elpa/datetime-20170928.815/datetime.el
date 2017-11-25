@@ -5,7 +5,7 @@
 ;; Author:     Paul Pogonyshev <pogonyshev@gmail.com>
 ;; Maintainer: Paul Pogonyshev <pogonyshev@gmail.com>
 ;; Version:    0.2.1
-;; Package-Version: 20170318.254
+;; Package-Version: 20170928.815
 ;; Keywords:   lisp, i18n
 ;; Homepage:   https://github.com/doublep/datetime
 ;; Package-Requires: ((emacs "24.1"))
@@ -82,7 +82,10 @@
 ;;   millisecond (NUMBER)
 ;;   second-fractional (NUMBER)
 ;;       this is a generalization used internally: (second-fractional . 3)
-;;       means millis, (second-fractional . 6) -- micros, and so on.
+;;       means millis, (second-fractional . 6) -- micros, and so on;
+;;
+;;   decimal-separator (PREFERRED)
+;;       either dot or comma;
 ;;
 ;;   timezone (?) -- currently not supported further than pattern parsing
 
@@ -197,7 +200,12 @@
                  (_
                   (error "Illegal pattern character `%c'" character))))
               (t
-               (datetime--extend-as-is-part parts (string character))))))
+               (if (and (or (= character ?.) (= character ?,))
+                        (plist-get options :any-decimal-separator)
+                        (eq (car-safe (car parts)) 'second)
+                        (< scan length) (= (aref pattern scan) ?S))
+                   (push (cons 'decimal-separator character) parts)
+                 (datetime--extend-as-is-part parts (string character)))))))
     (nreverse parts)))
 
 (defun datetime--format-java-pattern (parts options)
@@ -246,6 +254,7 @@
                           (`hour-am/pm-1-12   (cons ?h details))
                           (`minute            (cons ?m details))
                           (`second            (cons ?s details))
+                          (`decimal-separator details)
                           (`millisecond       (cons ?S details))
                           (`second-fractional (if (plist-get options :second-fractional-extension)
                                                   (cons ?S details)
@@ -381,6 +390,7 @@ specified otherwise.
                           (`hour-am/pm-1-12  12)
                           (`minute           59)
                           (`second           59)
+                          (`decimal-separator (rx (or "." ",")))
                           ((or `millisecond `second-fractional)
                            (apply #'concat (make-list details (rx (any "0-9")))))
                           (`timezone
@@ -414,7 +424,7 @@ specified otherwise.
 
 (defun datetime-recode-pattern (from to pattern &rest options)
   "Recode PATTERN between two supported types.
-As a special case, either of FROM and TO can be set to 'parsed.
+As a special case, either of FROM and TO can be set to \\='parsed.
 This is useful as a speed optimization in a few cases where you
 perform several transformations on the same pattern.
 
@@ -424,7 +434,14 @@ Options can be a list of the following keyword arguments:
 
     In Java patterns any number of \"S\" stand for milliseconds.
     With this extension they are instead interpreted according to
-    how many \"S\" there is, e.g. \"SSSSSS\" means microseconds."
+    how many \"S\" there is, e.g. \"SSSSSS\" means microseconds.
+
+  :any-decimal-separator
+
+    Treat a decimal dot or comma in pattern between seconds and
+    milli- or microseconds (etc.) as a placeholder for _any_
+    decimal separator and also accept commas in this place.  This
+    only works if TO is \\='parsed."
   (datetime--format-pattern to (datetime--parse-pattern from pattern options) options))
 
 
