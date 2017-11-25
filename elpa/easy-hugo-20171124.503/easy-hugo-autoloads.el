@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "easy-hugo" "easy-hugo.el" (22955 53586 609741
-;;;;;;  524000))
+;;;### (autoloads nil "easy-hugo" "easy-hugo.el" (23064 61781 502951
+;;;;;;  484000))
 ;;; Generated autoloads from easy-hugo.el
 
 (autoload 'easy-hugo-article "easy-hugo" "\
@@ -33,7 +33,7 @@ Adapt local change to the server with hugo.
 \(fn)" t nil)
 
 (autoload 'easy-hugo-publish-timer "easy-hugo" "\
-A timer that publish after the specified number of minutes has elapsed.
+A timer that publish after the N number of minutes has elapsed.
 
 \(fn N)" t nil)
 
@@ -59,7 +59,7 @@ Execute `easy-hugo-github-deploy-script' script locate at `easy-hugo-basedir'.
 \(fn)" t nil)
 
 (autoload 'easy-hugo-github-deploy-timer "easy-hugo" "\
-A timer that github-deploy after the specified number of minutes has elapsed.
+A timer that github-deploy after the N number of minutes has elapsed.
 
 \(fn N)" t nil)
 
@@ -74,7 +74,7 @@ Deploy hugo source at Amazon S3.
 \(fn)" t nil)
 
 (autoload 'easy-hugo-amazon-s3-deploy-timer "easy-hugo" "\
-A timer that amazon-s3-deploy after the specified number of minutes has elapsed.
+A timer that amazon-s3-deploy after the N number of minutes has elapsed.
 
 \(fn N)" t nil)
 
@@ -89,7 +89,7 @@ Deploy hugo source at Google Cloud Storage.
 \(fn)" t nil)
 
 (autoload 'easy-hugo-google-cloud-storage-deploy-timer "easy-hugo" "\
-A timer that google-cloud-storage-deploy after the specified number of minutes has elapsed.
+A timer that google-cloud-storage-deploy after the N number of minutes has elapsed.
 
 \(fn N)" t nil)
 
@@ -109,7 +109,7 @@ Open Hugo's config file.
 \(fn)" t nil)
 
 (autoload 'easy-hugo "easy-hugo" "\
-Easy hugo.
+Easy hugo mode.
 
 \(fn)" t nil)
 
