@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "counsel" "counsel.el" (0 0 0 0))
+;;;### (autoloads nil "counsel" "counsel.el" (23064 61826 398837
+;;;;;;  989000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -130,6 +131,11 @@ Find the file corresponding to the current buffer on a different worktree.
 
 \(fn)" t nil)
 
+(autoload 'counsel-git-checkout "counsel" "\
+Call the \"git checkout\" command.
+
+\(fn)" t nil)
+
 (autoload 'counsel-git-log "counsel" "\
 Call the \"git log --grep\" shell command.
 
@@ -148,6 +154,12 @@ Find a file on `recentf-list'.
 
 (autoload 'counsel-locate "counsel" "\
 Call the \"locate\" shell command.
+INITIAL-INPUT can be given as the initial minibuffer input.
+
+\(fn &optional INITIAL-INPUT)" t nil)
+
+(autoload 'counsel-fzf "counsel" "\
+Call the \"fzf\" shell command.
 INITIAL-INPUT can be given as the initial minibuffer input.
 
 \(fn &optional INITIAL-INPUT)" t nil)
@@ -214,13 +226,15 @@ RG-PROMPT, if non-nil, is passed as `ivy-read' prompt argument.
 
 (autoload 'counsel-grep "counsel" "\
 Grep for a string in the current file.
+When non-nil, INITIAL-INPUT is the initial search pattern.
 
-\(fn)" t nil)
+\(fn &optional INITIAL-INPUT)" t nil)
 
 (autoload 'counsel-grep-or-swiper "counsel" "\
 Call `swiper' for small buffers and `counsel-grep' for large ones.
+When non-nil, INITIAL-INPUT is the initial search pattern.
 
-\(fn)" t nil)
+\(fn &optional INITIAL-INPUT)" t nil)
 
 (autoload 'counsel-org-tag "counsel" "\
 Add or remove tags in `org-mode'.
@@ -239,6 +253,11 @@ Go to a different location in the current file.
 
 (autoload 'counsel-org-goto-all "counsel" "\
 Go to a different location in any org file.
+
+\(fn)" t nil)
+
+(autoload 'counsel-org-file "counsel" "\
+Browse all attachments for current Org file.
 
 \(fn)" t nil)
 
@@ -272,6 +291,11 @@ And insert it into the minibuffer.  Useful during `eval-expression'.
 
 (autoload 'counsel-shell-command-history "counsel" "\
 Browse shell command history.
+
+\(fn)" t nil)
+
+(autoload 'counsel-minibuffer-history "counsel" "\
+Browse minibuffer history.
 
 \(fn)" t nil)
 
@@ -355,8 +379,6 @@ mode remaps built-in emacs functions that have counsel
 replacements.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "counsel" '("counsel-" "tmm-km-list")))
 
 ;;;***
 
