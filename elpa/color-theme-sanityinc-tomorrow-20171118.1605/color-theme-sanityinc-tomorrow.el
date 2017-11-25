@@ -1,12 +1,12 @@
 ;;; color-theme-sanityinc-tomorrow.el --- A version of Chris Kempson's "tomorrow" themes
 
-;; Copyright (C) 2012-2014 Steve Purcell
+;; Copyright (C) 2012-2017 Steve Purcell
 
 ;; Author: Steve Purcell <steve@sanityinc.com>
-;; Keywords: themes
+;; Keywords: faces themes
 ;; X-URL: http://github.com/purcell/color-theme-sanityinc-tomorrow
 ;; URL: http://github.com/purcell/color-theme-sanityinc-tomorrow
-;; Version: {{VERSION}}
+;; Version: 0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -48,6 +48,14 @@
 ;; https://github.com/ChrisKempson/Tomorrow-Theme
 
 ;;; Code:
+
+(require 'color)
+
+(defun sanityinc-tomorrow-interpolate (hex1 hex2 gradations which)
+  (let ((c1 (color-name-to-rgb hex1))
+        (c2 (color-name-to-rgb hex2)))
+    (apply 'color-rgb-to-hex (nth which (color-gradient c1 c2 gradations)))))
+
 
 (defconst color-theme-sanityinc-tomorrow-colors
   '((night . ((background . "#1d1f21")
@@ -122,6 +130,7 @@
           (background   (cdr (assoc 'background colors)))
           (contrast-bg  (cdr (assoc 'selection colors)))
           (highlight    (cdr (assoc 'current-line colors)))
+          (low-contrast-bg (sanityinc-tomorrow-interpolate background highlight 7 3))
           (foreground   (cdr (assoc 'foreground colors)))
           (comment      (cdr (assoc 'comment colors)))
           (red          (cdr (assoc 'red colors)))
@@ -171,9 +180,14 @@ names to which it refers are bound."
       (warning (:foreground ,orange))
       (tooltip (:foreground ,yellow :background ,background :inverse-video t))
 
+      ;; window-divider
+      (window-divider (:foreground ,comment))
+      (window-divider-first-pixel (:foreground ,contrast-bg))
+      (window-divider-last-pixel (:foreground ,contrast-bg))
+
       ;; ace-window
       (aw-background-face (:foreground ,contrast-bg))
-      (aw-leading-char-face (:foreground ,background :background ,yellow))
+      (aw-leading-char-face (:foreground ,yellow))
 
       ;; avy
       (avy-background-face (:foreground ,contrast-bg))
@@ -229,13 +243,23 @@ names to which it refers are bound."
       (flycheck-color-mode-line-error-face (:foreground ,red))
       (flycheck-color-mode-line-warning-face (:foreground ,orange))
       (flycheck-color-mode-line-info-face (:foreground ,aqua))
+      (flycheck-color-mode-line-running-face (:foreground ,comment))
+      (flycheck-color-mode-line-success-face (:foreground ,green))
 
       ;; Flymake
       (flymake-warnline (:underline (:style wave :color ,orange) :background ,background))
       (flymake-errline (:underline (:style wave :color ,red) :background ,background))
+      (flymake-error (:underline (:style wave :color ,red)))
+      (flymake-note (:underline (:style wave :color ,aqua)))
+      (flymake-warning (:underline (:style wave :color ,orange)))
 
       ;; Flyspell
       (flyspell-incorrect (:underline (:style wave :color ,red)))
+
+      ;; Lispy
+      (lispy-command-name-face (:inherit font-lock-function-name-face :background ,highlight))
+      (lispy-cursor-face (:foreground ,background :background ,foreground))
+      (lispy-face-hint (:foreground ,green :background ,contrast-bg))
 
       ;; Clojure errors
       (clojure-test-failure-face (:background nil :inherit flymake-warnline))
@@ -277,7 +301,7 @@ names to which it refers are bound."
       ;; Search
       (match (:foreground ,blue :background ,background :inverse-video t))
       (isearch (:foreground ,yellow :background ,background :inverse-video t))
-      (isearch-lazy-highlight-face (:foreground ,aqua :background ,background :inverse-video t))
+      (lazy-highlight (:foreground ,aqua :background ,background :inverse-video t))
       (isearch-fail (:background ,background :inherit font-lock-warning-face :inverse-video t))
 
       ;; Anzu
@@ -318,14 +342,17 @@ names to which it refers are bound."
 
       ;; Emacs interface
       (cursor (:background ,red))
-      (fringe (:background ,background :foreground ,comment))
-      (linum (:background ,background :foreground ,comment :italic nil :underline nil))
+      (fringe (:background ,low-contrast-bg :foreground ,comment))
+      (linum (:background ,low-contrast-bg :foreground ,comment :italic nil :underline nil))
+      (line-number (:background ,low-contrast-bg :foreground ,comment))
+      (line-number-current-line (:inherit line-number :foreground ,foreground :weight bold))
       (vertical-border (:foreground ,contrast-bg))
       (border (:background ,contrast-bg :foreground ,highlight))
       (border-glyph (nil))
       (highlight (:inverse-video nil :background ,highlight))
       (gui-element (:background ,contrast-bg :foreground ,foreground))
-      (mode-line (:foreground ,foreground :background ,contrast-bg :weight normal))
+      (mode-line (:foreground ,foreground :background ,contrast-bg :weight normal
+                              :box (:line-width 1 :color ,contrast-bg)))
       (mode-line-buffer-id (:foreground ,purple :background nil))
       (mode-line-inactive (:inherit mode-line
                                     :foreground ,comment
@@ -417,37 +444,69 @@ names to which it refers are bound."
       ;; macrostep
       (macrostep-expansion-highlight-face (:inherit highlight :foreground nil))
 
+      ;; ERT
+      (ert-test-result-unexpected (:inherit error))
+      (ert-test-result-expected (:inherit success))
+
       ;; undo-tree
       (undo-tree-visualizer-default-face (:foreground ,foreground))
       (undo-tree-visualizer-current-face (:foreground ,green :weight bold))
       (undo-tree-visualizer-active-branch-face (:foreground ,red))
       (undo-tree-visualizer-register-face (:foreground ,yellow))
 
+      ;; diredfl
+      (diredfl-compressed-file-suffix (:foreground ,blue))
+      (diredfl-compressed-file-name (:foreground ,blue))
+      (diredfl-deletion (:inherit error :inverse-video t))
+      (diredfl-deletion-file-name (:inherit error))
+      (diredfl-date-time (:foreground ,blue))
+      (diredfl-dir-heading (:foreground ,green :weight bold))
+      (diredfl-dir-name (:foreground ,aqua))
+      (diredfl-dir-priv (:foreground ,aqua :background nil))
+      (diredfl-exec-priv (:foreground ,orange :background nil))
+      (diredfl-executable-tag (:foreground ,red :background nil))
+      (diredfl-file-name (:foreground ,yellow))
+      (diredfl-file-suffix (:foreground ,green))
+      (diredfl-flag-mark (:foreground ,green :inverse-video t))
+      (diredfl-flag-mark-line (:background nil :inherit highlight))
+      (diredfl-ignored-file-name (:foreground ,comment))
+      (diredfl-link-priv (:background nil :foreground ,purple))
+      (diredfl-mode-line-flagged (:foreground ,red))
+      (diredfl-mode-line-marked (:foreground ,green))
+      (diredfl-no-priv (:background nil))
+      (diredfl-number (:foreground ,yellow))
+      (diredfl-other-priv (:background nil :foreground ,purple))
+      (diredfl-rare-priv (:foreground ,red :background nil))
+      (diredfl-read-priv (:foreground ,green :background nil))
+      (diredfl-symlink (:foreground ,purple))
+      (diredfl-write-priv (:foreground ,yellow :background nil))
+
       ;; dired+
-      (diredp-compressed-file-suffix (:foreground ,blue))
-      (diredp-deletion (:inherit error :inverse-video t))
-      (diredp-deletion-file-name (:inherit error))
-      (diredp-date-time (:foreground ,blue))
-      (diredp-dir-heading (:foreground ,green :weight bold))
-      (diredp-dir-name (:foreground ,aqua))
-      (diredp-dir-priv (:foreground ,aqua :background nil))
-      (diredp-exec-priv (:foreground ,orange :background nil))
-      (diredp-executable-tag (:foreground ,red :background nil))
-      (diredp-file-name (:foreground ,yellow))
-      (diredp-file-suffix (:foreground ,green))
-      (diredp-flag-mark (:foreground ,green :inverse-video t))
-      (diredp-flag-mark-line (:background nil :inherit highlight))
-      (diredp-ignored-file-name (:foreground ,comment))
-      (diredp-link-priv (:background nil :foreground ,purple))
-      (diredp-mode-line-flagged (:foreground ,red))
-      (diredp-mode-line-marked (:foreground ,green))
-      (diredp-no-priv (:background nil))
-      (diredp-number (:foreground ,yellow))
-      (diredp-other-priv (:background nil :foreground ,purple))
-      (diredp-rare-priv (:foreground ,red :background nil))
-      (diredp-read-priv (:foreground ,green :background nil))
-      (diredp-symlink (:foreground ,purple))
-      (diredp-write-priv (:foreground ,yellow :background nil))
+      (diredp-compressed-file-suffix (:inherit diredfl-compressed-file-suffix))
+      (diredp-compressed-file-name (:inherit diredfl-compressed-file-name))
+      (diredp-deletion (:inherit diredfl-deletion))
+      (diredp-deletion-file-name (:inherit diredfl-deletion-file-name))
+      (diredp-date-time (:inherit diredfl-date-time))
+      (diredp-dir-heading (:inherit diredfl-dir-heading))
+      (diredp-dir-name (:inherit diredfl-dir-name))
+      (diredp-dir-priv (:inherit diredfl-dir-priv))
+      (diredp-exec-priv (:inherit diredfl-exec-priv))
+      (diredp-executable-tag (:inherit diredfl-executable-tag))
+      (diredp-file-name (:inherit diredfl-file-name))
+      (diredp-file-suffix (:inherit diredfl-file-suffix))
+      (diredp-flag-mark (:inherit diredfl-flag-mark))
+      (diredp-flag-mark-line (:inherit diredfl-flag-mark-line))
+      (diredp-ignored-file-name (:inherit diredfl-ignored-file-name))
+      (diredp-link-priv (:inherit diredfl-link-priv))
+      (diredp-mode-line-flagged (:inherit diredfl-mode-line-flagged))
+      (diredp-mode-line-marked (:inherit diredfl-mode-line-marked))
+      (diredp-no-priv (:inherit diredfl-no-priv))
+      (diredp-number (:inherit diredfl-number))
+      (diredp-other-priv (:inherit diredfl-other-priv))
+      (diredp-rare-priv (:inherit diredfl-rare-priv))
+      (diredp-read-priv (:inherit diredfl-read-priv))
+      (diredp-symlink (:inherit diredfl-symlink))
+      (diredp-write-priv (:inherit diredfl-write-priv))
 
       ;; dired-async
       (dired-async-failures (:inherit error))
@@ -627,7 +686,7 @@ names to which it refers are bound."
       (company-preview-common (:inherit company-preview :foreground ,red))
       (company-preview-search (:inherit company-preview :foreground ,blue))
       (company-tooltip (:background ,contrast-bg))
-      (company-tooltip-selection (:background ,highlight))
+      (company-tooltip-selection (:foreground ,comment :inverse-video t))
       (company-tooltip-common (:inherit company-tooltip :foreground ,red))
       (company-tooltip-common-selection (:inherit company-tooltip-selection :foreground ,red))
       (company-tooltip-search (:inherit company-tooltip :foreground ,blue))
@@ -643,6 +702,7 @@ names to which it refers are bound."
 
       ;; org-mode
       (org-agenda-structure (:foreground ,purple))
+      (org-agenda-current-time (:foreground ,yellow))
       (org-agenda-date (:foreground ,blue :underline nil))
       (org-agenda-done (:foreground ,green))
       (org-agenda-dimmed-todo-face (:foreground ,comment))
@@ -665,6 +725,7 @@ names to which it refers are bound."
       (org-scheduled-today (:foreground ,green))
       (org-special-keyword (:foreground ,orange))
       (org-table (:foreground ,purple))
+      (org-time-grid (:foreground ,yellow))
       (org-todo (:foreground ,red))
       (org-upcoming-deadline (:foreground ,orange))
       (org-warning (:weight bold :foreground ,red))
@@ -672,6 +733,30 @@ names to which it refers are bound."
       ;; markdown
       (markdown-url-face (:inherit link))
       (markdown-link-face (:foreground ,blue :underline t))
+      (markdown-code-face (:inherit fixed-pitch :background ,background :foreground ,purple))
+      (markdown-inline-code-face (:inherit markdown-code-face))
+
+      ;; auctex
+      (font-latex-bold-face (:foreground ,green :weight bold))
+      (font-latex-doctex-documentation-face (:inherit highlight))
+      (font-latex-italic-face (:foreground ,green :slant italic))
+      (font-latex-math-face (:foreground ,purple))
+      (font-latex-script-char-face (:foreground ,red))
+      (font-latex-sectioning-0-face (:foreground ,yellow :weight bold :height 1.1))
+      (font-latex-sectioning-1-face (:foreground ,yellow :weight bold :height 1.1))
+      (font-latex-sectioning-2-face (:foreground ,yellow :weight bold :height 1.1))
+      (font-latex-sectioning-3-face (:foreground ,yellow :weight bold :height 1.1))
+      (font-latex-sectioning-4-face (:foreground ,yellow :weight bold :height 1.1))
+      (font-latex-sectioning-5-face (:foreground ,yellow :weight bold))
+      (font-latex-sedate-face (:foreground ,orange))
+      (font-latex-slide-title-face (:foreground ,blue :weight bold :height 1.2))
+      (font-latex-string-face (:inherit font-lock-string-face))
+      (font-latex-verbatim-face (:inherit font-lock-string-face))
+      (font-latex-warning-face (:inherit warning))
+
+      ;; TeX-fold
+      (TeX-fold-folded-face (:foreground ,purple))
+      (TeX-fold-unfolded-face (:inherit highlight))
 
       ;; info
       (Info-quoted (:inherit font-lock-constant-face))
@@ -953,17 +1038,17 @@ names to which it refers are bound."
       (gnus-group-mail-low (:foreground ,comment))
       (gnus-group-mail-low-empty (:foreground ,comment))
 
-      (gnus-group-news-1 (:foreground nil :weight normal :inherit outline-5))
+      (gnus-group-news-1 (:foreground nil :weight normal :inherit outline-1))
       (gnus-group-news-1-empty (:inherit gnus-group-news-1 :foreground ,comment))
-      (gnus-group-news-2 (:foreground nil :weight normal :inherit outline-6))
+      (gnus-group-news-2 (:foreground nil :weight normal :inherit outline-2))
       (gnus-group-news-2-empty (:inherit gnus-group-news-2 :foreground ,comment))
-      (gnus-group-news-3 (:foreground nil :weight normal :inherit outline-7))
+      (gnus-group-news-3 (:foreground nil :weight normal :inherit outline-3))
       (gnus-group-news-3-empty (:inherit gnus-group-news-3 :foreground ,comment))
-      (gnus-group-news-4 (:foreground nil :weight normal :inherit outli))
+      (gnus-group-news-4 (:foreground nil :weight normal :inherit outline-4))
       (gnus-group-news-4-empty (:inherit gnus-group-news-4 :foreground ,comment))
-      (gnus-group-news-5 (:foreground nil :weight normal :inherit outline-1))
+      (gnus-group-news-5 (:foreground nil :weight normal :inherit outline-5))
       (gnus-group-news-5-empty (:inherit gnus-group-news-5 :foreground ,comment))
-      (gnus-group-news-6 (:foreground nil :weight normal :inherit outline-2))
+      (gnus-group-news-6 (:foreground nil :weight normal :inherit outline-6))
       (gnus-group-news-6-empty (:inherit gnus-group-news-6 :foreground ,comment))
 
       (gnus-server-agent (:foreground ,aqua :weight bold))
@@ -993,6 +1078,15 @@ names to which it refers are bound."
       (gnus-summary-normal-ticked (:foreground ,orange :weight normal))
       (gnus-summary-normal-undownloaded (:foreground ,foreground))
       (gnus-summary-normal-unread (:foreground ,blue :weight normal))
+
+      ;; Circe
+      (circe-fool-face (:foreground ,comment))
+      (circe-highlight-nick-face (:foreground ,orange))
+      (circe-my-message-face (:foreground ,green))
+      (circe-prompt-face (:foreground ,blue))
+      (circe-server-face (:foreground ,green))
+      (circe-topic-diff-new-face (:foreground ,blue))
+      (circe-topic-diff-removed-face (:foreground ,red))
 
       ;; ERC
       (erc-direct-msg-face (:foreground ,orange))
@@ -1062,6 +1156,12 @@ names to which it refers are bound."
       (e2wm:face-history-list-select1 (:foreground ,aqua :background ,background))
       (e2wm:face-history-list-select2 (:foreground ,yellow :background ,background))
 
+      ;; eyebrowse
+      (eyebrowse-mode-line-active (:foreground ,orange :weight bold))
+      (eyebrowse-mode-line-delimiters (:foreground ,purple))
+      (eyebrowse-mode-line-inactive (:foreground ,comment))
+      (eyebrowse-mode-line-separator (:foreground ,purple))
+
       ;; rpm-spec-mode
       (rpm-spec-dir-face (:foreground ,green))
       (rpm-spec-doc-face (:foreground ,green))
@@ -1078,6 +1178,12 @@ names to which it refers are bound."
       (sx-question-list-answers (:height 1.0 :inherit sx-question-list-parent :foreground ,green))
       (sx-question-mode-accepted (:height 1.5 :inherit sx-question-mode-title :foreground ,green))
       (sx-question-mode-kbd-tag (:height 0.9 :weight semi-bold :box (:line-width 3 :style released-button :color ,contrast-bg)))
+
+      ;; xcscope
+      (cscope-file-face (:foreground ,green))
+      (cscope-function-face (:foreground ,blue))
+      (cscope-line-number-face (:foreground ,red))
+      (cscope-separator-face (:bold t :overline t :underline t :foreground ,purple))
       ))))
 
 (defmacro color-theme-sanityinc-tomorrow--frame-parameter-specs ()
@@ -1111,6 +1217,7 @@ are bound."
                (color-theme-sanityinc-tomorrow--face-specs))
         (custom-theme-set-variables
          ',name
+         `(beacon-color ,red)
          `(fci-rule-color ,contrast-bg)
          `(vc-annotate-color-map
            '((20  . ,red)
@@ -1134,7 +1241,7 @@ are bound."
          `(vc-annotate-very-old-color nil)
          `(vc-annotate-background nil)
          `(flycheck-color-mode-line-face-to-color 'mode-line-buffer-id)
-         `(ansi-color-names-vector (vector ,foreground ,red ,green ,yellow ,blue ,purple ,aqua ,contrast-bg))
+         `(ansi-color-names-vector (vector ,contrast-bg ,red ,green ,yellow ,blue ,purple ,aqua ,foreground))
          '(ansi-color-faces-vector [default bold shadow italic underline bold bold-italic bold])
          ))
        (provide-theme ',name))))
@@ -1158,7 +1265,7 @@ are bound."
           ,@(color-theme-sanityinc-tomorrow--frame-parameter-specs)
           ,@(color-theme-sanityinc-tomorrow--face-specs)))
        ;; ansi-color - comint and other modes that handle terminal color escape sequences
-       (setq ansi-color-names-vector (vector foreground red green yellow blue purple aqua contrast-bg))
+       (setq ansi-color-names-vector (vector contrast-bg red green yellow blue purple aqua foreground))
        (setq ansi-color-faces-vector [default bold shadow italic underline bold bold-italic bold])))))
 
 ;;;###autoload
