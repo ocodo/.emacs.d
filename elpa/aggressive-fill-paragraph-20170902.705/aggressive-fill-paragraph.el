@@ -1,16 +1,15 @@
-;;; -*- lexical-binding: t; -*-
-;;; aggressive-fill-paragraph.el --- A mode to automatically keep paragraphs filled
+;;; aggressive-fill-paragraph.el --- A mode to automatically keep paragraphs filled -*- lexical-binding: t; -*-
 
 ;; Author: David Shepherd <davidshepherd7@gmail.com>
 ;; Version: 0.0.1
-;; Package-Version: 20161023.321
+;; Package-Version: 20170902.705
 ;; Package-Requires: ((dash "2.10.0"))
 ;; URL: https://github.com/davidshepherd7/aggressive-fill-paragraph-mode
 ;; Keywords: fill-paragraph, automatic, comments
 
 ;;; Commentary:
 
-;; An emacs minor-mode for keeping paragraphs filled in both comments and prose.
+;; An Emacs minor-mode for keeping paragraphs filled in both comments and prose.
 
 ;;; Code:
 
@@ -20,29 +19,37 @@
 ;; Helpers
 
 (defun afp-inside-comment? ()
+  "Are we in a comment?"
   (nth 4 (syntax-ppss)))
 
 (defun afp-current-line ()
+  "Get the current line."
   (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
 
 
 ;; Functions for testing conditions to suppress fill-paragraph
 
 (defun afp-markdown-inside-code-block? ()
-  """Basic test for indented code blocks in markdown."""
+  "Check if we are inside a markdown code block."
   (and (string-equal major-mode "markdown-mode")
        (string-match-p "^    " (afp-current-line))))
 
 (defun afp-start-of-comment? ()
-  "Check if we have just started writing a new comment line (it's
-  annoying if you are trying to write a list but it keeps getting
-  filled before you can type the * which afp recognises as a
-  list)."
+  "Check if we have just started writing a new comment line.
+
+It's annoying if you are trying to write a list but it keeps
+getting filled before you can type the * which afp recognises
+as a list."
   (and (string-match-p (concat))))
 
+(defun afp-repeated-whitespace? ()
+  "Check if this is the second whitespace character in a row."
+  (looking-back "\\s-\\s-" (- (point) 2)))
+
 (defun afp-bullet-list-in-comments? ()
-  "Try to check if we are inside a bullet pointed list bulleted
-by *, + or -."
+  "Try to check if we are inside a bullet pointed list.
+
+Bulleted by *, + or -."
   (and (afp-inside-comment?)
 
        ;; TODO: extend to match any line in paragraph
@@ -55,19 +62,31 @@ by *, + or -."
 (require 'org)
 (declare-function org-element-type "org-element" element)
 (defun afp-in-org-table? ()
+  "Check if point is inside an ‘org-mode’ table."
   (interactive)
   (and (derived-mode-p 'org-mode)
        (or (eql (org-element-type (org-element-at-point)) 'table)
            (eql (org-element-type (org-element-at-point)) 'table-row))))
 
+(defun afp-in-org-src-block-header? ()
+  (let ((case-fold-search t))
+    (and (derived-mode-p 'org-mode)
+         (save-excursion
+           (beginning-of-line)
+           (looking-at-p "^[ \t]*#\\+\\(\\(begin\\|end\\)_src\\|header\\|name\\)")))))
+
 (defcustom afp-suppress-fill-pfunction-list
   (list
+   #'afp-repeated-whitespace?
    #'afp-markdown-inside-code-block?
    #'afp-bullet-list-in-comments?
    #'afp-in-org-table?
+   #'afp-in-org-src-block-header?
    )
-  "List of predicate functions of no arguments, if any of these
-  functions returns false then paragraphs will not be
+  "Functions to check if filling should be suppressed.
+
+List of predicate functions of no arguments, if any of these
+functions returns false then paragraphs will not be
   automatically filled."
   :type '(repeat function)
   :group 'aggressive-fill-paragraph)
@@ -90,8 +109,9 @@ by *, + or -."
 
 
 (defun afp-only-fill-comments (&optional justify)
-  "Replacement fill-paragraph function which only fills comments
-and leaves everything else alone."
+  "Replacement ‘fill-paragraph’ function which only affects comments.
+
+Argument JUSTIFY is passed on to the fill function."
   (fill-comment-paragraph justify)
 
   ;; returning true says we are done with filling, don't fill anymore
@@ -99,7 +119,7 @@ and leaves everything else alone."
 
 
 (defun afp-suppress-fill? ()
-  "Check all functions in afp-suppress-fill-pfunction-list"
+  "Check all functions in ‘afp-suppress-fill-pfunction-list’."
   (-any? #'funcall afp-suppress-fill-pfunction-list))
 
 
@@ -108,8 +128,9 @@ and leaves everything else alone."
 (declare-function ess-roxy-fill-field "ess-roxy" nil)
 
 (defun afp-ess-fill-comments ()
-  "Fill comments in ess-mode (for R and related languages),
-taking care with special cases for documentation comments."
+  "Fill comments in ‘ess-mode’.
+
+Takes care with special cases for documentation comments."
   ;; Make sure we have the required libraries (this function is only run
   ;; when (derived-mode-p 'ess-mode) so we should!)
   (require 'ess-mode)
@@ -121,7 +142,7 @@ taking care with special cases for documentation comments."
 
 
 (defun afp-choose-fill-function ()
-  "Select which fill paragraph function to use"
+  "Select which fill paragraph function to use."
   (cond
 
    ;; In certain modes it is better to use afp-only-fill-comments to avoid
@@ -145,7 +166,9 @@ taking care with special cases for documentation comments."
 
 
 (defun aggressive-fill-paragraph-post-self-insert-function ()
-  "Fill paragraph when space is inserted and fill is not disabled
+  "Main worker function for aggressive-fill-paragraph.
+
+Fill paragraph when space is inserted and fill is not disabled
 for any reason."
   (when (and (-contains? afp-fill-keys last-command-event)
              (not (afp-suppress-fill?)))
@@ -173,7 +196,7 @@ for any reason."
 
 ;;;###autoload
 (defun afp-setup-recommended-hooks ()
-  "Install hooks to enable aggressive-fill-paragraph-mode in recommended major modes."
+  "Install hooks to enable function ‘aggressive-fill-paragraph-mode’ in recommended major modes."
   (interactive)
 
   (add-hook 'text-mode-hook #'aggressive-fill-paragraph-mode)
