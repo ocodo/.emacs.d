@@ -4,7 +4,7 @@
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; Keywords: convenience language tools
-;; Package-Version: 20170512.1607
+;; Package-Version: 20171121.2307
 ;; Version: 0.3
 ;; Package-Requires: ((flycheck "0.15") (dash "1.2") (emacs "24.1"))
 
@@ -48,25 +48,48 @@
 
 ;;;; Customization
 (defface flycheck-color-mode-line-error-face
-  '((t :foreground "#efefef" :weight normal :inherit flycheck-fringe-error))
-  "Face for the modeline in buffers with Flycheck errors."
+  '((t :inherit flycheck-fringe-error))
+  "Face remapping for the modeline in buffers with Flycheck errors.
+This is applied to the face named in `flycheck-color-mode-line-face-to-color'."
   :group 'flycheck-faces)
 
 (defface flycheck-color-mode-line-warning-face
-  '((t :foreground "#efefef" :weight normal :inherit flycheck-fringe-warning))
-  "Face for the modeline in buffers with only Flycheck warnings."
+  '((t :inherit flycheck-fringe-warning))
+  "Face remapping for the modeline in buffers with only Flycheck warnings.
+This is applied to the face named in `flycheck-color-mode-line-face-to-color'."
   :group 'flycheck-faces)
 
 (defface flycheck-color-mode-line-info-face
-  '((t :foreground "#efefef" :weight normal :inherit flycheck-fringe-info))
-  "Face for the modeline in buffers with only Flycheck info."
+  '((t :inherit flycheck-fringe-info))
+  "Face remapping for the modeline in buffers with only Flycheck info.
+This is applied to the face named in `flycheck-color-mode-line-face-to-color'."
+  :group 'flycheck-faces)
+
+(defface flycheck-color-mode-line-success-face
+  '((t))
+  "Face remapping for the modeline in buffers with no Flycheck feedback items.
+This is applied to the face named in `flycheck-color-mode-line-face-to-color'.
+Customize this to actively mark buffers in which Flycheck has run
+but not reported any issues."
+  :group 'flycheck-faces)
+
+(defcustom flycheck-color-mode-line-show-running t
+  "When non-nil, apply `flycheck-color-mode-line-running-face' when Flycheck is running."
+  :type 'boolean)
+
+(put 'flycheck-color-mode-line-show-running 'safe-local-variable 'booleanp)
+
+(defface flycheck-color-mode-line-running-face
+  '((t :inherit font-lock-comment-face))
+  "Face remapping for the modeline in buffers where Flycheck is running.
+This is applied to the face named in `flycheck-color-mode-line-face-to-color'."
   :group 'flycheck-faces)
 
 (defcustom flycheck-color-mode-line-face-to-color
   'mode-line
   "Symbol identifying which face to remap.
 While 'mode-line is the default, you might prefer to modify a
-different face, e.g. 'mode-line-buffer-id, 'fringe or 'linum."
+different face, e.g. 'mode-line-buffer-id, 'fringe, 'line-number or 'linum."
   :type 'symbol
   :group 'flycheck-faces)
 
@@ -82,17 +105,26 @@ Used to restore the original mode line face.")
     (face-remap-remove-relative flycheck-color-mode-line-cookie)
     (setq flycheck-color-mode-line-cookie nil)))
 
-(defun flycheck-color-mode-line-update ()
-  "Update the mode line face according to the Flycheck status."
-  (flycheck-color-mode-line-reset)
-  (-when-let (face (cond ((flycheck-has-current-errors-p 'error)
-                          'flycheck-color-mode-line-error-face)
-                         ((flycheck-has-current-errors-p 'warning)
-                          'flycheck-color-mode-line-warning-face)
-                         ((flycheck-has-current-errors-p 'info)
-                          'flycheck-color-mode-line-info-face)))
-    (setq flycheck-color-mode-line-cookie
-          (face-remap-add-relative flycheck-color-mode-line-face-to-color face))))
+(defun flycheck-color-mode-line-update (status)
+  "Update the mode line face according to the Flycheck STATUS."
+  (let ((face (pcase status
+                (`finished
+                 (cond
+                  ((flycheck-has-current-errors-p 'error)
+                   'flycheck-color-mode-line-error-face)
+                  ((flycheck-has-current-errors-p 'warning)
+                   'flycheck-color-mode-line-warning-face)
+                  ((flycheck-has-current-errors-p 'info)
+                   'flycheck-color-mode-line-info-face)
+                  (t
+                   'flycheck-color-mode-line-success-face)))
+                (`running
+                 (when flycheck-color-mode-line-show-running
+                   'flycheck-color-mode-line-running-face)))))
+    (when face
+      (flycheck-color-mode-line-reset)
+      (setq flycheck-color-mode-line-cookie
+            (face-remap-add-relative flycheck-color-mode-line-face-to-color face)))))
 
 ;;;###autoload
 (define-minor-mode flycheck-color-mode-line-mode
@@ -113,17 +145,12 @@ Otherwise behave as if called interactively."
   :require 'flycheck-color-mode-line
   (cond
    (flycheck-color-mode-line-mode
-    (add-hook 'flycheck-after-syntax-check-hook
+    (add-hook 'flycheck-status-changed-functions
               #'flycheck-color-mode-line-update nil t)
-    (add-hook 'flycheck-syntax-check-failed-hook
-              #'flycheck-color-mode-line-reset nil t)
-
-    (flycheck-color-mode-line-update))
+    (flycheck-color-mode-line-update 'unknown))
    (:else
-    (remove-hook 'flycheck-after-syntax-check-hook
+    (remove-hook 'flycheck-status-changed-functions
                  #'flycheck-color-mode-line-update t)
-    (remove-hook 'flycheck-syntax-check-failed-hook
-                 #'flycheck-color-mode-line-reset t)
 
     (flycheck-color-mode-line-reset))))
 
