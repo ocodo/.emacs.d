@@ -1,10 +1,10 @@
 ;;; browse-kill-ring-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "browse-kill-ring" "browse-kill-ring.el" (22200
-;;;;;;  34558 61471 868000))
+;;;### (autoloads nil "browse-kill-ring" "browse-kill-ring.el" (23064
+;;;;;;  61898 650661 710000))
 ;;; Generated autoloads from browse-kill-ring.el
 
 (autoload 'browse-kill-ring-default-keybindings "browse-kill-ring" "\

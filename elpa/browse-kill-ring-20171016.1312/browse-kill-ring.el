@@ -6,7 +6,7 @@
 ;; Maintainer: browse-kill-ring <browse-kill-ring@tonotdo.com>
 ;; Created: 7 Apr 2001
 ;; Version: 2.0.0
-;; Package-Version: 20160125.9
+;; Package-Version: 20171016.1312
 ;; URL: https://github.com/browse-kill-ring/browse-kill-ring
 ;; Keywords: convenience
 
@@ -677,6 +677,7 @@ You most likely do not want to call `browse-kill-ring-mode' directly; use
        '(nil t nil nil nil
              (font-lock-fontify-region-function . browse-kill-ring-fontify-region)))
   (define-key browse-kill-ring-mode-map (kbd "q") 'browse-kill-ring-quit)
+  (define-key browse-kill-ring-mode-map (kbd "C-g") 'browse-kill-ring-quit)
   (define-key browse-kill-ring-mode-map (kbd "U") 'browse-kill-ring-undo-other-window)
   (define-key browse-kill-ring-mode-map (kbd "d") 'browse-kill-ring-delete)
   (define-key browse-kill-ring-mode-map (kbd "s") 'browse-kill-ring-search-forward)
@@ -731,7 +732,9 @@ directly; use `browse-kill-ring' instead.
   (define-key browse-kill-ring-edit-mode-map
     (kbd "C-c C-c") 'browse-kill-ring-edit-finish)
   (define-key browse-kill-ring-edit-mode-map
-    (kbd "C-c C-k") 'browse-kill-ring-edit-abort))
+    (kbd "C-c C-k") 'browse-kill-ring-edit-abort)
+  (define-key browse-kill-ring-edit-mode-map
+    (kbd "C-g") 'browse-kill-ring-edit-abort))
 
 (defvar browse-kill-ring-edit-target nil)
 (make-variable-buffer-local 'browse-kill-ring-edit-target)
