@@ -55,13 +55,17 @@
   :prefix "cargo-process-"
   :group 'cargo)
 
-(defcustom cargo-process--custom-path-to-bin nil
-  "Custom path to the directory containing the cargo executable"
-  :type 'directory
+(defcustom cargo-process--custom-path-to-bin "cargo"
+  "Custom path to the cargo executable"
+  :type 'file
   :group 'cargo-process)
 
 (defcustom cargo-process--enable-rust-backtrace nil
   "Set RUST_BACKTRACE environment variable to 1 for tasks test and run"
+  :group 'cargo-process)
+
+(defcustom cargo-process--command-flags ""
+  "Flags to be added to every cargo command when run."
   :group 'cargo-process)
 
 (defvar cargo-process-mode-map
@@ -69,6 +73,42 @@
   "Keymap for Cargo major mode.")
 
 (defvar cargo-process-last-command nil "Command used last for repeating.")
+
+(defvar cargo-process--command-bench "bench")
+
+(defvar cargo-process--command-build "build")
+
+(defvar cargo-process--command-clean "clean")
+
+(defvar cargo-process--command-doc "doc")
+
+(defvar cargo-process--command-doc-open "doc --open")
+
+(defvar cargo-process--command-new "new")
+
+(defvar cargo-process--command-init "init")
+
+(defvar cargo-process--command-run "run")
+
+(defvar cargo-process--command-run-bin "run --bin")
+
+(defvar cargo-process--command-run-example "run --example")
+
+(defvar cargo-process--command-search "search")
+
+(defvar cargo-process--command-test "test")
+
+(defvar cargo-process--command-current-test "test")
+
+(defvar cargo-process--command-current-file-tests "test")
+
+(defvar cargo-process--command-update "update")
+
+(defvar cargo-process--command-fmt "fmt")
+
+(defvar cargo-process--command-check "check")
+
+(defvar cargo-process--command-clippy "clippy")
 
 (defface cargo-process--ok-face
   '((t (:foreground "#00ff00")))
@@ -175,8 +215,8 @@ Always set to nil if cargo-process--enable-rust-backtrace is nil"
   (set-rust-backtrace command)
   (let* ((buffer (concat "*Cargo " name "*"))
          (path cargo-process--custom-path-to-bin)
-         (path (and path (file-name-as-directory path)))
-         (command (cargo-process--maybe-read-command (concat path command)))
+         (cmd (cargo-process--maybe-read-command
+                (concat path " " command " " cargo-process--command-flags)))
          (project-root (cargo-process--project-root))
          (default-directory (or project-root default-directory)))
     (save-some-buffers (not compilation-ask-about-save)
@@ -185,7 +225,7 @@ Always set to nil if cargo-process--enable-rust-backtrace is nil"
                               buffer-file-name
                               (string-prefix-p project-root (file-truename buffer-file-name)))))
     (setq cargo-process-last-command (list name command))
-    (compilation-start command 'cargo-process-mode (lambda(_) buffer))
+    (compilation-start cmd 'cargo-process-mode (lambda(_) buffer))
     (set-process-sentinel (get-buffer-process buffer) 'cargo-process--finished-sentinel)))
 
 (defun cargo-process--explain-action (button)
@@ -260,7 +300,7 @@ Without the prefix argument, return DEFAULT immediately."
 With the prefix argument, modify the command's invocation.
 Cargo: Run the benchmarks."
   (interactive)
-  (cargo-process--start "Bench" "cargo bench"))
+  (cargo-process--start "Bench" cargo-process--command-bench))
 
 ;;;###autoload
 (defun cargo-process-build ()
@@ -268,7 +308,7 @@ Cargo: Run the benchmarks."
 With the prefix argument, modify the command's invocation.
 Cargo: Compile the current project."
   (interactive)
-  (cargo-process--start "Build" "cargo build"))
+  (cargo-process--start "Build" cargo-process--command-build))
 
 ;;;###autoload
 (defun cargo-process-clean ()
@@ -276,7 +316,7 @@ Cargo: Compile the current project."
 With the prefix argument, modify the command's invocation.
 Cargo: Remove the target directory."
   (interactive)
-  (cargo-process--start "Clean" "cargo clean"))
+  (cargo-process--start "Clean" cargo-process--command-clean))
 
 ;;;###autoload
 (defun cargo-process-doc ()
@@ -284,7 +324,7 @@ Cargo: Remove the target directory."
 With the prefix argument, modify the command's invocation.
 Cargo: Build this project's and its dependencies' documentation."
   (interactive)
-  (cargo-process--start "Doc" "cargo doc"))
+  (cargo-process--start "Doc" cargo-process--command-doc))
 
 ;;;###autoload
 (defun cargo-process-doc-open ()
@@ -292,7 +332,7 @@ Cargo: Build this project's and its dependencies' documentation."
 With the prefix argument, modify the command's invocation.
 Cargo: Open this project's documentation."
   (interactive)
-  (cargo-process--start "Doc" "cargo doc --open"))
+  (cargo-process--start "Doc" cargo-process--command-doc-open))
 
 ;;;###autoload
 (defun cargo-process-new (name &optional bin)
@@ -302,8 +342,13 @@ NAME is the name of your application.
 If BIN is t then create a binary application, otherwise a library.
 Cargo: Create a new cargo project."
   (interactive "sProject name: ")
-  (let ((bin (when (or bin (y-or-n-p "Create Bin Project? ")) " --bin")))
-    (cargo-process--start "New" (concat "cargo new " name bin))))
+  (let ((bin (when (or bin
+                       (y-or-n-p "Create Bin Project? "))
+               " --bin")))
+    (cargo-process--start "New" (concat cargo-process--command-new
+                                        " "
+                                        name
+                                        bin))))
 
 ;;;###autoload
 (defun cargo-process-init (directory &optional bin)
@@ -315,7 +360,10 @@ Cargo: Create a new cargo project in current directory."
   (interactive
    (list (read-directory-name "Directory: " nil default-directory t)))
   (let ((bin (when (or bin (y-or-n-p "Create Bin Project? ")) " --bin")))
-    (cargo-process--start "Init" (concat "cargo init " directory bin))))
+    (cargo-process--start "Init" (concat cargo-process--command-init
+                                         " "
+                                         directory
+                                         bin))))
 
 ;;;###autoload
 (defun cargo-process-run ()
@@ -323,7 +371,7 @@ Cargo: Create a new cargo project in current directory."
 With the prefix argument, modify the command's invocation.
 Cargo: Build and execute src/main.rs."
   (interactive)
-  (cargo-process--start "Run" "cargo run"))
+  (cargo-process--start "Run" cargo-process--command-run))
 
 ;;;###autoload
 (defun cargo-process-run-bin (command)
@@ -332,7 +380,7 @@ With the prefix argument, modify the command's invocation.
 Cargo: Build and execute a specific binary"
   (interactive "sBinary name: ")
   (cargo-process--start (concat "Run " command)
-                        (concat "cargo run --bin " command)))
+                        (concat cargo-process--command-run-bin " " command)))
 
 ;;;###autoload
 (defun cargo-process-run-example (command)
@@ -341,7 +389,7 @@ With the prefix argument, modify the command's invocation.
 Cargo: Build and execute with --example <name>."
   (interactive "sExample name: ")
   (cargo-process--start (concat "Example " command)
-                        (concat "cargo run --example " command)))
+                        (concat cargo-process--command-run-example " " command)))
 
 ;;;###autoload
 (defun cargo-process-search (search-term)
@@ -350,7 +398,8 @@ With the prefix argument, modify the command's invocation.
 SEARCH-TERM is used as the search term for the Cargo registry.
 Cargo: Search registry for crates."
   (interactive "sSearch: ")
-  (cargo-process--start "Search" (concat "cargo search " search-term)))
+  (cargo-process--start "Search"
+                        (concat cargo-process--command-search " " search-term)))
 
 ;;;###autoload
 (defun cargo-process-test ()
@@ -358,7 +407,7 @@ Cargo: Search registry for crates."
 With the prefix argument, modify the command's invocation.
 Cargo: Run the tests."
   (interactive)
-  (cargo-process--start "Test" "cargo test"))
+  (cargo-process--start "Test" cargo-process--command-test))
 
 ;;;###autoload
 (defun cargo-process-current-test ()
@@ -366,8 +415,10 @@ Cargo: Run the tests."
 With the prefix argument, modify the command's invocation.
 Cargo: Run the tests."
   (interactive)
-  (cargo-process--start "Test" (format "cargo test %s"
-                                       (cargo-process--get-current-test-fullname))))
+  (cargo-process--start "Test"
+                        (concat cargo-process--command-current-test
+                                " "
+                                (cargo-process--get-current-test-fullname))))
 
 ;;;###autoload
 (defun cargo-process-current-file-tests ()
@@ -375,7 +426,8 @@ Cargo: Run the tests."
 With the prefix argument, modify the command's invocation.
 Cargo: Run the tests."
   (interactive)
-  (cargo-process--start "Test" (concat "cargo test "
+  (cargo-process--start "Test" (concat cargo-process--command-current-file-tests
+                                       " "
                                        (cargo-process--get-current-mod))))
 
 ;;;###autoload
@@ -384,7 +436,7 @@ Cargo: Run the tests."
 With the prefix argument, modify the command's invocation.
 Cargo: Update dependencies listed in Cargo.lock."
   (interactive)
-  (cargo-process--start "Update" "cargo update"))
+  (cargo-process--start "Update" cargo-process--command-update))
 
 ;;;###autoload
 (defun cargo-process-fmt ()
@@ -392,7 +444,7 @@ Cargo: Update dependencies listed in Cargo.lock."
 With the prefix argument, modify the command's invocation.
 Requires Cargo Fmt to be installed."
   (interactive)
-  (cargo-process--start "Fmt" "cargo fmt"))
+  (cargo-process--start "Fmt" cargo-process--command-fmt))
 
 ;;;###autoload
 (defun cargo-process-check ()
@@ -401,7 +453,7 @@ With the prefix argument, modify the command's invocation.
 Cargo: Check compile the current project.
 Requires cargo-check to be installed."
   (interactive)
-  (cargo-process--start "Check" "cargo check"))
+  (cargo-process--start "Check" cargo-process--command-check))
 
 ;;;###autoload
 (defun cargo-process-clippy ()
@@ -410,7 +462,7 @@ With the prefix argument, modify the command's invocation.
 Cargo: Clippy compile the current project.
 Requires Cargo clippy to be installed."
   (interactive)
-  (cargo-process--start "Clippy" "cargo clippy"))
+  (cargo-process--start "Clippy" cargo-process--command-clippy))
 
 ;;;###autoload
 (defun cargo-process-repeat ()
