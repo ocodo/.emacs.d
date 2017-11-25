@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "edit-indirect" "edit-indirect.el" (0 0 0 0))
+;;;### (autoloads nil "edit-indirect" "edit-indirect.el" (23064 61778
+;;;;;;  822958 350000))
 ;;; Generated autoloads from edit-indirect.el
 
 (autoload 'edit-indirect-region "edit-indirect" "\
@@ -36,8 +37,6 @@ display the edit-indirect buffer in some window and select it.
 In any case, return the edit-indirect buffer.
 
 \(fn BEG END &optional DISPLAY-BUFFER)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "edit-indirect" '("edit-indirect-")))
 
 ;;;***
 
