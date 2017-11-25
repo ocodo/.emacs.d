@@ -1,10 +1,10 @@
 ;;; ascii-art-to-unicode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "ascii-art-to-unicode" "ascii-art-to-unicode.el"
-;;;;;;  (21832 6424 0 0))
+;;;;;;  (23064 61949 270542 446000))
 ;;; Generated autoloads from ascii-art-to-unicode.el
 
 (autoload 'aa2u "ascii-art-to-unicode" "\

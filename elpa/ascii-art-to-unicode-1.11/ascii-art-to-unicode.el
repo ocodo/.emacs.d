@@ -1,10 +1,10 @@
 ;;; ascii-art-to-unicode.el --- a small artist adjunct -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014  Free Software Foundation, Inc.
+;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>
-;; Version: 1.9
+;; Version: 1.11
 ;; Keywords: ascii, unicode, box-drawing
 ;; URL: http://www.gnuvola.org/software/aa2u/
 
@@ -111,6 +111,15 @@ This specifies the weight of all the lines.")
 ;;;---------------------------------------------------------------------------
 ;;; support
 
+(defalias 'aa2u--lookup-char
+  ;; Keep some slack: don't ‘eval-when-compile’ here.
+  (if (hash-table-p (ucs-names))
+      ;; Emacs 26 and later
+      #'gethash
+    ;; prior to Emacs 26
+    (lambda (string alist)
+      (cdr (assoc-string string alist)))))
+
 (defsubst aa2u--text-p (pos)
   (get-text-property pos 'aa2u-text))
 
@@ -145,8 +154,8 @@ The char is a string (of length one), with two properties:
   aa2u-components
 
 Their values are STRINGIFIER and COMPONENTS, respectively."
-  (let ((s (string (cdr (assoc-string (apply stringifier components)
-                                      (ucs-names))))))
+  (let ((s (string (aa2u--lookup-char (apply stringifier components)
+                                      (ucs-names)))))
     (propertize s
                 'aa2u-stringifier stringifier
                 'aa2u-components components)))
@@ -328,6 +337,54 @@ are START (top left) and END (bottom right)."
 
 ;;;; ChangeLog:
 
+;; 2017-10-03  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	[aa2u] Release: 1.11
+;; 
+;; 	* packages/ascii-art-to-unicode/ascii-art-to-unicode.el [Version]: Bump
+;; 	to "1.11".
+;; 
+;; 2017-10-03  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	[aa2u slog] Fix botched bifurcation.
+;; 
+;; 	Bug introduced 2017-10-03, "Handle ‘ucs-names’ that returns a hash
+;; 	table".	 Culprit: No testing (sigh).
+;; 	* packages/ascii-art-to-unicode/ascii-art-to-unicode.el
+;; 	(aa2u--lookup): Delete alias.
+;; 	(aa2u--lookup-char): New alias.
+;; 	(aa2u-1c): Use ‘aa2u--lookup-char’.
+;; 
+;; 2017-10-03  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	[aa2u] Release: 1.10
+;; 
+;; 	* packages/ascii-art-to-unicode/ascii-art-to-unicode.el [Version]: Bump
+;; 	to "1.10".
+;; 
+;; 2017-10-03  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	[aa2u slog] Handle ‘ucs-names’ that returns a hash table.
+;; 
+;; 	Reported by Kaushal Modi (bug#28688): 
+;; 	http://lists.gnu.org/archive/html/bug-gnu-emacs/2017-10/threads.html
+;; 
+;; 	* packages/ascii-art-to-unicode/ascii-art-to-unicode.el
+;; 	(aa2u--lookup): New alias.
+;; 	(aa2u-1c): Use ‘aa2u--lookup’.
+;; 
+;; 2017-02-04  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	[aa2u int] Update years in copyright notice; nfc.
+;; 
+;; 2017-02-04  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	Specify copyright update policy in some HACKING files; nfc.
+;; 
+;; 2017-02-04  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	Add some THANKS files; nfc.
+;; 
 ;; 2014-05-29  Thien-Thi Nguyen  <ttn@gnu.org>
 ;; 
 ;; 	[aa2u] Release: 1.9
@@ -413,8 +470,7 @@ are START (top left) and END (bottom right)."
 ;; 
 ;; 2014-05-11  Andreas Schwab  <schwab@linux-m68k.org>
 ;; 
-;; 	ascii-art-to-unicode.el (aa2u-replacement): Use cl-case instead of
-;; 	case.
+;; 	ascii-art-to-unicode.el (aa2u-replacement): Use cl-case instead of case.
 ;; 
 ;; 2014-05-09  Thien-Thi Nguyen  <ttn@gnu.org>
 ;; 
