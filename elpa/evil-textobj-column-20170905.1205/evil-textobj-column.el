@@ -1,8 +1,8 @@
 ;;; evil-textobj-column.el --- Provides column text objects.
 
-;; Author: Lit Wakefield <noct@openmailbox.org>
+;; Author: Fox Kiester <noct@openmailbox.org>
 ;; URL: https://github.com/noctuid/evil-textobj-column
-;; Package-Version: 20151228.1344
+;; Package-Version: 20170905.1205
 ;; Created: October 7, 2015
 ;; Keywords: evil, column, text-object
 ;; Package-Requires: ((names "0.5") (emacs "24") (evil "0"))
