@@ -1,4 +1,4 @@
-(define-package "elixir-mode" "20170102.942" "Major mode for editing Elixir files"
+(define-package "elixir-mode" "20170918.2231" "Major mode for editing Elixir files"
   '((emacs "24")
     (pkg-info "0.4"))
   :url "https://github.com/elixir-lang/emacs-elixir" :keywords

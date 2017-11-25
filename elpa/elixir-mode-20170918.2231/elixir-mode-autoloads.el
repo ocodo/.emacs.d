@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "elixir-mode" "elixir-mode.el" (0 0 0 0))
+;;;### (autoloads nil "elixir-mode" "elixir-mode.el" (23064 61764
+;;;;;;  298995 850000))
 ;;; Generated autoloads from elixir-mode.el
 
 (autoload 'elixir-mode-open-github "elixir-mode" "\
@@ -54,18 +55,10 @@ Major mode for editing Elixir code.
 
 (add-to-list 'auto-mode-alist '("\\.exs\\'" . elixir-mode))
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "elixir-mode" '("elixir-")))
-
 ;;;***
 
-;;;### (autoloads nil "elixir-smie" "elixir-smie.el" (0 0 0 0))
-;;; Generated autoloads from elixir-smie.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "elixir-smie" '("elixir-" "verbose-elixir-smie-rules")))
-
-;;;***
-
-;;;### (autoloads nil nil ("elixir-mode-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("elixir-mode-pkg.el" "elixir-smie.el")
+;;;;;;  (23064 61764 302995 840000))
 
 ;;;***
 
