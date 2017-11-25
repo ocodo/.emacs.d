@@ -86,6 +86,13 @@ This function is used to replace ‘flycheck-display-errors-function’."
       (setq error-tip-current-errors current-line-errors)
       (error-tip-popup-error-message current-line-errors (point)))))
 
+;;;###autoload
+(defun flycheck-tip--get (element err)
+  (cl-case element
+    (file    (flycheck-error-filename err))
+    (line    (flycheck-error-line     err))
+    (message (flycheck-error-message  err))))
+
 ;;;;;;;;;;;;;
 ;; Obsolete
 ;; FIXME: what is the proper way to obsolete?

@@ -3,27 +3,13 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "eclim-tip" "eclim-tip.el" (0 0 0 0))
-;;; Generated autoloads from eclim-tip.el
-
-(autoload 'eclim-tip-cycle "eclim-tip" "\
-
-
-\(fn &optional REVERSE)" t nil)
-
-(autoload 'eclim-tip-cycle-reverse "eclim-tip" "\
-
-
-\(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads nil "error-tip" "error-tip.el" (0 0 0 0))
+;;;### (autoloads nil "error-tip" "error-tip.el" (23064 61675 135234
+;;;;;;  396000))
 ;;; Generated autoloads from error-tip.el
 
 (autoload 'error-tip-error-p "error-tip" "\
 Return non-nil if error is occurred in current buffer.
-This function can catch error against flycheck, flymake and emcas-eclim.
+This function can catch error against flycheck, and flymake.
 
 \(fn)" nil nil)
 
@@ -40,11 +26,10 @@ Same as ‘error-tip-cycle-dwim’, but it jumps to inverse direction.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "error-tip" '("error-tip-")))
-
 ;;;***
 
-;;;### (autoloads nil "flycheck-tip" "flycheck-tip.el" (0 0 0 0))
+;;;### (autoloads nil "flycheck-tip" "flycheck-tip.el" (23064 61675
+;;;;;;  131234 407000))
 ;;; Generated autoloads from flycheck-tip.el
 
 (autoload 'flycheck-tip-cycle "flycheck-tip" "\
@@ -59,11 +44,15 @@ Do `flycheck-tip-cycle by reverse order.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flycheck-tip" '("flycheck-tip-")))
+(autoload 'flycheck-tip--get "flycheck-tip" "\
+
+
+\(fn ELEMENT ERR)" nil nil)
 
 ;;;***
 
-;;;### (autoloads nil "flymake-tip" "flymake-tip.el" (0 0 0 0))
+;;;### (autoloads nil "flymake-tip" "flymake-tip.el" (23064 61675
+;;;;;;  131234 407000))
 ;;; Generated autoloads from flymake-tip.el
 
 (autoload 'flymake-tip-cycle "flymake-tip" "\
@@ -76,11 +65,10 @@ Do `flycheck-tip-cycle by reverse order.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flymake-tip" '("flymake-tip-collect-current-line-errors")))
-
 ;;;***
 
-;;;### (autoloads nil nil ("flycheck-tip-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("flycheck-tip-pkg.el") (23064 61675 135234
+;;;;;;  396000))
 
 ;;;***
 
