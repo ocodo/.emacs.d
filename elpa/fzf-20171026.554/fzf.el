@@ -3,7 +3,7 @@
 ;; Copyright (C) 2015 by Bailey Ling
 ;; Author: Bailey Ling
 ;; URL: https://github.com/bling/fzf.el
-;; Package-Version: 20170527.2120
+;; Package-Version: 20171026.554
 ;; Filename: fzf.el
 ;; Description: A front-end for fzf
 ;; Created: 2015-09-18
@@ -38,8 +38,13 @@
 ;;
 ;; M-x fzf
 ;; M-x fzf-directory
+;; M-x fzf-git
+;; M-x fzf-hg
+;; M-x fzf-projectile
 ;;
 ;;; Code:
+
+(require 'subr-x)
 
 (defgroup fzf nil
   "Configuration options for fzf.el"
@@ -63,6 +68,11 @@
 (defcustom fzf/position-bottom t
   "Set the position of the fzf window. Set to nil to position on top."
   :type 'bool
+  :group 'fzf)
+
+(defcustom fzf/directory-start nil
+  "The path of the default start directory for fzf-directory."
+  :type 'string
   :group 'fzf)
 
 (defun fzf/after-term-handle-exit (process-name msg)
@@ -91,16 +101,23 @@
       (make-term "fzf" fzf/executable))
     (switch-to-buffer buf)
     (linum-mode 0)
-    (set-window-margins nil 1)
+    (visual-line-mode 0)
 
     ;; disable various settings known to cause artifacts, see #1 for more details
     (setq-local scroll-margin 0)
     (setq-local scroll-conservatively 0)
     (setq-local term-suppress-hard-newline t) ;for paths wider than the window
+    (setq-local show-trailing-whitespace nil)
     (face-remap-add-relative 'mode-line '(:box nil))
 
     (term-char-mode)
     (setq mode-line-format (format "   FZF  %s" directory))))
+
+(defun fzf/vcs (match)
+  (let ((path (locate-dominating-file default-directory match)))
+    (if path
+        (fzf/start path)
+      (fzf-directory))))
 
 ;;;###autoload
 (defun fzf ()
@@ -114,10 +131,29 @@
     (fzf/start default-directory)))
 
 ;;;###autoload
-(defun fzf-directory (directory)
+(defun fzf-directory ()
   "Starts a fzf session at the specified directory."
-  (interactive "D")
-  (fzf/start directory))
+  (interactive)
+  (fzf/start (ido-read-directory-name "Directory: " fzf/directory-start)))
+
+;;;###autoload
+(defun fzf-git ()
+  "Starts a fzf session at the root of the current git."
+  (interactive)
+  (fzf/vcs ".git"))
+
+;;;###autoload
+(defun fzf-hg ()
+  "Starts a fzf session at the root of the curreng hg."
+  (interactive)
+  (fzf/vcs ".hg"))
+
+;;;###autoload
+(defun fzf-projectile ()
+  "Starts a fzf session at the root of the projectile project."
+  (interactive)
+  (require 'projectile)
+  (fzf/start (projectile-project-root)))
 
 (provide 'fzf)
 ;;; fzf.el ends here

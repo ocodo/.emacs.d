@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "fzf" "fzf.el" (22955 53520 249695 27000))
+;;;### (autoloads nil "fzf" "fzf.el" (23064 61669 495250 15000))
 ;;; Generated autoloads from fzf.el
 
 (autoload 'fzf "fzf" "\
@@ -18,6 +18,16 @@ Starts a fzf session at the specified directory.
 
 (autoload 'fzf-git "fzf" "\
 Starts a fzf session at the root of the current git.
+
+\(fn)" t nil)
+
+(autoload 'fzf-hg "fzf" "\
+Starts a fzf session at the root of the curreng hg.
+
+\(fn)" t nil)
+
+(autoload 'fzf-projectile "fzf" "\
+Starts a fzf session at the root of the projectile project.
 
 \(fn)" t nil)
 
