@@ -1,10 +1,10 @@
-;;; avy.el --- tree-based completion -*- lexical-binding: t -*-
+;;; avy.el --- Jump to arbitrary positions in visible text and select text quickly. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2015  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20170804.1135
+;; Package-Version: 20171111.921
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -26,15 +26,23 @@
 
 ;;; Commentary:
 ;;
-;; This package provides a generic completion method based on building
-;; a balanced decision tree with each candidate being a leaf.  To
-;; traverse the tree from the root to a desired leaf, typically a
-;; sequence of `read-key' can be used.
+;; With Avy, you can move point to any position in Emacs – even in a
+;; different window – using very few keystrokes. For this, you look at
+;; the position where you want point to be, invoke Avy, and then enter
+;; the sequence of characters displayed at that position.
 ;;
-;; In order for `read-key' to make sense, the tree needs to be
-;; visualized appropriately, with a character at each branch node.  So
-;; this completion method works only for things that you can see on
-;; your screen, all at once:
+;; If the position you want to jump to can be determined after only
+;; issuing a single keystroke, point is moved to the desired position
+;; immediately after that keystroke. In case this isn't possible, the
+;; sequence of keystrokes you need to enter is comprised of more than
+;; one character. Avy uses a decision tree where each candidate position
+;; is a leaf and each edge is described by a character which is distinct
+;; per level of the tree. By entering those characters, you navigate the
+;; tree, quickly arriving at the desired candidate position, such that
+;; Avy can move point to it.
+;;
+;; Note that this only makes sense for positions you are able to see
+;; when invoking Avy. These kinds of positions are supported:
 ;;
 ;; * character positions
 ;; * word or subword start positions
@@ -124,7 +132,8 @@ keys different than the following: a, e, i, o, u, y"
   "Words to use in case `avy-style' is set to `words'.
 Every word should contain at least one vowel i.e. one of the following
 characters: a, e, i, o, u, y
-They do not have to be sorted but no word should be a prefix of another one.")
+They do not have to be sorted but no word should be a prefix of another one."
+  :type '(repeat string))
 
 (defcustom avy-style 'at-full
   "The default method of displaying the overlays.
@@ -1760,7 +1769,7 @@ newline."
   "How many seconds to wait for the second char."
   :type 'float)
 
-(defun avy--read-candidates ()
+(defun avy--read-candidates (&optional re-builder)
   "Read as many chars as possible and return their occurences.
 At least one char must be read, and then repeatedly one next char
 may be read if it is entered before `avy-timeout-seconds'.  `C-h'
@@ -1768,8 +1777,14 @@ or `DEL' deletes the last char entered, and `RET' exits with the
 currently read string immediately instead of waiting for another
 char for `avy-timeout-seconds'.
 The format of the result is the same as that of `avy--regex-candidates'.
-This function obeys `avy-all-windows' setting."
-  (let ((str "") char break overlays regex)
+This function obeys `avy-all-windows' setting.
+RE-BUILDER is a function that takes a string and returns a regex.
+When nil, `regexp-quote' is used.
+If a group is captured, the first group is highlighted.
+Otherwise, the whole regex is highlighted."
+  (let ((str "")
+        (re-builder (or re-builder #'regexp-quote))
+        char break overlays regex)
     (unwind-protect
          (progn
            (while (and (not break)
@@ -1807,12 +1822,12 @@ This function obeys `avy-all-windows' setting."
                                   (window-end (selected-window) t)))
                      (save-excursion
                        (goto-char (car pair))
-                       (setq regex (regexp-quote str))
+                       (setq regex (funcall re-builder str))
                        (while (re-search-forward regex (cdr pair) t)
                          (unless (get-char-property (1- (point)) 'invisible)
-                           (let ((ov (make-overlay
-                                      (match-beginning 0)
-                                      (match-end 0))))
+                           (let* ((idx (if (= (length (match-data)) 4) 1 0))
+                                  (ov (make-overlay
+                                       (match-beginning idx) (match-end idx))))
                              (setq found t)
                              (push ov overlays)
                              (overlay-put
@@ -1866,6 +1881,42 @@ The window scope is determined by `avy-all-windows' (ARG negates it)."
             (goto-char (car res))))
       (error
        (set-mark-command 4)))))
+
+;; ** Org-mode
+(defvar org-reverse-note-order)
+(declare-function org-refile "org")
+(declare-function org-back-to-heading "org")
+
+(defun avy-org-refile-as-child ()
+  "Refile current heading as first child of heading selected with `avy.'"
+  ;; Inspired by `org-teleport': http://kitchingroup.cheme.cmu.edu/blog/2016/03/18/Org-teleport-headlines/
+  (interactive)
+  (let ((rfloc (save-excursion
+                 (let* ((org-reverse-note-order t)
+                        (pos (avy-with avy-goto-line
+                               (avy--generic-jump (rx bol (1+ "*") (1+ space))
+                                                  nil avy-style)
+                               (point)))
+                        (filename (buffer-file-name (or (buffer-base-buffer (current-buffer))
+                                                        (current-buffer)))))
+                   (list nil filename nil pos)))))
+    ;; org-refile must be called outside of the excursion
+    (org-refile nil nil rfloc)))
+
+(defun avy-org-goto-heading-timer (&optional arg)
+  "Read one or many characters and jump to matching Org headings.
+The window scope is determined by `avy-all-windows' (ARG negates it)."
+  (interactive "P")
+  (let ((avy-all-windows (if arg
+                             (not avy-all-windows)
+                           avy-all-windows)))
+    (avy-with avy-goto-char-timer
+      (avy--process
+       (avy--read-candidates
+        (lambda (input)
+          (format "^\\*+ .*\\(%s\\)" input)))
+       (avy--style-fn avy-style))
+      (org-back-to-heading))))
 
 (provide 'avy)
 
