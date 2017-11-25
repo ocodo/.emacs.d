@@ -4,7 +4,7 @@
 
 ;; Author: Lukas Fürmetz <fuermetz@mailbox.org>
 ;; URL: http://github.com/akermu/cbm.el
-;; Package-Version: 20160926.1150
+;; Package-Version: 20171116.440
 ;; Package-Requires: ((cl-lib "0.5"))
 ;; Version: 0.3
 ;; Keywords: buffers
@@ -112,6 +112,7 @@
 (defun cbm-find-org-agenda-file ()
   "Switch to a file from `org-agenda-files'."
   (interactive)
+  (require 'org nil :noerror)
   (unless (fboundp #'org-agenda-files)
     (error "Please install `org-mode'"))
   (let* ((files (remove (buffer-file-name) (org-agenda-files t)))
