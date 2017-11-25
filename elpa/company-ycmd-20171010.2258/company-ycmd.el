@@ -5,9 +5,9 @@
 ;; Authors: Austin Bingham <austin.bingham@gmail.com>
 ;;          Peter Vasil <mail@petervasil.net>
 ;; version: 0.2
-;; Package-Version: 20170622.146
+;; Package-Version: 20171010.2258
 ;; URL: https://github.com/abingham/emacs-ycmd
-;; Package-Requires: ((ycmd "1.2") (company "0.9.3") (deferred "0.5.1") (s "1.11.0") (dash "2.13.0") (let-alist "1.0.5") (f "0.19.0"))
+;; Package-Requires: ((ycmd "1.3") (company "0.9.3") (deferred "0.5.1") (s "1.11.0") (dash "2.13.0") (let-alist "1.0.5") (f "0.19.0"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -123,13 +123,13 @@ When 0, do not use synchronous completion request at all."
   "Check if candidate's EXTRA-INFO indicates a identifier completion."
   (s-equals? "[ID]" extra-info))
 
-(defmacro company-ycmd--with-destructured-candidate (candidate body)
+(defmacro company-ycmd--with-destructured-candidate (candidate &rest body)
   (declare (indent 1) (debug t))
   `(let-alist ,candidate
      (if (or (company-ycmd--identifier-completer-p .extra_menu_info)
              (company-ycmd--filename-completer-p .extra_menu_info))
          (propertize .insertion_text 'return_type .extra_menu_info)
-       ,body)))
+       ,@body)))
 
 (defun company-ycmd--extract-params-clang (function-signature)
   "Extract parameters from FUNCTION-SIGNATURE if possible."
@@ -436,37 +436,27 @@ candidates list."
 
 If CB is non-nil, call it with candidates."
   (let-alist completions
-    (if .exception
-        (progn
-          (message "Exception while fetching candidates: %s"
-                   (or .message "unknown error"))
-          nil)
-      (funcall
-       (or cb 'identity)
-       (company-ycmd--construct-candidates
-        .completions prefix .completion_start_column
-        (company-ycmd--get-construct-candidate-fn))))))
+    (funcall
+     (or cb 'identity)
+     (company-ycmd--construct-candidates
+      .completions prefix .completion_start_column
+      (company-ycmd--get-construct-candidate-fn)))))
 
 (defun company-ycmd--get-candidates-deferred (prefix cb)
   "Get completion candidates with PREFIX and call CB deferred."
-  (let ((request-buffer (current-buffer))
-        (request-window (selected-window))
+  (let ((request-window (selected-window))
         (request-point (point))
         (request-tick (buffer-chars-modified-tick)))
-    (deferred:$
-      (deferred:try
-        (deferred:$
-          (ycmd-get-completions))
-        :catch (lambda (_err) nil))
-      (deferred:nextc it
-        (lambda (c)
-          (if (or (not (equal request-window (selected-window)))
-                  (with-current-buffer (window-buffer request-window)
-                    (or (not (equal request-buffer (current-buffer)))
-                        (not (equal request-point (point)))
-                        (not (equal request-tick (buffer-chars-modified-tick))))))
-              (message "Skip ycmd completion response")
-            (company-ycmd--get-candidates c prefix cb)))))))
+    (ycmd-with-handled-server-exceptions (deferred:try (ycmd-get-completions)
+                                           :catch (lambda (_err) nil))
+      :bind-current-buffer t
+      (if (or (not (equal request-window (selected-window)))
+              (with-current-buffer (window-buffer request-window)
+                (or (not (equal request-buffer (current-buffer)))
+                    (not (equal request-point (point)))
+                    (not (equal request-tick (buffer-chars-modified-tick))))))
+          (message "Skip ycmd completion response")
+        (company-ycmd--get-candidates response prefix cb)))))
 
 (defun company-ycmd--meta (candidate)
   "Fetch the metadata text-property from a CANDIDATE string."
@@ -507,7 +497,7 @@ If CB is non-nil, call it with candidates."
   "Prefix-command handler for the company backend."
   (and ycmd-mode
        buffer-file-name
-       (ycmd-running?)
+       (ycmd-running-p)
        (or (not (company-in-string-or-comment))
            (company-ycmd--in-include))
        (or (company-grab-symbol-cons "\\.\\|->\\|::\\|/" 2)
