@@ -9,7 +9,7 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20170725.2307
+;; Package-Version: 20171103.1150
 ;; Keywords: languages clojure clojurescript lisp
 ;; Version: 5.7.0-snapshot
 ;; Package-Requires: ((emacs "24.4"))
@@ -192,6 +192,12 @@ Out-of-the box `clojure-mode' understands lein, boot and gradle."
   :safe (lambda (value)
           (and (listp value)
                (cl-every 'stringp value))))
+
+(defcustom clojure-project-root-function #'clojure-project-root-path
+  "Function to locate clojure project root directory."
+  :type 'function
+  :risky t
+  :package-version '(clojure-mode . "5.7.0"))
 
 (defcustom clojure-refactor-map-prefix (kbd "C-c C-r")
   "Clojure refactor keymap prefix."
@@ -518,6 +524,15 @@ replacement for `cljr-expand-let`."
   (setq-local prettify-symbols-alist clojure--prettify-symbols-alist)
   (setq-local open-paren-in-column-0-is-defun-start nil))
 
+(defsubst clojure-in-docstring-p ()
+  "Check whether point is in a docstring."
+  (let ((ppss (syntax-ppss)))
+    ;; are we in a string?
+    (when (nth 3 ppss)
+      ;; check font lock at the start of the string
+      (eq (get-text-property (nth 8 ppss) 'face)
+          'font-lock-doc-face))))
+
 ;;;###autoload
 (define-derived-mode clojure-mode prog-mode "Clojure"
   "Major mode for editing Clojure code.
@@ -525,7 +540,11 @@ replacement for `cljr-expand-let`."
 \\{clojure-mode-map}"
   (clojure-mode-variables)
   (clojure-font-lock-setup)
-  (add-hook 'paredit-mode-hook #'clojure-paredit-setup))
+  (add-hook 'paredit-mode-hook #'clojure-paredit-setup)
+  ;; `electric-layout-post-self-insert-function' prevents indentation in strings
+  ;; and comments, force indentation in docstrings:
+  (add-hook 'electric-indent-functions
+            (lambda (_char) (if (clojure-in-docstring-p) 'do-indent))))
 
 (defcustom clojure-verify-major-mode t
   "If non-nil, warn when activating the wrong `major-mode'."
@@ -565,13 +584,8 @@ This could cause problems.
 
 (add-hook 'clojure-mode-hook #'clojure--check-wrong-major-mode)
 
-(defsubst clojure-in-docstring-p ()
-  "Check whether point is in a docstring."
-  (eq (get-text-property (point) 'face) 'font-lock-doc-face))
-
 (defsubst clojure-docstring-fill-prefix ()
   "The prefix string used by `clojure-fill-paragraph'.
-
 It is simply `clojure-docstring-fill-prefix-width' number of spaces."
   (make-string clojure-docstring-fill-prefix-width ? ))
 
@@ -583,7 +597,6 @@ This only takes care of filling docstring correctly."
 
 (defun clojure-fill-paragraph (&optional justify)
   "Like `fill-paragraph', but can handle Clojure docstrings.
-
 If JUSTIFY is non-nil, justify as well as fill the paragraph."
   (if (clojure-in-docstring-p)
       (let ((paragraph-start
@@ -593,7 +606,15 @@ If JUSTIFY is non-nil, justify as well as fill the paragraph."
              (concat paragraph-separate "\\|\\s-*\".*[,\\.]$"))
             (fill-column (or clojure-docstring-fill-column fill-column))
             (fill-prefix (clojure-docstring-fill-prefix)))
-        (fill-paragraph justify))
+        ;; we are in a string and string start pos (8th element) is non-nil
+        (let* ((beg-doc (nth 8 (syntax-ppss)))
+               (end-doc (save-excursion
+                          (goto-char beg-doc)
+                          (or (ignore-errors (forward-sexp) (point))
+                              (point-max)))))
+          (save-restriction
+            (narrow-to-region beg-doc end-doc)
+            (fill-paragraph justify))))
     (let ((paragraph-start (concat paragraph-start
                                    "\\|\\s-*\\([(:\"[]\\|`(\\|#'(\\)"))
           (paragraph-separate
@@ -1022,6 +1043,7 @@ point) to check."
 (put 'defmacro 'clojure-doc-string-elt 2)
 (put 'definline 'clojure-doc-string-elt 2)
 (put 'defprotocol 'clojure-doc-string-elt 2)
+(put 'deftask 'clojure-doc-string-eld 2) ;; common Boot macro
 
 ;;; Vertical alignment
 (defcustom clojure-align-forms-automatically nil
@@ -1590,6 +1612,13 @@ nil."
 (defun clojure-project-dir (&optional dir-name)
   "Return the absolute path to the project's root directory.
 
+Call is delegated down to `clojure-project-root-function' with
+optional DIR-NAME as argument."
+  (funcall clojure-project-root-function dir-name))
+
+(defun clojure-project-root-path (&optional dir-name)
+  "Return the absolute path to the project's root directory.
+
 Use `default-directory' if DIR-NAME is nil.
 Return nil if not inside a project."
   (let* ((dir-name (or dir-name default-directory))
@@ -1736,6 +1765,10 @@ no namespaces above point, return the first one in the buffer."
   (save-excursion
     (save-restriction
       (widen)
+
+      ;; Move to top-level to avoid searching from inside ns
+      (ignore-errors (while t (up-list nil t t)))
+
       ;; The closest ns form above point.
       (when (or (re-search-backward clojure-namespace-name-regex nil t)
                 ;; Or any form at all.
@@ -1768,11 +1801,10 @@ Returns a list pair, e.g. (\"defn\" \"abc\") or (\"deftest\" \"some-test\")."
 ;;; Sexp navigation
 (defun clojure--looking-at-non-logical-sexp ()
   "Return non-nil if text after point is \"non-logical\" sexp.
-
 \"Non-logical\" sexp are ^metadata and #reader.macros."
   (comment-normalize-vars)
   (comment-forward (point-max))
-  (looking-at-p "\\^\\|#[?[:alpha:]]"))
+  (looking-at-p "\\^\\|#[[:alpha:]]"))
 
 (defun clojure-forward-logical-sexp (&optional n)
   "Move forward N logical sexps.
