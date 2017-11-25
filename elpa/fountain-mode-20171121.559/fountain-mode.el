@@ -4,8 +4,8 @@
 
 ;; Author: Paul Rankin <hello@paulwrankin.com>
 ;; Keywords: wp
-;; Package-Version: 20170728.507
-;; Version: 2.3.0
+;; Package-Version: 20171121.559
+;; Version: 2.3.1
 ;; Package-Requires: ((emacs "24.4"))
 ;; URL: https://github.com/rnkn/fountain-mode
 
@@ -77,26 +77,30 @@
 ;; Installation
 ;; ------------
 
-;; *For users on OS X with no experience with Emacs, see the
-;; [Absolute Beginner's Guide (OS X)][guide].*
+;; For users on OS X with no experience with Emacs, see the
+;; [Absolute Beginner's Guide (macOS)][guide].
 
 ;; The latest stable release of Fountain Mode is available via
 ;; [MELPA-stable](http://stable.melpa.org/#/fountain-mode).
 
-;; Alternately, download the [latest release][], move the files into your
+;; Alternately, download the [latest release], move the files into your
 ;; `load-path` and add the following line to your `.emacs` or `init.el` file:
 
 ;;     (require 'fountain-mode)
 
 ;; If you prefer the latest but perhaps unstable version, install via
-;; [MELPA][], or clone the repository into your `load-path` and require as
+;; [MELPA], or clone the repository into your `load-path` and require as
 ;; above:
 
 ;;     git clone https://github.com/rnkn/fountain-mode.git
 
-;; [guide]: https://github.com/rnkn/fountain-mode/wiki/Absolute-Beginner's-Guide-(OS-X) "Absolute Beginner's Guide (OS X)"
-;; [melpa]: http://melpa.org/#/fountain-mode "MELPA"
-;; [melpa-stable]: http://stable.melpa.org/#/fountain-mode "MELPA-stable"
+;; Users of Debian ≥10 or Ubuntu ≥18.04 can install Fountain Mode with the following command:
+
+;;     sudo apt install elpa-fountain-mode
+
+;; [guide]: https://github.com/rnkn/fountain-mode/wiki/Absolute-Beginner's-Guide-(macOS) "Absolute Beginner's Guide (macOS)"
+;; [melpa]: https://melpa.org/#/fountain-mode "MELPA"
+;; [melpa-stable]: https://stable.melpa.org/#/fountain-mode "MELPA-stable"
 ;; [latest release]: https://github.com/rnkn/fountain-mode/releases/latest "Fountain Mode latest release"
 
 ;; Bugs and Feature Requests
@@ -104,9 +108,9 @@
 
 ;; Please raise an issue on [Issues](https://github.com/rnkn/fountain-mode/issues).
 
-;; - Emacs currently has a bug with `visual-line-mode` that produces erratic
+;; - Emacs versions prior to 26.1 have a bug with `visual-line-mode` that produces erratic
 ;;   navigation behavior when displaying very long lines. More information here:
-;;   <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=23879>
+;;   <https://debbugs.gnu.org/23879>
 
 ;; Roadmap
 ;; -------
@@ -122,7 +126,7 @@
 ;;; Code:
 
 (defconst fountain-version
-  "2.3.0")
+  "2.3.1")
 
 (defun fountain-version ()
   "Return `fountain-mode' version."
@@ -905,6 +909,55 @@ These are required for functions to operate with temporary buffers."
   (setq-local require-final-newline mode-require-final-newline))
 
 
+;;; Emacs Bugs
+
+(defcustom fountain-patch-emacs-bugs
+  t
+  "If non-nil, attempt to patch known bugs in Emacs.
+See function `fountain-patch-emacs-bugs'."
+  :type 'boolean
+  :group 'fountain)
+
+(defun fountain-patch-emacs-bugs ()
+  "Attempt to patch known bugs in Emacs.
+
+Disable `show-paren-mode' in local buffers.
+See <https://debbugs.gnu.org/29381>
+
+In Emacs versions prior to 26, adds advice to override
+`outline-invisible-p' to return non-nil only if the character
+after POS or point has invisible text property eq to 'outline.
+See <http://debbugs.gnu.org/24073>."
+  ;; `show-paren-mode' is erroneously created as a global minor mode, treating
+  ;; all text like code. This is not what sane people want. Make it buffer-local
+  ;; and set to nil.
+  (unless (assq 'show-paren-mode (buffer-local-variables (current-buffer)))
+    (setq-local show-paren-mode nil)
+    (message "fountain-mode: `show-paren-mode' disabled in current buffer"))
+  ;; In Emacs version prior to 26, `outline-invisible-p' returns non-nil for ANY
+  ;; invisible property of text at point:
+  ;;
+  ;; (get-char-property (or pos (point)) 'invisible))
+  ;;
+  ;; We want to only return non-nil if property is 'outline
+  (unless (or (advice-member-p 'fountain-outline-invisible-p 'outline-invisible-p)
+              (<= 26 emacs-major-version))
+    (advice-add 'outline-invisible-p :override 'fountain-outline-invisible-p)
+    ;; Because `outline-invisible-p' is an inline function, we need to
+    ;; reevaluate those functions that called the original bugged version.
+    ;; This is impossible for users who have installed Emacs without
+    ;; uncompiled source, so we need to demote errors.
+    (with-demoted-errors "Error: %S"
+      (dolist (fun '(outline-back-to-heading
+                     outline-on-heading-p
+                     outline-next-visible-heading))
+        (let ((source (find-function-noselect fun)))
+          (with-current-buffer (car source)
+            (goto-char (cdr source))
+            (eval (read (current-buffer))))))
+      (message "fountain-mode: Function `outline-invisible-p' has been patched"))))
+
+
 ;;; Element Matching
 
 (defun fountain-blank-p ()
@@ -1100,42 +1153,6 @@ comments."
                         (fountain-match-synopsis)
                         (fountain-match-note)))
                (looking-at "\\(?3:.*\\)"))))))
-
-
-;;; Emacs Bugs
-
-(defcustom fountain-patch-emacs-bugs
-  t
-  "If non-nil, attempt to patch known bugs in Emacs.
-See function `fountain-patch-emacs-bugs'."
-  :type 'boolean
-  :group 'fountain)
-
-(defun fountain-patch-emacs-bugs ()
-  "Attempt to patch known bugs in Emacs.
-
-Adds advice to override `outline-invisible-p' to return non-nil
-only if the character after POS or `point' has invisible text
-property `eq' to 'outline. See <http://debbugs.gnu.org/24073>."
-  (unless (advice-member-p 'fountain-outline-invisible-p 'outline-invisible-p)
-    ;; The original `outline-invisible-p' returns non-nil for ANY invisible
-    ;; property of text at point:
-    ;; (get-char-property (or pos (point)) 'invisible))
-    ;; We want to only return non-nil if property is 'outline
-    (advice-add 'outline-invisible-p :override 'fountain-outline-invisible-p)
-    ;; Because `outline-invisible-p' is an inline function, we need to
-    ;; reevaluate those functions that called the original bugged version.
-    ;; This is impossible for users who have installed Emacs without
-    ;; uncompiled source, so we need to demote errors.
-    (with-demoted-errors "Error: %S"
-        (dolist (fun '(outline-back-to-heading
-                       outline-on-heading-p
-                       outline-next-visible-heading))
-          (let ((source (find-function-noselect fun)))
-            (with-current-buffer (car source)
-              (goto-char (cdr source))
-              (eval (read (current-buffer))))))
-      (message "fountain-mode: Function `outline-invisible-p' has been patched"))))
 
 
 ;;; Parsing
