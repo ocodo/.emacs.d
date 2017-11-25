@@ -4,10 +4,10 @@
 
 ;; Author: Chunyang Xu <mail@xuchunyang.me>
 ;; URL: https://github.com/xuchunyang/eshell-git-prompt
-;; Package-Version: 20170316.1051
+;; Package-Version: 20170909.752
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5") (dash "2.11.0"))
 ;; Keywords: eshell git
-;; Version: 0.1.1
+;; Version: 0.1.2
 ;; Created: 09/11/2015
 
 ;; This program is free software; you can redistribute it and/or modify
