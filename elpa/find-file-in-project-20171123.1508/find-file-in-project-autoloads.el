@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (22955 53533 349704 847000))
+;;;;;;  (23064 61688 799196 855000))
 ;;; Generated autoloads from find-file-in-project.el
 
 (autoload 'ffip-diff-backend-git-show-commit "find-file-in-project" "\
@@ -114,13 +114,12 @@ Is current full file name (including directory) match the REGEX?
 \(fn REGEX)" nil nil)
 
 (autoload 'find-file-in-project "find-file-in-project" "\
+More powerful and efficient `find-file-in-project-by-selected' is recommended.
+
 Prompt with a completing list of all files in the project to find one.
-
 If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
-
 The project's scope is defined as the first directory containing
 a `ffip-project-file' whose value is \".git\" by default.
-
 You can override this by setting the variable `ffip-project-root'.
 
 \(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
@@ -131,9 +130,9 @@ Like `find-file-in-project'.  But search only in current directory.
 \(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
 
 (autoload 'find-file-in-project-by-selected "find-file-in-project" "\
-Similar to `find-file-in-project'.
-But use string from selected region to search files in the project.
-If no region is selected, you need provide keyword.
+Same as `find-file-in-project' but more poweful and efficient.
+It use string from selected region to search files in the project.
+If no region is selected, you could provide a keyword.
 
 Keyword could be ANY part of the file's full path and support wildcard.
 For example, to find /home/john/proj1/test.js, below keywords are valid:
@@ -143,6 +142,8 @@ For example, to find /home/john/proj1/test.js, below keywords are valid:
 
 If keyword contains line number like \"hello.txt:32\" or \"hello.txt:32:\",
 we will move to that line in opened file.
+
+If keyword is empty, it behaves same as `find-file-in-project'.
 
 If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 
@@ -188,6 +189,20 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 
 (defalias 'ffip 'find-file-in-project)
 
+(autoload 'ffip-split-window-horizontally "find-file-in-project" "\
+Find&Open file in horizontal split window.  New window size is looked
+up in `ffip-window-ratio-alist' by RATIO.
+Keyword to search new file is selected text or user input.
+
+\(fn &optional RATIO)" t nil)
+
+(autoload 'ffip-split-window-vertically "find-file-in-project" "\
+Find&Open file in vertical split window.  New window size is looked
+up in `ffip-window-ratio-alist' by RATIO.
+Keyword to search new file is selected text or user input.
+
+\(fn &optional RATIO)" t nil)
+
 (autoload 'ffip-diff-quit "find-file-in-project" "\
 
 
@@ -198,7 +213,7 @@ File file(s) in current hunk.
 
 \(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
 
-(autoload 'ffip-show-diff "find-file-in-project" "\
+(autoload 'ffip-show-diff-internal "find-file-in-project" "\
 Show the diff output by excuting selected `ffip-diff-backends'.
 NUM is the index selected backend from `ffip-diff-backends'.
 NUM is zero based whose default value is zero.
@@ -207,8 +222,10 @@ NUM is zero based whose default value is zero.
 
 (autoload 'ffip-show-diff-by-description "find-file-in-project" "\
 Show the diff output by excuting selected `ffip-diff-backends.
+ NUM is the backend index of `ffip-diff-backends'.
+If NUM is not nil, the corresponding backend is executed directly.
 
-\(fn)" t nil)
+\(fn &optional NUM)" t nil)
 
 (autoload 'ffip-diff-apply-hunk "find-file-in-project" "\
 Apply current hunk in `diff-mode'. Try to locate the file to patch.
