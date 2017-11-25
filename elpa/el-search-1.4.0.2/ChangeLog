@@ -1,3 +1,212 @@
+2017-11-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	New command `el-search-count-matches'
+
+2017-11-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add a PROMPT arg to `el-search--read-pattern-for-interactive'
+
+	Use it.
+
+2017-11-15  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Bump el-search version to 1.4
+
+2017-11-01  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Don't limit `el-search-emacs-elisp-sources' to "lisp/" subdir
+
+2017-10-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Some details
+
+2017-10-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Always use the current search for query-replace
+
+2017-10-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Recover from search head pointing to a killed buffer
+
+	Try to resume from the associated buffer file; alternatively restart the
+	search.
+
+2017-10-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Display an x/y-style match count in the echo area
+
+2017-10-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve jumping to matches in *El Occur* buffers
+
+2017-10-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Require the new rmc.el lib when available
+
+2017-10-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix replacing matches with nil
+
+	Replacing PATTERN -> nil replaced with t instead.  This commit fixes 
+	this.
+
+2017-10-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix "Make amount of context around occur matches adjustable"
+
+	Add missing defun `el-search--bounds-of-defun'.
+
+2017-10-03  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make amount of context around occur matches adjustable
+
+	Make the amount of context included around each match in
+	*El Occur* buffers adjustable via new commands
+	`el-search-occur-defun-context', `el-search-occur-no-context' and
+	`el-search-occur-some-context'.
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Use a separate function to document defined pattern types
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Show line numbers in *El Occur* buffers
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	More multi query-replace related improvements
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Restore current search head in case of error or quit
+
+	In particular, this change prevents the search head to point to a 
+	temporary helper buffer.
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make `el-search-reset-search' modify its argument
+
+	Make `el-search-reset-search' modify its argument instead of returning a
+	reset copy.
+
+	This fixes `el-search-from-beginning' when called with prefix arg which
+	had the first search buffer instantly being killed because the new
+	search had not been taken into consideration when killing temporarily
+	opened file buffers.
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Don't let el-search-pattern resume a paused search
+
+	When calling `el-search-pattern' from the head buffer of the 
+	el-search--current-search, don't automatically resume the 
+	el-search--current-search when the last command was not a search command
+	even when the search pattern is the same.  Start a new single-buffer
+	search as normal.  `el-search-jump-to-search-head' is now the preferred
+	way to resume a suspended el-search--current-search.
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add some useful commands for *El Occur* buffers
+
+	Add commands `el-search-occur-next-match',
+	`el-search-occur-previous-match' for quick navigation between matches 
+	and `el-search-edit-occur-pattern', a command to modify the search 
+	pattern associated with an occur buffer.
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Use stream-x.el
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Narrow down the semantics of symbol LPATs
+
+	Narrow down the semantics of symbol LPATs: Matching also the quoted and
+	function-quoted symbol made the thing too slow.
+
+2017-08-03  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Some details
+
+2017-08-02  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix el-search--change-p for atoms
+
+	Factor out predicate `el-search--atomic-p'.
+
+	Fix a bug in the implementation of `change': Count any 
+	el-search--atomic-p thing (e.g. a large string spanning multiple lines)
+	as a change even when not all of its lines have changed.
+
+2017-08-01  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make the el-search-object struct contain an alist of properties
+
+	Make the el-search-object struct contain a field "properties".	Use it 
+	to store diverse metadata.  Remove the "command" field; instead, use the
+	property "description" which can be bound to a string describing the
+	search.
+
+	Factor out `el-search--get-search-description-string' which can be 
+	called to get a description text for the occur buffer or completion 
+	annotation.
+
+	Make `el-search-setup-search-1' accept an additional optional argument 
+	SETUP-FUNCTION that can be used to manipulate the new "properties" field
+	of newly created searches.  Use it.
+
+2017-07-25  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix and speed up the `change' pattern type
+
+2017-07-24  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Implement multi-buffer query-replace
+
+2017-07-02  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add new command `el-search-this-sexp'
+
+2017-05-24  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Handle read errors when reading and validating replacement
+
+2017-05-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Some details
+
+2017-05-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Extend heuristic matching to top-level sexps
+
+	This speeds up searching in large files.
+
+2017-05-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Recompile search pattern when resuming searches
+
+	When resuming a search, recompile the search pattern.  This is useful 
+	when a pattern type has been redefined.
+
+2017-05-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Reset wrap flag even when no match
+
+2017-04-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Tweak el-search--pp-to-string
+
+	Bind print-circle -> nil.
+
+	When an object contains multiple occurrences of the empty string, all 
+	but the last are printed as #N#.  We don't want this (especially when 
+	printing a replacement).
+
+	`string-trim-right' the result from pp which may end with a line break.
+
 2017-04-23  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	Explicitly require pcase

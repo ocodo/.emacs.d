@@ -3,8 +3,16 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "el-search" "el-search.el" (22873 40256 0 0))
+;;;### (autoloads nil "el-search" "el-search.el" (23064 61774 394969
+;;;;;;  743000))
 ;;; Generated autoloads from el-search.el
+
+(autoload 'el-search-count-matches "el-search" "\
+Like `count-matches' but accepting an el-search PATTERN instead of a regexp.
+
+Unlike `count-matches' matches \"inside\" other matches also count.
+
+\(fn PATTERN &optional RSTART REND INTERACTIVE)" t nil)
 
 (autoload 'el-search-install-shift-bindings "el-search" "\
 
@@ -28,8 +36,9 @@ details.
 
 PATTERN is an \"el-search\" pattern - which means, either a
 `pcase' pattern or complying with one of the additional pattern
-types defined with `el-search-defpattern'.  The following
-additional pattern types are currently defined:
+types defined with `el-search-defpattern'.
+
+See `el-search-defined-patterns' for a list of defined patterns.
 
 \(fn PATTERN)" t nil)
 
@@ -49,7 +58,7 @@ With prefix arg RECURSIVELY non-nil, search subdirectories recursively.
 (autoload 'el-search-emacs-elisp-sources "el-search" "\
 Search Emacs elisp sources for PATTERN.
 This command recursively searches all elisp files under
-\(expand-file-name \"lisp/\" source-directory).
+`source-directory'.
 
 \(fn PATTERN)" t nil)
 
@@ -91,6 +100,12 @@ you can also give an input of the form
 prompt and specify both expressions at once.  This format is also
 used for history entries.
 
+When called directly after a search command, use the current
+search to drive query-replace (like in isearch).  You get a
+multi-buffer query-replace this way when the current search is
+multi-buffer.  When not called after a search command,
+query-replace all matches following point in the current buffer.
+
 \(fn FROM-PATTERN TO-EXPR &optional TEXTUAL-TO)" t nil)
 
 (autoload 'el-search-search-from-isearch "el-search" "\
@@ -119,8 +134,8 @@ Reuse already given input.
 
 ;;;***
 
-;;;### (autoloads nil nil ("el-search-pkg.el" "el-search-x.el") (22873
-;;;;;;  40256 0 0))
+;;;### (autoloads nil nil ("el-search-pkg.el" "el-search-x.el") (23064
+;;;;;;  61774 398969 733000))
 
 ;;;***
 
