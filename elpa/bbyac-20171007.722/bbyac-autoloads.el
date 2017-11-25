@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "bbyac" "bbyac.el" (0 0 0 0))
+;;;### (autoloads nil "bbyac" "bbyac.el" (23064 61905 814644 667000))
 ;;; Generated autoloads from bbyac.el
 
 (autoload 'bbyac-mode "bbyac" "\
@@ -33,7 +33,9 @@ See `bbyac-mode' for more information on Bbyac mode.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "bbyac" '("turn-on-bbyac-mode" "bbyac-")))
+;;;***
+
+;;;### (autoloads nil nil ("bbyac-pkg.el") (23064 61905 814644 667000))
 
 ;;;***
 

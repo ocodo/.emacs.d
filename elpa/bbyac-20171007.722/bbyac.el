@@ -6,7 +6,6 @@
 ;; Maintainer: Bao Haojun <baohaojun@gmail.com>
 ;; Created: 28th January 2015
 ;; Package-Requires: ((browse-kill-ring "1.3") (cl-lib "0.5"))
-;; Package-Version: 20170127.516
 ;; Keywords: abbrev
 ;; Version: 0.0.20150128
 ;; URL: https://github.com/baohaojun/bbyac
@@ -53,6 +52,18 @@
 (require 'thingatpt)
 (require 'browse-kill-ring)
 
+(defvar bbyac--major-mode-buffer-hash
+  (make-hash-table)
+  "The major mode -> buffer hash table.")
+
+(defvar bbyac--source-file
+  load-file-name
+  "The bbyac source file.")
+
+(defvar bbyac--source-dir
+  (file-name-directory (file-truename bbyac--source-file))
+  "The bbyac source dir.")
+
 (defgroup bbyac nil
   "Type a little Bit, and Bang! You Are Completed."
   :group 'abbrev)
@@ -66,6 +77,12 @@ select from the matches.
 If you don't like the ecomplete style or think ecomplete is
 unreliable, change this to a very small value, such as 1 to force browse-kill-ring."
   :type 'integer
+  :group 'bbyac)
+
+(defcustom bbyac-user-config-dir
+  (expand-file-name "~/.config/bbyac")
+  "The directory to find user's bbyac config files."
+  :type 'string
   :group 'bbyac)
 
 (defvar bbyac--start
@@ -206,11 +223,11 @@ See also `bbyac--symbol-bbyac-extracter'."
               ".*?")))
         ;; performance consideration: if syntax of bit's first char
         ;; is word, then it must match word boundary
-        (when (string-match-p "^\\w" bbyac--the-bit)
+        (when (string-match-p "^[[:alnum:]]" bbyac--the-bit)
           (setq the-regexp (concat "\\b" the-regexp)))
         ;; if bit's last char is word syntax, should extend the
         ;; completion to word boundaries
-        (when (string-match-p "\\w$" bbyac--the-bit)
+        (when (string-match-p "[[:alnum:]]$" bbyac--the-bit)
           (setq the-regexp (concat the-regexp "\\w*?\\b")))
         the-regexp))))
 
@@ -233,29 +250,40 @@ variables mb and me in these sexps.  Result of EXTRACT-MATCH
 should be a string; MOVE-ALONG is only used for its side-effects."
   (declare (doc-string 2))
   `(defun ,matcher-name (re buffer tag)
+     ,matcher-doc
      (let ((strlist-before nil)
            (strlist-after nil)
            (strlist nil)
+           (re-2 nil)
            (old-point (point)))
+       (when (string-match "" re)
+         (setq re-2 (replace-regexp-in-string ".*" "" re)
+               re (replace-regexp-in-string ".*" "" re)))
        (with-current-buffer buffer
          (save-excursion
            (goto-char (point-min))
            (while (re-search-forward re nil t)
              (let ((mb (match-beginning 0))
                    (me (match-end 0)))
+               (when (and re-2
+                          (goto-char me)
+                          (or (end-of-line) t)
+                          (re-search-forward re-2 nil t))
+                 (setq me (match-end 0)))
                (let ((substr ,extract-match))
                  (cond
                   ((and (eq tag 'current)
                         (< mb bbyac--start)
                         (> me bbyac--start)))
                   (t
-                   (if (and (< (point) old-point) (eq tag 'current))
+                   (if (and (eq tag 'current)
+                            (< (point) old-point))
                        ;; substr closer to the old-point is at the head of strlist-before, in good order
                        (setq strlist-before (cons substr strlist-before))
                      ;; substr further to the old-point is at the head of strlist-after, in bad order
                      (setq strlist-after (cons substr strlist-after))))))
                ,move-along))
-           (setq strlist (bbyac--interleave strlist-before (nreverse strlist-after)))
+           (setq strlist (bbyac--interleave (nreverse strlist-after) strlist-before))
            ;; This expansion is useless, it's the same as the bit
            ;; (in fact, extracted from the same place, and thus at the
            ;; car of strlist. We must remove it here, or else the
@@ -284,7 +312,12 @@ Or else the returned list of strings is in the order they appear in the buffer."
  "Search the buffer to collect a list of all lines matching `re'.
 
 See `bbyac--matcher'."
- (buffer-substring-no-properties (line-beginning-position) (line-end-position))
+ (buffer-substring-no-properties (if (>= mb (line-beginning-position))
+                                     (line-beginning-position)
+                                   (save-excursion
+                                     (goto-char mb)
+                                     (line-beginning-position)))
+                                 (line-end-position))
  (end-of-line))
 
 (bbyac--make-matcher
@@ -339,12 +372,12 @@ The buffers should be in the order of the tags listed above:
 first 1 'current buffer, then 0 or more 'visible buffers, then
 all 'buried buffers."
   (let* ((current-buffer (current-buffer))
-        (visible-buffers (delete current-buffer
-                                 (delete-dups
-                                  (mapcar (lambda (w)
-                                            (window-buffer w))
-                                          (window-list)))))
-        (buried-buffers (bbyac--difference (buffer-list) (cons current-buffer visible-buffers))))
+         (visible-buffers (delete current-buffer
+                                  (delete-dups
+                                   (mapcar (lambda (w)
+                                             (window-buffer w))
+                                           (window-list)))))
+         (buried-buffers (bbyac--difference (buffer-list) (cons current-buffer visible-buffers))))
     (cl-delete-if
      (lambda (buf-tag) (eq (with-current-buffer (car buf-tag) major-mode) 'image-mode))
      (nconc
@@ -394,8 +427,19 @@ Return the list of strings thus matched."
   (or (> (length str) bbyac-max-chars)
       (string-match-p "\n" str)))
 
-(defun bbyac--general-expand (extracter &optional matcher buffer-filter)
+(defun bbyac--general-expand (extracter &optional matcher buffer-filter match-rewriter)
   "General function to expand a bit using the functional arguments.
+
+EXTRACTER will extract a regexp from the current BIT of text.
+
+MATCHER will match the regexp returned by EXTRACTER to match some
+completions. The default matcher is `bbyac--matcher'.
+
+BUFFER-FILTER should return some tagged buffers in which MATCHER
+works.
+
+MATCH-REWRITER, if present, will rewrite the final matched
+completion before inserting it.
 
 See `bbyac--symbol-bbyac-extracter' for EXTRACTER.  See
 `bbyac--matcher' for MATCHER.  See `bbyac--buffer-filter' for
@@ -413,11 +457,24 @@ EXTRACTER, MATCHER and BUFFER-FILTER."
     (when (and the-regexp
                (setq matches (bbyac--get-matches the-regexp matcher buffer-filter)))
       (if (or (minibufferp)
-              (cl-notany #'bbyac--string-multiline-p matches))
+              (cl-notany #'bbyac--string-multiline-p matches)
+              match-rewriter)
           (progn
-            (setq match (bbyac--display-matches matches))
+            (setq match (if (not (minibufferp))
+                            (cond
+                             ((not (cdr matches))
+                              (car matches))
+                             ((fboundp 'ivy-read)
+                              (ivy-read "Select which match do you want: " matches))
+                             ((fboundp 'helm-comp-read)
+                              (helm-comp-read "Select which match do you want: " matches))
+                             (t
+                              (bbyac--display-matches matches)))
+                          (bbyac--display-matches matches)))
             (when (and bbyac--start bbyac--end)
               (delete-region bbyac--start bbyac--end))
+            (when match-rewriter
+              (setq match (funcall match-rewriter match)))
             (insert match))
         (when (and bbyac--start bbyac--end)
           (delete-region bbyac--start bbyac--end))
@@ -434,6 +491,39 @@ characters before the point."
   (interactive)
   (bbyac--general-expand #'bbyac--symbol-bbyac-extracter))
 
+(defun bbyac--major-mode-match-rewriter (matched-str)
+  "Rewrite the MATCHED-STR from the major-mode's bbyac file."
+  (replace-regexp-in-string ".*?{\\(.*\\)}.*" "\\1" matched-str))
+
+(defun bbyac-expand-symbols-by-major-mode ()
+  "Find and expand the bit into a symbol (method) for current major mode.
+
+For e.g., when editing a .js file, a BIT like _subs_ is inputed,
+and this command is called, than it should be able to complete
+with _substring_ for the String objects."
+  (interactive)
+  (bbyac--general-expand #'bbyac--symbol-bbyac-extracter
+                         #'bbyac--line-extracting-matcher
+                         #'bbyac--buffer-filter-by-major-mode
+                         #'bbyac--major-mode-match-rewriter))
+
+(defun bbyac--buffer-filter-by-major-mode ()
+  "Return the (buffer . tag) for current major mode completion.
+
+See `bbyac--buffer-filter' for more info."
+  (let* ((mode-name (replace-regexp-in-string "-mode$" "" (symbol-name major-mode)))
+         (mode-buffer (gethash major-mode bbyac--major-mode-buffer-hash))
+         (bbyac-major-mode-match-file (expand-file-name (concat mode-name ".bbyac") bbyac--source-dir))
+         (bbyac-major-mode-match-file-user (expand-file-name (concat mode-name ".bbyac") bbyac-user-config-dir)))
+    (unless (buffer-live-p mode-buffer)
+      (when (file-exists-p bbyac-major-mode-match-file-user)
+        (setq bbyac-major-mode-match-file bbyac-major-mode-match-file-user))
+      (when (file-exists-p bbyac-major-mode-match-file)
+        (puthash major-mode (find-file-noselect bbyac-major-mode-match-file) bbyac--major-mode-buffer-hash)
+        (setq mode-buffer (gethash major-mode bbyac--major-mode-buffer-hash))))
+    (when (buffer-live-p mode-buffer)
+      (list (cons mode-buffer 'visible)))))
+
 (defun bbyac-expand-substring ()
   "Expand the bit into a partial line match.
 
@@ -441,11 +531,6 @@ This means expand to string from the beginning to the end of the
 matched region."
   (interactive)
   (bbyac--general-expand #'bbyac--line-bbyac-extracter))
-
-(defun bbyac-expand-partial-lines ()
-  "Obsolete. Use bbyac-expand-substring."
-  (interactive)
-  (call-interactively bbyac-expand-substring))
 
 (defun bbyac-expand-lines ()
   "Expand the bit into a full line match.
@@ -455,21 +540,6 @@ line where the match occured."
   (interactive)
   (bbyac--general-expand #'bbyac--line-bbyac-extracter
                          #'bbyac--line-extracting-matcher))
-
-(defun bbyac-expand-sexp ()
-  "Expand the bit into an S-expression.
-
-This means expand to string from the beginning to the end of the
-S-expression enclosing the matched region."
-  (interactive)
-  (bbyac--general-expand #'bbyac--line-bbyac-extracter
-                            #'bbyac--sexp-extracting-matcher))
-
-(defun bbyac-expand-paragraph ()
-  "Expand the bit into a whole paragraph."
-    (interactive)
-    (bbyac--general-expand #'bbyac--line-bbyac-extracter
-                              #'bbyac--paragraph-extracting-matcher))
 
 (defmacro bbyac--max-minibuffer-lines ()
   "Compute the max number of lines the minibuffer can display."
@@ -556,13 +626,11 @@ This func is copied and modified from `ecomplete-display-matches'."
 (defvar bbyac-mode-map (make-sparse-keymap)
   "Bbyac mode map.")
 (define-key bbyac-mode-map (kbd "M-g <return>") 'bbyac-expand-symbols)
+(define-key bbyac-mode-map (kbd "M-g .") 'bbyac-expand-symbols-by-major-mode)
 (define-key bbyac-mode-map (kbd "M-g <RET>") 'bbyac-expand-symbols)
 (define-key bbyac-mode-map (kbd "M-s <return>") 'bbyac-expand-substring)
 (define-key bbyac-mode-map (kbd "M-s <RET>") 'bbyac-expand-substring)
-(define-key bbyac-mode-map (kbd "M-g x") 'bbyac-expand-partial-lines)
 (define-key bbyac-mode-map (kbd "M-s l") 'bbyac-expand-lines)
-(define-key bbyac-mode-map (kbd "M-s s") 'bbyac-expand-sexp)
-(define-key bbyac-mode-map (kbd "M-s p") 'bbyac-expand-paragraph)
 
 ;;;###autoload
 (define-minor-mode bbyac-mode
