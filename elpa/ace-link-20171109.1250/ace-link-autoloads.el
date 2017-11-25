@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ace-link" "ace-link.el" (22873 40164 0 0))
+;;;### (autoloads nil "ace-link" "ace-link.el" (23064 61990 902446
+;;;;;;  668000))
 ;;; Generated autoloads from ace-link.el
 
 (autoload 'ace-link "ace-link" "\
@@ -41,8 +42,18 @@ Open a visible link in a `gnus-article-mode' buffer.
 
 \(fn)" t nil)
 
+(autoload 'ace-link-mu4e "ace-link" "\
+Open a visible link in an `mu4e-view-mode' buffer.
+
+\(fn)" t nil)
+
 (autoload 'ace-link-org "ace-link" "\
 Open a visible link in an `org-mode' buffer.
+
+\(fn)" t nil)
+
+(autoload 'ace-link-org-agenda "ace-link" "\
+Open a visible link in an `org-mode-agenda' buffer.
 
 \(fn)" t nil)
 

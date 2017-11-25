@@ -1,13 +1,13 @@
 ;;; ace-link.el --- Quickly follow links
 
-;; Copyright (C) 2014-2015 Oleh Krehel
+;; Copyright (C) 2014-2017 Oleh Krehel
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-link
-;; Package-Version: 20170528.1158
-;; Version: 0.4.0
-;; Package-Requires: ((avy "0.2.0"))
-;; Keywords: convenience, links
+;; Package-Version: 20171109.1250
+;; Version: 0.5.0
+;; Package-Requires: ((avy "0.4.0"))
+;; Keywords: convenience, links, avy
 
 ;; This file is not part of GNU Emacs
 
@@ -63,6 +63,8 @@
          (ace-link-gnus))
         ((eq major-mode 'org-mode)
          (ace-link-org))
+        ((eq major-mode 'org-agenda-mode)
+         (ace-link-org-agenda))
         ((eq major-mode 'Custom-mode)
          (ace-link-org))
         ((and ace-link-fallback-function
@@ -283,6 +285,69 @@
             (push (point) candidates)))
         (nreverse candidates)))))
 
+;;* `ace-link-mu4e'
+;;;###autoload
+(defun ace-link-mu4e ()
+  "Open a visible link in an `mu4e-view-mode' buffer."
+  (interactive)
+  (let ((pt (avy-with ace-link-mu4e
+              (avy--process
+               (mapcar #'cdr (ace-link--mu4e-collect))
+               (avy--style-fn avy-style)))))
+    (ace-link--mu4e-action pt)))
+
+(declare-function shr-browse-url "shr")
+(declare-function mu4e~view-browse-url-from-binding "ext:mu4e-view")
+(declare-function mu4e~view-open-attach-from-binding "ext:mu4e-view")
+
+(defun ace-link--mu4e-action (pt)
+  (when (number-or-marker-p pt)
+    (goto-char (1+ pt))
+    (cond ((get-text-property (point) 'shr-url)
+           (shr-browse-url))
+          ((get-text-property (point) 'mu4e-url)
+           (mu4e~view-browse-url-from-binding))
+          ((get-text-property (point) 'mu4e-attnum)
+           (mu4e~view-open-attach-from-binding)))))
+
+(defun ace-link--mu4e-next-link (pos)
+  (let* ((shr-link-pos (text-property-not-all pos (point-max) 'shr-url nil))
+         (mu4e-link-pos (text-property-not-all pos (point-max) 'mu4e-url nil))
+         (mu4e-att-link-pos (text-property-not-all pos (point-max) 'mu4e-attnum nil))
+         (links (seq-filter
+                 (lambda (link)
+                   (elt link 1))
+                 (list
+                  (list 'shr-url shr-link-pos)
+                  (list 'mu4e-url mu4e-link-pos)
+                  (list 'mu4e-attnum mu4e-att-link-pos)))))
+
+    (if links
+        (car
+         (sort links (lambda (x y)
+                       (< (elt x 1) (elt y 1)))))
+      nil)))
+
+(defun ace-link--mu4e-end-of-link (link)
+  (or (text-property-any (elt link 1) (point-max) (elt link 0) nil)
+      (point-max)))
+
+(defun ace-link--mu4e-collect ()
+  "Collect the positions of visible links in the current mu4e buffer."
+  (save-excursion
+    (save-restriction
+      (narrow-to-region
+       (window-start)
+       (window-end))
+      (goto-char (point-min))
+      (let (link pos candidates)
+        (setq pos (point))
+        (while (setq link (ace-link--mu4e-next-link pos))
+          (goto-char (elt link 1))
+          (setq pos (ace-link--mu4e-end-of-link link))
+          (push (cons (buffer-substring-no-properties (elt link 1) pos) (elt link 1)) candidates))
+        (nreverse candidates)))))
+
 ;;* `ace-link-org'
 ;;;###autoload
 (defun ace-link-org ()
@@ -322,6 +387,38 @@
             (match-beginning 0))
            res)))
       (nreverse res))))
+
+;;* `ace-link-org-agenda'
+;;;###autoload
+(defun ace-link-org-agenda ()
+  "Open a visible link in an `org-mode-agenda' buffer."
+  (interactive)
+  (require 'org-agenda)
+  (let ((pt (avy-with ace-link-org-agenda
+              (avy--process
+               (mapcar #'cdr (ace-link--org-agenda-collect))
+               (avy--style-fn avy-style)))))
+    (ace-link--org-agenda-action pt)))
+
+(declare-function org-agenda-goto "org-agenda")
+
+(defun ace-link--org-agenda-action (pt)
+  (when (numberp pt)
+    (goto-char pt)
+    (org-agenda-goto)))
+
+(defun ace-link--org-agenda-collect ()
+  (let ((skip (text-property-any
+               (window-start) (window-end) 'org-marker nil))
+        candidates)
+    (save-excursion
+      (while (setq skip (text-property-not-all
+                         skip (window-end) 'org-marker nil))
+        (goto-char skip)
+        (push (cons (get-char-property (point) 'txt) skip) candidates)
+        (setq skip (text-property-any (point) (window-end)
+                                      'org-marker nil))))
+    (nreverse candidates)))
 
 ;;* `ace-link-custom'
 ;;;###autoload
@@ -403,7 +500,11 @@
   (add-to-list 'avy-styles-alist
                '(ace-link-gnus . post))
   (add-to-list 'avy-styles-alist
+               '(ace-link-mu4e . post))
+  (add-to-list 'avy-styles-alist
                '(ace-link-org . pre))
+  (add-to-list 'avy-styles-alist
+               '(ace-link-org-agenda . pre))
   (add-to-list 'avy-styles-alist
                '(ace-link-custom . pre))
   (add-to-list 'avy-styles-alist
@@ -422,7 +523,10 @@
        (define-key eww-mode-map ,key 'ace-link-eww)))
   (eval-after-load 'cus-edit
     `(progn
-       (define-key custom-mode-map ,key 'ace-link-custom))))
+       (define-key custom-mode-map ,key 'ace-link-custom)))
+  (eval-after-load "helpful"
+    `(progn
+       (define-key helpful-mode-map ,key 'ace-link-help))))
 
 (provide 'ace-link)
 
