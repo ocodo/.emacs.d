@@ -3,10 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "esxml" "esxml.el" (0 0 0 0))
-;;; Generated autoloads from esxml.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "esxml" '("esxml-" "xml-to-esxml" "string-trim-whitespace" "sxml-to-" "pp-esxml-to-xml" "attr")))
+;;;### (autoloads nil nil ("esxml-pkg.el" "esxml-query.el" "esxml.el")
+;;;;;;  (23064 61737 407066 225000))
 
 ;;;***
 
