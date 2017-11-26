@@ -592,6 +592,42 @@ down. Stay in control and be firm when reaching for your keys."))
      speed-type-keyboard-drill-last-exercise-attempted exercise)
     (speed-type--setup exercise)))
 
+;;; Need to define oxford-dictionary-api-headers:
+;;; (setq oxford-dictionary-api-headers
+;;;       '(("app_key" . "key string")
+;;;         ("app_id" . "id string")))
+
+(defun speed-type-oxford-dictionary-definition (word-to-define)
+  "Launch speed-type using a WORD-TO-DEFINE definition from the oxford-dictionary api."
+  (interactive "SWord: ")
+  (unless oxford-dictionary-api-headers (message "oxford-dictionary-api-headers must be defined"))
+  (when oxford-dictionary-api-headers
+    (request
+     (format
+      "https://od-api.oxforddictionaries.com/api/v1/entries/en/%s" word-to-define)
+     :headers oxford-dictionary-api-headers
+     :parser 'json-read
+     :success (function*
+               (lambda (&key data &allow-other-keys)
+                 (let* ((buf (generate-new-buffer "*definitions*"))
+                        (word (json-pointer-get
+                               data
+                               "/results/0/id"))
+                        (entries
+                         (json-pointer-get
+                          data
+                          "/results/0/lexicalEntries/0/entries"))
+                        (definitions (cl-map 'vector (lambda (entry)
+                                                        (json-pointer-get
+                                                         entry
+                                                         "/senses/0/definitions/0"))
+                                              entries)))
+                   (with-current-buffer buf
+                     (auto-fill-mode 1)
+                     (insert word "\n\n")
+                     (insert (string-join definitions "\n"))
+                     (speed-type-buffer buf))))))))
+
 (defun speed-type-keyboard-drill-repeat-exercise ()
   "Repeat the current exercise."
   (interactive)
@@ -614,6 +650,7 @@ down. Stay in control and be firm when reaching for your keys."))
   ("n" speed-type-keyboard-drill-next-exercise "Next exercise" :color blue)
   ("l" speed-type-keyboard-drill-next-lesson "Next lesson" :color blue)
   ("s" speed-type-keyboard-drill-select "Select a new lesson" :color blue)
+  ("d" speed-type-oxford-dictionary-definition "Speed-type a word definition from the oxford dictionary api" :color blue)
   ("q" speed-type-keyboard-drill-quit "Quit" :color blue))
 
 (defadvice speed-type--handle-complete (after speed-type-keyboard-drill-show-hydra activate)
