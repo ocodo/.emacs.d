@@ -201,6 +201,11 @@ and it doesn't seem to work wth key bindings."
         (setq end (point)))
       (goto-char (+ origin (* (length region) arg) arg)))))
 
+(defun zsh ()
+  "Start 'ansi-term' with zsh."
+  (interactive)
+  (ansi-term "/bin/zsh"))
+
 (defun shell-command-on-region-replace (start end command)
   "Run `shell-command-on-region' replacing the selected region.  START END COMMAND."
   (interactive (let (string)
