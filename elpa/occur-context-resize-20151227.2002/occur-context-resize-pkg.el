@@ -1,1 +1,0 @@
-(define-package "occur-context-resize" "20151227.2002" "dynamically resize context around matches in occur-mode" 'nil :url "https://github.com/dgtized/occur-context-resize.el" :keywords '("matching"))
