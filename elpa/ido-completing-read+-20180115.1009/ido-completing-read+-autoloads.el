@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "ido-completing-read+" "ido-completing-read+.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23138 48364 65889 517000))
 ;;; Generated autoloads from ido-completing-read+.el
 
 (defvar ido-cr+-minibuffer-depth -1 "\
@@ -81,7 +81,10 @@ when ido completion is or is not used by customizing
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ido-completing-read+" '("ido-" "minibuf-eldef-update-minibuffer@ido-cr+-compat" "define-ido-internal-var")))
+;;;***
+
+;;;### (autoloads nil nil ("ido-completing-read+-pkg.el") (23138
+;;;;;;  48359 533882 187000))
 
 ;;;***
 
