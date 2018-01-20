@@ -2,7 +2,7 @@
 
 ;; Author: Neil Okamoto <neil.okamoto+melpa@gmail.com>
 ;; Version: 0.2
-;; Package-Version: 20171115.1228
+;; Package-Version: 20180107.1521
 ;; Keywords: games
 ;; URL: https://github.com/gonewest818/adafruit-wisdom.el
 ;; Package-Requires: ((emacs "24"))
@@ -29,6 +29,7 @@
 
 ;;; Code:
 
+(require 'dom)
 (require 'url-vars)
 (require 'xml)
 
@@ -56,19 +57,19 @@ Returns the parsed XML."
         (url-insert-file-contents adafruit-wisdom-quote-url)
         (xml-parse-region (point-min) (point-max))))))
 
+;;;###autoload
 (defun adafruit-wisdom-select ()
-  "Select a quote at random."
-  (let* ((root  (adafruit-wisdom-cached-get))
-         ;; parse assuming the following RSS format:
-         ;; ((rss (channel (item ...) (item ...) (item ...) ...)))
-         ;; where each item contains (item (title nil "the quote") ...)
-         ;; and we need just "the quote"
-         (rss   (car root))
-         (chan  (car (xml-get-children rss 'channel)))
-         (items (xml-get-children chan 'item))
+  "Select a quote at random and return as a string.
+
+Parse assuming the following RSS format:
+     ((rss (channel (item ...) (item ...) (item ...) ...)))
+where each item contains:
+     (item (title nil \"the quote\") ...)
+and we  need just \"the quote\"."
+  (let* ((items (dom-by-tag (adafruit-wisdom-cached-get) 'item))
          (pick  (nth (random (length items)) items))
-         (title (car (xml-get-children pick 'title))))
-    (car (last title))))
+         (title (dom-text (car (dom-by-tag pick 'title)))))
+    title))
 
 ;;;###autoload
 (defun adafruit-wisdom (&optional insert)
