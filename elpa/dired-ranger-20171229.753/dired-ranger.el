@@ -5,7 +5,7 @@
 ;; Author: Matúš Goljer <matus.goljer@gmail.com>
 ;; Maintainer: Matúš Goljer <matus.goljer@gmail.com>
 ;; Version: 0.0.1
-;; Package-Version: 20160924.335
+;; Package-Version: 20171229.753
 ;; Created: 17th June 2014
 ;; Package-requires: ((dash "2.7.0") (dired-hacks-utils "0.0.1"))
 ;; Keywords: files
@@ -127,8 +127,8 @@ buffers for a single paste."
       (let ((current (ring-remove dired-ranger-copy-ring 0)))
         (ring-insert
          dired-ranger-copy-ring
-         (cons (cons (current-buffer) (car current))
-               (-concat (dired-get-marked-files) (cdr current))))
+         (cons (-distinct (cons (current-buffer) (car current)))
+               (-distinct (-concat (dired-get-marked-files) (cdr current)))))
         (message (format "Added %d item%s into copy ring."
                          (length marked)
                          (if (> (length marked) 1) "s" "")))))))
