@@ -1,4 +1,4 @@
-;;; js2r-vars.el --- Variable declaration manipulation functions for js2-refactor
+;;; js2r-vars.el --- Variable declaration manipulation functions for js2-refactor    -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2014 Magnar Sveen
 ;; Copyright (C) 2015-2016 Magnar Sveen and Nicolas Petton
@@ -25,6 +25,8 @@
 (require 'multiple-cursors-core)
 (require 'dash)
 
+(require 'js2r-helpers)
+
 ;; Helpers
 
 (defun js2r--name-node-at-point (&optional pos)
@@ -46,10 +48,20 @@
 (defun js2r--local-name-node-p (node)
   (let ((parent (js2-node-parent node)))
     (and parent (js2-name-node-p node)
+         ;; is not foo in { foo: 1 }
          (not (and (js2-object-prop-node-p parent)
-                   (eq node (js2-object-prop-node-left parent))))
+                   (eq node (js2-object-prop-node-left parent))
+                   ;; could be { foo } though, in which case the node
+                   ;; is parent's both left and right.
+                   (not (eq node (js2-object-prop-node-right parent)))))
+         ;; is not foo in x.foo
          (not (and (js2-prop-get-node-p parent)
-                   (eq node (js2-prop-get-node-right parent)))))))
+                   (eq node (js2-prop-get-node-right parent))))
+         ;; is not foo in import { foo as bar } from ...
+         ;; could be bar, though.
+         (not (and (js2-export-binding-node-p parent)
+                   (eq node (js2-export-binding-node-extern-name parent))
+                   (not (eq node (js2-export-binding-node-local-name parent))))))))
 
 (defun js2r--name-node-defining-scope (name-node)
   (unless (js2r--local-name-node-p name-node)
@@ -124,21 +136,22 @@
   "Renames the variable on point and all occurrences in its lexical scope."
   (interactive)
   (js2r--guard)
-  (let* ((current-node (js2r--local-name-node-at-point))
-         (len (js2-node-len current-node))
-         (current-start (js2-node-abs-pos current-node))
-         (current-end (+ current-start len)))
-    (save-excursion
-      (mapc (lambda (beg)
-              (when (not (= beg current-start))
-                (goto-char beg)
-                (set-mark (+ beg len))
-                (mc/create-fake-cursor-at-point)))
-            (js2r--local-var-positions current-node)))
-    (push-mark current-end)
-    (goto-char current-start)
-    (activate-mark))
-  (mc/maybe-multiple-cursors-mode))
+  (js2r--wait-for-parse
+   (let* ((current-node (js2r--local-name-node-at-point))
+	  (len (js2-node-len current-node))
+	  (current-start (js2-node-abs-pos current-node))
+	  (current-end (+ current-start len)))
+     (save-excursion
+       (mapc (lambda (beg)
+	       (when (not (= beg current-start))
+		 (goto-char beg)
+		 (set-mark (+ beg len))
+		 (mc/create-fake-cursor-at-point)))
+	     (js2r--local-var-positions current-node)))
+     (push-mark current-end)
+     (goto-char current-start)
+     (activate-mark))
+   (mc/maybe-multiple-cursors-mode)))
 
 (add-to-list 'mc--default-cmds-to-run-once 'js2r-rename-var)
 
@@ -148,54 +161,56 @@
   "Changes the variable on point to use this.var instead."
   (interactive)
   (js2r--guard)
-  (save-excursion
-    (let ((node (js2-node-at-point)))
-      (when (js2-var-decl-node-p node)
-        (let ((kids (js2-var-decl-node-kids node)))
-          (when (cdr kids)
-            (error "Currently does not support converting multivar statements."))
-          (goto-char (js2-node-abs-pos (car kids))))))
-    (--each (js2r--local-var-positions (js2r--local-name-node-at-point))
-      (goto-char it)
-      (cond ((looking-back "var ") (delete-char -4))
-            ((looking-back "let ") (delete-char -4))
-            ((looking-back "const ") (delete-char -6)))
-      (insert "this."))))
+  (js2r--wait-for-parse
+   (save-excursion
+     (let ((node (js2-node-at-point)))
+       (when (js2-var-decl-node-p node)
+	 (let ((kids (js2-var-decl-node-kids node)))
+	   (when (cdr kids)
+	     (error "Currently does not support converting multivar statements."))
+	   (goto-char (js2-node-abs-pos (car kids))))))
+     (--each (js2r--local-var-positions (js2r--local-name-node-at-point))
+       (goto-char it)
+       (cond ((looking-back "var ") (delete-char -4))
+	     ((looking-back "let ") (delete-char -4))
+	     ((looking-back "const ") (delete-char -6)))
+       (insert "this.")))))
 
 ;; Inline var
 
 (defun js2r-inline-var ()
   (interactive)
   (js2r--guard)
-  (save-excursion
-    (let* ((current-node (js2r--local-name-node-at-point))
-           (definer (js2r--var-defining-node current-node))
-           (definer-start (js2-node-abs-pos definer))
-           (var-init (js2-node-parent definer))
-           (initializer (js2-var-init-node-initializer
-                         var-init)))
-      (unless initializer
-        (error "Var is not initialized when defined."))
-      (let* ((var-len (js2-node-len current-node))
-             (init-beg (js2-node-abs-pos initializer))
-             (init-end (+ init-beg (js2-node-len initializer)))
-             (var-init-beg (copy-marker (js2-node-abs-pos var-init)))
-             (var-init-end (copy-marker (+ var-init-beg (js2-node-len var-init))))
-             (contents (buffer-substring init-beg init-end)))
-        (mapc (lambda (beg)
-                (when (not (= beg definer-start))
-                  (goto-char beg)
-                  (delete-char var-len)
-                  (insert contents)))
-              (js2r--local-var-positions current-node))
-        (js2r--delete-var-init var-init-beg var-init-end)))))
+  (js2r--wait-for-parse
+   (save-excursion
+     (let* ((current-node (js2r--local-name-node-at-point))
+	    (definer (js2r--var-defining-node current-node))
+	    (definer-start (js2-node-abs-pos definer))
+	    (var-init (js2-node-parent definer))
+	    (initializer (js2-var-init-node-initializer
+			  var-init)))
+       (unless initializer
+	 (error "Var is not initialized when defined."))
+       (let* ((var-len (js2-node-len current-node))
+	      (init-beg (js2-node-abs-pos initializer))
+	      (init-end (+ init-beg (js2-node-len initializer)))
+	      (var-init-beg (copy-marker (js2-node-abs-pos var-init)))
+	      (var-init-end (copy-marker (+ var-init-beg (js2-node-len var-init))))
+	      (contents (buffer-substring init-beg init-end)))
+	 (mapc (lambda (beg)
+		 (when (not (= beg definer-start))
+		   (goto-char beg)
+		   (delete-char var-len)
+		   (insert contents)))
+	       (js2r--local-var-positions current-node))
+	 (js2r--delete-var-init var-init-beg var-init-end))))))
 
 
 (defun js2r--was-single-var ()
-  (or (string= "var ;" (current-line-contents))
-      (string= "const ;" (current-line-contents))
-      (string= "let ;" (current-line-contents))
-      (string= "," (current-line-contents))))
+  (save-excursion
+    (goto-char (point-at-bol))
+    (or (looking-at "^[[:space:]]*\\(var\\|const\\|let\\)[[:space:]]?;?$")
+	(looking-at "^[[:space:]]*,[[:space:]]*$"))))
 
 (defun js2r--was-starting-var ()
   (or (looking-back "var ")
@@ -254,11 +269,12 @@
 (defun js2r-extract-var ()
   (interactive)
   (js2r--guard)
-  (if (use-region-p)
-      (js2r--extract-var-between (region-beginning) (region-end))
-    (let ((node (js2r--closest-extractable-node)))
-      (js2r--extract-var-between (js2-node-abs-pos node)
-                                 (js2-node-abs-end node)))))
+  (js2r--wait-for-parse
+   (if (use-region-p)
+       (js2r--extract-var-between (region-beginning) (region-end))
+     (let ((node (js2r--closest-extractable-node)))
+       (js2r--extract-var-between (js2-node-abs-pos node)
+				  (js2-node-abs-end node))))))
 
 (add-to-list 'mc--default-cmds-to-run-once 'js2r-extract-var)
 
@@ -278,7 +294,7 @@
     (set-marker orig-var-end (point))
 
     (goto-char (js2r--start-of-parent-stmt))
-    (insert "var " name)
+    (js2r--insert-var name)
     (set-marker new-var-end (point))
     (insert " = " expression ";")
     (when (or (js2r--line-above-is-blank)
@@ -296,28 +312,37 @@
     (set-marker new-var-end nil))
   (mc/maybe-multiple-cursors-mode))
 
+(defun js2r--insert-var (name)
+  "Insert a var definition for NAME."
+  (let ((keyword (if js2r-prefer-let-over-var
+		     "let"
+		   "var")))
+    (insert (format "%s %s" keyword name))))
+
 (defun js2r-split-var-declaration ()
   "Split a variable declaration into separate variable
 declarations for each declared variable."
   (interactive)
   (js2r--guard)
-  (save-excursion
-    (let* ((declaration (or (js2r--closest #'js2-var-decl-node-p) (error "No var declaration at point.")))
-           (kids (js2-var-decl-node-kids declaration))
-           (stmt (js2-node-parent-stmt declaration)))
-      (goto-char (js2-node-abs-end stmt))
-      (mapc (lambda (kid)
-              (insert "var " (js2-node-string kid) ";")
-              (newline)
-              (if (save-excursion
-                    (goto-char (js2-node-abs-end kid))
-                    (looking-at ", *\n *\n"))
-                  (newline)))
-            kids)
-      (delete-char -1) ;; delete final newline
-      (let ((end (point)))
-        (js2r--goto-and-delete-node stmt)
-        (indent-region (point) end)))))
+  (js2r--wait-for-parse
+   (save-excursion
+     (let* ((declaration (or (js2r--closest #'js2-var-decl-node-p) (error "No var declaration at point.")))
+	    (kids (js2-var-decl-node-kids declaration))
+	    (stmt (js2-node-parent-stmt declaration)))
+       (goto-char (js2-node-abs-end stmt))
+       (mapc (lambda (kid)
+	       (js2r--insert-var (js2-node-string kid))
+	       (insert ";")
+	       (newline)
+	       (if (save-excursion
+		     (goto-char (js2-node-abs-end kid))
+		     (looking-at ", *\n *\n"))
+		   (newline)))
+	     kids)
+       (delete-char -1) ;; delete final newline
+       (let ((end (point)))
+	 (js2r--goto-and-delete-node stmt)
+	 (indent-region (point) end))))))
 
 (provide 'js2r-vars)
 ;;; js2-vars.el ends here
