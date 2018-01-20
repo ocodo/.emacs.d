@@ -4,7 +4,7 @@
 
 ;; Author: Adam Niederer <adam.niederer@gmail.com>
 ;; URL: http://github.com/AdamNiederer/ssass-mode
-;; Package-Version: 20170817.1216
+;; Package-Version: 20171201.509
 ;; Version: 0.1
 ;; Keywords: languages sass
 ;; Package-Requires: ((emacs "24.3"))
@@ -123,6 +123,7 @@ Use --sass for sassc, and --indented-syntax for node-sass."
   "Return whether LINE is a selector."
   (not (or (string-empty-p line)
            (string-match-p ssass-key-regex line)
+           (string-match-p ssass-variable-regex line)
            (string-match-p ssass-directive-noindent-regex line)
            (string-match-p ssass-comment-regex line))))
 
