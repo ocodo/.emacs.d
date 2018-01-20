@@ -8,7 +8,7 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;;         Kyle Hargraves <pd@krh.me>
 ;; URL: http://github.com/nonsequitur/inf-ruby
-;; Package-Version: 20170615.335
+;; Package-Version: 20171211.225
 ;; Created: 8 April 1998
 ;; Keywords: languages ruby
 ;; Version: 2.5.1
@@ -885,7 +885,8 @@ Gemfile, it should use the `gemspec' instruction."
   "Check if MODE is a Ruby compilation mode."
   (member mode '(rspec-compilation-mode
                  ruby-compilation-mode
-                 projectile-rails-server-mode)))
+                 projectile-rails-server-mode
+                 minitest-compilation-mode)))
 
 ;;;###autoload
 (defun inf-ruby-auto-enter ()
