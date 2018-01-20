@@ -1,13 +1,13 @@
 ;;; inf-clojure.el --- Run an external Clojure process in an Emacs buffer -*- lexical-binding: t; -*-
 
-;; Copyright © 2014-2017 Bozhidar Batsov
+;; Copyright © 2014-2018 Bozhidar Batsov
 
 ;; Authors: Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Olin Shivers <shivers@cs.cmu.edu>
 ;; URL: http://github.com/clojure-emacs/inf-clojure
-;; Package-Version: 20171120.2310
+;; Package-Version: 20180102.1324
 ;; Keywords: processes, clojure
-;; Version: 2.1.0-snapshot
+;; Version: 2.1.0
 ;; Package-Requires: ((emacs "24.4") (clojure-mode "5.6"))
 
 ;; This file is part of GNU Emacs.
@@ -78,7 +78,7 @@
   :link '(url-link :tag "GitHub" "https://github.com/clojure-emacs/inf-clojure")
   :link '(emacs-commentary-link :tag "Commentary" "inf-clojure"))
 
-(defconst inf-clojure-version "2.1.0-snapshot"
+(defconst inf-clojure-version "2.1.0"
   "The current version of `inf-clojure'.")
 
 (defcustom inf-clojure-prompt-read-only t
@@ -190,6 +190,14 @@ number (e.g. (\"localhost\" . 5555))."
    (stringp (car x))
    (numberp (cdr x))))
 
+(defcustom inf-clojure-project-type nil
+  "Defines the project type.
+
+If this is `nil`, the project will be automatically detected."
+  :type 'string
+  :safe #'stringp
+  :package-version '(inf-clojure . "2.1.0"))
+
 (defcustom inf-clojure-lein-cmd "lein repl"
   "The command used to start a Clojure REPL for Leiningen projects.
 
@@ -217,6 +225,19 @@ often connecting to a remote REPL process."
   :risky #'stringp
   :safe #'inf-clojure--endpoint-p
   :package-version '(inf-clojure . "2.0.0"))
+
+(defcustom inf-clojure-tools-deps-cmd "clj"
+  "The command used to start a Clojure REPL for tools.deps projects.
+
+Alternatively you can specify a TCP connection cons pair, instead
+of command, consisting of a host and port
+number (e.g. (\"localhost\" . 5555)).  That's useful if you're
+often connecting to a remote REPL process."
+  :type '(choice (string)
+                 (cons string integer))
+  :risky #'stringp
+  :safe #'inf-clojure--endpoint-p
+  :package-version '(inf-clojure . "2.1.0"))
 
 (defcustom inf-clojure-generic-cmd "lein repl"
   "The command used to start a Clojure REPL outside Lein/Boot projects.
@@ -272,9 +293,10 @@ See http://blog.jorgenschaefer.de/2014/05/race-conditions-in-emacs-process-filte
 (defun inf-clojure--set-repl-type (proc)
   "Set the REPL type if has not already been set.
 It requires a REPL PROC for inspecting the correct type."
-  (if (not inf-clojure-repl-type)
-      (setq inf-clojure-repl-type (inf-clojure--detect-repl-type proc))
-    inf-clojure-repl-type))
+  (with-current-buffer inf-clojure-buffer
+    (if (not inf-clojure-repl-type)
+        (setq inf-clojure-repl-type (inf-clojure--detect-repl-type proc))
+      inf-clojure-repl-type)))
 
 (defun inf-clojure--single-linify (string)
   "Convert a multi-line STRING in a single-line STRING.
@@ -309,8 +331,7 @@ always be preferred over `comint-send-string`.  It delegates to
 the string for evaluation.  Refer to `comint-simple-send` for
 customizations."
   (inf-clojure--set-repl-type proc)
-  (when (> (length string) 0)
-    (comint-simple-send proc string)))
+  (comint-simple-send proc string))
 
 (defcustom inf-clojure-load-form "(clojure.core/load-file \"%s\")"
   "Format-string for building a Clojure expression to load a file.
@@ -496,7 +517,7 @@ to continue it."
    (t str)))
 
 (defvar inf-clojure-project-root-files
-  '("project.clj" "build.boot")
+  '("project.clj" "build.boot" "deps.edn")
   "A list of files that can be considered project markers.")
 
 (defun inf-clojure-project-root ()
@@ -512,16 +533,19 @@ Fallback to `default-directory.' if not within a project."
 
 (defun inf-clojure-project-type ()
   "Determine the type, either leiningen or boot of the current project."
-  (let ((default-directory (inf-clojure-project-root)))
-    (cond ((file-exists-p "project.clj") "lein")
-          ((file-exists-p "build.boot") "boot")
-          (t nil))))
+  (or inf-clojure-project-type
+      (let ((default-directory (inf-clojure-project-root)))
+        (cond ((file-exists-p "project.clj") "lein")
+              ((file-exists-p "build.boot") "boot")
+              ((file-exists-p "deps.edn") "tools.deps")
+              (t "generic")))))
 
 (defun inf-clojure-cmd (project-type)
   "Determine the command `inf-clojure' needs to invoke for the PROJECT-TYPE."
   (pcase project-type
     ("lein" inf-clojure-lein-cmd)
     ("boot" inf-clojure-boot-cmd)
+    ("tools.deps" inf-clojure-tools-deps-cmd)
     (_ inf-clojure-generic-cmd)))
 
 (defun inf-clojure-clear-repl-buffer ()
@@ -1188,7 +1212,7 @@ prefix argument PROMPT-FOR-NS, it prompts for a namespace name."
 
 (defun inf-clojure-set-ns (prompt-for-ns)
   "Set the ns of the inferior Clojure process to NS.
-See variable `inf-clojure-set-ns-form`.  It defaults to the ns of
+See variable `inf-clojure-set-ns-form'.  It defaults to the ns of
 the current buffer.  When invoked with a prefix argument
 PROMPT-FOR-NS, it prompts for a namespace name."
   (interactive "P")
@@ -1232,14 +1256,52 @@ See variable `inf-clojure-buffer'."
   "Return DATA if and only if it is a list."
   (when (listp data) data))
 
+(defun inf-clojure-list-completions (response-str)
+  "Parse completions from RESPONSE-STR.
+
+Its only ability is to parse a Lisp list of candidate strings,
+every other EXPR will be discarded and nil will be returned."
+  (thread-first
+      response-str
+    (inf-clojure--read-or-nil)
+    (inf-clojure--list-or-nil)))
+
 (defun inf-clojure-completions (expr)
-  "Return a list of completions for the Clojure expression starting with EXPR."
+  "Return completions for the Clojure expression starting with EXPR.
+
+Under the hood it calls the function
+\\[inf-clojure-completions-fn] passing in the result of
+evaluating \\[inf-clojure-completion-form] at the REPL."
   (when (not (string-blank-p expr))
-    (thread-first
-        (format (inf-clojure-completion-form) (substring-no-properties expr))
-      (inf-clojure--process-response (inf-clojure-proc) "(" ")")
-      (inf-clojure--read-or-nil)
-      (inf-clojure--list-or-nil))))
+    (let ((proc (inf-clojure-proc))
+          (completion-form (format (inf-clojure-completion-form) (substring-no-properties expr))))
+      (funcall inf-clojure-completions-fn
+               (inf-clojure--process-response completion-form proc  "(" ")")))))
+
+(defcustom inf-clojure-completions-fn 'inf-clojure-list-completions
+  "The function that parses completion results.
+
+It is a single-arity function that will receive the REPL
+evaluation result of \\[inf-clojure-completion-form] as string and
+should return elisp data compatible with your completion mode.
+
+The easiest possible data passed in input is a list of
+candidates (e.g.: (\"def\" \"defn\")) but more complex libraries
+like `alexander-yakushev/compliment' can return other things like
+edn.
+
+The expected return depends on the mode that you use for
+completion: usually it is something compatible with
+\\[completion-at-point-functions] but other modes like
+`company-mode' allow an even higher level of sophistication.
+
+The default value is the `inf-clojure-list-completions' function,
+which is able to parse results in list form only.  You can peek
+at its implementation for getting to know some utility functions
+you might want to use in your customization."
+  :type 'function
+  :safe #'functionp
+  :package-version '(inf-clojure . "2.1.0"))
 
 (defconst inf-clojure-clojure-expr-break-chars " \t\n\"\'`><,;|&{()[]")
 
