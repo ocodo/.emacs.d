@@ -1,11 +1,11 @@
 ;;; datetime.el --- Parsing, formatting and matching timestamps  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016 Paul Pogonyshev
+;; Copyright (C) 2016-2018 Paul Pogonyshev
 
 ;; Author:     Paul Pogonyshev <pogonyshev@gmail.com>
 ;; Maintainer: Paul Pogonyshev <pogonyshev@gmail.com>
-;; Version:    0.2.1
-;; Package-Version: 20170928.815
+;; Version:    0.3.2
+;; Package-Version: 20180118.837
 ;; Keywords:   lisp, i18n
 ;; Homepage:   https://github.com/doublep/datetime
 ;; Package-Requires: ((emacs "24.1"))
@@ -70,12 +70,12 @@
 ;;   weekday-context-name (full | abbreviated)
 ;;   weekday-standalone-name (full | abbreviated)
 ;;
-;;   am/pm (full | abbreviated)
+;;   am-pm (full | abbreviated)
 ;;
 ;;   hour-0-23 (NUMBER)
 ;;   hour-1-24 (NUMBER)
-;;   hour-am/pm-0-11 (NUMBER)
-;;   hour-am/pm-1-12 (NUMBER)
+;;   hour-am-pm-0-11 (NUMBER)
+;;   hour-am-pm-1-12 (NUMBER)
 ;;
 ;;   minute (NUMBER)
 ;;   second (NUMBER)
@@ -164,7 +164,7 @@
                   (push (cons (pcase character
                                 (?G 'era)
                                 (?E 'weekday-context-name)
-                                (?a 'am/pm))
+                                (?a 'am-pm))
                               (if (>= num-repetitions 4) 'full 'abbreviated))
                         parts))
                  ((or ?y ?Y)
@@ -187,8 +187,8 @@
                  (?F (push (cons 'weekday-in-month num-repetitions) parts))
                  (?H (push (cons 'hour-0-23        num-repetitions) parts))
                  (?k (push (cons 'hour-1-24        num-repetitions) parts))
-                 (?K (push (cons 'hour-am/pm-0-11  num-repetitions) parts))
-                 (?h (push (cons 'hour-am/pm-1-12  num-repetitions) parts))
+                 (?K (push (cons 'hour-am-pm-0-11  num-repetitions) parts))
+                 (?h (push (cons 'hour-am-pm-1-12  num-repetitions) parts))
                  (?m (push (cons 'minute           num-repetitions) parts))
                  (?s (push (cons 'second           num-repetitions) parts))
                  (?S (push (cons (if (plist-get options :second-fractional-extension) 'second-fractional 'millisecond)
@@ -250,8 +250,8 @@
                           (`weekday-in-month  (cons ?F details))
                           (`hour-0-23         (cons ?H details))
                           (`hour-1-24         (cons ?k details))
-                          (`hour-am/pm-0-11   (cons ?K details))
-                          (`hour-am/pm-1-12   (cons ?h details))
+                          (`hour-am-pm-0-11   (cons ?K details))
+                          (`hour-am-pm-1-12   (cons ?h details))
                           (`minute            (cons ?m details))
                           (`second            (cons ?s details))
                           (`decimal-separator details)
@@ -259,7 +259,7 @@
                           (`second-fractional (if (plist-get options :second-fractional-extension)
                                                   (cons ?S details)
                                                 (error "`second-fractional' extension is not enabled")))
-                          (`am/pm             "a")
+                          (`am-pm             "a")
                           (_                  (error "Unexpected part type %s" type)))))
           (push (cond ((integerp string)
                        (string string))
@@ -382,12 +382,12 @@ specified otherwise.
                                                                                  :weekday-standalone-abbr
                                                                                :weekday-standalone-names))
                                                nil)))
-                          (`am/pm
-                           (regexp-opt (append (datetime-locale-field locale :am/pm) nil)))
+                          (`am-pm
+                           (regexp-opt (append (datetime-locale-field locale :am-pm) nil)))
                           (`hour-0-23        23)
                           (`hour-1-24        24)
-                          (`hour-am/pm-0-11  11)
-                          (`hour-am/pm-1-12  12)
+                          (`hour-am-pm-0-11  11)
+                          (`hour-am-pm-1-12  12)
                           (`minute           59)
                           (`second           59)
                           (`decimal-separator (rx (or "." ",")))
@@ -463,7 +463,7 @@ Options can be a list of the following keyword arguments:
   "Determine if PATTERN includes any locale-based parts.
 In other words, return non-nil if PATTERN includes any textual
 names."
-  (datetime--pattern-includes-p type pattern era month-context-name month-standalone-name weekday-context-name weekday-standalone-name am/pm))
+  (datetime--pattern-includes-p type pattern era month-context-name month-standalone-name weekday-context-name weekday-standalone-name am-pm))
 
 (defun datetime-pattern-includes-era-p (type pattern)
   "Determine if PATTERN includes the date era."
@@ -483,7 +483,7 @@ names."
 
 (defun datetime-pattern-includes-hour-p (type pattern)
   "Determine if PATTERN includes hours."
-  (datetime--pattern-includes-p type pattern hour-0-23 hour-1-24 hour-am/pm-0-11 hour-am/pm-1-12))
+  (datetime--pattern-includes-p type pattern hour-0-23 hour-1-24 hour-am-pm-0-11 hour-am-pm-1-12))
 
 (defun datetime-pattern-includes-minute-p (type pattern)
   "Determine if PATTERN includes minutes."
@@ -567,13 +567,10 @@ separated by a space, for a few locales it is different."
   (or (plist-get locale-data field)
       ;; See `datetime--locale-data' for description of fallbacks.
       (pcase field
-        (:decimal-separator        ?.)
-        (:eras                     datetime--english-eras)
         (:month-standalone-abbr    (plist-get locale-data :month-context-abbr))
         (:month-standalone-names   (plist-get locale-data :month-context-names))
         (:weekday-standalone-abbr  (plist-get locale-data :weekday-context-abbr))
-        (:weekday-standalone-names (plist-get locale-data :weekday-context-names))
-        (:am/pm                    datetime--english-am-pm))))
+        (:weekday-standalone-names (plist-get locale-data :weekday-context-names)))))
 
 (defun datetime-locale-field (locale field)
   "Get a FIELD of data for the LOCALE.
@@ -595,7 +592,11 @@ Supported fields:
   (or (datetime--do-get-locale-field (cdr (assq locale datetime--locale-data)) field)
       (let ((name (symbol-name locale)))
         (when (> (length name) 3)
-          (datetime--do-get-locale-field (cdr (assq (intern (substring name 0 2)) datetime--locale-data)) field)))))
+          (datetime--do-get-locale-field (cdr (assq (intern (substring name 0 2)) datetime--locale-data)) field)))
+      (pcase field
+        (:decimal-separator ?.)
+        (:eras              datetime--english-eras)
+        (:am-pm             datetime--english-am-pm))))
 
 
 ;; Extracted from Java using `dev/HarvestData.java'.  All patterns are
@@ -695,7 +696,6 @@ Supported fields:
      :month-context-names      ["Januar" "Februar" "März" "April" "Mai" "Juni" "Juli" "August" "September" "Oktober" "November" "Dezember"]
      :weekday-context-abbr     ["Mo" "Di" "Mi" "Do" "Fr" "Sa" "So"]
      :weekday-context-names    ["Montag" "Dienstag" "Mittwoch" "Donnerstag" "Freitag" "Samstag" "Sonntag"]
-     :month-standalone-abbr    ["Jan" "Feb" "Mrz" "Apr" "Mai" "Jun" "Jul" "Aug" "Sep" "Okt" "Nov" "Dez"]
      :date-patterns            (:short "dd.MM.yy" :medium "dd.MM.yyyy" :long "d. MMMM yyyy" :full "EEEE, d. MMMM yyyy")
      :time-patterns            (:short "HH:mm" :medium "HH:mm:ss" :long "HH:mm:ss z" :full "HH:mm' Uhr 'z"))
     (de-AT
@@ -748,6 +748,8 @@ Supported fields:
      :time-patterns            (:short "h:mm a" :medium "h:mm:ss a" :full "h:mm:ss a z"))
     (en-PH
      :date-patterns            (:short "M/d/yy" :medium "MM d, yy" :long "MMMM d, yyyy" :full "EEEE, MMMM d, yyyy"))
+    (en-SG
+     :date-patterns            (:short "d/M/yy" :medium "d MMM, yyyy" :long "d MMMM, yyyy" :full "EEEE, d MMMM, yyyy"))
     (en-ZA
      :date-patterns            (:short "yyyy/MM/dd" :medium "dd MMM yyyy" :long "dd MMMM yyyy" :full "EEEE dd MMMM yyyy")
      :time-patterns            (:short "h:mm a" :medium "h:mm:ss a"))
@@ -838,7 +840,7 @@ Supported fields:
      :month-standalone-abbr    ["tammi" "helmi" "maalis" "huhti" "touko" "kesä" "heinä" "elo" "syys" "loka" "marras" "joulu"]
      :month-standalone-names   ["tammikuu" "helmikuu" "maaliskuu" "huhtikuu" "toukokuu" "kesäkuu" "heinäkuu" "elokuu" "syyskuu" "lokakuu" "marraskuu" "joulukuu"]
      :am-pm                    ["ap." "ip."]
-     :date-patterns            (:medium "d.M.yyyy" :long "d. MMMM'ta 'yyyy")
+     :date-patterns            (:medium "d.M.yyyy" :long "d. MMMM yyyy")
      :time-patterns            (:short "H:mm" :medium "H:mm:ss" :long "'klo 'H.mm.ss" :full "H.mm.ss z"))
     (fr
      :decimal-separator        ?,
@@ -888,8 +890,8 @@ Supported fields:
      :time-patterns            (:short "h:mm a" :medium "h:mm:ss a" :long "h:mm:ss a z"))
     (hi-IN
      :eras                     ["ईसापूर्व" "सन"]
-     :month-context-abbr       ["जनवरी" "फ़रवरी" "मार्च" "अप्रैल" "मई" "जून" "जुलाई" "अगस्त" "सितंबर" "अक्‍तूबर" "नवंबर" "दिसंबर"]
-     :month-context-names      ["जनवरी" "फ़रवरी" "मार्च" "अप्रैल" "मई" "जून" "जुलाई" "अगस्त" "सितंबर" "अक्‍तूबर" "नवंबर" "दिसंबर"]
+     :month-context-abbr       ["जनवरी" "फ़रवरी" "मार्च" "अप्रैल" "मई" "जून" "जुलाई" "अगस्त" "सितंबर" "अक्तूबर" "नवंबर" "दिसंबर"]
+     :month-context-names      ["जनवरी" "फ़रवरी" "मार्च" "अप्रैल" "मई" "जून" "जुलाई" "अगस्त" "सितंबर" "अक्तूबर" "नवंबर" "दिसंबर"]
      :weekday-context-abbr     ["सोम" "मंगल" "बुध" "गुरु" "शुक्र" "शनि" "रवि"]
      :weekday-context-names    ["सोमवार" "मंगलवार" "बुधवार" "गुरुवार" "शुक्रवार" "शनिवार" "रविवार"]
      :am-pm                    ["पूर्वाह्न" "अपराह्न"]
