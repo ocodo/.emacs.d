@@ -4,7 +4,7 @@
 
 ;; Author: codefalling <code.falling@gmail.com>
 ;; Keywords: languages
-;; Package-Version: 20171029.1905
+;; Package-Version: 20180104.1611
 
 ;; Version: 0.3.1
 ;; Package-Requires: ((mmm-mode "0.5.4") (vue-html-mode "0.1") (ssass-mode "0.1") (edit-indirect "0.1.4"))
@@ -61,8 +61,44 @@
     (:type style :name less :mode less-css-mode)
     (:type style :name scss :mode css-mode)
     (:type style :name sass :mode ssass-mode))
-  "A list of vue component languages, their type, and their corresponding major modes."
-  :type '(list (plist :type 'symbol :name 'symbol :mode 'function))
+  "A list of vue component languages.
+
+A component language consists of a langauge type, name, and
+corresponding submode.
+
+The language type is the tag which this languge is valid under -
+one of template, script, or style.
+
+The language name is the value of the lang=\"\" element in the
+opening tag of the language section. If there is no lang=\"\"
+element, the the language name is nil.
+
+The submode to activate is the major mode which should be used
+for all text in the language section.
+
+For example, somebody wishing to activate pug-mode in blocks like
+<template lang=\"pug\"> </template> would add an entry with the
+language type to template, the language name to pug, and the
+submode to pug-mode."
+  :type '(repeat (list (const :format "Language Type: " :type)
+                       (choice (const template)
+                               (const script)
+                               (const style))
+                       (const :format "" :name)
+                       (symbol :format "Language Name: %v")
+
+                       (const :format "" :mode)
+                       (symbol :format "Submode to activate: %v")))
+  :group 'vue)
+
+(defcustom vue-dedicated-modes nil
+  "A list of modes to override in dedicated buffers.
+
+For example, if you would like your javascript to display with
+`js-mode' in the root window and `js2-mode' in a dedicated buffer,
+add an entry with a root mode of `js-mode' and dedicated mode of `js2-mode'"
+  :type '(plist :key-type (symbol :format "Root mode: %v")
+                :value-type (symbol :format "Dedicated mode: %v"))
   :group 'vue)
 
 (defvar vue-mode-map
@@ -90,7 +126,7 @@
    "\\|"
    "\\w\\{5,\\}=" ; A 5+-character word
    "\\)")
-  "Matches anything but 'lang'. See `vue--front-tag-regex'")
+  "Matches anything but 'lang'. See `vue--front-tag-regex'.")
 
 (defconst vue--front-tag-lang-regex
   (concat "<%s"                        ; The tag name
@@ -143,7 +179,7 @@ appease modes which rely on constructs like (point-min) to indent."
         (mmm-narrow-to-submode-region)
         (funcall (get
                   (if (and mmm-current-overlay
-                           (> (overlay-end mmm-current-overlay) (point)))
+                           (>= (overlay-end mmm-current-overlay) (point)))
                       mmm-current-submode
                     mmm-primary-mode)
                   'mmm-indent-line-function)))
@@ -169,7 +205,8 @@ Then, indent all submodes overlapping the region according to
   "Open the section of the template at point with `edit-indirect-mode'."
   (interactive)
   (if mmm-current-overlay
-      (let ((indirect-mode mmm-current-submode))
+      (let ((indirect-mode (or (plist-get vue-dedicated-modes mmm-current-submode)
+                               mmm-current-submode)))
         (setq-local edit-indirect-after-creation-hook (list (lambda () (funcall indirect-mode))))
         (edit-indirect-region (overlay-start mmm-current-overlay)
                               (1- (overlay-end mmm-current-overlay)) ;; Work around edit-indirect-mode bug
@@ -180,14 +217,15 @@ Then, indent all submodes overlapping the region according to
 (defun vue-mode-edit-all-indirect (&optional keep-windows)
   "Open all subsections with `edit-indirect-mode' in seperate windows.
 If KEEP-WINDOWS is set, do not delete other windows and keep the root window
-open in a window."
+open."
   (interactive "P")
   (when (not keep-windows)
     (delete-other-windows))
   (save-selected-window
     (dolist (ol (mmm-overlays-contained-in (point-min) (point-max)))
       (let* ((window (split-window-below))
-             (mode (overlay-get ol 'mmm-mode))
+             (mode (or (plist-get vue-dedicated-modes (overlay-get ol 'mmm-mode))
+                       (overlay-get ol 'mmm-mode)))
              (buffer (edit-indirect-region (overlay-start ol) (overlay-end ol))))
         (maximize-window)
         (with-current-buffer buffer
