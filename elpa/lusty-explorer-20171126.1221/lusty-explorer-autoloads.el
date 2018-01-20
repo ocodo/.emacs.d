@@ -1,10 +1,10 @@
 ;;; lusty-explorer-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "lusty-explorer" "lusty-explorer.el" (21841
-;;;;;;  22649 419401 0))
+;;;### (autoloads nil "lusty-explorer" "lusty-explorer.el" (23138
+;;;;;;  48203 601604 244000))
 ;;; Generated autoloads from lusty-explorer.el
 
 (autoload 'lusty-file-explorer "lusty-explorer" "\
@@ -19,7 +19,8 @@ Launch the buffer mode of LustyExplorer.
 
 (defvar lusty-explorer-mode nil "\
 Non-nil if Lusty-Explorer mode is enabled.
-See the command `lusty-explorer-mode' for a description of this minor mode.")
+See the `lusty-explorer-mode' command
+for a description of this minor mode.")
 
 (custom-autoload 'lusty-explorer-mode "lusty-explorer" nil)
 

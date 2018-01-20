@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008 Stephen Bach <http://items.sjbach.com/about>
 ;;
 ;; Version: 2.5
-;; Package-Version: 20150508.1557
+;; Package-Version: 20171126.1221
 ;; Created: July 27, 2010
 ;; Keywords: convenience, files, matching
 ;; Compatibility: GNU Emacs 22, 23, and 24
@@ -86,11 +86,6 @@
 
 ;; Used only for its faces (for color-theme).
 (require 'dired)
-;; Backward compatibility: use noflet if present, fallback to (deprecated since 24.3) flet otherwise
-(defalias 'lusty--flet 'flet)
-(when (require 'noflet nil 'noerror)
-  (defalias 'lusty--flet 'noflet))
-
 
 (declaim (optimize (speed 3) (safety 0)))
 
@@ -205,7 +200,7 @@ buffer names in the matches window; 0.10 = %10."
            (>= y (length (aref lusty--matches-matrix 0)))
            (null (aref (aref lusty--matches-matrix x) y)))))
 
-(defsubst lusty--compute-column-width (start-index end-index lengths-v lengths-h)
+(defun lusty--compute-column-width (start-index end-index lengths-v lengths-h)
   (if (= start-index end-index)
       ;; Single-element remainder
       (aref lengths-v start-index)
@@ -227,7 +222,7 @@ buffer names in the matches window; 0.10 = %10."
                      (max first-half second-half)
                      lengths-h))))))
 
-(defsubst lusty--propertize-path (path)
+(defun lusty--propertize-path (path)
   "Propertize the given PATH like so: <dir></> or <file>.
 Uses the faces `lusty-directory-face', `lusty-slash-face', and
 `lusty-file-face'."
@@ -627,7 +622,7 @@ does not begin with '.'."
 ;; already split frame is not a living window.
 (defun lusty-lowest-window ()
   "Return the lowest window on the frame."
-  (lusty--flet ((iterate-non-dedicated-window (start-win direction)
+  (cl-flet ((iterate-non-dedicated-window (start-win direction)
            ;; Skip dedicated windows when iterating.
            (let ((iterating-p t)
                  (next start-win))
@@ -729,7 +724,7 @@ does not begin with '.'."
 (defun lusty-buffer-list ()
   "Return a list of buffers ordered with those currently visible at the end."
   (let ((visible-buffers '()))
-    (lusty--flet ((add-buffer-maybe (window)
+    (cl-flet ((add-buffer-maybe (window)
              (let ((b (window-buffer window)))
                (unless (memq b visible-buffers)
                  (push b visible-buffers)))))
@@ -1053,7 +1048,7 @@ does not begin with '.'."
 (defconst LM--score-trailing-but-started 0.90)
 (defconst LM--score-buffer 0.85)
 
-(defsubst* LM-score (str abbrev)
+(defun* LM-score (str abbrev)
   (let ((str-len (length str))
         (abbrev-len (length abbrev)))
     (cond ;((string= abbrev "")  ; Disabled; can't happen in practice
