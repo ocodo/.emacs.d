@@ -1,3 +1,160 @@
+2018-01-08  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Declare any search started with `el-search-this-sexp' single-buffer
+
+	* el-search/el-search.el (el-search-this-sexp): Do it.
+
+2018-01-08  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Add two more autoload cookies
+
+	(el-search-pattern-backwards, el-search-this-sexp): Add autoload cookie.
+
+2018-01-08  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	New option value ask-multi for `el-search-auto-save-buffers'
+
+	This should be a bit more convenient than 'ask in practice.
+
+	* el-search/el-search.el (el-search-auto-save-buffers): Add new value
+	'ask-multi.
+	(el-search--search-and-replace-pattern): Do the right thing for the new
+	value.
+	* el-search/NEWS: New file, start filling it.
+
+2018-01-05  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Get rid of orgstruct-mode
+
+	orgstruct-mode will probably be obsoleted soon.	 Replace its usage in
+	*El Occur* buffers with similar functions offered by outline.el.
+
+	(el-search-occur-cycle): Reimplement to use functions from outline.el; 
+	add docstring.
+	(el-search-occur-tab-command): New command.
+	(el-search-occur-mode-map): Bind TAB to `el-search-occur-tab-command'.
+	(el-search-occur-mode): Enable `outline-minor-mode' instead of
+	`orgstruct-mode'.
+
+2018-01-05  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Allow `string' and `symbol' el-search patterns to set match data
+
+	The rationale is to allow to use the match data when replacing symbols 
+	and strings via `el-search-query-replace'.
+
+	* packages/el-search/el-search.el (el-search--string-matcher): Use
+	`string-match' instead of `string-match-p.
+	(symbol): Add to documentation an example of using match data with 
+	query-replace.
+
+2018-01-05  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Update copyrights of some packages
+
+	Update copyrights of el-search, iterators, on-screen and smart-yank.
+
+2017-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make the some-context function include an opening backquote
+
+	When choosing `el-search-occur-get-some-context' as
+	`el-search-get-occur-context-function', when the calculated context 
+	follows a backquote, also include that backquote.
+
+	This also works around one symptom of Emacs bug#29857.
+
+	* el-search/el-search.el (el-search-occur-get-some-context): Do it.
+
+2017-12-26  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Some buffer display related minor tweaks
+
+	(el-search-jump-to-search-head): Use `redisplay' and `sleep-for' to 
+	ensure the correct behavior when `pop-to-buffer' generated frame focus 
+	events.
+	(el-search-occur-jump-to-match): Call `el-search--occur-button-action' 
+	with an empty `display-buffer' action list.
+	(el-search--occur-button-action): Define with `cl-defun' to be able to 
+	decide whether the DISPLAY-BUFFER-ACTION argument is specified.
+	(el-search--search-and-replace-pattern): Minor tweaks.
+
+2017-12-26  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	; * el-search/el-search.el: Mention Emacs Bug#29857 in the header
+
+2017-12-26  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Declare doc-string in el-search-defpattern
+
+2017-12-07  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	packages/el-search: Some minor tweaks
+
+	* el-search/el-search.el: Explicitly require 'seq.
+	(el-search--read-pattern-for-interactive): Rename to
+	`el-search-read-pattern-for-interactive'; change callers.
+	(el-search--search-and-replace-pattern): Give a short message when 
+	switching to the next buffer. And some doc changes, minor tweaks, added
+	comments, and wording improvements.
+	* el-search/el-search-x.el (el-search--file-changed-p): Don't wrap into
+	`ignore-errors' and don't nil-bind `vc-git-diff-switches' (not needed).
+
+2017-12-06  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Shorten the query-replace prompt
+
+	Try to make the prompt of `el-search-query-replace' fit into one visible
+	line.
+
+	(el-search--search-and-replace-pattern): Do it.
+	(el-search-query-replace): Move the elaborations about splicing submode
+	to this command's documentation.
+
+2017-12-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Use local binding of `post-command-hook' to reset wrap flag
+
+	The current search is a global thing, so we must use the global value of
+	`post-command-hook' to reset the `el-search--wrap-flag'.
+
+2017-12-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix resuming a single-buffer query-replace
+
+2017-12-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Display match count for *El Occur* buffers
+
+	Make `el-search-occur-next-match' and `el-search-occur-previous-match' 
+	display an x/y-style match count.
+
+2017-12-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix starting a search with `el-search-this-sexp'
+
+	Improve behavior of `el-search-jump-to-search-head' and
+	`el-search-query-replace' called directly after `el-search-this-sexp'.
+
+2017-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* el-search/el-search.el: Minor tweak.
+
+	(el-search-make-search): Use `letrec'.
+	(el-search-previous-match): Specify when it was obsoleted.
+
+2017-11-30  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve folding behavior in *El Occur* buffers
+
+2017-11-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix resuming search in a modified buffer
+
+2017-11-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Show match count for `el-search-query-replace'
+
 2017-11-23  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	New command `el-search-count-matches'

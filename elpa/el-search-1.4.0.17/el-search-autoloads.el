@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "el-search" "el-search.el" (23064 61774 394969
-;;;;;;  743000))
+;;;### (autoloads nil "el-search" "el-search.el" (23138 48773 230428
+;;;;;;  845000))
 ;;; Generated autoloads from el-search.el
 
 (autoload 'el-search-count-matches "el-search" "\
@@ -43,6 +43,23 @@ See `el-search-defined-patterns' for a list of defined patterns.
 \(fn PATTERN)" t nil)
 
 (function-put 'el-search-pattern 'interactive-only 'el-search-forward)
+
+(autoload 'el-search-pattern-backwards "el-search" "\
+Search the current buffer backwards for matches of PATTERN.
+
+\(fn PATTERN)" t nil)
+
+(function-put 'el-search-pattern-backwards 'interactive-only 't)
+
+(autoload 'el-search-this-sexp "el-search" "\
+Prepare to el-search the `sexp-at-point'.
+
+Grab the `sexp-at-point' SEXP and prepare to el-search the
+current buffer for other matches of 'SEXP.
+
+Use the normal search commands to seize the search.
+
+\(fn SEXP)" t nil)
 
 (autoload 'el-search-buffers "el-search" "\
 Search all live elisp buffers for PATTERN.
@@ -106,6 +123,17 @@ multi-buffer query-replace this way when the current search is
 multi-buffer.  When not called after a search command,
 query-replace all matches following point in the current buffer.
 
+It is also possible to replace matches with an arbitrary number
+of expressions (even with zero expressions, effectively deleting
+matches) by using the \"splicing\" submode that can be toggled
+from the prompt with \"s\".  When splicing mode is on (default
+off), the replacement expression must evaluate to a list, and all
+of the list's elements are inserted in order.
+
+The optional argument TEXTUAL-TO is bound by the interactive form
+to the text form of the replacement expression specified.  It is
+consulted to construct the text form of each replacement.
+
 \(fn FROM-PATTERN TO-EXPR &optional TEXTUAL-TO)" t nil)
 
 (autoload 'el-search-search-from-isearch "el-search" "\
@@ -134,8 +162,8 @@ Reuse already given input.
 
 ;;;***
 
-;;;### (autoloads nil nil ("el-search-pkg.el" "el-search-x.el") (23064
-;;;;;;  61774 398969 733000))
+;;;### (autoloads nil nil ("el-search-pkg.el" "el-search-x.el") (23138
+;;;;;;  48773 266428 883000))
 
 ;;;***
 
