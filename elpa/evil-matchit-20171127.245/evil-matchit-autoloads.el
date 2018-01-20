@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "evil-matchit" "evil-matchit.el" (23064 61716
-;;;;;;  495121 871000))
+;;;### (autoloads nil "evil-matchit" "evil-matchit.el" (23138 48723
+;;;;;;  198373 127000))
 ;;; Generated autoloads from evil-matchit.el
 
 (autoload 'evilmi-select-items "evil-matchit" "\
@@ -71,8 +71,8 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 
 ;;;***
 
-;;;### (autoloads nil "evil-matchit-c" "evil-matchit-c.el" (23064
-;;;;;;  61716 491121 881000))
+;;;### (autoloads nil "evil-matchit-c" "evil-matchit-c.el" (23138
+;;;;;;  48723 194373 122000))
 ;;; Generated autoloads from evil-matchit-c.el
 
 (autoload 'evilmi-c-get-tag "evil-matchit-c" "\
@@ -88,7 +88,7 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-cmake" "evil-matchit-cmake.el"
-;;;;;;  (23064 61716 487121 892000))
+;;;;;;  (23138 48723 190373 118000))
 ;;; Generated autoloads from evil-matchit-cmake.el
 
 (autoload 'evilmi-cmake-get-tag "evil-matchit-cmake" "\
@@ -104,7 +104,7 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-diff" "evil-matchit-diff.el"
-;;;;;;  (23064 61716 495121 871000))
+;;;;;;  (23138 48723 202373 131000))
 ;;; Generated autoloads from evil-matchit-diff.el
 
 (autoload 'evilmi-diff-get-tag "evil-matchit-diff" "\
@@ -120,7 +120,7 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-fortran" "evil-matchit-fortran.el"
-;;;;;;  (23064 61716 207122 641000))
+;;;;;;  (23138 48723 178373 105000))
 ;;; Generated autoloads from evil-matchit-fortran.el
 
 (autoload 'evilmi-fortran-get-tag "evil-matchit-fortran" "\
@@ -136,7 +136,7 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-html" "evil-matchit-html.el"
-;;;;;;  (23064 61716 483121 902000))
+;;;;;;  (23138 48723 190373 118000))
 ;;; Generated autoloads from evil-matchit-html.el
 
 (autoload 'evilmi-html-get-tag "evil-matchit-html" "\
@@ -152,7 +152,7 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-javascript" "evil-matchit-javascript.el"
-;;;;;;  (23064 61716 507121 838000))
+;;;;;;  (23138 48723 206373 135000))
 ;;; Generated autoloads from evil-matchit-javascript.el
 
 (autoload 'evilmi-javascript-get-tag "evil-matchit-javascript" "\
@@ -168,7 +168,7 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-latex" "evil-matchit-latex.el"
-;;;;;;  (23064 61716 207122 641000))
+;;;;;;  (23138 48723 178373 105000))
 ;;; Generated autoloads from evil-matchit-latex.el
 
 (autoload 'evilmi-latex-get-tag "evil-matchit-latex" "\
@@ -184,7 +184,7 @@ See `evil-matchit-mode' for more information on Evil-Matchit mode.
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-markdown" "evil-matchit-markdown.el"
-;;;;;;  (23064 61716 503121 849000))
+;;;;;;  (23138 48723 206373 135000))
 ;;; Generated autoloads from evil-matchit-markdown.el
 
 (autoload 'evilmi-markdown-get-tag "evil-matchit-markdown" "\
@@ -201,7 +201,7 @@ Jump to the next tag.
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-ocaml" "evil-matchit-ocaml.el"
-;;;;;;  (23064 61716 475121 924000))
+;;;;;;  (23138 48723 186373 114000))
 ;;; Generated autoloads from evil-matchit-ocaml.el
 
 (autoload 'evilmi-ocaml-get-tag "evil-matchit-ocaml" "\
@@ -216,8 +216,8 @@ Return information of current tag: (list position-of-word word).
 
 ;;;***
 
-;;;### (autoloads nil "evil-matchit-org" "evil-matchit-org.el" (23064
-;;;;;;  61716 215122 620000))
+;;;### (autoloads nil "evil-matchit-org" "evil-matchit-org.el" (23138
+;;;;;;  48723 182373 109000))
 ;;; Generated autoloads from evil-matchit-org.el
 
 (autoload 'evilmi-org-get-tag "evil-matchit-org" "\
@@ -233,7 +233,7 @@ Return information of current tag: (list position-of-word word).
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-python" "evil-matchit-python.el"
-;;;;;;  (23064 61716 199122 662000))
+;;;;;;  (23138 48723 174373 101000))
 ;;; Generated autoloads from evil-matchit-python.el
 
 (autoload 'evilmi-python-get-tag "evil-matchit-python" "\
@@ -249,7 +249,7 @@ Return information of current tag: (list position-of-word word).
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-ruby" "evil-matchit-ruby.el"
-;;;;;;  (23064 61716 491121 881000))
+;;;;;;  (23138 48723 198373 127000))
 ;;; Generated autoloads from evil-matchit-ruby.el
 
 (autoload 'evilmi-ruby-get-tag "evil-matchit-ruby" "\
@@ -265,7 +265,7 @@ Return information of current tag: (list position-of-word word).
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-script" "evil-matchit-script.el"
-;;;;;;  (23064 61716 487121 892000))
+;;;;;;  (23138 48723 194373 122000))
 ;;; Generated autoloads from evil-matchit-script.el
 
 (autoload 'evilmi-script-get-tag "evil-matchit-script" "\
@@ -280,8 +280,8 @@ Return information of current tag: (list position-of-word word).
 
 ;;;***
 
-;;;### (autoloads nil "evil-matchit-sdk" "evil-matchit-sdk.el" (23064
-;;;;;;  61716 499121 859000))
+;;;### (autoloads nil "evil-matchit-sdk" "evil-matchit-sdk.el" (23138
+;;;;;;  48723 202373 131000))
 ;;; Generated autoloads from evil-matchit-sdk.el
 
 (autoload 'evilmi-sdk-curline "evil-matchit-sdk" "\
@@ -307,14 +307,16 @@ Return '(start-point ((row column is-function-exit-point keyword)).
 \(fn MATCH-TAGS HOWTOS)" nil nil)
 
 (autoload 'evilmi-sdk-jump "evil-matchit-sdk" "\
-
+Use RLT, NUM, MATCH-TAGS and HOWTOS to jump.
+Return nil if no matching tag found.  Please note (point) is changed
+after calling this function.
 
 \(fn RLT NUM MATCH-TAGS HOWTOS)" nil nil)
 
 ;;;***
 
-;;;### (autoloads nil "evil-matchit-sh" "evil-matchit-sh.el" (23064
-;;;;;;  61716 203122 651000))
+;;;### (autoloads nil "evil-matchit-sh" "evil-matchit-sh.el" (23138
+;;;;;;  48723 178373 105000))
 ;;; Generated autoloads from evil-matchit-sh.el
 
 (autoload 'evilmi-sh-get-tag "evil-matchit-sh" "\
@@ -330,7 +332,7 @@ Return '(start-point ((row column is-function-exit-point keyword)).
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-simple" "evil-matchit-simple.el"
-;;;;;;  (23064 61716 211122 630000))
+;;;;;;  (23138 48723 182373 109000))
 ;;; Generated autoloads from evil-matchit-simple.el
 
 (autoload 'evilmi-simple-get-tag "evil-matchit-simple" "\
@@ -345,8 +347,8 @@ Return '(start-point ((row column is-function-exit-point keyword)).
 
 ;;;***
 
-;;;### (autoloads nil "evil-matchit-sql" "evil-matchit-sql.el" (23064
-;;;;;;  61716 503121 849000))
+;;;### (autoloads nil "evil-matchit-sql" "evil-matchit-sql.el" (23138
+;;;;;;  48723 206373 135000))
 ;;; Generated autoloads from evil-matchit-sql.el
 
 (autoload 'evilmi-sql-get-tag "evil-matchit-sql" "\
@@ -362,7 +364,7 @@ Return '(start-point ((row column is-function-exit-point keyword)).
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-template" "evil-matchit-template.el"
-;;;;;;  (23064 61716 215122 620000))
+;;;;;;  (23138 48723 182373 109000))
 ;;; Generated autoloads from evil-matchit-template.el
 
 (autoload 'evilmi-template-get-tag "evil-matchit-template" "\
@@ -378,7 +380,7 @@ Return '(start-point ((row column is-function-exit-point keyword)).
 ;;;***
 
 ;;;### (autoloads nil "evil-matchit-verilog" "evil-matchit-verilog.el"
-;;;;;;  (23064 61716 479121 913000))
+;;;;;;  (23138 48723 190373 118000))
 ;;; Generated autoloads from evil-matchit-verilog.el
 
 (autoload 'evilmi-verilog-get-tag "evil-matchit-verilog" "\
@@ -393,8 +395,8 @@ Return '(start-point ((row column is-function-exit-point keyword)).
 
 ;;;***
 
-;;;### (autoloads nil nil ("evil-matchit-pkg.el") (23064 61716 479121
-;;;;;;  913000))
+;;;### (autoloads nil nil ("evil-matchit-pkg.el") (23138 48723 186373
+;;;;;;  114000))
 
 ;;;***
 
