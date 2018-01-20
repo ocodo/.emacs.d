@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "purescript-align-imports" "purescript-align-imports.el"
-;;;;;;  (22613 12783 74474 304000))
+;;;;;;  (23138 47922 468931 848000))
 ;;; Generated autoloads from purescript-align-imports.el
 
 (autoload 'purescript-align-imports "purescript-align-imports" "\
@@ -15,7 +15,7 @@ Align all the imports in the buffer.
 ;;;***
 
 ;;;### (autoloads nil "purescript-decl-scan" "purescript-decl-scan.el"
-;;;;;;  (22613 12782 730464 309000))
+;;;;;;  (23138 47922 396931 638000))
 ;;; Generated autoloads from purescript-decl-scan.el
 
 (autoload 'purescript-ds-create-imenu-index "purescript-decl-scan" "\
@@ -71,7 +71,7 @@ Invokes `purescript-decl-scan-mode-hook' on activation.
 ;;;***
 
 ;;;### (autoloads nil "purescript-font-lock" "purescript-font-lock.el"
-;;;;;;  (22613 12782 982471 631000))
+;;;;;;  (23138 47922 448931 790000))
 ;;; Generated autoloads from purescript-font-lock.el
 
 (autoload 'purescript-font-lock-choose-keywords "purescript-font-lock" "\
@@ -82,7 +82,7 @@ Invokes `purescript-decl-scan-mode-hook' on activation.
 ;;;***
 
 ;;;### (autoloads nil "purescript-indent" "purescript-indent.el"
-;;;;;;  (22613 12783 90474 769000))
+;;;;;;  (23138 47922 472931 860000))
 ;;; Generated autoloads from purescript-indent.el
 
 (autoload 'turn-on-purescript-indent "purescript-indent" "\
@@ -119,7 +119,7 @@ Invokes `purescript-indent-hook' if not nil.
 ;;;***
 
 ;;;### (autoloads nil "purescript-indentation" "purescript-indentation.el"
-;;;;;;  (22613 12782 990471 864000))
+;;;;;;  (23138 47922 452931 801000))
 ;;; Generated autoloads from purescript-indentation.el
 
 (autoload 'purescript-indentation-mode "purescript-indentation" "\
@@ -137,8 +137,8 @@ Turn on the purescript-indentation minor mode.
 
 ;;;***
 
-;;;### (autoloads nil "purescript-mode" "purescript-mode.el" (22613
-;;;;;;  12783 66474 72000))
+;;;### (autoloads nil "purescript-mode" "purescript-mode.el" (23138
+;;;;;;  47922 468931 848000))
 ;;; Generated autoloads from purescript-mode.el
 
 (autoload 'purescript-version "purescript-mode" "\
@@ -192,7 +192,7 @@ As `purescript-mode' but for literate scripts.
 ;;;***
 
 ;;;### (autoloads nil "purescript-move-nested" "purescript-move-nested.el"
-;;;;;;  (22613 12782 738464 542000))
+;;;;;;  (23138 47922 400931 650000))
 ;;; Generated autoloads from purescript-move-nested.el
 
 (autoload 'purescript-move-nested "purescript-move-nested" "\
@@ -226,7 +226,7 @@ of the region instead.
 ;;;***
 
 ;;;### (autoloads nil "purescript-navigate-imports" "purescript-navigate-imports.el"
-;;;;;;  (22613 12782 974471 398000))
+;;;;;;  (23138 47922 448931 790000))
 ;;; Generated autoloads from purescript-navigate-imports.el
 
 (autoload 'purescript-navigate-imports "purescript-navigate-imports" "\
@@ -247,8 +247,8 @@ Return to the non-import point we were at before going to the module list.
 
 ;;;***
 
-;;;### (autoloads nil "purescript-show" "purescript-show.el" (22613
-;;;;;;  12783 2472 212000))
+;;;### (autoloads nil "purescript-show" "purescript-show.el" (23138
+;;;;;;  47922 452931 801000))
 ;;; Generated autoloads from purescript-show.el
 
 (autoload 'purescript-show-replace "purescript-show" "\
@@ -271,7 +271,7 @@ Parse the given input into a tree.
 ;;;***
 
 ;;;### (autoloads nil "purescript-simple-indent" "purescript-simple-indent.el"
-;;;;;;  (22613 12783 30473 25000))
+;;;;;;  (23138 47922 460931 825000))
 ;;; Generated autoloads from purescript-simple-indent.el
 
 (autoload 'purescript-simple-indent-mode "purescript-simple-indent" "\
@@ -295,7 +295,7 @@ Turn on function `purescript-simple-indent-mode'.
 ;;;***
 
 ;;;### (autoloads nil "purescript-sort-imports" "purescript-sort-imports.el"
-;;;;;;  (22613 12782 770465 471000))
+;;;;;;  (23138 47922 404931 662000))
 ;;; Generated autoloads from purescript-sort-imports.el
 
 (autoload 'purescript-sort-imports "purescript-sort-imports" "\
@@ -306,7 +306,7 @@ Turn on function `purescript-simple-indent-mode'.
 ;;;***
 
 ;;;### (autoloads nil "purescript-string" "purescript-string.el"
-;;;;;;  (22613 12783 98475 2000))
+;;;;;;  (23138 47922 472931 860000))
 ;;; Generated autoloads from purescript-string.el
 
 (autoload 'purescript-trim "purescript-string" "\
@@ -327,7 +327,7 @@ Is x string a prefix of y string?
 ;;;***
 
 ;;;### (autoloads nil "purescript-unicode-input-method" "purescript-unicode-input-method.el"
-;;;;;;  (22613 12783 50473 607000))
+;;;;;;  (23138 47922 464931 837000))
 ;;; Generated autoloads from purescript-unicode-input-method.el
 
 (autoload 'turn-on-purescript-unicode-input-method "purescript-unicode-input-method" "\
@@ -338,8 +338,8 @@ See Info node `Unicode(purescript-mode)' for more details.
 
 ;;;***
 
-;;;### (autoloads nil "purescript-yas" "purescript-yas.el" (22613
-;;;;;;  12783 62473 956000))
+;;;### (autoloads nil "purescript-yas" "purescript-yas.el" (23138
+;;;;;;  47922 464931 837000))
 ;;; Generated autoloads from purescript-yas.el
 
 (autoload 'purescript-yas-complete "purescript-yas" "\
@@ -351,8 +351,8 @@ See Info node `Unicode(purescript-mode)' for more details.
 
 ;;;### (autoloads nil nil ("purescript-collapse.el" "purescript-mode-pkg.el"
 ;;;;;;  "purescript-package.el" "purescript-presentation-mode.el"
-;;;;;;  "purescript-str.el" "purescript-utils.el") (22613 12783 46473
-;;;;;;  491000))
+;;;;;;  "purescript-str.el" "purescript-utils.el") (23138 47922 460931
+;;;;;;  825000))
 
 ;;;***
 
