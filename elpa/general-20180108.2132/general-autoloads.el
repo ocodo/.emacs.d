@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "general" "general.el" (23064 61491 595780
-;;;;;;  673000))
+;;;### (autoloads nil "general" "general.el" (23138 48668 510309
+;;;;;;  588000))
 ;;; Generated autoloads from general.el
 
 (autoload 'general-define-key "general" "\
@@ -145,6 +145,17 @@ correspond to keybindings.
 
 (function-put 'general-def 'lisp-indent-function 'defun)
 
+(autoload 'general-defs "general" "\
+A wrapper that splits into multiple `general-def's.
+Each consecutive grouping of positional argument followed by keyword/argument
+pairs (having only one or the other is fine) marks the start of a new section.
+Each section corresponds to one use of `general-def'. This means that settings
+only apply to the keybindings that directly follow.
+
+\(fn &rest ARGS)" nil t)
+
+(function-put 'general-defs 'lisp-indent-function 'defun)
+
 (autoload 'general-describe-keybindings "general" "\
 Show all keys that have been bound with general in an org buffer.
 Any local keybindings will be shown first followed by global keybindings.
@@ -203,24 +214,44 @@ version of which-key from after 2016-11-21.
 
 (function-put 'general-key-dispatch 'lisp-indent-function '1)
 
-(autoload 'general-translate-keys "general" "\
-Translate keys in the keymap corresponding to STATE and KEYMAP-NAME.
-STATE should be the name of an evil state or nil. KEYMAP-NAME should be a symbol
-corresponding to the keymap to make the translations in. MAPS corresponds to a
-list of translations (key replacement pairs). For example, specifying \"a\"
-\"b\" will bind \"a\" to \"b\"'s definition in the keymap. If DESTRUCTIVE is
-non-nil, the keymap will be destructively altered without a backup being
-created. If DESTRUCTIVE is nil, a backup of the keymap will be stored on the
-initial invocation, and future invocations will always reference the backup
-keymap, meaning that invocations are idempotent. On the other hand, if
-DESTRUCTIVE is non-nil, calling this function multiple times with \"a\" \"b\"
-\"b\" \"a\", for example, would continue to swap and unswap the definitions of
-these keys. This means that when DESTRUCTIVE is non-nil, all related
-swaps/cycles should be done in the same invocation.
+(autoload 'general-translate-key "general" "\
+Translate keys in the keymap(s) corresponding to STATES and KEYMAPS.
+STATES should be the name of an evil state, a list of states, or nil. KEYMAPS
+should be a symbol corresponding to the keymap to make the translations in or a
+list of keymap names. Keymap and state aliases are supported (as well as 'local
+and 'global for KEYMAPS). MAPS corresponds to a list of translations (key
+replacement pairs). For example, specifying \"a\" \"b\" will bind \"a\" to
+\"b\"'s definition in the keymap. When `general-implicit-kbd' is non-nil, `kbd'
+will be used on the keys and their replacements. If DESTRUCTIVE is non-nil, the
+keymap will be destructively altered without a backup being created. If
+DESTRUCTIVE is nil, a backup of the keymap will be stored on the initial
+invocation, and future invocations will always look up keys in the backup
+keymap. On the other hand, if DESTRUCTIVE is non-nil, calling this function
+multiple times with \"a\" \"b\" \"b\" \"a\", for example, would continue to swap
+and unswap the definitions of these keys. This means that when DESTRUCTIVE is
+non-nil, all related swaps/cycles should be done in the same invocation.
 
-\(fn STATE KEYMAP-NAME &rest MAPS &key DESTRUCTIVE &allow-other-keys)" nil nil)
+\(fn STATES KEYMAPS &rest MAPS &key DESTRUCTIVE &allow-other-keys)" nil nil)
 
-(function-put 'general-translate-keys 'lisp-indent-function 'defun)
+(function-put 'general-translate-key 'lisp-indent-function 'defun)
+
+(autoload 'general-swap-key "general" "\
+Wrapper around `general-translate-key' for swapping keys.
+STATES, KEYMAPS, and ARGS are passed to `general-translate-key'. ARGS should
+consist of key swaps (e.g. \"a\" \"b\" is equivalent to \"a\" \"b\" \"b\" \"a\"
+with `general-translate-key') and optionally keyword arguments for
+`general-translate-key'.
+
+\(fn STATES KEYMAPS &rest ARGS)" nil t)
+
+(function-put 'general-swap-key 'lisp-indent-function 'defun)
+
+(autoload 'general-auto-unbind-keys "general" "\
+Advise `define-key' to automatically unbind keys when necessary.
+This will prevent errors when a sub-sequence of a key is already bound (e.g.
+the user attempts to bind \"SPC a\" when \"SPC\" is bound).
+
+\(fn)" nil nil)
 
 (autoload 'general-add-hook "general" "\
 A drop-in replacement for `add-hook'.
@@ -272,6 +303,10 @@ Specifying SHORT-NAMES as non-nil will create non-prefixed function
 aliases such as `nmap' for `general-nmap'.
 
 \(fn &optional SHORT-NAMES DEFAULT-TO-STATES)" nil t)
+
+;;;***
+
+;;;### (autoloads nil nil ("general-pkg.el") (23138 48666 50306 655000))
 
 ;;;***
 
