@@ -6,7 +6,7 @@
 ;; Author: Alex Bennée <alex@bennee.com>
 ;; Maintainer: Alex Bennée <alex@bennee.com>
 ;; Version: 1.14
-;; Package-Version: 20170725.859
+;; Package-Version: 20180117.716
 ;; Homepage: https://github.com/stsquad/emacs_chrome
 
 ;; This file is not part of GNU Emacs.
@@ -464,6 +464,17 @@ non-nil, then STRING is also echoed to the message line."
 	(setq edit-server-received 0)
 	(setq edit-server-phase 'wait)))))
 
+(defun edit-server-make-frame ()
+  "Create a frame for editing and return it."
+  (let ((disp (getenv "DISPLAY")))
+    (edit-server-log nil "Creating frame for %s/%s" window-system disp)
+    (if (or (memq window-system '(ns mac))
+            (= 0 (length disp)))
+      ;; Aquamacs, Emacs NS, Emacs (experimental) Mac port, termcap.
+      ;; matching (nil) avoids use of DISPLAY from TTY environments.
+      (make-frame edit-server-new-frame-alist)
+    (make-frame-on-display disp))))
+
 (defun edit-server-foreground-request (buffer)
   "Bring Emacs into the foreground after a request from Chrome.
 `buffer' is the process buffer which contains any potential contents
@@ -474,25 +485,17 @@ The new frame will have a specific frame parameter of
   (when (bufferp buffer)
     (with-current-buffer buffer
       (kill-ring-save (point-min) (point-max))))
-  
+
   (when edit-server-new-frame
     (set-frame-parameter
-     (make-frame-on-display (getenv "DISPLAY")
-                            edit-server-new-frame-alist)
-     'edit-server-forground-frame 't)))
+     (edit-server-make-frame) 'edit-server-forground-frame 't)))
 
 (defun edit-server-show-edit-buffer (buffer)
   "Show edit `BUFFER' by creating a frame or raising the selected
 frame. If a frame was created it returns `FRAME'."
   (let ((edit-frame nil))
     (when edit-server-new-frame
-      (setq edit-frame
-            (if (memq window-system '(ns mac nil))
-                ;; Aquamacs, Emacs NS, Emacs (experimental) Mac port, termcap.
-                ;; matching (nil) avoids use of DISPLAY from TTY environments.
-                (make-frame edit-server-new-frame-alist)
-              (make-frame-on-display (getenv "DISPLAY")
-                                     edit-server-new-frame-alist)))
+      (setq edit-frame (edit-server-make-frame))
       (unless edit-server-new-frame-mode-line
         (setq mode-line-format nil))
       (select-frame edit-frame)
@@ -543,7 +546,7 @@ and save the network process for the final call back"
 
     (edit-server-log proc "copying new data into buffer")
     (copy-to-buffer buffer (point-min) (point-max))
-    
+
     (with-current-buffer buffer
       (setq edit-server-url (with-current-buffer (process-buffer proc) edit-server-url))
       (edit-server-choose-major-mode)
@@ -641,7 +644,9 @@ When called interactively, use prefix arg to abort editing."
       (unless nokill
         ;; don't run abort twice in a row.
         (remove-hook 'kill-buffer-hook 'edit-server-abort*)
-	(kill-buffer buffer))
+	(kill-buffer buffer)
+	(unless edit-server-frame
+	  (delete-window)))
       (edit-server-kill-client proc))))
 
 ;; edit-server-save uses the iterative edit-server option (send a
