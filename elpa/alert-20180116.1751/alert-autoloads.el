@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "alert" "alert.el" (23064 61963 246510 59000))
+;;;### (autoloads nil "alert" "alert.el" (23138 48969 470629 48000))
 ;;; Generated autoloads from alert.el
 
 (autoload 'alert-add-rule "alert" "\
@@ -51,6 +51,8 @@ arguments to specify additional details.  Here is a full example:
        :persistent nil          ;; Force the alert to be persistent;
                                 ;; it is best not to use this
        :never-persist nil       ;; Force this alert to never persist
+       :id \\='my-id)              ;; Used to replace previous message of
+                                ;; the same id in styles that support it
        :style \\='fringe)          ;; Force a given style to be used;
                                 ;; this is only for debugging!
 
@@ -80,7 +82,7 @@ Here are some more typical examples of usage:
   (alert \"This is an alert\" :title \"My Alert\"
          :category \\='some-category-or-other)
 
-\(fn MESSAGE &key (severity (quote normal)) TITLE ICON CATEGORY BUFFER MODE DATA STYLE PERSISTENT NEVER-PERSIST)" nil nil)
+\(fn MESSAGE &key (severity (quote normal)) TITLE ICON CATEGORY BUFFER MODE DATA STYLE PERSISTENT NEVER-PERSIST ID)" nil nil)
 
 ;;;***
 
