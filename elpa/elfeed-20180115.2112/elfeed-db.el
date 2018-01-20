@@ -77,6 +77,9 @@ This is a chance to add custom tags to new entries.")
   "Functions in this list are called with no arguments any time
 the :last-update time is updated.")
 
+(defvar elfeed-db-unload-hook ()
+  "Hook to run immediately after `elfeed-db-unload'.")
+
 ;; Data model:
 
 (cl-defstruct (elfeed-feed (:constructor elfeed-feed--create))
@@ -275,6 +278,10 @@ The FEED-OR-ID may be a feed struct or a feed ID (url)."
         (prin1 elfeed-db)
         :success))))
 
+(defun elfeed-db-save-safe ()
+  "Run `elfeed-db-save' without triggering any errors, for use as a safe hook."
+  (ignore-errors (elfeed-db-save)))
+
 (defun elfeed-db-upgrade ()
   "Upgrade the database from a previous format."
   (let ((entries (cl-loop for entry hash-values of elfeed-db-entries
@@ -305,10 +312,17 @@ The FEED-OR-ID may be a feed struct or a feed ID (url)."
                 :entries ,(make-hash-table :test 'equal)
                 ;; Compiler may warn about this (bug#15327):
                 :index ,(avl-tree-create #'elfeed-db-compare)))
-      (with-current-buffer (find-file-noselect index :nowarn)
-        (goto-char (point-min))
-        (setf elfeed-db (read (current-buffer)))
-        (kill-buffer)))
+      ;; Override the default value for major-mode. There is no
+      ;; preventing find-file-noselect from starting the default major
+      ;; mode while also having it handle buffer conversion. Some
+      ;; major modes crash Emacs when enabled in large buffers (e.g.
+      ;; org-mode). This includes the Elfeed index, so we must not let
+      ;; this happen.
+      (cl-letf (((default-value 'major-mode) 'fundamental-mode))
+        (with-current-buffer (find-file-noselect index :nowarn)
+          (goto-char (point-min))
+          (setf elfeed-db (read (current-buffer)))
+          (kill-buffer))))
     (setf elfeed-db-feeds (plist-get elfeed-db :feeds)
           elfeed-db-entries (plist-get elfeed-db :entries)
           elfeed-db-index (plist-get elfeed-db :index)
@@ -318,13 +332,16 @@ The FEED-OR-ID may be a feed struct or a feed ID (url)."
       (elfeed-db-upgrade))))
 
 (defun elfeed-db-unload ()
-  "Unload the database so that it can be operated on externally."
+  "Unload the database so that it can be operated on externally.
+
+Runs `elfeed-db-unload-hook' after unloading the database."
   (interactive)
   (elfeed-db-save)
   (setf elfeed-db nil
         elfeed-db-feeds nil
         elfeed-db-entries nil
-        elfeed-db-index nil))
+        elfeed-db-index nil)
+  (run-hooks 'elfeed-db-unload-hook))
 
 (defun elfeed-db-ensure ()
   "Ensure that the database has been loaded."
@@ -550,7 +567,7 @@ gzip-compressed files, so the gzip program must be in your PATH."
 
 (unless noninteractive
   (add-hook 'kill-emacs-hook #'elfeed-db-gc-safe :append)
-  (add-hook 'kill-emacs-hook #'elfeed-db-save))
+  (add-hook 'kill-emacs-hook #'elfeed-db-save-safe))
 
 (provide 'elfeed-db)
 

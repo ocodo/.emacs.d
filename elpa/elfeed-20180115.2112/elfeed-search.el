@@ -210,11 +210,19 @@ When live editing the filter, it is bound to :live.")
   (add-hook 'elfeed-update-hooks #'elfeed-search-update)
   (add-hook 'elfeed-update-init-hooks #'elfeed-search-update--force)
   (add-hook 'kill-buffer-hook #'elfeed-db-save t t)
+  (add-hook 'elfeed-db-unload-hook #'elfeed-search--unload)
   (elfeed-search-update :force)
   (run-mode-hooks 'elfeed-search-mode-hook))
 
 (defun elfeed-search-buffer ()
   (get-buffer-create "*elfeed-search*"))
+
+(defun elfeed-search--unload ()
+  "Hook function for `elfeed-db-unload-hook'."
+  (with-current-buffer (elfeed-search-buffer)
+    ;; don't try to save the database in this case
+    (remove-hook 'kill-buffer-hook #'elfeed-db-save t)
+    (kill-buffer )))
 
 (defun elfeed-search-format-date (date)
   "Format a date for printing in `elfeed-search-mode'.
@@ -782,6 +790,7 @@ Sets the :title key of the feed's metadata. See `elfeed-meta'."
     (prog1 table
       (modify-syntax-entry ?+ "w" table)
       (modify-syntax-entry ?- "w" table)
+      (modify-syntax-entry ?= "w" table)
       (modify-syntax-entry ?@ "w" table)))
   "Syntax table active when editing the filter in the minibuffer.")
 
