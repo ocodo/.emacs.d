@@ -6,7 +6,7 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2012
 ;; Keywords: http
-;; Package-Version: 20170727.825
+;; Package-Version: 20171203.1248
 
 ;; This file is not part of GNU Emacs.
 ;; This file is public domain software. Do what you want.
@@ -542,17 +542,22 @@ Optional argument STAY-IN-WINDOW do not move focus to response buffer if t."
     (modify-syntax-entry ?\n ">#" table)
     table))
 
+(defvar restclient-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-c") 'restclient-http-send-current)
+    (define-key map (kbd "C-c C-r") 'restclient-http-send-current-raw)
+    (define-key map (kbd "C-c C-v") 'restclient-http-send-current-stay-in-window)
+    (define-key map (kbd "C-c C-n") 'restclient-jump-next)
+    (define-key map (kbd "C-c C-p") 'restclient-jump-prev)
+    (define-key map (kbd "C-c C-.") 'restclient-mark-current)
+    (define-key map (kbd "C-c C-u") 'restclient-copy-curl-command)
+    (define-key map (kbd "C-c n n") 'restclient-narrow-to-current)
+    map)
+  "Keymap for restclient-mode.")
+
 ;;;###autoload
 (define-derived-mode restclient-mode fundamental-mode "REST Client"
   "Turn on restclient mode."
-  (local-set-key (kbd "C-c C-c") 'restclient-http-send-current)
-  (local-set-key (kbd "C-c C-r") 'restclient-http-send-current-raw)
-  (local-set-key (kbd "C-c C-v") 'restclient-http-send-current-stay-in-window)
-  (local-set-key (kbd "C-c C-n") 'restclient-jump-next)
-  (local-set-key (kbd "C-c C-p") 'restclient-jump-prev)
-  (local-set-key (kbd "C-c C-.") 'restclient-mark-current)
-  (local-set-key (kbd "C-c C-u") 'restclient-copy-curl-command)
-  (local-set-key (kbd "C-c n n") 'restclient-narrow-to-current)
   (set (make-local-variable 'comment-start) "# ")
   (set (make-local-variable 'comment-start-skip) "# *")
   (set (make-local-variable 'comment-column) 48)
