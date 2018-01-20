@@ -1,10 +1,10 @@
 ;;; flx-isearch-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "flx-isearch" "flx-isearch.el" (22160 39007
-;;;;;;  697521 851000))
+;;;### (autoloads nil "flx-isearch" "flx-isearch.el" (23138 48686
+;;;;;;  70330 303000))
 ;;; Generated autoloads from flx-isearch.el
 
 (autoload 'flx-isearch-mode "flx-isearch" "\
