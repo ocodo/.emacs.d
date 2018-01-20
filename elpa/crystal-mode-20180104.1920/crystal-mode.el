@@ -3,11 +3,11 @@
 ;; Copyright (C) 2015 Jason Pellerin
 ;; Authors: Jason Pellerin
 ;; URL: https://github.com/crystal-lang-tools/emacs-crystal-mode
-;; Package-Version: 20171023.212
+;; Package-Version: 20180104.1920
 ;; Created: Tue Jun 23 2015
 ;; Keywords: languages crystal
-;; Version: 0.1
-;; Package-Requires: ((emacs "24.3"))
+;; Version: 0.1.0
+;; Package-Requires: ((emacs "24.4"))
 
 
 ;; Based on on ruby-mode.el
@@ -41,6 +41,9 @@
 ;; Still needs more docstrings; search below for TODO.
 
 ;;; Code:
+
+(require 'compile)
+(require 'xref nil :noerror)  ; xref is new in Emacs 25.1
 
 (defgroup crystal nil
   "Major mode for editing Crystal code."
@@ -163,6 +166,8 @@ This should only be called after matching against `crystal-here-doc-beg-re'."
     (define-key map (kbd "M-C-n") 'crystal-end-of-block)
     (define-key map (kbd "C-c {") 'crystal-toggle-block)
     (define-key map (kbd "C-c '") 'crystal-toggle-string-quotes)
+    (define-key map (kbd "C-c C-j") 'crystal-def-jump)
+    (define-key map (kbd "C-x 4 C-c C-j") 'crystal-def-jump-other-window)
     map)
   "Keymap used in Crystal mode.")
 
@@ -192,7 +197,16 @@ This should only be called after matching against `crystal-here-doc-beg-re'."
     ["Indent Sexp" prog-indent-sexp
      :visible crystal-use-smie]
     "--"
-    ["Format" crystal-format t]))
+    ["Jump to Definition" crystal-def-jump t]
+    ["Format" crystal-tool-format t]
+    ("Tool"
+     ["Expand macro" crystal-tool-expand t]
+     ["Show context" crystal-tool-context t]
+     ["Show imp" crystal-tool-imp t])
+    ("Spec"
+     ["Switch" crystal-spec-switch t]
+     ["Call buffer" crystal-spec-buffer t]
+     ["Call project" crystal-spec-all t])))
 
 (defvar crystal-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -650,7 +664,7 @@ It is used when `crystal-encoding-magic-comment-style' is set to `custom'."
      ;; as the last token inside of the macro expr
      ;;((looking-at crystal-macro-cmd-re) "{%end%}")
      ;;((looking-at crystal-macro-end-cmd-re) (match-string 1))
-     ((looking-back "%}")
+     ((looking-back "%}" (line-beginning-position))
       ;; (message "looking back at a macro cmd")
       ;; scan backawards to {%
       (re-search-backward "{%")
@@ -1553,7 +1567,8 @@ by `end-of-defun'."
   (interactive "p")
   (crystal-forward-sexp)
   (let (case-fold-search)
-    (when (looking-back (concat "^\\s *" crystal-block-end-re))
+    (when (looking-back (concat "^\\s *" crystal-block-end-re)
+                        (line-beginning-position))
       (forward-line 1))))
 
 (defun crystal-beginning-of-indent ()
@@ -2280,7 +2295,8 @@ See `font-lock-syntax-table'.")
           "public_class_method"
           "public_constant"
           "refine"
-          "using")
+          "using"
+          "record")
         'symbols))
      (1 (unless (looking-at " *\\(?:[]|,.)}=]\\|$\\)")
           font-lock-builtin-face)))
@@ -2398,11 +2414,14 @@ See `font-lock-syntax-table'.")
 ;;;; Crystal tooling functions
 (defun crystal-exec (args output-buffer-name)
   "Run crystal with the supplied args and put the result in output-buffer-name"
-  (apply 'call-process
-         (append (list crystal-executable nil output-buffer-name t)
-                 args)))
+  (let ((default-directory (crystal-find-project-root)))
+    ;;(message "Crystal-exec: %s %s "crystal-executable args)
+    (apply 'call-process
+           (append (list crystal-executable nil output-buffer-name t)
+                   args))))
 
-(defun crystal-format ()
+;;;###autoload
+(defun crystal-tool-format ()
   "Format the contents of the current buffer without persisting the result."
   (interactive)
   (let ((oldbuf (current-buffer))
@@ -2410,6 +2429,209 @@ See `font-lock-syntax-table'.")
     (with-temp-file name (insert-buffer-substring oldbuf))
     (crystal-exec (list "tool" "format" name) "*messages*")
     (insert-file-contents name nil nil nil t)))
+
+;;;###autoload
+(defun crystal-tool-expand ()
+  "Expand macro at point."
+  (interactive)
+  (crystal-tool--location "expand" t))
+
+;;;###autoload
+(defun crystal-tool-imp ()
+  "Show implementations at point."
+  (interactive)
+  (or buffer-file-name
+      (error "Cannot use implementations on a buffer without a file name"))
+  (crystal-tool--location "implementations"))
+
+;;;###autoload
+(defun crystal-tool-context()
+  "Show content at point."
+  (interactive)
+  (crystal-tool--location "context"))
+
+(defun crystal-tool--location(sub-cmd &optional crystal-mode-p)
+  (let* ((name (or
+                (and (file-exists-p buffer-file-name) buffer-file-name)
+                   (make-temp-file (concat "crystal-" sub-cmd) nil ".cr")))
+         (lineno (number-to-string (line-number-at-pos)))
+         (colno (number-to-string (+ 1 (current-column))))
+         (bname (concat "*Crystal-" (capitalize sub-cmd) "*"))
+         (buffer (get-buffer-create bname)))
+    (unless (file-exists-p buffer-file-name)
+      (write-region nil nil name))
+    (with-current-buffer buffer
+      (read-only-mode -1)
+      (erase-buffer)
+      (when crystal-mode-p
+        (funcall 'crystal-mode)))
+      (crystal-exec (list "tool" sub-cmd "--no-color" "-c"
+                          (concat name ":" lineno ":" colno) name)
+                    bname)
+      (with-current-buffer buffer
+        (when (string-equal sub-cmd "implementations")
+          (compilation-mode))
+        (read-only-mode))
+    (display-buffer buffer)))
+
+(defun crystal-def--find-line-column (specifier other-window)
+  "Given a file name in the format of `filename:line:column',
+visit FILENAME and go to line LINE and column COLUMN."
+  (if (not (string-match "\\(.+\\):\\([0-9]+\\):\\([0-9]+\\)" specifier))
+      ;; We've only been given a directory name
+      (funcall (if other-window #'find-file-other-window #'find-file) specifier)
+    (let ((filename (match-string 1 specifier))
+          (line (string-to-number (match-string 2 specifier)))
+          (column (string-to-number (match-string 3 specifier))))
+      (funcall (if other-window #'find-file-other-window #'find-file) filename)
+      (crystal--goto-line line)
+      (beginning-of-line)
+      (forward-char (1- column))
+      (if (buffer-modified-p)
+          (message "Buffer is modified, file position might not have been correct")))))
+
+(defun crystal-def--call (point)
+  "Call crystal tool imp, acquiring definition position and expression
+description at POINT."
+  (if (not (buffer-file-name (current-buffer)))
+      (error "Cannot use crystal tool imp on a buffer without a file name")
+    (let ((fname (file-truename (buffer-file-name (current-buffer))))
+          (outbuf (generate-new-buffer "*Crystal-def*"))
+          (lineno (number-to-string (line-number-at-pos point)))
+          (colno (number-to-string (+ 1 (current-column)))))
+      (prog2
+          (crystal-exec (list
+                         "tool" "implementations"
+                         "--no-color"
+                         "-f" "json"
+                         "-c" (concat fname ":" lineno ":" colno) fname)
+                        outbuf)
+          (let* ((imp-res-str (with-current-buffer outbuf (buffer-string)))
+                 (imp-res-json (let ((json-key-type 'string))
+                                 (json-read-from-string imp-res-str))))
+            (message (format "imp-res: %s" imp-res-json))
+            (if (not (arrayp imp-res-json))
+                (if (string-equal (cdr (assoc "status" imp-res-json)) "ok")
+                    (let* ((imps (cdr (assoc "implementations" imp-res-json)))
+                           (imp (aref imps 0))
+                           (fname (cdr (assoc "filename" imp)))
+                           (line-num (number-to-string (cdr (assoc "line" imp))))
+                           (column-num (number-to-string (cdr (assoc "column" imp)))))
+                      (concat fname ":" line-num ":" column-num))
+                    (error (cdr (assoc "message" imp-res-json))))
+              (error "Failed to jump def")))
+        (kill-buffer outbuf)))))
+
+;;;###autoload
+(defun crystal-def-jump (point &optional other-window)
+  "Jump to the definition of the expression at POINT."
+  (interactive "d")
+  (condition-case nil
+      (let ((specifier (crystal-def--call point)))
+        (push-mark)
+        (if (eval-when-compile (fboundp 'xref-push-marker-stack))
+            ;; TODO: Integrate this facility with XRef.
+            (xref-push-marker-stack)
+          (ring-insert find-tag-marker-ring (point-marker)))
+        (crystal-def--find-line-column specifier other-window))
+    (file-error (message "Could not run crystal-def."))))
+
+;;;###autoload
+(defun crystal-def-jump-other-window (point)
+  (interactive "d")
+  (crystal-def-jump point t))
+
+(defun crystal--goto-line (line)
+  (goto-char (point-min))
+  (forward-line (1- line)))
+
+;;;###autoload
+(defun crystal-spec-switch ()
+  "Switch source file and its spec file."
+  (interactive)
+  (if (buffer-file-name)
+      (if (not (string-suffix-p "spec_helper.cr" (buffer-file-name)))
+          (crystal-spec--switch)
+        (error "Cannot switch on spec_helper.cr."))
+    (error "Cannot use crystal-spec-switch on a buffer without a file name.")))
+
+(defun crystal-spec--switch ()
+  (let* ((root-dir (file-truename (crystal-find-project-root)))
+         (fname (file-truename (buffer-file-name (current-buffer))))
+         (to-fname (crystal-spec--switch-to-fname root-dir fname)))
+    (message (format
+              "%s switch to %s"
+              (substring fname (length root-dir) nil)
+              (substring to-fname (length root-dir) nil)))
+      (if (file-exists-p to-fname)
+          (funcall #'find-file to-fname)
+        (when (y-or-n-p (format "%s not exist. Create?" (substring to-fname (length root-dir) nil)))
+          (funcall #'find-file to-fname)))))
+
+(defun crystal-spec--switch-to-fname (root-dir fname)
+  (let* ((fname-non-dir (file-name-nondirectory fname))
+         (fname-dir (file-name-directory fname))
+         (fname-relative-dir (substring fname-dir (length root-dir) nil)))
+    (if (string-suffix-p "_spec.cr" fname-non-dir)
+        (concat root-dir
+                "src"
+                (substring fname-relative-dir
+                           (length "spec") nil)
+                (replace-regexp-in-string "_spec.cr" ".cr" fname-non-dir))
+      (concat root-dir
+              "spec"
+              (substring fname-relative-dir
+                         (length "src") nil)
+              (replace-regexp-in-string ".cr" "_spec.cr" fname-non-dir)))))
+
+;;;###autoload
+(defun crystal-spec-buffer()
+  "Run spec for current buffer."
+  (interactive)
+  (if (buffer-file-name)
+      (let ((fname (file-truename (buffer-file-name))))
+        (if (string-suffix-p "_spec.cr" fname)
+            (crystal-spec--call fname)
+          (if (not (string-suffix-p "spec_helper.cr" (buffer-file-name)))
+            (let* ((root-dir (file-truename (crystal-find-project-root)))
+                  (fname (file-truename (buffer-file-name (current-buffer))))
+                  (to-fname (crystal-spec--switch-to-fname root-dir fname)))
+              (if (file-exists-p to-fname)
+                  (crystal-spec--call to-fname)
+                (error (format "%s not exist." to-fname))))
+            (error "Cannot use crystal spec on spec_helper.cr."))))
+    (error "Cannot use crystal spec on a buffer without a file name.")))
+
+;;;###autoload
+(defun crystal-spec-all()
+  "Run all specs for current project."
+  (interactive)
+   (crystal-spec--call nil))
+
+(defun crystal-spec--call (fname)
+  (let* ((bname "*Crystal-spec*")
+        (spec-buffer (get-buffer-create bname))
+        (spec-args (list "spec" "--no-color"))
+        (relative-dir-fname (when fname
+                              (substring fname
+                                         (length (file-truename (crystal-find-project-root))) nil))))
+    (when relative-dir-fname
+      (setq spec-args (append spec-args (list relative-dir-fname))))
+    (with-current-buffer spec-buffer
+      (read-only-mode -1)
+      (erase-buffer))
+    (crystal-exec spec-args bname)
+    (with-current-buffer spec-buffer
+      (read-only-mode))
+    (display-buffer spec-buffer)))
+
+(defun crystal-find-project-root ()
+  "Come up with a suitable directory where crystal can be run from.
+This will either be the directory that contains `shard.yml' or,
+if no such file is found in the directory hierarchy, the
+directory of the current file."
+  (or (locate-dominating-file default-directory "shard.yml")
+      default-directory))
 
 ;;;###autoload
 (define-derived-mode crystal-mode prog-mode "Crystal"
