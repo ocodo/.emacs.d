@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "zzz-to-char" "zzz-to-char.el" (22873 40603
-;;;;;;  0 0))
+;;;### (autoloads nil "zzz-to-char" "zzz-to-char.el" (23138 47513
+;;;;;;  491254 966000))
 ;;; Generated autoloads from zzz-to-char.el
 
 (autoload 'zzz-to-char "zzz-to-char" "\
