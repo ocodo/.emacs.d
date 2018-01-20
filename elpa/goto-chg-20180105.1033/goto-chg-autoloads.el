@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "goto-chg" "goto-chg.el" (23064 61461 343879
-;;;;;;  379000))
+;;;### (autoloads nil "goto-chg" "goto-chg.el" (23138 48598 370223
+;;;;;;  587000))
 ;;; Generated autoloads from goto-chg.el
 
 (autoload 'goto-last-change "goto-chg" "\
@@ -39,6 +39,11 @@ Go back to more recent changes after \\[goto-last-change] have been used.
 See `goto-last-change' for use of prefix argument.
 
 \(fn ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads nil nil ("goto-chg-pkg.el") (23138 48596 626221
+;;;;;;  380000))
 
 ;;;***
 
