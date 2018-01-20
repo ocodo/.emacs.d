@@ -5,10 +5,10 @@
 ;; Author: Gunther Hagleitner
 ;; Maintainer: Julien Pagès <j.parkouss@gmail.com>
 ;; Version: 1.0
-;; Package-Version: 20161230.815
+;; Package-Version: 20171230.847
 ;; Keywords: games
 ;; URL: https://github.com/parkouss/speed-type
-;; Package-Requires: ((cl-lib "0.3"))
+;; Package-Requires: ((emacs "24.3") (cl-lib "0.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 ;;; Code:
 
 (require 'url)
+(require 'url-handlers)
 (require 'cl-lib)
 
 (defgroup speed-type nil
@@ -219,25 +220,17 @@ Accuracy is computed as (CORRECT-ENTRIES - CORRECTIONS) / TOTAL-ENTRIES."
 
 (defun speed-type--gb-retrieve (book-num)
   "Return buffer with book number BOOK-NUM in it."
-  (let ((dr speed-type-gb-dir)
-        (fn (concat (file-name-as-directory speed-type-gb-dir)
-                    (format "%d.txt" book-num)))
+  (let ((fn (expand-file-name (format "%d.txt" book-num) speed-type-gb-dir))
         (url-request-method "GET"))
     (if (file-readable-p fn)
-        (find-file-noselect fn t)
-      (let ((buf (url-retrieve-synchronously (speed-type--gb-url book-num)))
-            (new-buf (generate-new-buffer "temp-speed-type")))
-        ;; decoding the buffer content must be done in a new buffer
-        ;; to work properly
-        (with-current-buffer buf
-          (delete-trailing-whitespace)
-          (decode-coding-region (point-min) (point-max) 'utf-8 new-buf))
-        (kill-buffer buf)
-        (with-current-buffer new-buf
-          (when (not (file-exists-p dr))
-            (make-directory dr))
-          (write-file fn)
-          new-buf)))))
+        fn
+      (make-directory speed-type-gb-dir 'parents)
+      (url-copy-file (speed-type--gb-url book-num) fn)
+      (with-temp-file fn
+        (insert-file-contents fn)
+        (delete-trailing-whitespace)
+        (decode-coding-region (point-min) (point-max) 'utf-8))
+      fn)))
 
 (defun speed-type--elapsed-time ()
   "Return float with the total time since start."
@@ -453,15 +446,29 @@ will be used. Else some text will be picked randomly."
                        speed-type-gb-book-list))
         (author nil)
         (title nil))
-    (with-current-buffer (speed-type--gb-retrieve book-num)
+    (with-temp-buffer
+      (insert-file-contents (speed-type--gb-retrieve book-num))
       (goto-char 0)
       (when (re-search-forward "^Title: " nil t)
         (setq title (buffer-substring (point) (line-end-position))))
       (when (re-search-forward "^Author: " nil t)
         (setq author (buffer-substring (point) (line-end-position))))
 
-      (speed-type--setup (speed-type--pick-text-to-type (point))
-                         author title))))
+      (let ((start (point))
+	    (end nil))
+
+	(goto-char (point-min))
+	(when (re-search-forward "***.START.OF.\\(THIS\\|THE\\).PROJECT.GUTENBERG.EBOOK" nil t)
+	  (end-of-line 1)
+	  (forward-line 1)
+	  (setq start (point)))
+	(when (re-search-forward "***.END.OF.\\(THIS\\|THE\\).PROJECT.GUTENBERG.EBOOK" nil t)
+	  (beginning-of-line 1)
+	  (forward-line -1)
+	  (setq end (point)))
+
+	(speed-type--setup (speed-type--pick-text-to-type start end)
+			   author title)))))
 
 (provide 'speed-type)
 

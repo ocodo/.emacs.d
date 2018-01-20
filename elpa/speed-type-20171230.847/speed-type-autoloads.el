@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "speed-type" "speed-type.el" (0 0 0 0))
+;;;### (autoloads nil "speed-type" "speed-type.el" (23138 47784 964486
+;;;;;;  476000))
 ;;; Generated autoloads from speed-type.el
 
 (autoload 'speed-type-region "speed-type" "\
@@ -23,8 +24,6 @@ will be used. Else some text will be picked randomly.
 Setup a new text sample to practice touch or speed typing.
 
 \(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "speed-type" '("speed-type-")))
 
 ;;;***
 
