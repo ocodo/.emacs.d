@@ -49,7 +49,7 @@
   :type '(alist))
 
 (defcustom god-literal-key
-  " "
+  "SPC"
   "The key used for literal interpretation."
   :group 'god
   :type 'string)
@@ -85,12 +85,6 @@ All predicates must return nil for god-local-mode to start."
         (setq i (1+ i)))
       (define-key map (kbd "DEL") nil))
     map))
-
-(defvar god-mode-universal-argument-map
-  (let ((map (copy-keymap universal-argument-map)))
-    (define-key map (kbd "u") 'universal-argument-more)
-    map)
-  "Keymap used while processing \\[universal-argument] with god-mode on.")
 
 ;;;###autoload
 (define-minor-mode god-local-mode
@@ -141,13 +135,18 @@ enabled. See also `god-local-mode-resume'."
           (buffer-list))
     (setq god-global-mode (= new-status 1))))
 
-(defadvice save&set-overriding-map
-  (before god-mode-add-to-universal-argument-map (map) activate compile)
-  "This is used to set special keybindings after C-u is
-pressed. When god-mode is active, intercept the call to add in
-our own keybindings."
-  (if (and god-local-mode (equal universal-argument-map map))
-      (setq map god-mode-universal-argument-map)))
+(defun god-mode-maybe-universal-argument-more ()
+  "If god mode is enabled, call `universal-argument-more'."
+  (interactive)
+  (if god-local-mode
+      (call-interactively #'universal-argument-more)
+    (let ((binding (god-mode-lookup-command "u")))
+      (if (commandp binding t)
+          (call-interactively binding)
+        (execute-kbd-macro binding)))))
+
+(define-key universal-argument-map (kbd "u")
+  #'god-mode-maybe-universal-argument-more)
 
 (defun god-mode-self-insert ()
   "Handle self-insert keys."
@@ -180,8 +179,8 @@ recurses. `key-string-so-far' should be nil for the first call in
 the sequence."
   (interactive)
   (let ((sanitized-key
-         (if key-string-so-far (char-to-string (or key (read-event key-string-so-far)))
-           (god-mode-sanitized-key-string (or key (read-event key-string-so-far))))))
+         (god-mode-sanitized-key-string
+          (or key (read-event key-string-so-far)))))
     (god-mode-lookup-command
      (key-string-after-consuming-key sanitized-key key-string-so-far))))
 
@@ -192,6 +191,8 @@ the sequence."
     (?\  "SPC")
     (left "<left>")
     (right "<right>")
+    (S-left "S-<left>")
+    (S-right "S-<right>")
     (prior "<prior>")
     (next "<next>")
     (backspace "DEL")
@@ -201,29 +202,33 @@ the sequence."
 (defun key-string-after-consuming-key (key key-string-so-far)
   "Interpret god-mode special keys for key (consumes more keys if
 appropriate). Append to keysequence."
-  (let ((key-consumed t) next-modifier next-key)
+  (let ((key-consumed t) (next-modifier "") next-key)
     (message key-string-so-far)
-    (setq next-modifier
-          (cond
-           ((string= key god-literal-key)
-            (setq god-literal-sequence t)
-            "")
-           (god-literal-sequence
-            (setq key-consumed nil)
-            "")
-           ((and
-             (stringp key)
-             (not (eq nil (assoc key god-mod-alist)))
-             (not (eq nil key)))
-            (cdr (assoc key god-mod-alist)))
-           (t
-            (setq key-consumed nil)
-            (cdr (assoc nil god-mod-alist))
-            )))
+    (cond
+     ;; Don't check for god-literal-key with the first key
+     ((and key-string-so-far (string= key god-literal-key))
+      (setq god-literal-sequence t))
+     (god-literal-sequence
+      (setq key-consumed nil))
+     ((and (stringp key) (assoc key god-mod-alist))
+      (setq next-modifier (cdr (assoc key god-mod-alist))))
+     (t
+      (setq key-consumed nil
+            next-modifier (cdr (assoc nil god-mod-alist)))))
     (setq next-key
           (if key-consumed
               (god-mode-sanitized-key-string (read-event key-string-so-far))
             key))
+    (when (and (= (length next-key) 1)
+               (string= (get-char-code-property (aref next-key 0) 'general-category) "Lu")
+               ;; If C- is part of the modifier, S- needs to be given
+               ;; in order to distinguish the uppercase from the
+               ;; lowercase bindings. If C- is not in the modifier,
+               ;; then emacs natively treats uppercase differently
+               ;; from lowercase, and the S- modifier should not be
+               ;; given
+               (string-prefix-p "C-" next-modifier))
+      (setq next-modifier (concat next-modifier "S-")))
     (if key-string-so-far
         (concat key-string-so-far " " next-modifier next-key)
       (concat next-modifier next-key))))
@@ -271,8 +276,8 @@ Members of the `god-exempt-major-modes' list are exempt."
   (god-mode-child-of-p major-mode 'comint-mode))
 
 (defun god-special-mode-p ()
-  "Return non-nil if major-mode is child of special-mode."
-  (god-mode-child-of-p major-mode 'special-mode))
+  "Return non-nil if major-mode is special or a child of special-mode."
+  (eq (get major-mode 'mode-class) 'special))
 
 (defun god-view-mode-p ()
   "Return non-nil if view-mode is enabled in current buffer."
