@@ -30,6 +30,13 @@
 (defconst org-blackfriday-table-right-border " ")
 (defconst org-blackfriday-table-separator "| ")
 
+(defconst org-blackfriday-html5-inline-elements
+  '("audio" "details" "command" "datalist" "mark" "meter"
+    "nav" "source" "summary" "time")
+  "New inline elements in html5.
+
+http://itman.in/en/inline-elements-html5/.")
+
 (defvar org-blackfriday--hrule-inserted nil
   "State variable to track if the horizontal rule was inserted.
 This check is specifically track if that horizontal rule was
@@ -78,9 +85,12 @@ Note that this variable is *only* for internal use.")
                      (inner-template . org-blackfriday-inner-template)
                      (italic . org-blackfriday-italic)
                      (item . org-blackfriday-item)
+                     (latex-environment . org-blackfriday-latex-environment)
                      (latex-fragment . org-blackfriday-latex-fragment)
                      (plain-list . org-blackfriday-plain-list)
+                     (plain-text . org-blackfriday-plain-text)
                      (quote-block . org-blackfriday-quote-block)
+                     (special-block . org-blackfriday-special-block)
                      (src-block . org-blackfriday-src-block)
                      (strike-through . org-blackfriday-strike-through)
                      (table-cell . org-blackfriday-table-cell)
@@ -246,11 +256,102 @@ same column as TABLE-CELL.  If no such cookie is found, return
                       ((equal cookie-align "c") 'center)
                       (t 'default)))))))
 
+;;;; Escape certain characters inside equations (Blackfriday bug workaround)
+(defun org-blackfriday-escape-chars-in-equation (str)
+  "Escape few characters in STR so that Blackfriday doesn't parse them.
+
+Do not interpret underscores and asterisks in equations as
+Markdown formatting
+characters (https://gohugo.io/content-management/formats#solution):
+
+  \"_\" -> \"\\=\\_\"
+  \"*\" -> \"\\=\\*\"
+
+https://github.com/kaushalmodi/ox-hugo/issues/104
+
+Blackfriday converts \"(r)\" to Registered Trademark symbol,
+\"(c)\" to Copyright symbol, and \"(tm)\" to Trademark symbol if
+the SmartyPants extension is enabled (and there is no way to
+disable just this).  So insert an extra space after the opening
+parentheses in those strings to trick Blackfriday/smartParens
+from activating inside equations.  That extra space anyways
+doesn't matter in equations.
+
+  \"(c)\" -> \"( c)\"
+  \"(r)\" -> \"( r)\"
+  \"(tm)\" -> \"( tm)\"."
+  (let* (;; _ -> \_, * -> \*
+         (escaped-str (replace-regexp-in-string "[_*]" "\\\\\\&" str))
+         ;; (c) -> ( c), (r) -> ( r), (tm) -> ( tm)
+         (escaped-str (replace-regexp-in-string "(\\(c\\|r\\|tm\\))" "( \\1)" escaped-str)))
+    escaped-str))
+
 ;;;; Reset org-blackfriday--code-block-num-backticks
 (defun org-blackfriday--reset-org-blackfriday--code-block-num-backticks (_backend)
   "Reset `org-blackfriday--code-block-num-backticks' to its default value."
   (setq org-blackfriday--code-block-num-backticks org-blackfriday--code-block-num-backticks-default))
 (add-hook 'org-export-before-processing-hook #'org-blackfriday--reset-org-blackfriday--code-block-num-backticks)
+
+;;;; Make CSS property string
+(defun org-blackfriday--make-css-property-string (props)
+  "Return a list of CSS properties, as a string.
+PROPS is a plist where values are either strings or nil.  A prop
+with a nil value will be omitted from the result.
+
+This function is adapted from `org-html--make-attribute-string'."
+  (let (ret)
+    (dolist (item props (mapconcat #'identity (nreverse ret) " "))
+      (cond ((null item)
+             (pop ret))
+            ((symbolp item)
+             (push (substring (symbol-name item) 1) ret))
+            (t
+             (let ((key (car ret))
+                   (value (replace-regexp-in-string
+                           "\"" "&quot;" (org-html-encode-plain-text item))))
+               (setcar ret (format "%s: %s; " key value))))))))
+
+;;;; Wrap with HTML attributes
+(defun org-blackfriday--div-wrap-maybe (elem contents)
+  "Wrap the CONTENTS with HTML div tags.
+
+The div wrapping is done only if HTML attributes are set for the
+ELEM Org element using #+ATTR_HTML.
+
+If #+ATTR_CSS is also used, and if a class is specified in
+#+ATTR_HTML, then an inline style is also inserted that applies
+the specified CSS to that class.
+
+If CONTENTS is nil, and #+ATTR_CSS is used, return only the HTML
+style tag."
+  (let* ((elem-type (org-element-type elem))
+         (attr (let ((attr1 (org-export-read-attribute :attr_html elem)))
+                 (when (equal elem-type 'paragraph)
+                   ;; Remove "target" and "rel" attributes from the
+                   ;; list of a paragraph's HTML attributes as they
+                   ;; would be meant for links inside the paragraph
+                   ;; instead of the paragraph itself.
+                   (plist-put attr1 :target nil)
+                   (plist-put attr1 :rel nil))
+                 attr1))
+         (attr-str (org-html--make-attribute-string attr))
+         (ret contents))
+    (when (org-string-nw-p attr-str)
+      (let ((class (plist-get attr :class))
+            (style-str ""))
+        (when class
+          (let* ((css-props (org-export-read-attribute :attr_css elem))
+                 (css-props-str (org-blackfriday--make-css-property-string css-props)))
+            (when (org-string-nw-p css-props-str)
+              (setq style-str (format "<style>.%s { %s }</style>\n\n"
+                                      class css-props-str)))))
+
+        (setq ret (concat style-str
+                          (if contents
+                              (format "<div %s>\n  <div></div>\n\n%s\n</div>" ;See footnote 1
+                                      attr-str contents)
+                            "")))))
+    ret))
 
 
 
@@ -263,22 +364,23 @@ CONTENTS is nil.  INFO is a plist holding contextual
 information."
   (let* ((parent-element (org-export-get-parent example-block))
          (parent-type (car parent-element))
-         (backticks (make-string org-blackfriday--code-block-num-backticks ?`)))
+         (backticks (make-string org-blackfriday--code-block-num-backticks ?`))
+         ret)
     ;; (message "[ox-bf example-block DBG]")
     ;; (message "[ox-bf example-block DBG] parent type: %S" parent-type)
-    (prog1
-        (format "%stext\n%s%s"
-                backticks
-                (org-export-format-code-default example-block info)
-                backticks)
-      (when (equal 'quote-block parent-type)
-        ;; If the current example block is inside a quote block,
-        ;; future example/code blocks (especially the ones outside
-        ;; this quote block) will require higher number of backticks.
-        ;; Workaround for
-        ;; https://github.com/russross/blackfriday/issues/407.
-        (setq org-blackfriday--code-block-num-backticks
-              (1+ org-blackfriday--code-block-num-backticks))))))
+    (setq ret (format "%stext\n%s%s"
+                      backticks
+                      (org-export-format-code-default example-block info)
+                      backticks))
+    (setq ret (org-blackfriday--div-wrap-maybe example-block ret))
+    (when (equal 'quote-block parent-type)
+      ;; If the current example block is inside a quote block, future
+      ;; example/code blocks (especially the ones outside this quote
+      ;; block) will require higher number of backticks.  Workaround
+      ;; for https://github.com/russross/blackfriday/issues/407.
+      (setq org-blackfriday--code-block-num-backticks
+            (1+ org-blackfriday--code-block-num-backticks)))
+    ret))
 
 ;;;; Fixed Width
 (defun org-blackfriday-fixed-width (fixed-width _contents info)
@@ -351,7 +453,20 @@ as a communication channel."
 (defun org-blackfriday-item (item contents info)
   "Transcode an ITEM element into Blackfriday Markdown format.
 CONTENTS holds the contents of the item.  INFO is a plist holding
-contextual information."
+contextual information.
+
+Special note about descriptive lists:
+
+Blackfriday style descriptive list syntax is used if that list is
+not nested in another list.
+
+    Term1
+    : Description of term 1
+
+If that list is nested, `ox-md' style descriptive list is
+exported instead:
+
+    -   **Term1:** Description of term 1."
   (let* ((parent-list (org-export-get-parent item)))
     ;; If this item is in an ordered list and if this or any other
     ;; item in this list is using a custom counter, export this list
@@ -359,48 +474,143 @@ contextual information."
     (if (org-blackfriday--ordered-list-with-custom-counter-p parent-list)
         (org-html-format-list-item contents 'ordered nil info
                                    (org-element-property :counter item))
-      (org-md-item item contents info))))
+      (let* ((parent-list (org-export-get-parent item))
+             (parent-list-type (org-element-property :type parent-list))
+             (desc-list? (eq parent-list-type 'descriptive))
+             (grandparent (when desc-list?
+                            (org-export-get-parent parent-list)))
+             (grandparent-type (when desc-list?
+                                 (org-element-type grandparent)))
+             (list-is-nested (eq 'item grandparent-type))
+             ;; Export the descriptive list items like that in
+             ;; ox-md.el if this descriptive list is nested in some
+             ;; other list, because the Blackfriday style descriptive
+             ;; list syntax seems to work only at top level (i.e. not
+             ;; when that list is nested).
+             (ox-md-style-desc-list (and desc-list? list-is-nested))
+             (bf-style-desc-list (and desc-list? (not list-is-nested)))
+             (struct (org-element-property :structure item))
+             (item-num (car (last (org-list-get-item-number
+                                   (org-element-property :begin item)
+                                   struct
+                                   (org-list-prevs-alist struct)
+                                   (org-list-parents-alist struct)))))
+             (bullet (cond
+                      ((or (eq parent-list-type 'unordered)
+                           ox-md-style-desc-list)
+                       "-")
+                      ((eq parent-list-type 'ordered)
+                       (format "%d." item-num))
+                      (t             ;Non-nested descriptive list item
+                       (when (> item-num 1)
+                         "\n")))) ;Newline between each descriptive list item
+             (padding (unless bf-style-desc-list
+                        (make-string (- 4 (length bullet)) ? )))
+             (tag (when desc-list?
+                    (let* ((tag1 (org-element-property :tag item))
+                           (tag1-str (org-export-data tag1 info)))
+                      (when tag1
+                        (if ox-md-style-desc-list
+                            (format "**%s:** " tag1-str)
+                          (format "%s\n: " tag1-str)))))))
+        (concat bullet
+                padding
+                (pcase (org-element-property :checkbox item)
+                  (`on "[X] ")
+                  (`trans "[-] ")
+                  (`off "[ ] "))
+                tag
+                (and contents
+                     (org-trim (replace-regexp-in-string "^" "    " contents))))))))
+
+;;;; Latex Environment
+(defun org-blackfriday-latex-environment (latex-environment _contents info)
+  "Transcode a LATEX-ENVIRONMENT object into Blackfriday Markdown format.
+INFO is a plist holding contextual information."
+  (let ((processing-type (plist-get info :with-latex)))
+    ;; (message "[ox-bf-processing-type DBG] processing-type: %s" processing-type)
+    (cond
+     ((memq processing-type '(t mathjax))
+      (let* ((latex-env (org-element-property :value latex-environment))
+             (env (org-html-format-latex latex-env 'mathjax info))
+             (env (org-blackfriday-escape-chars-in-equation env)))
+        ;; (message "[ox-bf-latex-env DBG] latex-env: %s" latex-env)
+        ;; (message "[ox-bf-latex-env DBG] env: %s" env)
+        env))
+     (t
+      (org-html-latex-environment latex-environment nil info)))))
 
 ;;;; Latex Fragment
 (defun org-blackfriday-latex-fragment (latex-fragment _contents info)
   "Transcode a LATEX-FRAGMENT object into Blackfriday Markdown format.
 INFO is a plist holding contextual information."
-  (let ((latex-frag (org-element-property :value latex-fragment))
-        (processing-type (plist-get info :with-latex)))
+  (let ((processing-type (plist-get info :with-latex)))
     (cond
      ((memq processing-type '(t mathjax))
-      (let* ((frag (org-html-format-latex latex-frag 'mathjax info))
+      (let* ((latex-frag (org-element-property :value latex-fragment))
+             (frag (org-html-format-latex latex-frag 'mathjax info))
              ;; https://gohugo.io/content-management/formats#solution
-             (frag (replace-regexp-in-string "_" "\\\\_" frag)) ;_ -> \_
              ;; Need to escape the backslash in "\(", "\)", .. to
-             ;; make Blackfriday happy. So \( -> \\(, \) -> \\),
+             ;; make Blackfriday happy.  So \( -> \\(, \) -> \\),
              ;; \[ -> \\[ and \] -> \\].
-             (frag (replace-regexp-in-string "\\(\\\\[]()[]\\)" "\\\\\\1" frag)))
+             (frag (replace-regexp-in-string "\\(\\\\[]()[]\\)" "\\\\\\1" frag))
+             (frag (org-blackfriday-escape-chars-in-equation frag)))
+        ;; (message "[ox-bf-latex-frag DBG] frag: %s" frag)
         frag))
-     ((assq processing-type org-preview-latex-process-alist)
-      (let ((formula-link
-             (org-html-format-latex latex-frag processing-type info)))
-        (when (and formula-link (string-match "file:\\([^]]*\\)" formula-link))
-          (org-html--format-image (match-string 1 formula-link) nil info))))
-     (t latex-frag))))
+     (t
+      (org-html-latex-fragment latex-fragment nil info)))))
 
 ;;;; Plain List
 (defun org-blackfriday-plain-list (plain-list contents info)
   "Transcode PLAIN-LIST element into Blackfriday Markdown format.
 CONTENTS is the plain-list contents.  INFO is a plist used as a
 communication channel."
-  (if (org-blackfriday--ordered-list-with-custom-counter-p plain-list)
-      ;; If this is an ordered list and if any item in this list is
-      ;; using a custom counter, export this list in HTML.
-      (org-html-plain-list plain-list contents info)
-    (let* ((next (org-export-get-next-element plain-list info))
-           (next-type (org-element-type next))
-           (next-is-list (eq 'plain-list next-type)))
-      (concat contents
-              ;; Two consecutive lists in Markdown can be separated by
-              ;; a comment.
-              (when next-is-list
-                "\n<!--listend-->")))))
+  (let (ret)
+    (if (org-blackfriday--ordered-list-with-custom-counter-p plain-list)
+        ;; If this is an ordered list and if any item in this list is
+        ;; using a custom counter, export this list in HTML.
+        (setq ret (concat
+                   (org-blackfriday--div-wrap-maybe plain-list nil)
+                   (org-html-plain-list plain-list contents info)))
+      (let* ((next (org-export-get-next-element plain-list info))
+             (next-type (org-element-type next))
+             (next-is-list (eq 'plain-list next-type)))
+        (setq ret (org-blackfriday--div-wrap-maybe plain-list contents))
+        (setq ret (concat ret
+                          ;; Two consecutive lists in Markdown can be
+                          ;; separated by a comment.
+                          (when next-is-list
+                            "\n<!--listend-->")))))
+    ret))
+
+;;;; Plain Text
+(defun org-blackfriday-plain-text (text info)
+  "Transcode TEXT element into Blackfriday Markdown format.
+TEXT is the string to transcode.  INFO is a plist used as a
+communication channel.
+
+This function is almost same as `org-md-plain-text' except it
+first escapes any existing \"\\\", and then escapes other string
+matches with \"\\\" as needed."
+  (when (plist-get info :with-smart-quotes)
+    (setq text (org-export-activate-smart-quotes text :html info)))
+  ;; The below series of replacements in `text' is order sensitive.
+  ;; Protect `, *, _, and \
+  (setq text (replace-regexp-in-string "[`*_\\]" "\\\\\\&" text))
+  ;; Protect ambiguous #.  This will protect # at the beginning of
+  ;; a line, but not at the beginning of a paragraph.  See
+  ;; `org-md-paragraph'.
+  (setq text (replace-regexp-in-string "\n#" "\n\\\\#" text))
+  ;; Protect ambiguous !
+  (setq text (replace-regexp-in-string "\\(!\\)\\[" "\\\\!" text nil nil 1))
+  ;; Handle special strings, if required.
+  (when (plist-get info :with-special-strings)
+    (setq text (org-html-convert-special-strings text)))
+  ;; Handle break preservation, if required.
+  (when (plist-get info :preserve-breaks)
+    (setq text (replace-regexp-in-string "[ \t]*\n" "  \n" text)))
+  ;; Return value.
+  text)
 
 ;;;; Quote Block
 (defun org-blackfriday-quote-block (quote-block contents info)
@@ -410,13 +620,55 @@ communication channel."
   (let* ((next (org-export-get-next-element quote-block info))
          (next-type (org-element-type next))
          (next-is-quote (eq 'quote-block next-type))
-         (contents (org-md-quote-block quote-block contents info)))
+         (contents (org-md-quote-block quote-block contents info))
+         ret)
     ;; (message "[ox-bf quote-block DBG]")
-    (concat contents
-            ;; Two consecutive blockquotes in Markdown can be
-            ;; separated by a comment.
-            (when next-is-quote
-              "\n\n<!--quoteend-->"))))
+    (setq ret (org-blackfriday--div-wrap-maybe quote-block contents))
+    (setq ret (concat ret
+                      ;; Two consecutive blockquotes in Markdown can be
+                      ;; separated by a comment.
+                      (when next-is-quote
+                        "\n\n<!--quoteend-->")))
+    ret))
+
+;;;; Special Block
+(defun org-blackfriday-special-block (special-block contents _info)
+  "Transcode a SPECIAL-BLOCK element from Org to HTML.
+CONTENTS holds the contents of the block.
+
+This function is adapted from `org-html-special-block'."
+  (let* ((block-type (org-element-property :type special-block))
+         (html5-inline-fancy (member block-type org-blackfriday-html5-inline-elements))
+         (html5-block-fancy (member block-type org-html-html5-elements))
+         (html5-fancy (or html5-inline-fancy html5-block-fancy))
+         (attributes (org-export-read-attribute :attr_html special-block)))
+    (unless html5-fancy
+      (let ((class (plist-get attributes :class)))
+        (setq attributes (plist-put attributes :class
+                                    (if class
+                                        (concat class " " block-type)
+                                      block-type)))))
+    (let* ((contents (or contents ""))
+           ;; If #+NAME is specified, use that for the HTML element
+           ;; "id" attribute.
+           (name (org-element-property :name special-block))
+           (attr-str (org-html--make-attribute-string
+                      (if (or (not name) (plist-member attributes :id))
+                          attributes
+                        (plist-put attributes :id name))))
+           (attr-str (if (org-string-nw-p attr-str)
+                         (concat " " attr-str)
+                       "")))
+      (cond
+       (html5-inline-fancy
+        (format "<%s%s>%s</%s>"
+                block-type attr-str contents block-type))
+       (html5-block-fancy
+        (format "<%s%s>\n<%s></%s>\n\n%s\n</%s>" ;See footnote 1
+                block-type attr-str block-type block-type contents block-type))
+       (t
+        (format "<div%s>\n<div></div>\n\n%s\n</div>" ;See footnote 1
+                attr-str contents))))))
 
 ;;;; Src Block
 (defun org-blackfriday-src-block (src-block _contents info)
@@ -427,7 +679,23 @@ INFO is a plist used as a communication channel."
          (code (org-export-format-code-default src-block info))
          (parent-element (org-export-get-parent src-block))
          (parent-type (car parent-element))
-         (backticks (make-string org-blackfriday--code-block-num-backticks ?`)))
+         (num-backticks-in-code (when (string-match "^[[:blank:]]*\\(`\\{3,\\}\\)" code)
+                                  (length (match-string-no-properties 1 code))))
+         backticks)
+    ;; In order to show the code-fence backticks in a code-fenced code
+    ;; block, you need to have the wrapping code fence to have at
+    ;; least 1 more backtick in the fence compared to those in the
+    ;; being-wrapped code fence. This example will explain better:
+    ;;
+    ;;   ````md
+    ;;   ```emacs-lisp
+    ;;   (message "Hello")
+    ;;   ```
+    ;;   ````
+    (when (and (numberp num-backticks-in-code)
+               (<= org-blackfriday--code-block-num-backticks num-backticks-in-code))
+      (setq org-blackfriday--code-block-num-backticks (1+ num-backticks-in-code)))
+    (setq backticks (make-string org-blackfriday--code-block-num-backticks ?`))
     ;; (message "[ox-bf src-block DBG]")
     ;; (message "ox-bf [dbg] code: %s" code)
     ;; (message "[ox-bf src-block DBG] parent type: %S" parent-type)
@@ -572,7 +840,55 @@ contextual information."
                   (if lbl
                       (format "<a id=\"%s\"></a>\n\n" lbl)
                     "")))
+         (caption (org-export-get-caption table))
+         table-num
+         (caption-html (if (not caption)
+                           ""
+                         (let ((caption-str
+                                (org-html-convert-special-strings ;Interpret em-dash, en-dash, etc.
+                                 (org-export-data-with-backend caption 'html info))))
+                           (setq table-num (org-export-get-ordinal
+                                            table info
+                                            nil #'org-html--has-caption-p))
+                           (format (concat "<div class=\"table-caption\">\n"
+                                           "  <span class=\"table-number\">Table %d:</span>\n"
+                                           "  %s\n"
+                                           "</div>\n\n")
+                                   table-num caption-str))))
+         (attr (org-export-read-attribute :attr_html table))
+         ;; At the moment only the `class' attribute is supported in
+         ;; #+ATTR_HTML above tables.
+         (table-class-user (plist-get attr :class))
+         (table-class-auto (concat "table-"
+                                   (if table-num
+                                       (format "%d" table-num)
+                                     "nocaption")))
+         (table-class (or table-class-user
+                          table-class-auto))
+         ;; If user has specified multiple classes for the table
+         ;; (space-separated), use only the first class in that list
+         ;; to specifying the styling in the <style> tag.
+         (table-class-this (car (split-string table-class)))
+         ;; https://www.w3schools.com/css/css_table.asp
+         (css-props (org-export-read-attribute :attr_css table))
+         (css-props-str (org-blackfriday--make-css-property-string css-props))
+         (table-pre "")
+         (table-post "")
          (tbl (replace-regexp-in-string "\n\n" "\n" contents)))
+
+    (when (org-string-nw-p css-props-str)
+      (setq table-pre (format "<style>.%s table { %s }</style>\n\n"
+                              table-class-this css-props-str)))
+    ;; Export user-specified table class explicitly.
+    (when (or (org-string-nw-p table-class-user)
+              (org-string-nw-p css-props-str))
+      (setq table-pre (concat table-pre
+                              (format "<div class=\"ox-hugo-table %s\">\n" table-class)
+                              "<div></div>\n\n"))) ;See footnote 1
+    (when (org-string-nw-p table-pre)
+      (setq table-post (concat "\n"
+                               "</div>\n")))
+
     ;; If the table has only 1 row, do *not* make it a header row..
     ;; instead create an empty header row.
     ;; For 1-row, tbl would look like this at this point:
@@ -592,7 +908,7 @@ contextual information."
              (dummy-header (replace-regexp-in-string "[-:]" " " hrule)))
         (setq tbl (concat dummy-header "\n" hrule "\n" row-1))))
     ;; (message "[ox-bf-table DBG] Tbl:\n%s" tbl)
-    (concat label tbl)))
+    (concat table-pre label caption-html tbl table-post)))
 
 ;;;; Verse Block
 (defun org-blackfriday-verse-block (_verse-block contents info)
@@ -698,5 +1014,14 @@ Return output file name."
 
 
 (provide 'ox-blackfriday)
+
+
+
+;;; Footnotes
+
+;;;; Footnote 1
+;; The empty HTML element tags like "<div></div>" is a hack to get
+;; around a Blackfriday limitation.  Details:
+;; https://github.com/kaushalmodi/ox-hugo/issues/93.
 
 ;;; ox-blackfriday.el ends here

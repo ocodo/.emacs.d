@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ox-blackfriday" "ox-blackfriday.el" (23064
-;;;;;;  60646 620479 852000))
+;;;### (autoloads nil "ox-blackfriday" "ox-blackfriday.el" (23138
+;;;;;;  48008 769167 435000))
 ;;; Generated autoloads from ox-blackfriday.el
 
 (autoload 'org-blackfriday-export-as-markdown "ox-blackfriday" "\
@@ -78,8 +78,8 @@ Return output file name.
 
 ;;;***
 
-;;;### (autoloads nil "ox-hugo" "ox-hugo.el" (23064 60646 624479
-;;;;;;  814000))
+;;;### (autoloads nil "ox-hugo" "ox-hugo.el" (23138 48008 773167
+;;;;;;  446000))
 ;;; Generated autoloads from ox-hugo.el
 
 (autoload 'org-hugo-slug "ox-hugo" "\
@@ -122,9 +122,11 @@ first.
 When optional argument VISIBLE-ONLY is non-nil, don't export
 contents of hidden elements.
 
-Export is done in a buffer named \"*Org Hugo Export*\", which will
-be displayed when `org-export-show-temporary-export-buffer' is
-non-nil.
+Export is done in a buffer named \"*Org Hugo Export*\", which
+will be displayed when `org-export-show-temporary-export-buffer'
+is non-nil.
+
+Return the buffer the export happened to.
 
 \(fn &optional ASYNC SUBTREEP VISIBLE-ONLY)" t nil)
 
@@ -151,24 +153,31 @@ Return output file's name.
 
 \(fn &optional ASYNC SUBTREEP VISIBLE-ONLY)" t nil)
 
-(autoload 'org-hugo-publish-to-md "ox-hugo" "\
-Publish an Org file to Hugo-compatible Markdown file.
+(autoload 'org-hugo-export-wim-to-md "ox-hugo" "\
+Export the current subtree/all subtrees/current file to a Hugo post.
 
-PLIST is the property list for the given project.  FILENAME is
-the filename of the Org file to be published.  PUB-DIR is the
-publishing directory.
+This is an Export \"What I Mean\" function:
 
-Return output file name.
+- If the current subtree has the \"EXPORT_FILE_NAME\" property, export
+  that subtree.
+- If the current subtree doesn't have that property, but one of its
+  parent subtrees has, then export from that subtree's scope.
+- If none of the subtrees have that property (or if there are no Org
+  subtrees at all), but the Org #+TITLE keyword is present,
+  export the whole Org file as a post with that title (calls
+  `org-hugo-export-to-md' with its SUBTREEP argument set to nil).
 
-\(fn PLIST FILENAME PUB-DIR)" nil nil)
+- If ALL-SUBTREES is non-nil, export all valid Hugo post subtrees
+  (that have the \"EXPORT_FILE_NAME\" property) in the current file
+  to multiple Markdown posts.
+- If ALL-SUBTREES is non-nil, and again if none of the subtrees have
+  that property (or if there are no Org subtrees), but the Org #+TITLE
+  keyword is present, export the whole Org file.
 
-(autoload 'org-hugo-export-subtree-to-md "ox-hugo" "\
-Publish the current subtree to a Hugo post.
-The next parent subtree having the \"EXPORT_FILE_NAME\" property
-is exported if the current subtree doesn't have that property.
-
-If ALL-SUBTREES is non-nil, publish all subtrees in the current
-file.
+- If the file neither has valid Hugo post subtrees, nor has the
+  #+TITLE present, throw a user error.  If NOERROR is non-nil, use
+  `message' to display the error message instead of signaling a user
+  error.
 
 A non-nil optional argument ASYNC means the process should happen
 asynchronously.  The resulting file should be accessible through
@@ -177,18 +186,23 @@ the `org-export-stack' interface.
 When optional argument VISIBLE-ONLY is non-nil, don't export
 contents of hidden elements.
 
-Return output file's name.  If ALL-SUBTREES is non-nil, return
-nil.
+If ALL-SUBTREES is nil, return output file's name.
+If ALL-SUBTREES is non-nil, and valid subtrees are found, return
+a list of output files.
+If ALL-SUBTREES is non-nil, and valid subtrees are not found,
+return the output file's name (exported using file-based
+approach).
 
-\(fn &optional ALL-SUBTREES ASYNC VISIBLE-ONLY)" t nil)
+\(fn &optional ALL-SUBTREES ASYNC VISIBLE-ONLY NOERROR)" t nil)
 
-(autoload 'org-hugo-export-subtree-to-md-after-save "ox-hugo" "\
-Fn for `after-save-hook' to run `org-hugo-export-subtree-to-md'.
-Executes `org-hugo-export-subtree-to-md', but only when in a
-valid Hugo post subtree.
+(autoload 'org-hugo-export-wim-to-md-after-save "ox-hugo" "\
+Fn for `after-save-hook' to run `org-hugo-export-wim-to-md'.
 
 The export is also skipped if `org-hugo-allow-export-after-save'
-is nil.
+is nil.  This variable is intended to be toggled dynamically in
+`org-capture-before-finalize-hook' and
+`org-capture-after-finalize-hook' hooks.  See the ‘Auto-export on
+Saving’ section in this package's documentation for an example.
 
 \(fn)" nil nil)
 
@@ -202,8 +216,8 @@ buffer and returned as a string in Org format.
 
 ;;;***
 
-;;;### (autoloads nil nil ("ox-hugo-pkg.el") (23064 60646 624479
-;;;;;;  814000))
+;;;### (autoloads nil nil ("ox-hugo-pkg.el") (23138 48008 769167
+;;;;;;  435000))
 
 ;;;***
 
