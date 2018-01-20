@@ -5,8 +5,8 @@
 ;; Author: Guido Schmidt
 ;; Maintainer: Guido Schmidt <guido.schmidt.2912@gmail.com>
 ;; URL: https://github.com/GuidoSchmidt/circadian
-;; Package-Version: 20171022.724
-;; Version: 0.3.0
+;; Package-Version: 20171215.1403
+;; Version: 0.3.1
 ;; Keywords: circadian, themes
 ;; Package-Requires: ((emacs "24.4"))
 
@@ -44,6 +44,16 @@
 ;;; Code:
 (require 'cl-lib)
 
+(defcustom circadian-before-load-theme-hook nil
+  "Functions to run before the theme is changed."
+  :type 'hook
+  :group 'circadian)
+
+(defcustom circadian-after-load-theme-hook nil
+  "Functions to run after the themes has changed."
+  :type 'hook
+  :group 'circadian)
+
 (defcustom circadian-themes '(("7:30" . tango)
                               ("19:30" . wombat))
   "List of themes mapped to the time they should be loaded."
@@ -53,7 +63,9 @@
 (defun circadian-enable-theme (theme)
   "Clear previous `custom-enabled-themes' and load THEME."
   (mapc #'disable-theme custom-enabled-themes)
-  (load-theme theme t))
+  (run-hook-with-args 'circadian-before-load-theme-hook theme)
+  (load-theme theme t)
+  (run-hook-with-args 'circadian-after-load-theme-hook theme))
 
 (defun circadian-mapc (entry)
   "Map over `circadian-themes' to run a timer for each ENTRY."
