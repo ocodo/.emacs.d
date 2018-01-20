@@ -1,6 +1,6 @@
 ;;; magit-popup.el --- Define prefix-infix-suffix command combos  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2017  The Magit Project Contributors
+;; Copyright (C) 2010-2018  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file which
 ;; lists all contributors.  If not, see http://magit.vc/authors.
@@ -63,6 +63,12 @@
 (declare-function info 'info)
 (declare-function Man-find-section 'man)
 (declare-function Man-next-section 'man)
+
+;; For the `:variable' event type.
+(declare-function magit-git-string 'magit-git)
+(declare-function magit-refresh 'magit-mode)
+(declare-function magit-get 'magit-git)
+(declare-function magit-set 'magit-git)
 
 ;; For branch actions.
 (declare-function magit-branch-set-face 'magit-git)
@@ -871,6 +877,16 @@ TYPE is one of `:action', `:sequence-action', `:switch', or
           (t
            (user-error "%c isn't bound to any action" event)))))
 
+(defun magit-popup-set-variable
+    (variable choices &optional default other)
+  (magit-set (--if-let (magit-git-string "config" "--local" variable)
+                 (cadr (member it choices))
+               (car choices))
+             variable)
+  (magit-refresh)
+  (message "%s %s" variable
+           (magit-popup-format-variable-1 variable choices default other)))
+
 (defun magit-popup-quit ()
   "Quit the current popup command without invoking an action."
   (interactive)
@@ -1261,6 +1277,54 @@ of events shared by all popups and before point is adjusted.")
                                 'face 'magit-popup-key))
              (?d . ,(funcall (magit-popup-event-arg ev)))))
           'type type 'event (magit-popup-event-key ev))))
+
+(defun magit-popup-format-variable
+    (variable choices &optional default other width)
+  (concat variable
+          (if width (make-string (- width (length variable)) ?\s) " ")
+          (magit-popup-format-variable-1 variable choices default other)))
+
+(defun magit-popup-format-variable-1
+    (variable choices &optional default other)
+  "Print popup entry for git VARIABLE with possible CHOICES.
+DEFAULT is git's default choice for VARIABLE.  OTHER is a git
+variable whose value may be used as a default."
+  (let ((local  (magit-git-string "config" "--local"  variable))
+        (global (magit-git-string "config" "--global" variable)))
+    (when other
+      (setq other (--when-let (magit-get other)
+                    (concat other ":" it))))
+    (concat
+     (propertize "[" 'face 'magit-popup-disabled-argument)
+     (mapconcat
+      (lambda (choice)
+        (propertize choice 'face (if (equal choice local)
+                                     'magit-popup-option-value
+                                   'magit-popup-disabled-argument)))
+      choices
+      (propertize "|" 'face 'magit-popup-disabled-argument))
+     (when (or global other default)
+       (concat
+        (propertize "|" 'face 'magit-popup-disabled-argument)
+        (cond (global
+               (propertize (concat "global:" global)
+                           'face (cond (local
+                                        'magit-popup-disabled-argument)
+                                       ((member global choices)
+                                        'magit-popup-option-value)
+                                       (t
+                                        'font-lock-warning-face))))
+              (other
+               (propertize other
+                           'face (if local
+                                     'magit-popup-disabled-argument
+                                   'magit-popup-option-value)))
+              (default
+               (propertize (concat "default:" default)
+                           'face (if local
+                                     'magit-popup-disabled-argument
+                                   'magit-popup-option-value))))))
+     (propertize "]" 'face 'magit-popup-disabled-argument))))
 
 (defun magit-popup-format-action-button (type ev)
   (let* ((dsc (magit-popup-event-dsc ev))

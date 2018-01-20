@@ -1,7 +1,7 @@
 This is magit-popup.info, produced by makeinfo version 5.2 from
 magit-popup.texi.
 
-     Copyright (C) 2015-2017 Jonas Bernoulli <jonas@bernoul.li>
+     Copyright (C) 2015-2018 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
      of the GNU General Public License as published by the Free Software
@@ -28,7 +28,9 @@ this library implements a similar abstraction; a new kind of prefix
 command that is associated with a specific set of infix arguments and
 suffix commands.
 
-     Copyright (C) 2015-2017 Jonas Bernoulli <jonas@bernoul.li>
+This manual is for Magit-Popup version 2.12.2.
+
+     Copyright (C) 2015-2018 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
      of the GNU General Public License as published by the Free Software
@@ -48,18 +50,16 @@ suffix commands.
 
 — The Detailed Node Listing —
 
-
 Usage
 
 * Customizing Existing Popups::
 * Other Options::
 
-
-
 Defining Prefix and Suffix Commands
 
 * Defining Prefix Commands::
 * Defining Suffix Commands::
+
 
 
 File: magit-popup.info,  Node: Introduction,  Next: Usage,  Prev: Top,  Up: Top
@@ -302,6 +302,11 @@ to an existing popup using the following functions.
      If optional VALUE is non-nil then the option is on by default, and
      VALUE is its default value.
 
+     READER is used to read a value from the user when the option is
+     invoked and does not currently have a value.  It should take one
+     argument and use it as the prompt.  If this is nil, then
+     ‘read-from-minibuffer’ is used.
+
      OPTION is inserted after all other options already defined for
      POPUP, unless optional PREPEND is non-nil, in which case it is
      placed first.  If optional AT is non-nil then it should be the KEY
@@ -400,6 +405,7 @@ File: magit-popup.info,  Node: Other Options,  Prev: Customizing Existing Popups
         • ‘nil’
 
           Ignore prefix arguments.
+
      This option can be overridden for individual popups.
      ‘magit-show-refs-popup’ for example defaults to invoking the
      default action directly.  It only shows the popup buffer when a
@@ -686,13 +692,13 @@ directly.
 
 Tag Table:
 Node: Top768
-Node: Introduction1944
-Node: Usage4643
-Node: Customizing Existing Popups9340
-Node: Other Options14843
-Node: Defining Prefix and Suffix Commands16385
-Node: Defining Prefix Commands18537
-Node: Defining Suffix Commands25512
+Node: Introduction1990
+Node: Usage4689
+Node: Customizing Existing Popups9386
+Node: Other Options15132
+Node: Defining Prefix and Suffix Commands16675
+Node: Defining Prefix Commands18827
+Node: Defining Suffix Commands25802
 
 End Tag Table
 
