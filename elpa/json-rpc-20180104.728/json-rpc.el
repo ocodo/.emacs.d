@@ -4,7 +4,7 @@
 
 ;; Author: Christopher Wellons <wellons@nullprogram.com>
 ;; URL: https://github.com/skeeto/elisp-json-rpc
-;; Package-Version: 20170402.955
+;; Package-Version: 20180104.728
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 
@@ -43,7 +43,7 @@
 (defun json-rpc-connect (host port &optional username password)
   "Create a JSON-RPC HTTP connection to HOST:PORT."
   (let ((auth (when (and username password)
-                (base64-encode-string (format "%s:%s" username password))))
+                (base64-encode-string (format "%s:%s" username password) t)))
         (port-num (if (stringp port) (read port) port)))
     (json-rpc-ensure
      (json-rpc--create :host host :port port-num :auth auth :id-counter 0))))

@@ -3,10 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "json-rpc" "json-rpc.el" (0 0 0 0))
-;;; Generated autoloads from json-rpc.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "json-rpc" '("json-rpc")))
+;;;### (autoloads nil nil ("json-rpc.el") (23138 48263 477717 301000))
 
 ;;;***
 
