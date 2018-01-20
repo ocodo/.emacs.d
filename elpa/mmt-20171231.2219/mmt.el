@@ -1,10 +1,10 @@
 ;;; mmt.el --- Missing macro tools for Emacs Lisp -*- lexical-binding: t; -*-
 ;;
-;; Copyright © 2015–2017 Mark Karpov <markkarpov92@gmail.com>
+;; Copyright © 2015–2018 Mark Karpov <markkarpov92@gmail.com>
 ;;
 ;; Author: Mark Karpov <markkarpov92@gmail.com>
 ;; URL: https://github.com/mrkkrp/mmt
-;; Package-Version: 20170519.4
+;; Package-Version: 20171231.2219
 ;; Version: 0.2.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.3"))
 ;; Keywords: macro, emacs-lisp
