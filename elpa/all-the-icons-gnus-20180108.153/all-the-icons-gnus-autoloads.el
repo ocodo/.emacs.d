@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "all-the-icons-gnus" "all-the-icons-gnus.el"
-;;;;;;  (22955 52932 460741 252000))
+;;;;;;  (23138 48966 82625 804000))
 ;;; Generated autoloads from all-the-icons-gnus.el
 
 (autoload 'all-the-icons-gnus-setup "all-the-icons-gnus" "\
