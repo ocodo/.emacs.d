@@ -4,7 +4,7 @@
 
 ;; Author: Taylor R. Campbell <campbell+paredit@mumble.net>
 ;; Version: 25beta
-;; Package-Version: 20170405.1149
+;; Package-Version: 20171126.1805
 ;; Created: 2005-07-31
 ;; Keywords: lisp
 
@@ -26,16 +26,16 @@
 ;; along with paredit.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; The currently released version of paredit is available at
-;;;   <http://mumble.net/~campbell/emacs/paredit.el>.
+;;;   <https://mumble.net/~campbell/emacs/paredit.el>.
 ;;;
 ;;; The latest beta version of paredit is available at
-;;;   <http://mumble.net/~campbell/emacs/paredit-beta.el>.
+;;;   <https://mumble.net/~campbell/emacs/paredit-beta.el>.
 ;;;
 ;;; The Git repository for paredit is available at
-;;;   <http://mumble.net/~campbell/git/paredit.git>
+;;;   <https://mumble.net/~campbell/git/paredit.git>
 ;;;
 ;;; Release notes are available at
-;;;   <http://mumble.net/~campbell/emacs/paredit.release>.
+;;;   <https://mumble.net/~campbell/emacs/paredit.release>.
 
 ;;; Install paredit by placing `paredit.el' in `/path/to/elisp', a
 ;;; directory of your choice, and adding to your .emacs file:
@@ -964,7 +964,7 @@ If not in a string, act as `paredit-doublequote'; if not prefix argument
   ;; -- then delete the backslash to avoid a dangling escape.
   (let ((delete-p t))
     (unwind-protect
-        (let ((char (read-char "Character to escape: ")))
+        (let ((char (read-char "Character to escape: " t)))
           (if (not (eq char ?\^?))
               (progn (message "Character to escape: %c" char)
                      (insert char)
