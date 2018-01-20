@@ -4,7 +4,7 @@
 
 ;; Author: Lars Andersen <expez@expez.com>
 ;; URL: https://www.github.com/expez/evil-smartparens
-;; Package-Version: 20171103.941
+;; Package-Version: 20171210.713
 ;; Keywords: evil smartparens
 ;; Version: 0.4.0
 ;; Package-Requires: ((evil "1.0") (emacs "24.4") (smartparens "1.10.1"))
@@ -158,8 +158,9 @@ list of (fn args) to pass to `apply''"
     (kbd "D") #'evil-sp-delete-line
     (kbd "Y") #'evil-sp-yank-line
     (kbd "C") #'evil-sp-change-line)
-  (evil-define-key 'insert evil-smartparens-mode-map
-    (kbd "DEL") 'sp-backward-delete-char)
+  (when smartparens-strict-mode
+    (evil-define-key 'insert evil-smartparens-mode-map
+      (kbd "DEL") 'sp-backward-delete-char))
   (evil-define-key 'visual evil-smartparens-mode-map
     (kbd "o") #'evil-sp-override)
   (evil-normalize-keymaps))
