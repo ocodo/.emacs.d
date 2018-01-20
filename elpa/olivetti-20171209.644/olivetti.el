@@ -1,10 +1,15 @@
 ;;; olivetti.el --- Minor mode for a nice writing environment -*- lexical-binding: t; -*-
 
-;; Copyright (c) 2014-2016 Paul Rankin
+;; Copyright (c) 2014-2017 Paul Rankin
 
 ;; Author: Paul Rankin <hello@paulwrankin.com>
 ;; Keywords: wp
-;; Package-Version: 20170823.1754
+;; Package-Version: 20171209.644
+;; Version: 1.5.9
+;; Package-Requires: ((emacs "24.4"))
+;; URL: https://github.com/rnkn/olivetti
+
+;; This file is not part of GNU Emacs.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -41,6 +46,15 @@
 ;;   recall its state on exit.
 ;; - Optionally hide the mode-line for distraction-free writing.
 
+;; Olivetti keeps everything it does buffer-local, so you can write prose in one
+;; buffer and code in another, side-by-side in the same frame. Or, by hiding the
+;; mode-line and using a single window in a fullscreen frame, Olivetti provides a
+;; nice distraction-free environment. For those looking for a hardcore
+;; distraction-free writing mode with a much larger scope, I recommend
+;; [writeroom-mode].
+
+;; [writeroom-mode]: https://github.com/joostkremers/writeroom-mode "Writeroom Mode"
+
 ;; Requirements
 ;; ------------
 
@@ -62,9 +76,9 @@
 ;; Known Bugs
 ;; ----------
 
-;; - `linum-mode` currently has a bug that overwrites margin settings,
-;;   making it incompatible with Olivetti. More information here:
-;;   <http://debbugs.gnu.org/20674>.
+;; - `linum-mode` in Emacs versions earlier than 26.1 has a bug that overwrites
+;;   margin settings, making it incompatible with modes that work with margins.
+;;   More information here: <https://debbugs.gnu.org/20674>.
 
 ;; Please report bugs on GitHub [Issues] page.
 
@@ -76,6 +90,16 @@
 ;; See [Releases].
 
 ;; [releases]: https://github.com/rnkn/olivetti/releases "Olivetti releases"
+
+;; Hints
+;; -----
+
+;; To always use a different width for a specific file, set a [File Variable]
+;; specifying `olivetti-body-width`:
+
+;;     M-x add-file-local-variable RET olivetti-body-width RET 66 RET
+
+;; [file variable]: https://www.gnu.org/software/emacs/manual/html_node/emacs/File-Variables.html "File Variables"
 
 
 ;;; Code:
@@ -123,7 +147,7 @@ This option does not affect file contents."
   :group 'olivetti)
 
 (defcustom olivetti-hide-mode-line
- nil
+  nil
   "Hide the mode line."
   :type 'boolean
   :group 'olivetti)
@@ -147,7 +171,7 @@ exiting. The reverse is not true."
 
 ;;; Set Environment
 
-(defun olivetti-set-environment ()
+(defun olivetti-set-environment (&optional frame)
   "Set text body width to `olivetti-body-width' with relative margins.
 
 Cycle through all windows displaying current buffer and first
@@ -160,10 +184,16 @@ care that the maximum size is 0."
                                        (olivetti-scale-width olivetti-body-width)
                                      olivetti-body-width)
                                    window))
+           (fringes (window-fringes window))
+           (window-width (- (window-total-width window)
+                            (+ (/ (car fringes)
+                                  (float (frame-char-width)))
+                               (/ (cadr fringes)
+                                  (float (frame-char-width))))))
            (width (cond ((integerp n) n)
-                        ((floatp n) (* (window-total-width window)
+                        ((floatp n) (* window-width
                                        n))))
-           (margin (max (round (/ (- (window-total-width window)
+           (margin (max (round (/ (- window-width
                                      width)
                                   2))
                         0)))
@@ -335,17 +365,19 @@ hidden."
   (if olivetti-mode
       (progn
         (dolist (hook '(window-configuration-change-hook
+                        window-size-change-functions
                         after-setting-font-hook
                         text-scale-mode-hook))
           (add-hook hook 'olivetti-set-environment t t))
         (add-hook 'change-major-mode-hook
                   'olivetti-reset-all-windows nil t)
         (setq-local split-window-preferred-function
-              'olivetti-split-window-sensibly)
+                    'olivetti-split-window-sensibly)
         (setq olivetti--visual-line-mode visual-line-mode)
         (unless olivetti--visual-line-mode (visual-line-mode 1))
         (olivetti-set-environment))
     (dolist (hook '(window-configuration-change-hook
+                    window-size-change-functions
                     after-setting-font-hook
                     text-scale-mode-hook))
       (remove-hook hook 'olivetti-set-environment t))
