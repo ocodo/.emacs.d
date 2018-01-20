@@ -5,7 +5,7 @@
 ;; Authors: Matus Goljer <matus.goljer@gmail.com>
 ;;          Magnar Sveen <magnars@gmail.com>
 ;; Version: 1.2.0
-;; Package-Version: 20171028.804
+;; Package-Version: 20180107.818
 ;; Package-Requires: ((dash "2.0.0") (emacs "24"))
 ;; Keywords: lisp functions combinators
 
@@ -208,10 +208,10 @@ In types (for n=2): ((a -> b), (c -> d)) -> (a, c) -> (b, d)
 
 This function satisfies the following laws:
 
-  (-compose (-prodfn f g ...) (-prodfn f' g' ...)) = (-prodfn (-compose f f') (-compose g g') ...)
-  (-prodfn f g ...) = (-juxt (-compose f (-partial 'nth 0)) (-compose g (-partial 'nth 1)) ...)
-  (-compose (-prodfn f g ...) (-juxt f' g' ...)) = (-juxt (-compose f f') (-compose g g') ...)
-  (-compose (-partial 'nth n) (-prod f1 f2 ...)) = (-compose fn (-partial 'nth n))"
+  (-compose (-prodfn f g ...) (-prodfn f\\=' g\\=' ...)) = (-prodfn (-compose f f\\=') (-compose g g\\=') ...)
+  (-prodfn f g ...) = (-juxt (-compose f (-partial \\='nth 0)) (-compose g (-partial \\='nth 1)) ...)
+  (-compose (-prodfn f g ...) (-juxt f\\=' g\\=' ...)) = (-juxt (-compose f f\\=') (-compose g g\\=') ...)
+  (-compose (-partial \\='nth n) (-prod f1 f2 ...)) = (-compose fn (-partial \\='nth n))"
   (lambda (x) (-zip-with 'funcall fns x)))
 
 (provide 'dash-functional)
