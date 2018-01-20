@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "company-flx" "company-flx.el" (22628 53711
-;;;;;;  0 0))
+;;;### (autoloads nil "company-flx" "company-flx.el" (23138 48837
+;;;;;;  298497 181000))
 ;;; Generated autoloads from company-flx.el
 
 (defvar company-flx-mode nil "\
