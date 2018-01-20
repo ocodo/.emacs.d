@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "elm-format" "elm-format.el" (23064 61757 515013
-;;;;;;  478000))
+;;;### (autoloads nil "elm-format" "elm-format.el" (23138 48760 186414
+;;;;;;  530000))
 ;;; Generated autoloads from elm-format.el
 
 (autoload 'elm-mode-format-buffer "elm-format" "\
@@ -16,8 +16,8 @@ IS-INTERACTIVE, show a buffer if the formatting fails.
 
 ;;;***
 
-;;;### (autoloads nil "elm-indent" "elm-indent.el" (23064 61757 511013
-;;;;;;  488000))
+;;;### (autoloads nil "elm-indent" "elm-indent.el" (23138 48760 182414
+;;;;;;  526000))
 ;;; Generated autoloads from elm-indent.el
 
 (autoload 'elm-indent-mode "elm-indent" "\
@@ -43,8 +43,8 @@ Invokes `elm-indent-hook' if not nil.
 
 ;;;***
 
-;;;### (autoloads nil "elm-interactive" "elm-interactive.el" (23064
-;;;;;;  61757 503013 508000))
+;;;### (autoloads nil "elm-interactive" "elm-interactive.el" (23138
+;;;;;;  48760 178414 521000))
 ;;; Generated autoloads from elm-interactive.el
 
 (autoload 'elm-interactive-mode "elm-interactive" "\
@@ -194,8 +194,8 @@ Run the elm-test command on the current project.
 
 ;;;***
 
-;;;### (autoloads nil "elm-mode" "elm-mode.el" (23064 61757 507013
-;;;;;;  498000))
+;;;### (autoloads nil "elm-mode" "elm-mode.el" (23138 48760 182414
+;;;;;;  526000))
 ;;; Generated autoloads from elm-mode.el
 
 (autoload 'elm-mode "elm-mode" "\
@@ -207,8 +207,8 @@ Major mode for editing Elm source code.
 
 ;;;***
 
-;;;### (autoloads nil "elm-tags" "elm-tags.el" (23064 61757 515013
-;;;;;;  478000))
+;;;### (autoloads nil "elm-tags" "elm-tags.el" (23138 48760 186414
+;;;;;;  530000))
 ;;; Generated autoloads from elm-tags.el
 
 (autoload 'elm-mode-goto-tag-at-point "elm-tags" "\
@@ -224,7 +224,7 @@ Generate a TAGS file for the current project.
 ;;;***
 
 ;;;### (autoloads nil nil ("elm-font-lock.el" "elm-imenu.el" "elm-mode-pkg.el"
-;;;;;;  "elm-util.el") (23064 61757 511013 488000))
+;;;;;;  "elm-util.el") (23138 48760 186414 530000))
 
 ;;;***
 
