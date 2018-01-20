@@ -12,6 +12,18 @@
 ;;; Commentary:
 ;;
 ;; Alex V. Koval avk-daylight theme
+;;
+;; I needed something which would allow me working comfortably under direct sunlight.
+;;
+;; There are not so many high contrast themes out there. From my favourites:
+;; - leuven
+;; - plan9
+;; - emacs default theme
+;;
+;; Some of those did not exist in the time I’ve created my own. I am heavy user of emacs, org-mode
+;; and Python developer, so you can expect this theme to cover all the basic modes for this
+;; kind of activity well.
+;;
 
 ;;; Code:
 
@@ -80,7 +92,9 @@
    `(jabber-chat-prompt-local ((t (:inherit org-level-4))))
    `(jabber-roster-user-online ((t (:inherit font-lock-string-face))))
    `(lazy-highlight ((t (:background "chartreuse"))))
-   `(linum ((t (:background "gray92" :foreground "#4d4d7d" :family "Neep" :underline nil :slant italic :weight normal))))
+   `(linum ((t (:height 0.9  :background "gray92" :foreground "#4d4d7d" :underline nil :slant italic :weight normal))))
+   `(line-number ((t (:height 0.9 :background "gray88" :foreground "black" :underline nil :slant italic :weight normal))))
+   `(line-number-current-line ((t (:height 0.9 :background "#fffb9a" :foreground "black" :underline nil :slant italic :weight normal))))
    `(match ((nil (:inherit region :underline t))))
    `(message-cited-text ((((class color) (background light)) (:foreground "dark magenta")) (((class color) (background dark)) (:foreground "SandyBrown"))))
    `(message-header-name ((((class color) (background dark)) (:foreground "DarkGrey")) (((background light)) (:inherit font-lock-function-name-face))))
