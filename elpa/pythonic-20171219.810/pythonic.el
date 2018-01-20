@@ -4,7 +4,7 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/pythonic
-;; Package-Version: 20160221.1123
+;; Package-Version: 20171219.810
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5") (dash "2.11") (s "1.9") (f "0.17.2"))
 
@@ -46,6 +46,11 @@
   (if pythonic-environment
       (tramp-tramp-file-p pythonic-environment)
     (tramp-tramp-file-p python-shell-interpreter)))
+
+(defun pythonic-remote-docker-p ()
+  "Determine docker remote virtual environment."
+  (and (pythonic-remote-p)
+       (s-starts-with-p "/docker:" (pythonic-tramp-connection))))
 
 (defun pythonic-file-name (file)
   "Normalized FILE location with out tramp prefix."
