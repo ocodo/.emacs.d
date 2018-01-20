@@ -4,8 +4,8 @@
 
 ;; Author: Johan Dykstrom
 ;; Created: Sep 2017
-;; Version: 0.3.0
-;; Package-Version: 20171120.1019
+;; Version: 0.3.2
+;; Package-Version: 20171204.1217
 ;; Keywords: basic, languages
 ;; URL: https://github.com/dykstrom/basic-mode
 ;; Package-Requires: ((seq "2.20") (emacs "24.3"))
@@ -38,7 +38,7 @@
 
 ;; Installation:
 
-;; The easiest way to install basic-mode is from MELPA, please see
+;; The recommended way to install basic-mode is from MELPA, please see
 ;; https://melpa.org.
 ;;
 ;; To install manually, place basic-mode.el in your load-path, and add
@@ -66,6 +66,8 @@
 
 ;;; Change Log:
 
+;;  0.3.2  2017-12-04  Indentation of one-line-loops.
+;;  0.3.1  2017-11-25  Renumbering on-goto and bug fixes.
 ;;  0.3.0  2017-11-20  Auto-numbering and renumbering support.
 ;;                     Thanks to Peder O. Klingenberg.
 ;;  0.2.0  2017-10-27  Format region/buffer.
@@ -135,7 +137,7 @@ empty lines are never numbered."
 ;; Variables:
 ;; ----------------------------------------------------------------------------
 
-(defconst basic-mode-version "0.3.0"
+(defconst basic-mode-version "0.3.2"
   "The current version of `basic-mode'.")
 
 (defconst basic-increase-indent-keywords-bol
@@ -157,7 +159,7 @@ end of a line.")
               'symbols)
   "Regexp string of keywords that decrease indentation.
 These keywords decrease indentation when found at the
-beginning of a line.")
+beginning of a line or after a statement separator (:).")
 
 (defconst basic-comment-and-string-faces
   '(font-lock-comment-face font-lock-comment-delimiter-face font-lock-string-face)
@@ -216,15 +218,24 @@ beginning of a line.")
   ;; If line needs indentation
   (when (or (not (basic-line-number-indented-correctly-p))
             (not (basic-code-indented-correctly-p)))
-    (let* ((original-col (- (current-column) basic-line-number-cols))
-           (original-indent-col (basic-current-indent))
-           (calculated-indent-col (basic-calculate-indent)))
-      (basic-indent-line-to calculated-indent-col)
-      ;; Move point to a good place after indentation
-      (goto-char (+ (point-at-bol)
-                    calculated-indent-col
-                    (max (- original-col original-indent-col) 0)
-                    basic-line-number-cols)))))
+    ;; Set basic-line-number-cols to reflect the actual code
+    (let* ((actual-line-number-cols
+            (if (not (basic-has-line-number-p))
+                0
+              (let ((line-number (basic-current-line-number)))
+                (1+ (length (number-to-string line-number))))))
+           (basic-line-number-cols
+            (max actual-line-number-cols basic-line-number-cols)))
+      ;; Calculate new indentation
+      (let* ((original-col (- (current-column) basic-line-number-cols))
+             (original-indent-col (basic-current-indent))
+             (calculated-indent-col (basic-calculate-indent)))
+        (basic-indent-line-to calculated-indent-col)
+        ;; Move point to a good place after indentation
+        (goto-char (+ (point-at-bol)
+                      calculated-indent-col
+                      (max (- original-col original-indent-col) 0)
+                      basic-line-number-cols))))))
 
 (defun basic-calculate-indent ()
   "Calculate the indent for the current line of code.
@@ -276,11 +287,18 @@ while other keywords do it when found at the beginning of a line."
 (defun basic-decrease-indent-p ()
   "Return non-nil if indentation should be decreased.
 Some keywords trigger un-indentation when found at the beginning
-of a line, see `basic-decrease-indent-keywords-bol'."
+of a line or statement, see `basic-decrease-indent-keywords-bol'."
   (save-excursion
     (beginning-of-line)
     (re-search-forward "[^0-9 \t\n]" (point-at-eol) t)
-    (basic-match-symbol-at-point-p basic-decrease-indent-keywords-bol)))
+    (or (basic-match-symbol-at-point-p basic-decrease-indent-keywords-bol)
+        (let ((match nil))
+          (basic-code-search-backward)
+          (beginning-of-line)
+          (while (and (not match)
+                      (re-search-forward ":[ \t\n]*" (point-at-eol) t))
+            (setq match (basic-match-symbol-at-point-p basic-decrease-indent-keywords-bol)))
+          match))))
 
 (defun basic-current-indent ()
   "Return the indent column of the current code line.
@@ -409,13 +427,13 @@ trailing lines at the end of the buffer if the variable
 ;; ----------------------------------------------------------------------------
 
 (defun basic-current-line-number ()
+  "Return line number of current line, or nil if no line number."
   (save-excursion
-    (if (not (basic-has-line-number-p))
-	nil
+    (when (basic-has-line-number-p)
       (beginning-of-line)
       (re-search-forward "\\([0-9]+\\)" (point-at-eol) t)
       (let ((line-number (match-string-no-properties 1)))
-	(string-to-number line-number)))))
+        (string-to-number line-number)))))
 
 (defun basic-newline-and-number ()
   "Insert a newline and indent to the proper level.
@@ -458,11 +476,15 @@ even if that creates overlaps."
   (let ((jump-targets (make-hash-table)))
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward "\\(go\\(sub\\|to\\)\\|then\\)[ \t]*\\([0-9]+\\)" nil t)
-	(let ((target (string-to-number (match-string-no-properties 3))))
-	  (unless (gethash target jump-targets)
-	    (puthash target nil jump-targets))
-	  (push (point-marker) (gethash target jump-targets)))))
+      (while (re-search-forward "\\(go\\(sub\\|to\\)\\|then\\)[ \t]*" nil t)
+	(while (looking-at "\\([0-9]+\\)\\(,[ \t]*\\)?")
+	  (let* ((target-string (match-string-no-properties 1))
+		 (target (string-to-number target-string))
+		 (jmp-marker (copy-marker (+ (point) (length target-string)))))
+	    (unless (gethash target jump-targets)
+	      (puthash target nil jump-targets))
+	    (push jmp-marker (gethash target jump-targets))
+	    (forward-char (length (match-string 0)))))))
     jump-targets))
 
 (defun basic-renumber (start increment)
@@ -509,11 +531,10 @@ have numbers are included in the renumbering."
     (let ((new-line-number start)
 	  (jump-list (basic-find-jumps))
 	  (point-start (if (use-region-p) (region-beginning) (point-min)))
-	  (point-end (if (use-region-p) (region-end) (point-max))))
+	  (point-end (if (use-region-p) (copy-marker (region-end)) (copy-marker (point-max)))))
       (save-excursion
 	(goto-char point-start)
-	(while (and (not (eobp))
-		    (< (point) point-end))
+	(while (< (point) point-end)
 	  (unless (looking-at "^[ \t]*$")
 	    (let ((current-line-number (string-to-number (basic-remove-line-number))))
 	      (when (or basic-renumber-unnumbered-lines
@@ -530,6 +551,7 @@ have numbers are included in the renumbering."
 		(insert (basic-format-line-number new-line-number))
 		(setq new-line-number (+ new-line-number increment)))))
 	  (forward-line 1)))
+      (set-marker point-end nil)
       (maphash (lambda (target sources)
 		 (dolist (m sources)
 		   (when (marker-position m)
