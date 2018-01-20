@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "counsel" "counsel.el" (23064 61826 398837
-;;;;;;  989000))
+;;;### (autoloads nil "counsel" "counsel.el" (23138 48832 970492
+;;;;;;  662000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -53,10 +53,10 @@ or radio, offer completion of all possible values.
 Otherwise, offer a variant of `eval-expression', with the initial
 input corresponding to the chosen variable.
 
-\(fn)" t nil)
+\(fn SYM)" t nil)
 
 (autoload 'counsel-info-lookup-symbol "counsel" "\
-Forward to (`info-lookup-symbol' SYMBOL MODE) with ivy completion.
+Forward to `info-lookup-symbol' with ivy completion.
 
 \(fn SYMBOL &optional MODE)" t nil)
 
@@ -159,10 +159,12 @@ INITIAL-INPUT can be given as the initial minibuffer input.
 \(fn &optional INITIAL-INPUT)" t nil)
 
 (autoload 'counsel-fzf "counsel" "\
-Call the \"fzf\" shell command.
+Open a file using the fzf shell command.
 INITIAL-INPUT can be given as the initial minibuffer input.
+INITIAL-DIRECTORY, if non-nil, is used as the root directory for search.
+FZF-PROMPT, if non-nil, is passed as `ivy-read' prompt argument.
 
-\(fn &optional INITIAL-INPUT)" t nil)
+\(fn &optional INITIAL-INPUT INITIAL-DIRECTORY FZF-PROMPT)" t nil)
 
 (autoload 'counsel-dpkg "counsel" "\
 Call the \"dpkg\" shell command.
@@ -225,7 +227,7 @@ RG-PROMPT, if non-nil, is passed as `ivy-read' prompt argument.
 \(fn &optional INITIAL-INPUT INITIAL-DIRECTORY EXTRA-RG-ARGS RG-PROMPT)" t nil)
 
 (autoload 'counsel-grep "counsel" "\
-Grep for a string in the current file.
+Grep for a string in the file visited by the current buffer.
 When non-nil, INITIAL-INPUT is the initial search pattern.
 
 \(fn &optional INITIAL-INPUT)" t nil)
@@ -261,6 +263,11 @@ Browse all attachments for current Org file.
 
 \(fn)" t nil)
 
+(autoload 'counsel-org-capture "counsel" "\
+Capture something.
+
+\(fn)" t nil)
+
 (autoload 'counsel-tmm "counsel" "\
 Text-mode emulation of looking and choosing from a menubar.
 
@@ -268,8 +275,13 @@ Text-mode emulation of looking and choosing from a menubar.
 
 (autoload 'counsel-yank-pop "counsel" "\
 Ivy replacement for `yank-pop'.
+ARG has the same meaning as in `yank-pop', but its default value
+can be controlled with `counsel-yank-pop-preselect-last', which
+see.  See also `counsel-yank-pop-filter' for how to filter
+candidates.
+Note: Duplicate elements of `kill-ring' are always deleted.
 
-\(fn)" t nil)
+\(fn &optional ARG)" t nil)
 
 (autoload 'counsel-imenu "counsel" "\
 Jump to a buffer position indexed by imenu.
