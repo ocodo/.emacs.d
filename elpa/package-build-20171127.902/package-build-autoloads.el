@@ -3,17 +3,17 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "package-build" "package-build.el" (23064 61116
-;;;;;;  505256 685000))
+;;;### (autoloads nil "package-build" "package-build.el" (23138 48005
+;;;;;;  477158 993000))
 ;;; Generated autoloads from package-build.el
 
 (autoload 'package-build-archive "package-build" "\
-Build a package archive for package NAME.
+Build a package archive for the package named NAME.
 
 \(fn NAME)" t nil)
 
 (autoload 'package-build-package "package-build" "\
-Create PACKAGE-NAME with VERSION.
+Create version VERSION of the package named NAME.
 
 The information in FILE-SPECS is used to gather files from
 SOURCE-DIR.
@@ -29,22 +29,33 @@ simply pass `package-build-default-files-spec' in most cases.
 
 Returns the archive entry for the package.
 
-\(fn PACKAGE-NAME VERSION FILE-SPECS SOURCE-DIR TARGET-DIR)" nil nil)
+\(fn NAME VERSION FILE-SPECS SOURCE-DIR TARGET-DIR)" nil nil)
 
 (autoload 'package-build-all "package-build" "\
 Build all packages in the `package-build-recipe-alist'.
 
 \(fn)" t nil)
 
-(autoload 'package-build-create-recipe "package-build" "\
-Create a new recipe for package NAME using FETCHER.
+;;;***
+
+;;;### (autoloads nil "package-recipe-mode" "package-recipe-mode.el"
+;;;;;;  (23138 48005 481159 3000))
+;;; Generated autoloads from package-recipe-mode.el
+
+(autoload 'package-build-create-recipe "package-recipe-mode" "\
+Create a new recipe for the package named NAME using FETCHER.
 
 \(fn NAME FETCHER)" t nil)
 
-(autoload 'package-build-current-recipe "package-build" "\
+(autoload 'package-build-current-recipe "package-recipe-mode" "\
 Build archive for the recipe defined in the current buffer.
 
 \(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads nil nil ("package-build-badges.el" "package-build-pkg.el")
+;;;;;;  (23138 48005 477158 993000))
 
 ;;;***
 
