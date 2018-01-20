@@ -1,10 +1,10 @@
 ;;; helm-flx.el --- Sort helm candidates by flx score -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014, 2015, 2016 PythonNut
+;; Copyright (C) 2014, 2015, 2016, 2018 PythonNut
 
 ;; Author: PythonNut <pythonnut@pythonnut.com>
 ;; Keywords: convenience, helm, fuzzy, flx
-;; Package-Version: 20170404.1230
+;; Package-Version: 20180102.2116
 ;; Version: 20151013
 ;; URL: https://github.com/PythonNut/helm-flx
 ;; Package-Requires: ((emacs "24.4") (helm "1.7.9") (flx "0.5"))
