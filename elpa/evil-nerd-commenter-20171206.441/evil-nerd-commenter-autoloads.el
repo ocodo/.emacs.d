@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "evil-nerd-commenter" "evil-nerd-commenter.el"
-;;;;;;  (23064 61712 711132 27000))
+;;;;;;  (23138 48719 882369 344000))
 ;;; Generated autoloads from evil-nerd-commenter.el
 
 (autoload 'evilnc-comment-or-uncomment-paragraphs "evil-nerd-commenter" "\
@@ -98,7 +98,7 @@ If NO-EVIL-KEYBINDINGS is t, we don't define keybindings in EVIL.
 ;;;***
 
 ;;;### (autoloads nil nil ("evil-nerd-commenter-operator.el" "evil-nerd-commenter-pkg.el"
-;;;;;;  "evil-nerd-commenter-sdk.el") (23064 61712 715132 16000))
+;;;;;;  "evil-nerd-commenter-sdk.el") (23138 48719 882369 344000))
 
 ;;;***
 
