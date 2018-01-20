@@ -28,6 +28,18 @@ Note that this needs to be set before themes are loaded or it will not work."
   :group 'base16
   :options '("terminal" "base16-shell" "colors"))
 
+(defcustom base16-distinct-fringe-background t
+  "Make the fringe background different from the normal background color.
+Also affects `linum-mode' background."
+  :type 'boolean
+  :group 'base16)
+
+(defcustom base16-highlight-mode-line nil
+  "Make the active mode line stand out more by drawing a thin
+border around it."
+  :type 'boolean
+  :group 'base16)
+
 (defvar base16-shell-colors
   '(:base00 "black"
     :base01 "brightgreen"
@@ -75,13 +87,43 @@ the base16-shell code.  If you're using a different terminal
 color scheme, you may want to look for an alternate theme for use
 in the terminal.")
 
+(defun base16-transform-color-key (key)
+  "Transform a given color `KEY' into a theme color.
+
+This function is mostly meant for transforming values based on
+settings and will be for very specific cases."
+  (if (symbolp key)
+      (cond
+       ((string= (symbol-name key) "fringe-bg")
+        (if base16-distinct-fringe-background
+            :base01 :base00))
+       (t
+        (intern (concat ":" (symbol-name key)))))
+    nil))
+
+(defun base16-apply-settings (value)
+  "Apply user settings to definition.
+
+This provides a primitive macro expansion by replacing specific
+symbols in the definitiions below with values appropriate to the
+user's customized variables."
+  (if (not (symbolp value))
+	  value
+	(cond
+	 ((string= (symbol-name value) "base16-settings-mode-line-box")
+	  (if base16-highlight-mode-line
+		  '(:line-width 1 :color base04) 
+		nil))
+	 (t
+	  value))))
+  
 (defun base16-transform-spec (spec colors)
   "Transform a theme `SPEC' into a face spec using `COLORS'."
   (let ((output))
     (while spec
       (let* ((key       (car  spec))
-             (value     (cadr spec))
-             (color-key (if (symbolp value) (intern (concat ":" (symbol-name value))) nil))
+             (value     (base16-apply-settings (cadr spec)))
+             (color-key (base16-transform-color-key value))
              (color     (plist-get colors color-key)))
 
         ;; Append the transformed element
@@ -137,7 +179,7 @@ in the terminal.")
      (border                                       :background base03)
      (cursor                                       :background base08)
      (default                                      :foreground base05 :background base00)
-     (fringe                                       :background base02)
+     (fringe                                       :background fringe-bg)
      (gui-element                                  :background base01)
      (header-line                                  :foreground base0E :background nil :inherit mode-line)
      (highlight                                    :background base01)
@@ -192,11 +234,11 @@ in the terminal.")
      (isearch-fail                                 :background base01 :inverse-video t :inherit font-lock-warning-face)
 
 ;;;; line-numbers
-     (line-number                                  :foreground base03 :background base01)
+     (line-number                                  :foreground base03 :background fringe-bg)
      (line-number-current-line                     :inverse-video t)
 
 ;;;; mode-line
-     (mode-line                                    :foreground base04 :background base02 :box nil)
+     (mode-line                                    :foreground base04 :background base02 :box base16-settings-mode-line-box)
      (mode-line-buffer-id                          :foreground base0B :background nil)
      (mode-line-emphasis                           :foreground base06 :slant italic)
      (mode-line-highlight                          :foreground base0E :box nil :weight bold)
@@ -453,12 +495,19 @@ in the terminal.")
      (helm-source-header                           :foreground base05 :background base01 :weight bold)
      (helm-visible-mark                            :foreground base00 :background base0B)
 
+;;;; highlight-indentation minor mode
+     (highlight-indentation-face                   :background base01)
+
 ;;;; hl-line-mode
      (hl-line                                      :background base01)
      (col-highlight                                :background base01)
 
 ;;;; hl-sexp-mode
      (hl-sexp-face                                 :background base03)
+
+;;;; hydra
+     (hydra-face-red                               :foreground base09)
+     (hydra-face-blue                              :foreground base0D)
 
 ;;;; ido-mode
      (ido-subdir                                   :foreground base04)
@@ -532,8 +581,27 @@ in the terminal.")
      (js3-private-function-call-face               :foreground base08)
 
 ;;;; linum-mode
-     (linum                                        :foreground base03 :background base01)
+     (linum                                        :foreground base03 :background fringe-bg)
 
+;;;; magit
+     (magit-blame-culprit                          :background base01)
+     (magit-blame-heading                          :background base01 :foreground base05)
+     (magit-branch                                 :foreground base04 :weight bold)
+     (magit-branch-current                         :foreground base0C :weight bold :box t)
+     (magit-branch-local                           :foreground base0C :weight bold)
+     (magit-branch-remote                          :foreground base0B :weight bold)
+     (magit-diff-context-highlight                 :background base01 :foreground base05)
+     (magit-diff-file-header                       :background base01 :foreground base05)
+     (magit-hash                                   :foreground base0D)
+     (magit-header-line                            :background base02 :foreground base05 :weight bold)
+     (magit-hunk-heading                           :background base03)
+     (magit-hunk-heading-highlight                 :background base03)
+     (magit-diff-hunk-heading                      :background base01)
+     (magit-diff-hunk-heading-highlight            :background base01)
+     (magit-item-highlight                         :background base01)
+     (magit-log-author                             :foreground base0D)
+     (magit-section-highlight                      :background base01)
+     (magit-tag                                    :foreground base05)
 ;;;; mark-multiple
      (mm/master-face                               :foreground nil :background nil :inherit region)
      (mm/mirror-face                               :foreground nil :background nil :inherit region)
@@ -665,6 +733,16 @@ in the terminal.")
      (spaceline-evil-replace                       :foreground base01 :background base08)
      (spaceline-evil-visual                        :foreground base01 :background base09)
 
+;;;; spacemacs
+     (spacemacs-emacs-face                        :foreground base01 :background base0D)
+     (spacemacs-hybrid-face                       :foreground base01 :background base0D)
+     (spacemacs-insert-face                       :foreground base01 :background base0C)
+     (spacemacs-motion-face                       :foreground base01 :background base0E)
+     (spacemacs-lisp-face                         :foreground base01 :background base0E)
+     (spacemacs-normal-face                       :foreground base01 :background base0B)
+     (spacemacs-replace-face                      :foreground base01 :background base08)
+     (spacemacs-visual-face                       :foreground base01 :background base09)
+
 ;;;; structured-haskell-mode
      (shm-current-face                             :inherit region)
      (shm-quarantine-face                          :underline (:style wave :color base08))
@@ -692,6 +770,21 @@ in the terminal.")
 ;;;; utop-mode
      (utop-prompt                                  :foreground base0E)
      (utop-error                                   :underline (:style wave :color base08) :inherit error)
+
+;;;; w3m-mode
+     (w3m-anchor                                   :underline nil :inherit link)
+     (w3m-anchor-visited                           :underline nil :inherit link-visited)
+     (w3m-form                                     :foreground base09 :underline t)
+     (w3m-image                                    :foreground base05 :background base03)
+     (w3m-image-anchor                             :foreground base05 :background base03 :underline t)
+     (w3m-header-line-location-content             :foreground base0D :background base00)
+     (w3m-header-line-location-title               :foreground base0D :background base00)
+     (w3m-tab-background                           :foreground base05 :background base01)
+     (w3m-tab-selected                             :foreground base05 :background base00)
+     (w3m-tab-selected-retrieving                  :foreground base05 :background base00)
+     (w3m-tab-unselected                           :foreground base03 :background base01)
+     (w3m-tab-unselected-unseen                    :foreground base03 :background base01)
+     (w3m-tab-unselected-retrieving                :foreground base03 :background base01)
 
 ;;;; which-func-mode
      (which-func                                   :foreground base0D :background nil :weight bold)

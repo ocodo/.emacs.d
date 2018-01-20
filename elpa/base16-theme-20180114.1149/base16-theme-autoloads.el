@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "base16-theme" "base16-theme.el" (23064 61908
-;;;;;;  834637 466000))
+;;;### (autoloads nil "base16-theme" "base16-theme.el" (23138 48910
+;;;;;;  414571 517000))
 ;;; Generated autoloads from base16-theme.el
 
 (and load-file-name (boundp 'custom-theme-load-path) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
@@ -37,25 +37,25 @@
 ;;;;;;  "base16-gruvbox-dark-soft-theme.el" "base16-gruvbox-light-hard-theme.el"
 ;;;;;;  "base16-gruvbox-light-medium-theme.el" "base16-gruvbox-light-soft-theme.el"
 ;;;;;;  "base16-harmonic-dark-theme.el" "base16-harmonic-light-theme.el"
-;;;;;;  "base16-hopscotch-theme.el" "base16-irblack-theme.el" "base16-isotope-theme.el"
-;;;;;;  "base16-macintosh-theme.el" "base16-marrakesh-theme.el" "base16-materia-theme.el"
-;;;;;;  "base16-material-darker-theme.el" "base16-material-lighter-theme.el"
-;;;;;;  "base16-material-palenight-theme.el" "base16-material-theme.el"
-;;;;;;  "base16-mellow-purple-theme.el" "base16-mexico-light-theme.el"
-;;;;;;  "base16-mocha-theme.el" "base16-monokai-theme.el" "base16-nord-theme.el"
-;;;;;;  "base16-ocean-theme.el" "base16-oceanicnext-theme.el" "base16-one-light-theme.el"
-;;;;;;  "base16-onedark-theme.el" "base16-paraiso-theme.el" "base16-phd-theme.el"
-;;;;;;  "base16-pico-theme.el" "base16-pop-theme.el" "base16-porple-theme.el"
-;;;;;;  "base16-railscasts-theme.el" "base16-rebecca-theme.el" "base16-seti-theme.el"
-;;;;;;  "base16-shapeshifter-theme.el" "base16-solarflare-theme.el"
+;;;;;;  "base16-hopscotch-theme.el" "base16-icy-theme.el" "base16-irblack-theme.el"
+;;;;;;  "base16-isotope-theme.el" "base16-macintosh-theme.el" "base16-marrakesh-theme.el"
+;;;;;;  "base16-materia-theme.el" "base16-material-darker-theme.el"
+;;;;;;  "base16-material-lighter-theme.el" "base16-material-palenight-theme.el"
+;;;;;;  "base16-material-theme.el" "base16-mellow-purple-theme.el"
+;;;;;;  "base16-mexico-light-theme.el" "base16-mocha-theme.el" "base16-monokai-theme.el"
+;;;;;;  "base16-nord-theme.el" "base16-ocean-theme.el" "base16-oceanicnext-theme.el"
+;;;;;;  "base16-one-light-theme.el" "base16-onedark-theme.el" "base16-paraiso-theme.el"
+;;;;;;  "base16-phd-theme.el" "base16-pico-theme.el" "base16-pop-theme.el"
+;;;;;;  "base16-porple-theme.el" "base16-railscasts-theme.el" "base16-rebecca-theme.el"
+;;;;;;  "base16-seti-theme.el" "base16-shapeshifter-theme.el" "base16-solarflare-theme.el"
 ;;;;;;  "base16-solarized-dark-theme.el" "base16-solarized-light-theme.el"
 ;;;;;;  "base16-spacemacs-theme.el" "base16-summerfruit-dark-theme.el"
 ;;;;;;  "base16-summerfruit-light-theme.el" "base16-theme-pkg.el"
 ;;;;;;  "base16-tomorrow-night-theme.el" "base16-tomorrow-theme.el"
 ;;;;;;  "base16-tube-theme.el" "base16-twilight-theme.el" "base16-unikitty-dark-theme.el"
 ;;;;;;  "base16-unikitty-light-theme.el" "base16-woodland-theme.el"
-;;;;;;  "base16-xcode-dusk-theme.el" "base16-zenburn-theme.el") (23064
-;;;;;;  61909 46636 961000))
+;;;;;;  "base16-xcode-dusk-theme.el" "base16-zenburn-theme.el") (23138
+;;;;;;  48910 526571 626000))
 
 ;;;***
 
