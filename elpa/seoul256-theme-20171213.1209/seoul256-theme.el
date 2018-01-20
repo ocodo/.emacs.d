@@ -5,7 +5,7 @@
 ;; Author: Anand Iyer <anand.ucb@gmail.com>
 ;; Maintainer: Anand Iyer <anand.ucb@gmail.com>
 ;; URL: http://github.com/anandpiyer/seoul256-emacs
-;; Package-Version: 20170320.1311
+;; Package-Version: 20171213.1209
 ;; Created: 21 October 2016
 ;; Version: 0.3.2
 ;; Keywords: theme
@@ -237,11 +237,15 @@
      `(highlight-indent-guides-even-face ((t (:background ,(hex (+ dark-bg 1) (- light-bg 1))))))
 
      ;; ivy
-     `(ivy-current-match            ((t (:inherit hl-line))))
+     `(ivy-current-match            ((t (:inherit match))))
      `(ivy-minibuffer-match-face-1  ((t (:inherit ivy-current-match))))
      `(ivy-minibuffer-match-face-2  ((t (:inherit isearch))))
      `(ivy-minibuffer-match-face-3  ((t (:inherit isearch))))
      `(ivy-minibuffer-match-face-4  ((t (:inherit isearch))))
+     `(ivy-confirm-face             ((t (:inherit ivy-current-match))))
+     `(ivy-match-required-face      ((t (:inherit ivy-current-match))))
+     `(ivy-remote                   ((t (:inherit ivy-current-match))))
+     `(ivy-subdir                   ((t (:inherit ivy-current-match))))
 
      ;; linum-relative
      `(linum-relative-current-face   ((t (:foreground ,(hex 131 131) :background ,(hex (- dark-bg 1) (- light-bg 1)) :weight bold))))
