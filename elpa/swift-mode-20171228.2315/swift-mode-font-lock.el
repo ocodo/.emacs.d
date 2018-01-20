@@ -1,14 +1,14 @@
 ;;; swift-mode-font-lock.el --- Major-mode for Apple's Swift programming language, Font Locks. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2016 taku0, Chris Barrett, Bozhidar Batsov, Arthur Evstifeev
+;; Copyright (C) 2014-2017 taku0, Chris Barrett, Bozhidar Batsov, Arthur Evstifeev
 
 ;; Authors: taku0 (http://github.com/taku0)
 ;;       Chris Barrett <chris.d.barrett@me.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;;
-;; Version: 2.3.0
-;; Package-Requires: ((emacs "24.4"))
+;; Version: 4.0.1
+;; Package-Requires: ((emacs "24.4") (seq "2.3"))
 ;; Keywords: languages swift
 
 ;; This file is not part of GNU Emacs.
@@ -48,6 +48,7 @@ Others includes enum, struct, class, protocol name.
 Set `match-data', and return t if a function name found before position LIMIT.
 Return nil otherwise."
   (and
+   (< (point) limit)
    (re-search-forward "\\<\\(\\sw\\|\\s_\\)+\\>" limit t)
    (or
     (swift-mode:function-name-pos-p (match-beginning 0))
@@ -68,15 +69,20 @@ Return nil otherwise."
 
     ;; Keywords that begin with a number sign (#)
     ("#available\\>" . font-lock-preprocessor-face)
+    ("#colorLiteral\\>" . font-lock-preprocessor-face)
     ("#column\\>" . font-lock-preprocessor-face)
-    ("#elseif\\>" . font-lock-preprocessor-face)
     ("#else\\>" . font-lock-preprocessor-face)
+    ("#elseif\\>" . font-lock-preprocessor-face)
     ("#endif\\>" . font-lock-preprocessor-face)
+    ("#fileLiteral\\>" . font-lock-preprocessor-face)
     ("#file\\>" . font-lock-preprocessor-face)
     ("#function\\>" . font-lock-preprocessor-face)
     ("#if\\>" . font-lock-preprocessor-face)
+    ("#imageLiteral\\>" . font-lock-preprocessor-face)
+    ("#keypath\\>" . font-lock-preprocessor-face)
     ("#line\\>" . font-lock-preprocessor-face)
     ("#selector\\>" . font-lock-preprocessor-face)
+    ("#sourceLocation\\>" . font-lock-preprocessor-face)
 
     ;; Keywords used in declarations
     "\\<associatedtype\\>"

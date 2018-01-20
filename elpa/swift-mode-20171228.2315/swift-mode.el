@@ -1,14 +1,14 @@
 ;;; swift-mode.el --- Major-mode for Apple's Swift programming language. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2016 taku0, Chris Barrett, Bozhidar Batsov, Arthur Evstifeev
+;; Copyright (C) 2014-2017 taku0, Chris Barrett, Bozhidar Batsov, Arthur Evstifeev
 
 ;; Authors: taku0 (http://github.com/taku0)
 ;;       Chris Barrett <chris.d.barrett@me.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;;
-;; Version: 2.3.0
-;; Package-Requires: ((emacs "24.4"))
+;; Version: 4.0.1
+;; Package-Requires: ((emacs "24.4") (seq "2.3"))
 ;; Keywords: languages swift
 ;; URL: https://github.com/swift-emacs/swift-mode
 
@@ -52,9 +52,24 @@
     (set-keymap-parent map prog-mode-map)
     (define-key map (kbd "M-j") #'swift-mode:indent-new-comment-line)
     (define-key map (kbd "C-M-j") #'swift-mode:indent-new-comment-line)
-    (define-key map (kbd "C-c C-z") 'swift-mode:run-repl)
-    (define-key map (kbd "C-c C-f") 'swift-mode:send-buffer)
-    (define-key map (kbd "C-c C-r") 'swift-mode:send-region)
+    (define-key map (kbd "C-c C-z") #'swift-mode:run-repl)
+    (define-key map (kbd "C-c C-f") #'swift-mode:send-buffer)
+    (define-key map (kbd "C-c C-r") #'swift-mode:send-region)
+    (define-key map (kbd "C-M-a") #'swift-mode:beginning-of-defun)
+    (define-key map (kbd "C-M-e") #'swift-mode:end-of-defun)
+    (define-key map (kbd "<C-M-home>") #'swift-mode:beginning-of-defun)
+    (define-key map (kbd "<C-M-end>") #'swift-mode:end-of-defun)
+    (define-key map (kbd "ESC <C-home>") #'swift-mode:beginning-of-defun)
+    (define-key map (kbd "ESC <C-end>") #'swift-mode:end-of-defun)
+    (define-key map (kbd "C-M-h") #'swift-mode:mark-defun)
+    (define-key map (kbd "C-x n d") #'swift-mode:narrow-to-defun)
+    (define-key map (kbd "M-a") #'swift-mode:backward-sentence)
+    (define-key map (kbd "M-e") #'swift-mode:forward-sentence)
+    (define-key map (kbd "M-k") #'swift-mode:kill-sentence)
+    (define-key map (kbd "C-x DEL") #'swift-mode:backward-kill-sentence)
+    ;; (define-key map (kbd "???") #'swift-mode:mark-sentence)
+    (define-key map (kbd "C-x n s") #'swift-mode:narrow-to-sentence)
+
     (easy-menu-define swift-menu map "Swift Mode menu"
       `("Swift"
         :help "Swift-specific Features"
@@ -75,24 +90,53 @@
     map)
   "Swift mode key map.")
 
-;;; `foward-sexp-function'
+;;; `forward-sexp-function'
 
 (defun swift-mode:forward-sexp (&optional arg)
   "Move forward/backward a token or list.
 
 See `forward-sexp for ARG."
   (setq arg (or arg 1))
+  (when (swift-mode:chunk-after)
+    (goto-char (swift-mode:chunk:start (swift-mode:chunk-after))))
   (if (< 0 arg)
       (while (< 0 arg)
-        (while (eq
-                (swift-mode:token:type (swift-mode:forward-token-or-list))
-                'implicit-\;))
+        (while (eq (swift-mode:token:type (swift-mode:forward-sexp-1))
+                   'implicit-\;))
         (setq arg (1- arg))))
   (while (< arg 0)
-    (while (eq
-            (swift-mode:token:type (swift-mode:backward-token-or-list))
-            'implicit-\;))
+    (while (eq (swift-mode:token:type (swift-mode:backward-sexp-1))
+               'implicit-\;))
     (setq arg (1+ arg))))
+
+(defun swift-mode:forward-sexp-1 ()
+  "Move forward a token or list.
+
+Signal `scan-error' if it hits closing parentheses."
+  (let ((token (swift-mode:forward-token-or-list))
+        (pos (point)))
+    (when (memq (swift-mode:token:type token) '(\] \) }))
+      (goto-char pos)
+      (signal 'scan-error
+              (list "Unbalanced parentheses"
+                    (swift-mode:token:start token)
+                    (swift-mode:token:end token))))
+    token))
+
+(defun swift-mode:backward-sexp-1 ()
+  "Move backward a token or list.
+
+Signal `scan-error' if it hits opening parentheses."
+  (let ((token (swift-mode:backward-token-or-list))
+        (pos (point)))
+    (when (memq (swift-mode:token:type token) '(\[ \( {))
+      (goto-char pos)
+      (signal 'scan-error
+              (list "Unbalanced parentheses"
+                    (swift-mode:token:start token)
+                    (swift-mode:token:end token))))
+    token))
+
 
 ;; Imenu
 
@@ -144,6 +188,12 @@ See `forward-sexp for ARG."
                "\\s *"))
   (setq-local adaptive-fill-regexp comment-start-skip)
   (setq-local comment-multi-line t)
+
+  (setq-local parse-sexp-lookup-properties t)
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'swift-mode:syntax-propertize-extend-region
+            nil t)
+  (setq-local syntax-propertize-function #'swift-mode:syntax-propertize)
 
   (setq-local indent-tabs-mode nil)
   (setq-local indent-line-function #'swift-mode:indent-line)

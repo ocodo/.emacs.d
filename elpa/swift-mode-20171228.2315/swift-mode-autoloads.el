@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "swift-mode" "swift-mode.el" (0 0 0 0))
+;;;### (autoloads nil "swift-mode" "swift-mode.el" (23138 47762 220403
+;;;;;;  85000))
 ;;; Generated autoloads from swift-mode.el
 
 (let ((loads (get 'swift 'custom-loads))) (if (member '"swift-mode" loads) nil (put 'swift 'custom-loads (cons '"swift-mode" loads))))
@@ -16,28 +17,37 @@ Major mode for editing Swift code.
 \(fn)" t nil)
  (add-to-list 'auto-mode-alist '("\\.swift\\'" . swift-mode))
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "swift-mode" '("swift-mode")))
-
 ;;;***
 
 ;;;### (autoloads nil "swift-mode-beginning-of-defun" "swift-mode-beginning-of-defun.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23138 47762 220403 85000))
 ;;; Generated autoloads from swift-mode-beginning-of-defun.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "swift-mode-beginning-of-defun" '("swift-mode:")))
+(defvar swift-mode:mark-defun-preference 'containing "\
+Preference for `swift-mode:mark-defun' for nested declarations.
 
-;;;***
-
-;;;### (autoloads nil "swift-mode-font-lock" "swift-mode-font-lock.el"
-;;;;;;  (0 0 0 0))
-;;; Generated autoloads from swift-mode-font-lock.el
+Suppose the following code with the point located at A:
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "swift-mode-font-lock" '("swift-mode:f")))
+    func outer() {
+      func inner1() {
+      }
+
+      // A
+
+      func inner2() {
+      }
+    }
+
+If `swift-mode:mark-defun-preference' is `containing', `swift-mode:mark-defun'
+marks the `outer' function.  Likewise, it marks `inner1' if the preference is
+`preceding' and `inner2' if the preference is `following'.")
+
+(custom-autoload 'swift-mode:mark-defun-preference "swift-mode-beginning-of-defun" t)
 
 ;;;***
 
 ;;;### (autoloads nil "swift-mode-indent" "swift-mode-indent.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23138 47762 216403 70000))
 ;;; Generated autoloads from swift-mode-indent.el
 
 (defvar swift-mode:basic-offset 4 "\
@@ -59,6 +69,11 @@ Amount of indentation for continuations of expressions.")
 Amount of indentation for case labels in switch statements.")
 
 (custom-autoload 'swift-mode:switch-case-offset "swift-mode-indent" t)
+
+(defvar swift-mode:prepend-asterisk-to-comment-line nil "\
+Automatically insert a asterisk to each comment line if non-nil.")
+
+(custom-autoload 'swift-mode:prepend-asterisk-to-comment-line "swift-mode-indent" t)
 
 (defvar swift-mode:insert-space-after-asterisk-in-comment t "\
 Automatically insert a space after asterisk in comment if non-nil.")
@@ -82,20 +97,10 @@ Intended for debugging.")
 
 (custom-autoload 'swift-mode:highlight-anchor "swift-mode-indent" t)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "swift-mode-indent" '("siwft-mode:tokens-not-in-generic-parameter-list" "swift-mode:")))
-
 ;;;***
 
-;;;### (autoloads nil "swift-mode-lexer" "swift-mode-lexer.el" (0
-;;;;;;  0 0 0))
-;;; Generated autoloads from swift-mode-lexer.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "swift-mode-lexer" '("swift-mode:")))
-
-;;;***
-
-;;;### (autoloads nil "swift-mode-repl" "swift-mode-repl.el" (0 0
-;;;;;;  0 0))
+;;;### (autoloads nil "swift-mode-repl" "swift-mode-repl.el" (23138
+;;;;;;  47762 216403 70000))
 ;;; Generated autoloads from swift-mode-repl.el
 
 (autoload 'swift-mode:run-repl "swift-mode-repl" "\
@@ -163,11 +168,10 @@ DEVICE-IDENTIFIER is the device identifier of the iOS simulator.
 
 \(fn &optional PROJECT-DIRECTORY DEVICE-IDENTIFIER)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "swift-mode-repl" '("swift-")))
-
 ;;;***
 
-;;;### (autoloads nil nil ("swift-mode-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("swift-mode-font-lock.el" "swift-mode-lexer.el"
+;;;;;;  "swift-mode-pkg.el") (23138 47762 224403 100000))
 
 ;;;***
 

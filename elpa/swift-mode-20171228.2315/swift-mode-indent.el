@@ -1,13 +1,13 @@
 ;;; swift-mode-indent.el --- Major-mode for Apple's Swift programming language, indentation. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2016 taku0, Chris Barrett, Bozhidar Batsov, Arthur Evstifeev
+;; Copyright (C) 2014-2017 taku0, Chris Barrett, Bozhidar Batsov, Arthur Evstifeev
 
 ;; Authors: taku0 (http://github.com/taku0)
 ;;       Chris Barrett <chris.d.barrett@me.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;;
-;; Version: 3.0.0
+;; Version: 4.0.1
 ;; Package-Requires: ((emacs "24.4") (seq "2.3"))
 ;; Keywords: languages swift
 
@@ -104,12 +104,12 @@ Intended for debugging."
 ;;; Constants and variables
 
 (defconst swift-mode:statement-parent-tokens
-  '(implicit-\; \; case-: { \( \[ anonymous-function-parameter-in)
+  '(implicit-\; \; case-: { anonymous-function-parameter-in)
   "Parent tokens for statements.")
 
 (defconst swift-mode:expression-parent-tokens
   (append swift-mode:statement-parent-tokens
-          '(\, < supertype-: "where" "if" "guard" "while" "for" "catch"
+          '(\, < \( \[ supertype-: "where" "if" "guard" "while" "for" "catch"
             string-chunk-before-interpolated-expression))
   "Parent tokens for expressions.")
 
@@ -171,6 +171,9 @@ declaration and its offset is `swift-mode:basic-offset'."
 
      ((eq (nth 3 parser-state) t)
       (swift-mode:calculate-indent-of-multiline-string))
+
+     ((looking-at "//")
+      (swift-mode:calculate-indent-of-single-line-comment))
 
      (t
       (swift-mode:calculate-indent-of-code)))))
@@ -238,6 +241,23 @@ declaration and its offset is `swift-mode:basic-offset'."
         (setq string-beginning-position (nth 8 (syntax-ppss)))))
     (forward-line 0)))
 
+(defun swift-mode:calculate-indent-of-single-line-comment ()
+  "Return the indentation of the current line inside a single-line comment."
+  (cond
+   ((save-excursion
+      (forward-line 0)
+      (bobp))
+    (swift-mode:indentation (point-min) 0))
+   ((save-excursion
+      (forward-line -1)
+      (skip-syntax-forward " ")
+      (looking-at "//"))
+    (forward-line -1)
+    (skip-syntax-forward " ")
+    (swift-mode:indentation (point) 0))
+   (t
+    (swift-mode:calculate-indent-of-code))))
+
 (defun swift-mode:calculate-indent-of-code ()
   "Return the indentation of the current line outside multiline comments."
   (back-to-indentation)
@@ -274,7 +294,8 @@ declaration and its offset is `swift-mode:basic-offset'."
                   'swift-mode:matching-parenthesis))
       (forward-char 2)
       (swift-mode:backward-string-chunk)
-      (swift-mode:calculate-indent-after-beginning-of-interpolated-expression 0))
+      (swift-mode:calculate-indent-after-beginning-of-interpolated-expression
+       0))
 
      ;; Before , on the current line
      ((and next-is-on-current-line (eq next-type '\,))
@@ -494,8 +515,7 @@ declaration and its offset is `swift-mode:basic-offset'."
           (swift-mode:find-and-align-with-parents '("for")))
          (t
           (swift-mode:find-and-align-with-parents
-           (append swift-mode:statement-parent-tokens
-                   '(<))
+           (append swift-mode:statement-parent-tokens '(<))
            swift-mode:multiline-statement-offset)))))
 
      ;; After "where"
@@ -579,8 +599,7 @@ declaration and its offset is `swift-mode:basic-offset'."
                  swift-mode:multiline-statement-offset
                  swift-mode:multiline-statement-offset))
             (swift-mode:find-and-align-with-parents
-             (append swift-mode:statement-parent-tokens
-                     '(< "for"))
+             (append swift-mode:statement-parent-tokens '(< "for"))
              swift-mode:multiline-statement-offset)))))
 
      ;; After implicit-\; or ;
@@ -1072,7 +1091,7 @@ comma at eol."
   (let ((pos (point))
         (parent (swift-mode:backward-sexps-until
                  ;; Includes "if" to stop at the last else-if.
-                 (cons "if" (cons '< swift-mode:statement-parent-tokens))
+                 (append swift-mode:statement-parent-tokens '("if" \( \[ <))
                  (if utrecht-sytle nil '(\,))
                  (if utrecht-sytle '(\,) nil))))
     (cond
@@ -1511,10 +1530,11 @@ Return nil otherwise."
   "Return t if the point is inside an incomplete comment.
 
 Return nil otherwise."
-  (and (nth 4 (syntax-ppss))
-       (save-excursion
-         (goto-char (nth 8 (syntax-ppss)))
-         (not (forward-comment 1)))))
+  (let ((chunk (swift-mode:chunk-after)))
+    (and (swift-mode:chunk:comment-p chunk)
+         (save-excursion
+           (goto-char (swift-mode:chunk:start chunk))
+           (not (forward-comment 1))))))
 
 (defun swift-mode:indent-new-comment-line (&optional soft)
   "Break the line at the point and indent the new line.
@@ -1524,65 +1544,104 @@ multiline comment, close the previous comment and start new one if
 `comment-multi-line' is nil.
 See `indent-new-comment-line' for SOFT."
   (interactive)
-  (let* ((parser-state (syntax-ppss))
-         (is-inside-comment (nth 4 parser-state))
-         (is-single-line-comment (eq (nth 7 parser-state) 1))
-         (comment-beginning-position (nth 8 parser-state))
-         (space-after-asterisk
-          (if swift-mode:insert-space-after-asterisk-in-comment " " ""))
-         (default-line-prefix
-           (if swift-mode:prepend-asterisk-to-comment-line
-               (concat "*" space-after-asterisk)
-             "")))
-    (delete-horizontal-space)
+  (let* ((chunk (swift-mode:chunk-after))
+         (comment-beginning-position (swift-mode:chunk:start chunk)))
     (if soft (insert-and-inherit ?\n) (newline 1))
     (delete-horizontal-space)
 
-    (when is-inside-comment
+    (cond
+     ((not (swift-mode:chunk:comment-p chunk))
+      (indent-according-to-mode))
+
+     ((swift-mode:chunk:single-line-comment-p chunk)
       (insert-before-markers-and-inherit
-       (cond
-        (is-single-line-comment
-         (save-excursion
-           (goto-char comment-beginning-position)
-           (looking-at "/+\\s *")
-           (match-string-no-properties 0)))
+       (save-excursion
+         (goto-char comment-beginning-position)
+         (looking-at "/+\\s *")
+         (match-string-no-properties 0)))
+      (indent-according-to-mode))
 
-        (comment-multi-line
-         (save-excursion
-           (beginning-of-line)
-           (forward-char -1)
-           (beginning-of-line)
-           (if (<= (point) comment-beginning-position)
-               ;; The cursor was on the 2nd line of the comment.
-               ;; Uses default prefix.
-               default-line-prefix
-             ;; The cursor was on the 3nd or following lines of
-             ;; the comment.
-             ;; Use the prefix of the previous line.
-             (back-to-indentation)
-             (if (and swift-mode:prepend-asterisk-to-comment-line
-                      (looking-at "\\*+\\s *"))
-                 (match-string-no-properties 0)
-               ""))))
+     ((not comment-multi-line)
+      (insert-before-markers-and-inherit
+       (save-excursion
+         (goto-char comment-beginning-position)
+         (looking-at "/\\*+\\s *")
+         (match-string-no-properties 0)))
+      ;; Cleans up and closes the previous line.
+      (save-excursion
+        (forward-line 0)
+        (backward-char)
+        (delete-horizontal-space)
+        (insert-before-markers-and-inherit " */"))
+      (indent-according-to-mode))
 
-        (t
-         (backward-char)
-         (insert-before-markers-and-inherit " */")
-         (forward-char)
-         (save-excursion
-           (goto-char comment-beginning-position)
-           (looking-at "/\\*+\\s *")
-           (match-string-no-properties 0))))))
-    (indent-according-to-mode)
+     ((save-excursion
+        (forward-line -1)
+        (<= (point) comment-beginning-position))
+      ;; The cursor was on the 2nd line of the comment.
+      ;; Uses default prefix.
+      (when swift-mode:prepend-asterisk-to-comment-line
+        (insert-before-markers-and-inherit "*")
+        (when swift-mode:insert-space-after-asterisk-in-comment
+          (insert-before-markers-and-inherit " ")))
+      (indent-according-to-mode)
+      (insert-before-markers-and-inherit
+       (save-excursion
+         (goto-char comment-beginning-position)
+         (forward-char 1)
+         (looking-at "\\**\\(\\s *\\)")
+         (let ((prefix (match-string-no-properties 0)))
+           (if (= (length (match-string-no-properties 1)) 0)
+               ""
+             (substring
+              (replace-regexp-in-string "\\*" " " prefix)
+              (if swift-mode:prepend-asterisk-to-comment-line
+                  (if swift-mode:insert-space-after-asterisk-in-comment 2 1)
+                0)
+              (length prefix)))))))
+
+     ;; The cursor was on the 3nd or following lines of
+     ;; the comment.
+     ;; Uses the prefix of the previous line.
+
+     ((and
+       swift-mode:prepend-asterisk-to-comment-line
+       (save-excursion
+         (forward-line -1)
+         (looking-at "\\s *\\(\\*+\\s *\\)")))
+      ;; The previous line has a prefix.  Uses it.
+      (insert-before-markers-and-inherit (match-string-no-properties 1))
+      (indent-according-to-mode))
+
+     ((save-excursion
+        (forward-line -1)
+        (looking-at "$"))
+      ;; The previous line is empty.  Uses the default indentation.
+      (indent-according-to-mode))
+
+     (t
+      ;; Uses the prefix of the previous line.
+      (insert-before-markers-and-inherit
+       (save-excursion
+         (forward-line -1)
+         (looking-at "\\s *")
+         (match-string-no-properties 0)))))
+
+    ;; Cleans up the previous line.
+    (save-excursion
+      (forward-line 0)
+      (backward-char)
+      (delete-horizontal-space))
 
     ;; Closes incomplete multiline comment.
     (when (and swift-mode:auto-close-multiline-comment
-               (not is-single-line-comment)
+               (swift-mode:chunk:multiline-comment-p chunk)
                (swift-mode:incomplete-comment-p))
       (save-excursion
         (end-of-line)
-        (if soft (insert-and-inherit ?\n) (newline 1))
-        (insert-before-markers-and-inherit "*/")
+        (when comment-multi-line
+          (if soft (insert-and-inherit ?\n) (newline 1)))
+        (insert-and-inherit "*/")
         (indent-according-to-mode)))))
 
 (defun swift-mode:post-self-insert ()
@@ -1593,7 +1652,7 @@ See `indent-new-comment-line' for SOFT."
    ((and
      swift-mode:prepend-asterisk-to-comment-line
      (= last-command-event ?*)
-     (nth 4 (syntax-ppss))
+     (swift-mode:chunk:comment-p (swift-mode:chunk-after))
      (save-excursion (backward-char) (skip-syntax-backward " ") (bolp)))
     (when swift-mode:insert-space-after-asterisk-in-comment
       (insert-before-markers-and-inherit " "))
@@ -1603,10 +1662,10 @@ See `indent-new-comment-line' for SOFT."
    ((and
      (= last-command-event ?/)
      swift-mode:fix-comment-close
-     (nth 4 (syntax-ppss))
+     (swift-mode:chunk:comment-p (swift-mode:chunk-after))
      (save-excursion
        (let ((pos (point)))
-         (beginning-of-line)
+         (forward-line 0)
          (and
           (looking-at "^\\s *\\*\\s +/")
           (eq (match-end 0) pos)

@@ -7,8 +7,8 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;;
-;; Version: 2.3.0
-;; Package-Requires: ((emacs "24.4"))
+;; Version: 4.0.1
+;; Package-Requires: ((emacs "24.4") (seq "2.3"))
 ;; Keywords: languages swift
 
 ;; This file is not part of GNU Emacs.
@@ -631,7 +631,7 @@ CODESIGNING-FOLDER-PATH is the path of the app."
                     "install"
                     device-identifier
                     codesigning-folder-path))
-      (error "%s: %s","Cannot install app" (buffer-string)))))
+      (error "%s: %s" "Cannot install app" (buffer-string)))))
 
 (defun swift-mode:launch-ios-app (device-identifier
                                   product-bundle-identifier
