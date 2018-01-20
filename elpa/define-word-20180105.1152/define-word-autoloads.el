@@ -3,20 +3,26 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "define-word" "define-word.el" (23064 61798
-;;;;;;  346908 504000))
+;;;### (autoloads nil "define-word" "define-word.el" (23138 48799
+;;;;;;  970457 757000))
 ;;; Generated autoloads from define-word.el
 
 (autoload 'define-word "define-word" "\
-Define WORD using the Wordnik website.
+Define WORD using various services.
 
-\(fn WORD)" t nil)
+By default uses `define-word-default-service', but a prefix arg
+lets the user choose service.
+
+\(fn WORD SERVICE &optional CHOOSE-SERVICE)" t nil)
 
 (autoload 'define-word-at-point "define-word" "\
 Use `define-word' to define word at point.
 When the region is active, define the marked phrase.
+Prefix ARG lets you choose service.
 
-\(fn)" t nil)
+In a non-interactive call SERVICE can be passed.
+
+\(fn ARG &optional SERVICE)" t nil)
 
 ;;;***
 
