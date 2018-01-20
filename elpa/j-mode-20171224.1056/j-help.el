@@ -1,5 +1,4 @@
-
-;;; j-help.el --- Documentation extention for j-mode
+;;; j-help.el --- Documentation extention for j-mode -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012 Zachary Elliott
 ;;
@@ -41,8 +40,6 @@
 ;; USA.
 
 ;;; Code:
-
-;;(set 'lexical-binding t)
 
 (defmacro if-let ( binding then &optional else )
   "Bind value according to BINDING and check for truthy-ness
