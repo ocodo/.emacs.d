@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "js-comint" "js-comint.el" (22873 40385 0 0))
+;;;### (autoloads nil "js-comint" "js-comint.el" (23138 48304 877790
+;;;;;;  704000))
 ;;; Generated autoloads from js-comint.el
 
 (autoload 'js-do-use-nvm "js-comint" "\
@@ -27,14 +28,15 @@ Delete a directory from `js-comint-module-paths'.
 \(fn)" t nil)
 
 (autoload 'js-comint-save-setup "js-comint" "\
-Save current setup to `.dir-locals.el'
+Save current setup to \".dir-locals.el\".
 
 \(fn)" t nil)
 
 (autoload 'js-comint-reset-repl "js-comint" "\
-Kill existing REPL process if possible.  Create a new
-Javascript REPL process.  The environment variable `NODE_PATH'
-is setup by `js-comint-module-paths' before the process starts.
+Kill existing REPL process if possible.
+Create a new Javascript REPL process.
+The environment variable `NODE_PATH' is setup by `js-comint-module-paths'
+before the process starts.
 
 \(fn)" t nil)
 
@@ -43,17 +45,16 @@ Clear the Javascript REPL.
 
 \(fn)" t nil)
 
+(autoload 'js-comint-start-or-switch-to-repl "js-comint" "\
+Start a new repl or switch to existing repl.
+
+\(fn)" t nil)
+
 (autoload 'js-comint-repl "js-comint" "\
-Run an Javascript process.  The environment variable `NODE_PATH'
-is setup by `js-comint-module-paths' before the process
-starts.
+Start a Javascript process by running CMD.
+The environment variable \"NODE_PATH\" is setup by `js-comint-module-paths'.
 
 \(fn CMD)" t nil)
-
-(autoload 'js-comint-send-string "js-comint" "\
-
-
-\(fn STR)" nil nil)
 
 (autoload 'js-comint-send-region "js-comint" "\
 Send the current region to the inferior Javascript process.
@@ -64,7 +65,7 @@ If no region selected, you could manually input javascript expression.
 (defalias 'js-send-region 'js-comint-send-region)
 
 (autoload 'js-comint-send-last-sexp "js-comint" "\
-Send the previous sexp to the inferior Javascript process.  `evil-mode' friendly.
+Send the previous sexp to the inferior Javascript process.
 
 \(fn)" t nil)
 
@@ -78,22 +79,21 @@ Send the buffer to the inferior Javascript process.
 (defalias 'js-send-buffer 'js-comint-send-buffer)
 
 (autoload 'js-comint-load-file "js-comint" "\
-Load a file in the javascript interpreter.
+Load FILE into the javascript interpreter.
 
-\(fn FILENAME)" t nil)
+\(fn FILE)" t nil)
 
 (defalias 'js-load-file 'js-comint-load-file)
-
-(autoload 'js-comint-switch-to-repl "js-comint" "\
-Switch to the javascript process buffer.
-With argument, position cursor at end of buffer.
-
-\(fn EOB-P)" t nil)
 
 (autoload 'js-comint-mode "js-comint" "\
 
 
 \(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads nil nil ("js-comint-pkg.el") (23138 48302 761787
+;;;;;;  39000))
 
 ;;;***
 
