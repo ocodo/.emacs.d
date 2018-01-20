@@ -5,7 +5,7 @@
 ;; Created:    March 2010
 ;; Modified:   28 Mar 2015
 ;; Keywords:   languages
-;; Package-Version: 20170219.2003
+;; Package-Version: 20180108.1809
 ;; URL:        https://raw.github.com/openscad/openscad/master/contrib/scad-mode.el
 ;; Version:    91.0
 
@@ -91,7 +91,7 @@
     "import"                                                            ;;import.cc
     "group"                                                             ;;builtin.cc
     "projection"                                                        ;;projection.cc
-    "minkowski" "glide" "subdiv" "hull" "resize"                        ;;cgaladv.cc
+    "minkowski" "hull" "resize"                                         ;;cgaladv.cc
     "parent_module"                                                     ;;2014.03
     "let" "offset" "text"                                               ;;2015.03
     )
