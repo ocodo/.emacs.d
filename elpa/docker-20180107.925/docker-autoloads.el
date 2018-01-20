@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "docker" "docker.el" (23064 61787 22937 348000))
+;;;### (autoloads nil "docker" "docker.el" (23138 48785 186441 844000))
 ;;; Generated autoloads from docker.el
 
 (autoload 'docker-mode "docker" "\
@@ -36,7 +36,7 @@ See `docker-mode' for more information on Docker mode.
 ;;;***
 
 ;;;### (autoloads nil "docker-containers" "docker-containers.el"
-;;;;;;  (23064 61787 14937 369000))
+;;;;;;  (23138 48785 178441 835000))
 ;;; Generated autoloads from docker-containers.el
 
 (autoload 'docker-start "docker-containers" "\
@@ -116,8 +116,8 @@ List docker containers.
 
 ;;;***
 
-;;;### (autoloads nil "docker-images" "docker-images.el" (23064 61787
-;;;;;;  18937 358000))
+;;;### (autoloads nil "docker-images" "docker-images.el" (23138 48785
+;;;;;;  182441 840000))
 ;;; Generated autoloads from docker-images.el
 
 (autoload 'docker-pull "docker-images" "\
@@ -150,8 +150,8 @@ List docker images.
 
 ;;;***
 
-;;;### (autoloads nil "docker-machine" "docker-machine.el" (23064
-;;;;;;  61787 10937 379000))
+;;;### (autoloads nil "docker-machine" "docker-machine.el" (23138
+;;;;;;  48785 178441 835000))
 ;;; Generated autoloads from docker-machine.el
 
 (autoload 'docker-machine-config "docker-machine" "\
@@ -221,8 +221,8 @@ List docker machines.
 
 ;;;***
 
-;;;### (autoloads nil "docker-networks" "docker-networks.el" (23064
-;;;;;;  61787 22937 348000))
+;;;### (autoloads nil "docker-networks" "docker-networks.el" (23138
+;;;;;;  48785 186441 844000))
 ;;; Generated autoloads from docker-networks.el
 
 (autoload 'docker-network-rm "docker-networks" "\
@@ -237,8 +237,8 @@ List docker networks.
 
 ;;;***
 
-;;;### (autoloads nil "docker-volumes" "docker-volumes.el" (23064
-;;;;;;  61787 18937 358000))
+;;;### (autoloads nil "docker-volumes" "docker-volumes.el" (23138
+;;;;;;  48785 182441 840000))
 ;;; Generated autoloads from docker-volumes.el
 
 (autoload 'docker-volume-rm "docker-volumes" "\
@@ -254,7 +254,7 @@ List docker volumes.
 ;;;***
 
 ;;;### (autoloads nil nil ("docker-pkg.el" "docker-process.el" "docker-utils.el")
-;;;;;;  (23064 61787 18937 358000))
+;;;;;;  (23138 48785 182441 840000))
 
 ;;;***
 
