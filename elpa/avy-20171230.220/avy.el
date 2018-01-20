@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/avy
-;; Package-Version: 20171111.921
+;; Package-Version: 20171230.220
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: point, location
@@ -425,8 +425,11 @@ KEYS is the path from the root of `avy-tree' to LEAF."
           ((memq char '(27 ?\C-g))
            ;; exit silently
            (throw 'done 'exit))
+          ((mouse-event-p char)
+           (signal 'user-error (list "Mouse event not handled" char)))
           (t
-           (signal 'user-error (list "No such candidate" char))
+           (signal 'user-error (list "No such candidate"
+                                     (if (characterp char) (string char) char)))
            (throw 'done nil)))))
 
 (defvar avy-handler-function 'avy-handler-default
@@ -434,6 +437,16 @@ KEYS is the path from the root of `avy-tree' to LEAF."
 
 (defvar avy-current-path ""
   "Store the current incomplete path during `avy-read'.")
+
+(defun avy-mouse-event-window (char)
+  "If CHAR is a mouse event, return the window of the event if any or the selected window.
+Return nil if not a mouse event."
+  (when (mouse-event-p char)
+    (cond ((windowp (posn-window (event-start char)))
+           (posn-window (event-start char)))
+          ((framep (posn-window (event-start char)))
+           (frame-selected-window (posn-window (event-start char))))
+          (t (selected-window)))))
 
 (defun avy-read (tree display-fn cleanup-fn)
   "Select a leaf from TREE using consecutive `read-char'.
@@ -443,7 +456,7 @@ associated with CHAR will be selected if CHAR is pressed.  This is
 commonly done by adding a CHAR overlay at LEAF position.
 
 CLEANUP-FN should take no arguments and remove the effects of
-multiple DISPLAY-FN invokations."
+multiple DISPLAY-FN invocations."
   (catch 'done
     (setq avy-current-path "")
     (while tree
@@ -454,14 +467,19 @@ multiple DISPLAY-FN invokations."
         (dolist (x avy--leafs)
           (funcall display-fn (car x) (cdr x))))
       (let ((char (funcall avy-translate-char-function (read-key)))
+            window
             branch)
         (funcall cleanup-fn)
-        (if (setq branch (assoc char tree))
-            (if (eq (car (setq tree (cdr branch))) 'leaf)
-                (throw 'done (cdr tree))
-              (setq avy-current-path
-                    (concat avy-current-path (string (avy--key-to-char char)))))
-          (funcall avy-handler-function char))))))
+        (if (setq window (avy-mouse-event-window char))
+            (throw 'done (cons char window))
+          ;; Ensure avy-current-path stores the full path prior to
+          ;; exit so other packages can utilize its value.
+          (setq avy-current-path
+                (concat avy-current-path (string (avy--key-to-char char))))
+          (if (setq branch (assoc char tree))
+              (if (eq (car (setq tree (cdr branch))) 'leaf)
+                  (throw 'done (cdr tree)))
+            (funcall avy-handler-function char)))))))
 
 (defun avy-read-de-bruijn (lst keys)
   "Select from LST dispatching on KEYS."
@@ -611,24 +629,29 @@ Set `avy-style' according to COMMMAND as well."
 (defun avy-action-goto (pt)
   "Goto PT."
   (let ((frame (window-frame (selected-window))))
-    (select-frame-set-input-focus frame)
-    (raise-frame frame)
+    (unless (equal frame (selected-frame))
+      (select-frame-set-input-focus frame)
+      (raise-frame frame))
     (goto-char pt)))
+
+(defun avy-forward-item ()
+  (if (eq avy-command 'avy-goto-line)
+      (end-of-line)
+    (forward-sexp))
+  (point))
 
 (defun avy-action-mark (pt)
   "Mark sexp at PT."
   (goto-char pt)
   (set-mark (point))
-  (forward-sexp))
+  (avy-forward-item))
 
 (defun avy-action-copy (pt)
   "Copy sexp starting on PT."
   (save-excursion
     (let (str)
       (goto-char pt)
-      (if (eq avy-command 'avy-goto-line)
-          (end-of-line)
-        (forward-sexp))
+      (avy-forward-item)
       (setq str (buffer-substring pt (point)))
       (kill-new str)
       (message "Copied: %s" str)))
@@ -641,28 +664,39 @@ Set `avy-style' according to COMMMAND as well."
 (defun avy-action-yank (pt)
   "Yank sexp starting at PT at the current point."
   (avy-action-copy pt)
-  (yank))
+  (yank)
+  t)
 
 (defun avy-action-kill-move (pt)
   "Kill sexp at PT and move there."
   (goto-char pt)
-  (forward-sexp)
+  (avy-forward-item)
   (kill-region pt (point))
-  (message "Killed: %s" (current-kill 0)))
+  (message "Killed: %s" (current-kill 0))
+  (point))
 
 (defun avy-action-kill-stay (pt)
   "Kill sexp at PT."
   (save-excursion
-   (goto-char pt)
-   (forward-sexp)
-   (kill-region pt (point))
-   (just-one-space))
-  (message "Killed: %s" (current-kill 0)))
+    (goto-char pt)
+    (avy-forward-item)
+    (kill-region pt (point))
+    (just-one-space))
+  (message "Killed: %s" (current-kill 0))
+  (select-window
+   (cdr
+    (ring-ref avy-ring 0)))
+  t)
 
 (defun avy-action-teleport (pt)
   "Kill sexp starting on PT and yank into the current location."
   (avy-action-kill-stay pt)
-  (yank))
+  (select-window
+   (cdr
+    (ring-ref avy-ring 0)))
+  (save-excursion
+    (yank))
+  t)
 
 (declare-function flyspell-correct-word-before-point "flyspell")
 
@@ -670,14 +704,20 @@ Set `avy-style' according to COMMMAND as well."
   "Auto correct word at PT."
   (save-excursion
     (goto-char pt)
-    (if (bound-and-true-p flyspell-mode)
-        (flyspell-correct-word-before-point)
-      (if (looking-at-p "\\b")
-          (ispell-word)
-        (progn
-          (backward-word)
-          (when (looking-at-p "\\b")
-            (ispell-word)))))))
+    (cond
+      ((eq avy-command 'avy-goto-line)
+       (ispell-region
+        (line-beginning-position)
+        (line-end-position)))
+      ((bound-and-true-p flyspell-mode)
+       (flyspell-correct-word-before-point))
+      ((looking-at-p "\\b")
+       (ispell-word))
+      (t
+       (progn
+         (backward-word)
+         (when (looking-at-p "\\b")
+           (ispell-word)))))))
 
 (defun avy--process (candidates overlay-fn)
   "Select one of CANDIDATES using `avy-read'.
@@ -695,19 +735,19 @@ Use OVERLAY-FN to visualize the decision overlay."
       (if (= len 1)
           (setq res (car candidates))
         (unwind-protect
-            (progn
-              (avy--make-backgrounds
-               (avy-window-list))
-              (setq res (cond ((eq avy-style 'de-bruijn)
-                               (avy-read-de-bruijn
-                                candidates avy-keys))
-                              ((eq avy-style 'words)
-                               (avy-read-words
-                                candidates avy-words))
-                              (t
-                               (avy-read (avy-tree candidates avy-keys)
-                                         overlay-fn
-                                         #'avy--remove-leading-chars)))))
+             (progn
+               (avy--make-backgrounds
+                (avy-window-list))
+               (setq res (cond ((eq avy-style 'de-bruijn)
+                                (avy-read-de-bruijn
+                                 candidates avy-keys))
+                               ((eq avy-style 'words)
+                                (avy-read-words
+                                 candidates avy-words))
+                               (t
+                                (avy-read (avy-tree candidates avy-keys)
+                                          overlay-fn
+                                          #'avy--remove-leading-chars)))))
           (avy--done)))
       (cond ((eq res 'restart)
              (avy--process cands overlay-fn))
@@ -863,10 +903,11 @@ Do this even when the char is terminating."
 
 (defun avy--key-to-char (c)
   "If C is no character, translate it using `avy-key-to-char-alist'."
-  (if (characterp c)
-      c
-    (or (cdr (assoc c avy-key-to-char-alist))
-        (error "Unknown key %s" c))))
+  (cond ((characterp c) c)
+        ((cdr (assoc c avy-key-to-char-alist)))
+        ((mouse-event-p c) c)
+        (t
+         (error "Unknown key %s" c))))
 
 (defun avy-candidate-beg (leaf)
   "Return the start position for LEAF."
@@ -1769,8 +1810,12 @@ newline."
   "How many seconds to wait for the second char."
   :type 'float)
 
+(defcustom avy-enter-times-out t
+  "Whether enter exits avy-goto-char-timer early. If nil it matches newline"
+  :type 'boolean)
+
 (defun avy--read-candidates (&optional re-builder)
-  "Read as many chars as possible and return their occurences.
+  "Read as many chars as possible and return their occurrences.
 At least one char must be read, and then repeatedly one next char
 may be read if it is entered before `avy-timeout-seconds'.  `C-h'
 or `DEL' deletes the last char entered, and `RET' exits with the
@@ -1803,7 +1848,9 @@ Otherwise, the whole regex is highlighted."
              (cond
                ;; Handle RET
                ((= char 13)
-                (setq break t))
+                (if avy-enter-times-out
+                    (setq break t)
+                  (setq str (concat str (list ?\n)))))
                ;; Handle C-h, DEL
                ((memq char '(8 127))
                 (let ((l (length str)))
