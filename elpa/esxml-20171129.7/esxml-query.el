@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <mail@vasilij.de>
 ;; Maintainer: Vasilij Schneidermann
-;; Version: 0.0.1
+;; Version: 0.1.0
 ;; Keywords: data, lisp
 ;; Package-Requires: ((cl-lib "0.1"))
 ;;
@@ -70,6 +70,7 @@
 ;; https://www.w3.org/TR/selectors/#w3cselgrammar
 ;; https://www.w3.org/TR/selectors4/#grammar
 ;; https://www.w3.org/TR/2003/WD-css3-syntax-20030813/#detailed-grammar
+;; https://www.w3.org/TR/2003/WD-css3-syntax-20030813/#tokenization
 
 ;; you might be wondering why I'm using both level 3 and 4 standards,
 ;; well, the level 3 one has a buggy lexer section whereas level 4
@@ -82,8 +83,8 @@
          (nonascii "[\200-\U0010ffff]")
          (unicode (format "\\%s\\{1,6\\}[ \t\r\n\f]?" h))
          (escape (format "\\(?:%s\\)\\|\\[ -~\200-\U0010ffff]" unicode))
-         (nmstart (format "[a-z]\\|%s\\|\\(?:%s\\)" nonascii escape))
-         (nmchar (format "[a-z0-9-]\\|%s\\|\\(?:%s\\)" nonascii escape))
+         (nmstart (format "[a-z_]\\|%s\\|\\(?:%s\\)" nonascii escape))
+         (nmchar (format "[a-z0-9_-]\\|%s\\|\\(?:%s\\)" nonascii escape))
          (num "[0-9]+\\|[0-9]*\\.[0-9]+")
          (string1 (format "\"\\(?:[\t !#$%%&(-~]\\|\\(?:%s\\)\\|\'\\|%s\\|\\(?:%s\\)\\)*\"" nl nonascii escape))
          (string2 (format "'\\(?:[\t !#$%%&(-~]\\|\\(?:%s\\)\\|\"\\|%s\\|\\(?:%s\\)\\)*'" nl nonascii escape))
