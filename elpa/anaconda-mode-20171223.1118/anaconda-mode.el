@@ -4,7 +4,7 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/anaconda-mode
-;; Package-Version: 20170924.704
+;; Package-Version: 20171223.1118
 ;; Version: 0.1.9
 ;; Package-Requires: ((emacs "24") (pythonic "0.1.0") (dash "2.6.0") (s "1.9") (f "0.16.2"))
 
@@ -113,15 +113,8 @@ anaconda_mode.main(sys.argv[1:])
 (defvar anaconda-mode-process nil
   "Currently running anaconda-mode process.")
 
-(defun anaconda-mode-show-process-buffer ()
-  "Display `anaconda-mode-process-buffer'."
-  (let ((buffer (get-buffer-create anaconda-mode-process-buffer)))
-    (display-buffer buffer)))
-
 (defvar anaconda-mode-process-fail-hook nil
   "Hook running when any of `anaconda-mode' fails by some reason.")
-
-(add-hook 'anaconda-mode-process-fail-hook 'anaconda-mode-show-process-buffer)
 
 (defvar anaconda-mode-port nil
   "Port for anaconda-mode connection.")
@@ -178,13 +171,17 @@ easy_install.main(['-d', directory, '-S', directory, '-a', '-Z',
 
 (defun anaconda-mode-host ()
   "Target host with anaconda-mode server."
-  (if (pythonic-remote-p)
-      (replace-regexp-in-string
-       "#.*\\'" ""                      ;; Cleanup tramp port specification.
-       (tramp-file-name-host
-        (tramp-dissect-file-name
-         (pythonic-tramp-connection))))
-    "127.0.0.1"))
+  (cond
+   ((pythonic-remote-docker-p)
+    "127.0.0.1")
+   ((pythonic-remote-p)
+    (replace-regexp-in-string
+     "#.*\\'" ""                      ;; Cleanup tramp port specification.
+     (tramp-file-name-host
+      (tramp-dissect-file-name
+       (pythonic-tramp-connection)))))
+   (t
+    "127.0.0.1")))
 
 (defun anaconda-mode-start (&optional callback)
   "Start anaconda-mode server.
@@ -205,12 +202,20 @@ be bound."
     (set-process-sentinel anaconda-mode-process nil)
     (kill-process anaconda-mode-process)
     (setq anaconda-mode-process nil
-          anaconda-mode-port nil)))
+          anaconda-mode-port nil))
+  (when (anaconda-mode-socat-running-p)
+    (kill-process anaconda-mode-socat-process)
+    (setq anaconda-mode-socat-process nil)))
 
 (defun anaconda-mode-running-p ()
   "Is `anaconda-mode' server running."
   (and anaconda-mode-process
        (process-live-p anaconda-mode-process)))
+
+(defun anaconda-mode-socat-running-p ()
+  "Is `anaconda-mode' socat companion process running."
+  (and anaconda-mode-socat-process
+       (process-live-p anaconda-mode-socat-process)))
 
 (defun anaconda-mode-bound-p ()
   "Is `anaconda-mode' port bound."
@@ -309,6 +314,15 @@ be bound."
                                             "0.0.0.0")))))
   (process-put anaconda-mode-process 'server-directory (anaconda-mode-server-directory)))
 
+(defvar anaconda-mode-socat-process-name "anaconda-socat"
+  "Process name for anaconda-mode socat companion process.")
+
+(defvar anaconda-mode-socat-process-buffer "*anaconda-socat*"
+  "Buffer name for anaconda-mode socat companion processes.")
+
+(defvar anaconda-mode-socat-process nil
+  "Currently running anaconda-mode socat companion process.")
+
 (defun anaconda-mode-bootstrap-filter (process output &optional callback)
   "Set `anaconda-mode-port' from PROCESS OUTPUT.
 Connect to the `anaconda-mode' server.  CALLBACK function will be
@@ -323,6 +337,27 @@ called when `anaconda-mode-port' will be bound."
   (--when-let (s-match "anaconda_mode port \\([0-9]+\\)" output)
     (setq anaconda-mode-port (string-to-number (cadr it)))
     (set-process-filter process nil)
+    (when (pythonic-remote-docker-p)
+      (let* ((container-name (tramp-file-name-host
+                              (tramp-dissect-file-name
+                               (pythonic-tramp-connection))))
+             (container-raw-description (with-output-to-string
+                                          (with-current-buffer
+                                              standard-output
+                                            (call-process "docker" nil t nil "inspect" container-name))))
+             (container-description (let ((json-array-type 'list))
+                                      (json-read-from-string container-raw-description)))
+             (container-ip (cdr (assoc 'IPAddress
+                                       (cdadr (assoc 'Networks
+                                                     (cdr (assoc 'NetworkSettings
+                                                                 (car container-description)))))))))
+        (setq anaconda-mode-socat-process
+              (start-process anaconda-mode-socat-process-name
+                             anaconda-mode-socat-process-buffer
+                             "socat"
+                             (format "TCP4-LISTEN:%d" anaconda-mode-port)
+                             (format "TCP4:%s:%d" container-ip anaconda-mode-port)))
+        (set-process-query-on-exit-flag anaconda-mode-socat-process nil)))
     (when callback
       (funcall callback))))
 
@@ -405,7 +440,10 @@ submitted."
                                  ((json-readtable-error json-end-of-file end-of-file)
                                   (let ((response (concat (format "# status: %s\n# point: %s\n" status (point))
                                                           (buffer-string))))
-                                    (run-hook-with-args 'anaconda-mode-response-read-fail-hook response)
+                                    (with-current-buffer (get-buffer-create anaconda-mode-response-buffer)
+                                      (erase-buffer)
+                                      (insert response)
+                                      (goto-char (point-min)))
                                     nil)))))
                 (if (null response)
                     (message "Can not read anaconda-mode server response")
@@ -444,20 +482,6 @@ virtual environment.")
 
 (defvar anaconda-mode-response-skip-hook nil
   "Hook running when `anaconda-mode' decide to skip server response.")
-
-(defvar anaconda-mode-response-read-fail-hook nil
-  "Hook running when `anaconda-mode' fail to read server response.")
-
-(add-hook 'anaconda-mode-response-read-fail-hook 'anaconda-mode-show-unreadable-response)
-
-(defun anaconda-mode-show-unreadable-response (response)
-  "Show unreadable RESPONSE to user, so he can report it properly."
-  (pop-to-buffer
-   (with-current-buffer (get-buffer-create anaconda-mode-response-buffer)
-     (erase-buffer)
-     (insert response)
-     (goto-char (point-min))
-     (current-buffer))))
 
 
 ;;; Code completion.
@@ -609,7 +633,7 @@ virtual environment.")
        (erase-buffer)
        ,@body
        (goto-char (point-min))
-       (anaconda-mode-view-mode)
+       (anaconda-view-mode)
        buf)))
 
 (defun anaconda-mode-definitions-view (result)
@@ -658,6 +682,11 @@ PRESENTER is the function used to format buffer content."
   (let ((definition (button-get button 'definition)))
     (anaconda-mode-find-file-other-window definition)))
 
+(defun anaconda-mode-view-display-jump (button)
+  "Jump to definition file saved in BUTTON."
+  (let ((definition (button-get button 'definition)))
+    (anaconda-mode-display-buffer definition)))
+
 (defun anaconda-mode-find-file (definition)
   "Find DEFINITION file, go to DEFINITION point."
   (anaconda-mode-find-file-generic definition 'find-file))
@@ -665,6 +694,11 @@ PRESENTER is the function used to format buffer content."
 (defun anaconda-mode-find-file-other-window (definition)
   "Find DEFINITION file other window, go to DEFINITION point."
   (anaconda-mode-find-file-generic definition 'find-file-other-window))
+
+(defun anaconda-mode-display-buffer (definition)
+  "Display DEFINITION file, go to DEFINITION point."
+  (let ((buffer (anaconda-mode-find-file-generic definition 'find-file-noselect)))
+    (and buffer (display-buffer buffer))))
 
 (defun anaconda-mode-find-file-no-record-definition (definition)
   "Find DEFINITION file, go to DEFINITION point (without recording in the go-back stack)"
@@ -681,13 +715,16 @@ PRESENTER is the function used to format buffer content."
                                  (column . ,(- (point) (line-beginning-position)))))))
     (--if-let (cdr (assoc 'module-path definition))
         (progn
-          (funcall find-function it)
-          (goto-char (point-min))
-          (forward-line (1- (cdr (assoc 'line definition))))
-          (forward-char (cdr (assoc 'column definition)))
-          (when (and (not no-record) backward-navigation)
-            (push backward-navigation anaconda-mode-go-back-definitions)))
-      (message "Can't open %s module" (cdr (assoc 'module-name definition))))))
+          (let ((buffer (funcall find-function it)))
+            (with-current-buffer buffer
+              (goto-char (point-min))
+              (forward-line (1- (cdr (assoc 'line definition))))
+              (forward-char (cdr (assoc 'column definition)))
+              (when (and (not no-record) backward-navigation)
+                (push backward-navigation anaconda-mode-go-back-definitions))
+              buffer)))
+      (message "Can't open %s module" (cdr (assoc 'module-name definition)))
+      nil)))
 
 (defun anaconda-mode-view-insert-button (name definition)
   "Insert text button with NAME opening the DEFINITION."
@@ -723,25 +760,29 @@ PRESENTER is the function used to format buffer content."
      (insert "\n\n"))
    result))
 
-(defvar anaconda-mode-view-mode-map
+(defvar anaconda-view-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "n") 'next-error-no-select)
-    (define-key map (kbd "p") 'previous-error-no-select)
+    (define-key map (kbd "n") 'anaconda-view-mode-next-definition)
+    (define-key map (kbd "p") 'anaconda-view-mode-previous-definition)
     (define-key map (kbd "q") 'quit-window)
     map))
 
-(define-derived-mode anaconda-mode-view-mode special-mode "Anaconda-View"
+(define-derived-mode anaconda-view-mode special-mode "Anaconda-View"
   "Major mode for definitions view and navigation for `anaconda-mode'.
 
-\\{anaconda-mode-view-mode-map}"
-  (setq next-error-function #'anaconda-mode-next-definition))
+\\{anaconda-view-mode-map}")
 
-(defun anaconda-mode-next-definition (num _reset)
-  "Navigate to the next definition in the view buffer.
-NUM is the number of definitions to move forward.  RESET mean go
-to the beginning of buffer before definitions navigation."
-  (forward-button num)
-  (anaconda-mode-view-jump-other-window (button-at (point))))
+(defun anaconda-view-mode-next-definition ()
+  "Navigate to the next definition in the view buffer."
+  (interactive)
+  (forward-button 1)
+  (anaconda-mode-view-display-jump (button-at (point))))
+
+(defun anaconda-view-mode-previous-definition ()
+  "Navigate to the previous definition in the view buffer."
+  (interactive)
+  (forward-button -1)
+  (anaconda-mode-view-display-jump (button-at (point))))
 
 (defun anaconda-mode-go-back ()
   "Jump backward if buffer was navigated from `anaconda-mode' command."
