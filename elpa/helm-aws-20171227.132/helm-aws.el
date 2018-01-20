@@ -4,7 +4,7 @@
 
 ;; Author: istib
 ;; URL: https://github.com/istib/helm-aws
-;; Package-Version: 20151124.133
+;; Package-Version: 20171227.132
 ;; Version: 20141205.1
 ;; X-Original-Version: 0.2
 ;; Package-Requires: ((helm "1.5.3")(cl-lib "0.5")(s "1.9.0"))
@@ -39,6 +39,30 @@
 (require 'json)
 (require 'cl-lib)
 (require 's)
+
+(defgroup helm-aws-faces nil
+  "Customize the appearance of helm-aws."
+  :prefix "helm-"
+  :group 'helm-aws
+  :group 'helm-faces)
+
+(defface helm-aws-instance-state-running
+  '((t :inherit font-lock-builtin-face))
+  "Face used for running instances in `helm-aws'."
+  :group 'helm-aws-faces)
+
+(defface helm-aws-instance-state-stopped
+  '((t :inherit font-lock-comment-face
+       :slant italic
+       :foreground "red"))
+  "Face used for stopped instances in `helm-aws'."
+  :group 'helm-aws-faces)
+
+(defface helm-aws-instance-state-terminated
+  '((t :inherit font-lock-comment-face
+       :strike-through t))
+  "Face used for terminated instances in `helm-aws'."
+  :group 'helm-aws-faces)
 
 (defvar aws-user-account
   "ubuntu"
@@ -85,10 +109,15 @@ Argument INSTANCE is the aws json in plist form"
          (launch-time (plist-get instance :LaunchTime))
          (launch-date (car (split-string launch-time "T")))
          (formatted-string
-          (concat (format "%-30s" (s-truncate 30 name)) " | "
-                  (format "%15s" ip) " | "
-                  (format "%-10s" instance-state) " | "
-                  launch-date)))
+          (concat
+           (propertize (format "%-30s" (s-truncate 30 name))
+                       'face (cond ((string= instance-state "stopped")
+                                    'helm-aws-instance-state-stopped)
+                                   ((string= instance-state "terminated")
+                                    'helm-aws-instance-state-terminated)
+                                   (t 'helm-aws-instance-state-running)))
+           " | " (format "%15s" (or ip ""))
+           " | " launch-date)))
     (cons formatted-string instance)))
 
 (defun aws-get-ip-from-instance (instance-json)
@@ -139,6 +168,11 @@ Argument INSTANCE-JSON is the json behind the row of helm data."
       (view-mode)
       (message "Press q to quit."))))
 
+(defun aws-compile (command &optional comint)
+  "Invoke the compile function without saving buffers."
+  (let ((compilation-save-buffers-predicate '(lambda () nil)))
+    (compile command comint)))
+
 (defun aws-instance-toggle-stop-start (instance-json)
   "Toggle the instance state for INSTANCE-JSON.
 If it is stopped, start it.  If it is running, stop it."
@@ -146,7 +180,7 @@ If it is stopped, start it.  If it is running, stop it."
          (instance-state (plist-get (plist-get instance-json :State) :Name))
          (toggle-action (if (string= instance-state "running") "stop-instances" "start-instances"))
          (command (format "aws ec2 %s --instance-ids %s" toggle-action instance-id)))
-    (compile command)))
+    (aws-compile command)))
 
 ;;;###autoload
 (defun helm-aws ()

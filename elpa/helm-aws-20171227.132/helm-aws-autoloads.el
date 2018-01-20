@@ -1,10 +1,10 @@
 ;;; helm-aws-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-aws" "helm-aws.el" (22108 42403 513156
-;;;;;;  844000))
+;;;### (autoloads nil "helm-aws" "helm-aws.el" (23138 48466 562045
+;;;;;;  725000))
 ;;; Generated autoloads from helm-aws.el
 
 (autoload 'helm-aws "helm-aws" "\
