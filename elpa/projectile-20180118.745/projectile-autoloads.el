@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "projectile" "projectile.el" (22955 53179 437294
-;;;;;;  257000))
+;;;### (autoloads nil "projectile" "projectile.el" (23138 47946 377000
+;;;;;;  152000))
 ;;; Generated autoloads from projectile.el
 
 (autoload 'projectile-version "projectile" "\
@@ -366,6 +366,15 @@ Show a list of recently visited files in a project.
 
 \(fn)" t nil)
 
+(autoload 'projectile-configure-project "projectile" "\
+Run project configure command.
+
+Normally you'll be prompted for a compilation command, unless
+variable `compilation-read-command'.  You can force the prompt
+with a prefix ARG.
+
+\(fn ARG)" t nil)
+
 (autoload 'projectile-compile-project "projectile" "\
 Run project compilation command.
 
@@ -373,7 +382,7 @@ Normally you'll be prompted for a compilation command, unless
 variable `compilation-read-command'.  You can force the prompt
 with a prefix ARG.
 
-\(fn ARG &optional DIR)" t nil)
+\(fn ARG)" t nil)
 
 (autoload 'projectile-test-project "projectile" "\
 Run project test command.
@@ -472,7 +481,7 @@ details about mode line templates.
 
 Customize this variable to change how Projectile displays its
 status in the mode line.  The default value displays the project
-name.  Set this variable to nil to disable the mode line
+name and type.  Set this variable to nil to disable the mode line
 entirely.")
 
 (custom-autoload 'projectile-mode-line "projectile" t)
@@ -503,6 +512,11 @@ Otherwise behave as if called interactively.
 \(fn &optional ARG)" t nil)
 
 (define-obsolete-function-alias 'projectile-global-mode 'projectile-mode)
+
+;;;***
+
+;;;### (autoloads nil nil ("projectile-pkg.el") (23138 47940 456983
+;;;;;;  467000))
 
 ;;;***
 
