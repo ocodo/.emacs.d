@@ -247,8 +247,6 @@ names to which it refers are bound."
       (flycheck-color-mode-line-success-face (:foreground ,green))
 
       ;; Flymake
-      (flymake-warnline (:underline (:style wave :color ,orange) :background ,background))
-      (flymake-errline (:underline (:style wave :color ,red) :background ,background))
       (flymake-error (:underline (:style wave :color ,red)))
       (flymake-note (:underline (:style wave :color ,aqua)))
       (flymake-warning (:underline (:style wave :color ,orange)))
@@ -680,6 +678,7 @@ names to which it refers are bound."
       (helm-selection (:inherit highlight))
       (helm-separator (:foreground ,purple))
       (helm-source-header (:weight bold :foreground ,orange :height 1.44))
+      (helm-visible-mark (:foreground ,blue))
 
       ;; company
       (company-preview (:foreground ,comment :background ,contrast-bg))
