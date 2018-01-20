@@ -1,10 +1,10 @@
 ;;; helm-google.el --- Emacs Helm Interface for quick Google searches
 
-;; Copyright (C) 2014, Steckerhalter
+;; Copyright (C) 2014-2017, Steckerhalter
 
 ;; Author: steckerhalter
-;; Package-Requires: ((helm "0") (google "0"))
-;; Package-Version: 20170722.710
+;; Package-Requires: ((helm "0"))
+;; Package-Version: 20171215.1159
 ;; URL: https://github.com/steckerhalter/helm-google
 ;; Keywords: helm google search browse
 
@@ -60,7 +60,9 @@ searches you will want to use `www.google.TLD'."
   '(("Browse URL" . browse-url)
     ("Browse URL with EWW" . (lambda (candidate)
                                (eww-browse-url
-                                (helm-google-display-to-real candidate)))))
+                                (helm-google-display-to-real candidate))))
+    ("Copy URL to clipboard" . (lambda (candidate)
+                                 (kill-new (helm-google-display-to-real candidate)))))
   "List of actions for helm-google sources."
   :group 'helm-google
   :type '(alist :key-type string :value-type function))
