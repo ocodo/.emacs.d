@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (0 0 0 0))
+;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (23138 47701 192163
+;;;;;;  625000))
 ;;; Generated autoloads from ocamldebug.el
 
 (autoload 'ocamldebug "ocamldebug" "\
@@ -16,11 +17,9 @@ the ocamldebug commands `cd DIR' and `directory'.
 
 (defalias 'camldebug 'ocamldebug)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ocamldebug" '("ocamldebug-" "def-ocamldebug")))
-
 ;;;***
 
-;;;### (autoloads nil "tuareg" "tuareg.el" (0 0 0 0))
+;;;### (autoloads nil "tuareg" "tuareg.el" (23138 47701 180163 576000))
 ;;; Generated autoloads from tuareg.el
 (add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . tuareg-mode))
 (add-to-list 'auto-mode-alist '("\\.eliomi?\\'" . tuareg-mode))
@@ -58,20 +57,20 @@ You can append it to your `.emacs' or use it as a tutorial.
 `M-x ocamldebug' FILE starts the OCaml debugger ocamldebug on the executable
 FILE, with input and output in an Emacs buffer named *ocamldebug-FILE*.
 
-A Tuareg Interactive Mode to evaluate expressions in a toplevel is
+A Tuareg Interactive Mode to evaluate expressions in a REPL (aka toplevel) is
 included.  Type `M-x tuareg-run-ocaml' or simply `M-x run-ocaml' or see
 special-keys below.
 
 Short cuts for the Tuareg mode:
 \\{tuareg-mode-map}
 
-Short cuts for interactions with the toplevel:
+Short cuts for interactions with the REPL:
 \\{tuareg-interactive-mode-map}
 
 \(fn)" t nil)
 
 (autoload 'tuareg-run-ocaml "tuareg" "\
-Run an OCaml toplevel process.  I/O via buffer `*ocaml-toplevel*'.
+Run an OCaml REPL process.  I/O via buffer `*OCaml*'.
 
 \(fn)" t nil)
 
@@ -81,34 +80,49 @@ Run an OCaml toplevel process.  I/O via buffer `*ocaml-toplevel*'.
 
 (add-to-list 'interpreter-mode-alist '("ocaml" . tuareg-mode))
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tuareg" '("tuareg-")))
+;;;***
+
+;;;### (autoloads nil "tuareg-jbuild" "tuareg-jbuild.el" (23138 47701
+;;;;;;  188163 609000))
+;;; Generated autoloads from tuareg-jbuild.el
+
+(autoload 'tuareg-jbuild-mode "tuareg-jbuild" "\
+Major mode to edit jbuild files.
+
+\(fn)" t nil)
+
+(add-to-list 'auto-mode-alist '("\\(?:\\`\\|/\\)jbuild\\'" . tuareg-jbuild-mode))
 
 ;;;***
 
-;;;### (autoloads nil "tuareg-light" "tuareg-light.el" (0 0 0 0))
-;;; Generated autoloads from tuareg-light.el
+;;;### (autoloads nil "tuareg-menhir" "tuareg-menhir.el" (23138 47701
+;;;;;;  188163 609000))
+;;; Generated autoloads from tuareg-menhir.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tuareg-light" '("tuareg2-")))
+(add-to-list 'auto-mode-alist '("\\.mly\\'" . tuareg-menhir-mode))
 
-;;;***
-
-;;;### (autoloads nil "tuareg-site-file" "tuareg-site-file.el" (0
-;;;;;;  0 0 0))
-;;; Generated autoloads from tuareg-site-file.el
+(autoload 'tuareg-menhir-mode "tuareg-menhir" "\
+Major mode to edit Menhir (and Ocamlyacc) files.
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tuareg-site-file" '("run-ocaml" "camldebug")))
+\(fn)" t nil)
 
 ;;;***
 
-;;;### (autoloads nil "tuareg_indent" "tuareg_indent.el" (0 0 0 0))
-;;; Generated autoloads from tuareg_indent.el
+;;;### (autoloads nil "tuareg-opam" "tuareg-opam.el" (23138 47701
+;;;;;;  184163 593000))
+;;; Generated autoloads from tuareg-opam.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "tuareg_indent" '("tuareg-")))
+(autoload 'tuareg-opam-mode "tuareg-opam" "\
+Major mode to edit opam files.
+
+\(fn)" t nil)
+
+(add-to-list 'auto-mode-alist '("[./]opam_?\\'" . tuareg-opam-mode))
 
 ;;;***
 
-;;;### (autoloads nil nil ("dot-emacs.el" "tuareg-pkg.el") (0 0 0
-;;;;;;  0))
+;;;### (autoloads nil nil ("dot-emacs.el" "tuareg-light.el" "tuareg-pkg.el"
+;;;;;;  "tuareg-site-file.el") (23138 47701 188163 609000))
 
 ;;;***
 
