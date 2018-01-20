@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "persp-mode" "persp-mode.el" (23064 61114 1268
-;;;;;;  845000))
+;;;### (autoloads nil "persp-mode" "persp-mode.el" (23138 47994 465130
+;;;;;;  416000))
 ;;; Generated autoloads from persp-mode.el
 
 (autoload 'persp-def-auto-persp "persp-mode" "\
@@ -17,7 +17,7 @@
 (autoload 'persp-def-buffer-save/load "persp-mode" "\
 
 
-\(fn &rest KEYARGS &key BUFFER-NAME FILE-NAME MODE MODE-NAME MINOR-MODE MINOR-MODE-NAME PREDICATE TAG-SYMBOL SAVE-VARS SAVE-FUNCTION LOAD-FUNCTION AFTER-LOAD-FUNCTION APPEND)" nil nil)
+\(fn &rest KEYARGS &key BUFFER-NAME FILE-NAME MODE MODE-NAME MINOR-MODE MINOR-MODE-NAME PREDICATE TAG-SYMBOL SAVE-VARS SAVE-FUNCTION LOAD-FUNCTION AFTER-LOAD-FUNCTION MODE-RESTORE-FUNCTION APPEND)" nil nil)
 
 (define-obsolete-function-alias 'def-persp-buffer-save/load 'persp-def-buffer-save/load "persp-mode 2.9.6")
 
@@ -39,6 +39,11 @@ Here is a keymap of this minor mode:
 \\{persp-mode-map}
 
 \(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads nil nil ("persp-mode-pkg.el") (23138 47988 849115
+;;;;;;  702000))
 
 ;;;***
 
