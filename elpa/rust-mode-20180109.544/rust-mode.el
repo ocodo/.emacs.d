@@ -1,7 +1,7 @@
 ;;; rust-mode.el --- A major emacs mode for editing Rust source code -*-lexical-binding: t-*-
 
 ;; Version: 0.3.0
-;; Package-Version: 20171106.510
+;; Package-Version: 20180109.544
 ;; Author: Mozilla
 ;; Url: https://github.com/rust-lang/rust-mode
 ;; Keywords: languages
@@ -122,7 +122,7 @@
   :group 'rust-mode
   :safe #'booleanp)
 
-(defcustom rust-indent-where-clause t
+(defcustom rust-indent-where-clause nil
   "Indent the line starting with the where keyword following a
 function or trait.  When nil, where will be aligned with fn or trait."
   :type 'boolean
@@ -1354,6 +1354,8 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
             (insert-file-contents tmpf)
             (error "Rustfmt could not format some lines, see *rustfmt* buffer for details"))
            (t
+            (erase-buffer)
+            (insert-file-contents tmpf)
             (error "Rustfmt failed, see *rustfmt* buffer for details"))))
       (delete-file tmpf))))
 
@@ -1477,7 +1479,8 @@ This is written mainly to be used as `end-of-defun-function' for Rust."
                (buffer (window-buffer window))
                (start (rust--format-get-pos buffer (pop loc)))
                (pos (rust--format-get-pos buffer (pop loc))))
-          (set-window-start window start)
+          (unless (eq buffer current)
+            (set-window-start window start))
           (set-window-point window pos)))))
 
   (message "Formatted buffer with rustfmt."))

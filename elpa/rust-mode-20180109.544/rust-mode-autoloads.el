@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "rust-mode" "rust-mode.el" (0 0 0 0))
+;;;### (autoloads nil "rust-mode" "rust-mode.el" (23138 47889 908834
+;;;;;;  753000))
 ;;; Generated autoloads from rust-mode.el
 
 (autoload 'rust-mode "rust-mode" "\
@@ -15,7 +16,10 @@ Major mode for Rust code.
 
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "rust-mode" '("rust" "cargo-compilation-regexps")))
+;;;***
+
+;;;### (autoloads nil nil ("rust-mode-pkg.el") (23138 47885 476821
+;;;;;;  173000))
 
 ;;;***
 
