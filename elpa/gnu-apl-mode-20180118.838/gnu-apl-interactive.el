@@ -136,8 +136,15 @@ function editor.
                   (if first
                       (setq first nil)
                     (setq result (concat result "\n")))
-                  (setq result (concat result s))))
-
+                  (setq result (concat result s)))
+                (do-connect (mode addr command)
+                  (gnu-apl--connect mode addr)
+                  (message "Connected to APL interpreter")
+                  ;; starting from remote protocol version 1.6 the HELP command is
+                  ;; available to retrieve all symbols help
+                  (when (version< "1.5" *gnu-apl-remote-protocol*)
+                    (setf gnu-apl--symbol-doc (gnu-apl--load-help)))
+                  (add-to-result command)))
       (dolist (plain (split-string line "\n"))
         (let ((command (gnu-apl--parse-text plain)))
           (ecase gnu-apl-preoutput-filter-state
@@ -159,10 +166,7 @@ function editor.
                                        command))
                     (let ((mode (match-string 1 command))
                           (addr (match-string 2 command)))
-                      (gnu-apl--connect mode addr)
-                      (message "Connected to APL interpreter")
-                      (add-to-result command)))
-
+                      (do-connect mode addr command)))
                    (t
                     (add-to-result command))))
 
@@ -187,9 +191,7 @@ function editor.
                                   command)
                     (let ((mode (match-string 1 command))
                           (addr (match-string 2 command)))
-                      (gnu-apl--connect mode addr)
-                      (message "Connected to APL interpreter")
-                      (add-to-result command)))
+                      (do-connect mode addr command)))
                    (t
                     (add-to-result command))))))))
     result))
@@ -261,41 +263,6 @@ buffers to reflect the change."
           "Click the link or run M-x customize-group RET gnu-apl to set up.\n\n"
           "To disable this message, set gnu-apl-show-tips-on-start to nil.\n\n"))
 
-;;;###autoload
-(defun gnu-apl (apl-executable)
-  "Start the GNU APL interpreter in a buffer.
-APL-EXECUTABLE is the path to the apl program (defaults
-to ‘gnu-apl-executable’)."
-  (interactive (list (when current-prefix-arg
-                       (read-file-name "Location of GNU APL Executable: " nil nil t))))
-  (let ((buffer (get-buffer-create "*gnu-apl*"))
-        (resolved-binary (or apl-executable gnu-apl-executable)))
-    (unless resolved-binary
-      (user-error "GNU APL Executable was not set"))
-    (pop-to-buffer-same-window buffer)
-    (unless (comint-check-proc buffer)
-      (gnu-apl--cleanup-trace-symbol buffer)
-      (when gnu-apl-show-tips-on-start
-        (gnu-apl--insert-tips))
-      (apply #'make-comint-in-buffer
-             "apl" buffer resolved-binary nil
-             "--rawCIN" "--emacs" (append (if (and gnu-apl-native-communication gnu-apl-use-new-native-library)
-                                              (list "--emacs_arg" (int-to-string gnu-apl-native-listener-port)))
-                                          (if (not gnu-apl-show-apl-welcome)
-                                              (list "--silent"))
-                                          gnu-apl-program-extra-args))
-      (setq gnu-apl-current-session buffer)
-
-      (gnu-apl-interactive-mode)
-      (set-buffer-process-coding-system 'utf-8 'utf-8)
-      (when (and gnu-apl-native-communication (not gnu-apl-use-new-native-library))
-        (gnu-apl--send buffer (concat "'" *gnu-apl-network-start* "'"))
-        (gnu-apl--send buffer (concat "'" gnu-apl-libemacs-location "' ⎕FX "
-                                      "'" *gnu-apl-native-lib* "'"))
-        (gnu-apl--send buffer (format "%s[1] %d" *gnu-apl-native-lib* gnu-apl-native-listener-port))
-        (gnu-apl--send buffer (concat "'" *gnu-apl-network-end* "'"))))
-    (when gnu-apl-show-keymap-on-startup
-      (run-at-time "0 sec" nil #'(lambda () (gnu-apl-show-keyboard 1))))))
 
 (defun gnu-apl-find-function-at-point ()
   "Jump to the definition of the function at point."

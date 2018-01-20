@@ -7,6 +7,9 @@
 (defvar *gnu-apl-notification-start* "APL_NATIVE_NOTIFICATION_START")
 (defvar *gnu-apl-notification-end* "APL_NATIVE_NOTIFICATION_END")
 (defvar *gnu-apl-protocol* "1.5")
+(defvar *gnu-apl-remote-protocol* nil
+  "The received version of a protocol on GNU APL side")
+
 
 ;;; We really should be using define-error here, but that function is
 ;;; new in 24.4 and thus is not generally available yet. This should
@@ -57,7 +60,8 @@ connect mode in use."
     (condition-case err
         (let ((version (gnu-apl--send-network-command-and-read "proto")))
           (unless (gnu-apl--protocol-acceptable-p (car version))
-            (error "GNU APL version too old (%s). Please upgrade to at least %s" (car version) *gnu-apl-protocol*)))
+            (error "GNU APL version too old (%s). Please upgrade to at least %s" (car version) *gnu-apl-protocol*))
+          (setq-local *gnu-apl-remote-protocol* (car version)))
       (gnu-apl-network-proto-error (error "GNU APL version too old (<1.3). Please upgrade to at least %s" *gnu-apl-protocol*)))))
 
 (defun gnu-apl--process-notification (lines)
