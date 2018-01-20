@@ -1,18 +1,19 @@
 ;;; bind-key.el --- A simple way to manage personal keybindings
 
-;; Copyright (c) 2012-2015 john wiegley
+;; Copyright (c) 2012-2017 John Wiegley
 
-;; Author: John Wiegley <jwiegley@gmail.com>
-;; Maintainer: John Wiegley <jwiegley@gmail.com>
+;; Author: John Wiegley <johnw@newartisans.com>
+;; Maintainer: John Wiegley <johnw@newartisans.com>
 ;; Created: 16 Jun 2012
-;; Version: 1.0
-;; Package-Version: 20161218.1520
+;; Modified: 29 Nov 2017
+;; Version: 2.4
+;; Package-Version: 20171210.2125
 ;; Keywords: keys keybinding config dotemacs
 ;; URL: https://github.com/jwiegley/use-package
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the gnu general public license as
-;; published by the free software foundation; either version 2, or (at
+;; published by the free software foundation; either version 3, or (at
 ;; your option) any later version.
 
 ;; This program is distributed in the hope that it will be useful, but
@@ -146,6 +147,13 @@ KEY-NAME may be a vector, in which case it is passed straight to
 spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
 `edmacro-mode' for details.
 
+COMMAND must be an interactive function or lambda form.
+
+KEYMAP, if present, should be a keymap and not a quoted symbol.
+For example:
+
+  (bind-key \"M-h\" #'some-interactive-function my-mode-map)
+
 If PREDICATE is non-nil, it is a form evaluated to determine when
 a key should be bound. It must return non-nil in such cases.
 Emacs can evaluate this form at any time that it does redisplay
@@ -162,9 +170,13 @@ can safely be called at any time."
                                (key-description ,namevar))
                              (quote ,keymap)))
             (,bindingvar (lookup-key (or ,keymap global-map) ,keyvar)))
-       (add-to-list 'personal-keybindings
-                    (list ,kdescvar ,command
-                          (unless (numberp ,bindingvar) ,bindingvar)))
+       (let ((entry (assoc ,kdescvar personal-keybindings))
+             (details (list ,command
+                            (unless (numberp ,bindingvar)
+                              ,bindingvar))))
+         (if entry
+             (setcdr entry details)
+           (add-to-list 'personal-keybindings (cons ,kdescvar details))))
        ,(if predicate
             `(define-key (or ,keymap global-map) ,keyvar
                '(menu-item "" nil :filter (lambda (&optional _)
@@ -193,7 +205,7 @@ See `bind-key' for more details."
   "Similar to `bind-key', but overrides any mode-specific bindings."
   `(bind-key ,key-name ,command override-global-map ,predicate))
 
-(defun bind-keys-form (args)
+(defun bind-keys-form (args keymap)
   "Bind multiple keys at once.
 
 Accepts keyword arguments:
@@ -208,30 +220,48 @@ Accepts keyword arguments:
 
 The rest of the arguments are conses of keybinding string and a
 function symbol (unquoted)."
-  ;; jww (2016-02-26): This is a hack; this whole function needs to be
-  ;; rewritten to normalize arguments the way that use-package.el does.
-  (if (and (eq (car args) :package)
-           (not (eq (car (cdr (cdr args))) :map)))
-      (setq args (cons :map (cons 'global-map args))))
-  (let* ((map (plist-get args :map))
-         (doc (plist-get args :prefix-docstring))
-         (prefix-map (plist-get args :prefix-map))
-         (prefix (plist-get args :prefix))
-         (filter (plist-get args :filter))
-         (menu-name (plist-get args :menu-name))
-         (pkg (plist-get args :package))
-         (key-bindings (progn
-                         (while (keywordp (car args))
-                           (pop args)
-                           (pop args))
-                         args)))
+  (let (map
+        doc
+        prefix-map
+        prefix
+        filter
+        menu-name
+        pkg)
+
+    ;; Process any initial keyword arguments
+    (let ((cont t))
+      (while (and cont args)
+        (if (cond ((and (eq :map (car args))
+                        (not prefix-map))
+                   (setq map (cadr args)))
+                  ((eq :prefix-docstring (car args))
+                   (setq doc (cadr args)))
+                  ((and (eq :prefix-map (car args))
+                        (not (memq map '(global-map
+                                         override-global-map))))
+                   (setq prefix-map (cadr args)))
+                  ((eq :prefix (car args))
+                   (setq prefix (cadr args)))
+                  ((eq :filter (car args))
+                   (setq filter (cadr args)) t)
+                  ((eq :menu-name (car args))
+                   (setq menu-name (cadr args)))
+                  ((eq :package (car args))
+                   (setq pkg (cadr args))))
+            (setq args (cddr args))
+          (setq cont nil))))
+
     (when (or (and prefix-map (not prefix))
               (and prefix (not prefix-map)))
       (error "Both :prefix-map and :prefix must be supplied"))
+
     (when (and menu-name (not prefix))
       (error "If :menu-name is supplied, :prefix must be too"))
-    (let ((args key-bindings)
-          saw-map first next)
+
+    (unless map (setq map keymap))
+
+    ;; Process key binding arguments
+    (let (first next)
       (while args
         (if (keywordp (car args))
             (progn
@@ -241,15 +271,18 @@ function symbol (unquoted)."
               (nconc first (list (car args)))
             (setq first (list (car args))))
           (setq args (cdr args))))
+
       (cl-flet
           ((wrap (map bindings)
-                 (if (and map pkg (not (eq map 'global-map)))
+                 (if (and map pkg (not (memq map '(global-map
+                                                   override-global-map))))
                      `((if (boundp ',map)
-                           (progn ,@bindings)
+                           ,(macroexp-progn bindings)
                          (eval-after-load
                              ,(if (symbolp pkg) `',pkg pkg)
-                           '(progn ,@bindings))))
+                           ',(macroexp-progn bindings))))
                    bindings)))
+
         (append
          (when prefix-map
            `((defvar ,prefix-map)
@@ -263,17 +296,17 @@ function symbol (unquoted)."
          (wrap map
                (cl-mapcan
                 (lambda (form)
-                  (if prefix-map
-                      `((bind-key ,(car form) ',(cdr form) ,prefix-map ,filter))
-                    (if (and map (not (eq map 'global-map)))
-                        `((bind-key ,(car form) ',(cdr form) ,map ,filter))
-                      `((bind-key ,(car form) ',(cdr form) nil ,filter)))))
+                  (let ((fun (and (cdr form) (list 'function (cdr form)))))
+                    (if prefix-map
+                        `((bind-key ,(car form) ,fun ,prefix-map ,filter))
+                      (if (and map (not (eq map 'global-map)))
+                          `((bind-key ,(car form) ,fun ,map ,filter))
+                        `((bind-key ,(car form) ,fun nil ,filter))))))
                 first))
          (when next
-           (bind-keys-form
-            (if pkg
-                (cons :package (cons pkg next))
-              next))))))))
+           (bind-keys-form (if pkg
+                               (cons :package (cons pkg next))
+                             next) map)))))))
 
 ;;;###autoload
 (defmacro bind-keys (&rest args)
@@ -291,18 +324,17 @@ Accepts keyword arguments:
 
 The rest of the arguments are conses of keybinding string and a
 function symbol (unquoted)."
-  (macroexp-progn (bind-keys-form args)))
+  (macroexp-progn (bind-keys-form args nil)))
 
 ;;;###autoload
 (defmacro bind-keys* (&rest args)
-  (macroexp-progn
-   (bind-keys-form `(:map override-global-map ,@args))))
+  (macroexp-progn (bind-keys-form args 'override-global-map)))
 
 (defun get-binding-description (elem)
   (cond
    ((listp elem)
     (cond
-     ((eq 'lambda (car elem))
+     ((memq (car elem) '(lambda function))
       (if (and bind-key-describe-special-forms
                (stringp (nth 2 elem)))
           (nth 2 elem)
@@ -371,8 +403,8 @@ function symbol (unquoted)."
                              (car (compare-keybindings l r))))))
 
         (if (not (eq (cdar last-binding) (cdar binding)))
-            (princ (format "\n\n%s\n%s\n\n"
-                           (cdar binding)
+            (princ (format "\n\n%s: %s\n%s\n\n"
+                           (cdar binding) (caar binding)
                            (make-string (+ 21 (car bind-key-column-widths)
                                            (cdr bind-key-column-widths)) ?-)))
           (if (and last-binding
