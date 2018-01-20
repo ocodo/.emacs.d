@@ -4,7 +4,7 @@
 
 ;; Author: Jonathan Chu <me@jonathanchu.is>
 ;; URL: https://github.com/jonathanchu/atom-one-dark-theme
-;; Package-Version: 20170803.916
+;; Package-Version: 20180116.1024
 ;; Version: 0.4.0
 
 ;; This file is not part of GNU Emacs.
@@ -37,8 +37,7 @@
     ("atom-one-dark-bg"       . "#282C34")
     ("atom-one-dark-bg-1"     . "#121417")
     ("atom-one-dark-bg-hl"    . "#2F343D")
-    ("atom-one-dark-gutter"   . "#666D7A")
-    ("atom-one-dark-accent"   . "#AEB9F5")
+    ("atom-one-dark-gutter"   . "#4B5363")
     ("atom-one-dark-mono-1"   . "#ABB2BF")
     ("atom-one-dark-mono-2"   . "#828997")
     ("atom-one-dark-mono-3"   . "#5C6370")
@@ -51,8 +50,9 @@
     ("atom-one-dark-orange-1" . "#D19A66")
     ("atom-one-dark-orange-2" . "#E5C07B")
     ("atom-one-dark-gray"     . "#3E4451")
-    ("atom-one-dark-silver"   . "#AAAAAA")
-    ("atom-one-dark-black"    . "#0F1011"))
+    ("atom-one-dark-silver"   . "#9DA5B4")
+    ("atom-one-dark-black"    . "#21252B")
+    ("atom-one-dark-border"   . "#181A1F"))
   "List of Atom One Dark colors.")
 
 (defmacro atom-one-dark-with-color-variables (&rest body)
@@ -98,10 +98,10 @@
    `(font-lock-warning-face ((t (:foreground ,atom-one-dark-mono-3 :bold t))))
 
    ;; mode-line
-   `(mode-line ((t (:background ,atom-one-dark-black :foreground ,atom-one-dark-silver))))
+   `(mode-line ((t (:background ,atom-one-dark-black :foreground ,atom-one-dark-silver :box (:color ,atom-one-dark-border :line-width 1)))))
    `(mode-line-buffer-id ((t (:weight bold))))
    `(mode-line-emphasis ((t (:weight bold))))
-   `(mode-line-inactive ((t (:background ,atom-one-dark-gray))))
+   `(mode-line-inactive ((t (:background ,atom-one-dark-gray :foreground ,atom-one-dark-mono-3))))
 
    ;; ido
    `(ido-first-match ((t (:foreground ,atom-one-dark-purple :weight bold))))
@@ -197,6 +197,22 @@
    `(git-commit-comment-branch  ((t (:foreground ,atom-one-dark-blue :weight bold))))
    `(git-commit-comment-heading ((t (:foreground ,atom-one-dark-orange-2 :weight bold))))
 
+   ;; jabber
+   `(jabber-roster-user-online ((t (:foreground ,atom-one-dark-green))))
+   `(jabber-roster-user-away ((t (:foreground ,atom-one-dark-red-1))))
+   `(jabber-roster-user-xa ((t (:foreground ,atom-one-dark-red-2))))
+   `(jabber-roster-user-dnd ((t (:foreground ,atom-one-dark-purple))))
+   `(jabber-roster-user-chatty ((t (:foreground ,atom-one-dark-orange-2))))
+   `(jabber-roster-user-error ((t (:foreground ,atom-one-dark-red-1 :bold t))))
+   `(jabber-roster-user-offline ((t (:foreground ,atom-one-dark-mono-3))))
+   `(jabber-chat-prompt-local ((t (:foreground ,atom-one-dark-blue))))
+   `(jabber-chat-prompt-foreign ((t (:foreground ,atom-one-dark-orange-2))))
+   `(jabber-chat-prompt-system ((t (:foreground ,atom-one-dark-mono-3))))
+   `(jabber-chat-error ((t (:inherit jabber-roster-user-error))))
+   `(jabber-rare-time-face ((t (:foreground ,atom-one-dark-cyan))))
+   `(jabber-activity-face ((t (:inherit jabber-chat-prompt-foreign))))
+   `(jabber-activity-personal-face ((t (:inherit jabber-chat-prompt-local))))
+
    ;; js2-mode
    `(js2-function-call ((t (:inherit (font-lock-function-name-face)))))
    `(js2-function-param ((t (:foreground ,atom-one-dark-mono-1))))
@@ -264,6 +280,9 @@
    `(magit-reflog-remote       ((t (:foreground ,atom-one-dark-cyan))))
    `(magit-reflog-other        ((t (:foreground ,atom-one-dark-cyan))))
 
+   ;; perspective
+   `(persp-selected-face ((t (:foreground ,atom-one-dark-blue))))
+
    ;; rainbow-delimiters
    `(rainbow-delimiters-depth-1-face ((t (:foreground ,atom-one-dark-fg))))
    `(rainbow-delimiters-depth-2-face ((t (:foreground ,atom-one-dark-purple))))
@@ -316,7 +335,10 @@
    ;; linum
    `(linum ((t (:foreground ,atom-one-dark-gutter :background ,atom-one-dark-bg))))
    ;; hlinum
-   `(linum-highlight-face ((t (:foreground ,atom-one-dark-accent :background ,atom-one-dark-bg))))
+   `(linum-highlight-face ((t (:foreground ,atom-one-dark-fg :background ,atom-one-dark-bg))))
+   ;; native line numbers (emacs version >=26)
+   `(line-number ((t (:foreground ,atom-one-dark-gutter :background ,atom-one-dark-bg))))
+   `(line-number-current-line ((t (:foreground ,atom-one-dark-fg :background ,atom-one-dark-bg))))
 
    ;; latex-mode
    `(font-latex-sectioning-0-face ((t (:foreground ,atom-one-dark-blue :height 1.0))))
@@ -334,6 +356,17 @@
    `(org-date ((t (:foreground ,atom-one-dark-cyan))))
    `(org-footnote ((t (:foreground ,atom-one-dark-cyan))))
    `(org-sexp-date ((t (:foreground ,atom-one-dark-cyan))))
+
+   ;; realgud
+   `(realgud-overlay-arrow1        ((t (:foreground ,atom-one-dark-green))))
+   `(realgud-overlay-arrow3        ((t (:foreground ,atom-one-dark-orange-1))   `(realgud-overlay-arrow2        ((t (:foreground ,atom-one-dark-orange-2))))
+))
+   '(realgud-bp-enabled-face       ((t (:inherit (error)))))
+   `(realgud-bp-disabled-face      ((t (:inherit (secondary-selection)))))
+   `(realgud-bp-line-enabled-face  ((t (:box (:color ,atom-one-dark-red-1)))))
+   `(realgud-bp-line-disabled-face ((t (:box (:color ,atom-one-dark-gray)))))
+   `(realgud-line-number           ((t (:foreground ,atom-one-dark-mono-2))))
+   `(realgud-backtrace-number      ((t (:inherit (secondary-selection)))))
 
    ;; undo-tree
    `(undo-tree-visualizer-current-face ((t (:foreground ,atom-one-dark-red-1))))
