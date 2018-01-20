@@ -1,6 +1,6 @@
 ;;; helm-lib.el --- Helm routines. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015 ~ 2017  Thierry Volpiatto <thierry.volpiatto@gmail.com>
+;; Copyright (C) 2015 ~ 2018  Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
 ;; Author: Thierry Volpiatto <thierry.volpiatto@gmail.com>
 ;; URL: http://github.com/emacs-helm/helm
@@ -24,7 +24,7 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'dired)
+(eval-when-compile (require 'wdired))
 
 (declare-function helm-get-sources "helm.el")
 (declare-function helm-marked-candidates "helm.el")
@@ -34,9 +34,8 @@
 (declare-function org-open-at-point "org.el")
 (declare-function org-content "org.el")
 (defvar helm-current-position)
-
-(eval-when-compile (require 'wdired))
 (defvar wdired-old-marks)
+(defvar helm-persistent-action-display-window)
 
 ;;; User vars.
 ;;
@@ -73,6 +72,37 @@ can be reach by tweaking `display-buffer-alist' but it is
 much more convenient to use a simple boolean value here."
   :type 'boolean
   :group 'helm-help)
+
+(defvar helm-ff--boring-regexp nil)
+(defun helm-ff--setup-boring-regex (var val)
+  (set var val)
+  (setq helm-ff--boring-regexp
+          (cl-loop with last = (car (last val))
+                   for r in (butlast val)
+                   if (string-match "\\$\\'" r)
+                   concat (concat r "\\|") into result
+                   else concat (concat r "$\\|") into result
+                   finally return
+                   (concat result last
+                           (if (string-match "\\$\\'" last) "" "$")))))
+
+(defcustom helm-boring-file-regexp-list
+  (mapcar (lambda (f)
+            (let ((rgx (regexp-quote f)))
+              (if (string-match-p "[^/]$" f)
+                  ;; files: e.g .o => \\.o$
+                  (concat rgx "$")
+                ;; directories: e.g .git/ => \\.git/?
+                (concat rgx "?"))))
+          completion-ignored-extensions)
+  "A list of regexps matching boring files.
+
+This list is build by default on `completion-ignored-extensions'.
+The directory names should end with \"/?\" e.g. \"\\.git/?\" and the
+file names should end with \"$\" e.g. \"\\.o$\"."
+  :group 'helm-files
+  :type  '(repeat (choice regexp))
+  :set 'helm-ff--setup-boring-regex)
 
 
 ;;; Internal vars
@@ -229,6 +259,47 @@ When only `add-text-properties' is available APPEND is ignored."
 	  file
 	(and file (> (length file) 0)
              (expand-file-name file (dired-current-directory)))))))
+
+;;; Override `push-mark'
+;;
+;; Fix duplicates in `mark-ring' and `global-mark-ring' and update
+;; buffers in `global-mark-ring' to recentest mark.
+(defun helm--advice-push-mark (&optional location nomsg activate)
+  (unless (null (mark t))
+    (let ((marker (copy-marker (mark-marker))))
+      (setq mark-ring (cons marker (delete marker mark-ring))))
+    (when (> (length mark-ring) mark-ring-max)
+      ;; Move marker to nowhere.
+      (set-marker (car (nthcdr mark-ring-max mark-ring)) nil)
+      (setcdr (nthcdr (1- mark-ring-max) mark-ring) nil)))
+  (set-marker (mark-marker) (or location (point)) (current-buffer))
+  ;; Now push the mark on the global mark ring.
+  (setq global-mark-ring (cons (copy-marker (mark-marker))
+                               ;; Avoid having multiple entries
+                               ;; for same buffer in `global-mark-ring'.
+                               (cl-loop with mb = (current-buffer)
+                                        for m in global-mark-ring
+                                        for nmb = (marker-buffer m)
+                                        unless (eq mb nmb)
+                                        collect m)))
+  (when (> (length global-mark-ring) global-mark-ring-max)
+    (set-marker (car (nthcdr global-mark-ring-max global-mark-ring)) nil)
+    (setcdr (nthcdr (1- global-mark-ring-max) global-mark-ring) nil))
+  (or nomsg executing-kbd-macro (> (minibuffer-depth) 0)
+      (message "Mark set"))
+  (when (or activate (not transient-mark-mode))
+    (set-mark (mark t)))
+  nil)
+
+(defcustom helm-advice-push-mark t
+  "Override `push-mark' with a version avoiding duplicates when non nil."
+  :group 'helm
+  :type 'boolean
+  :set (lambda (var val)
+         (set var val)
+         (if val
+             (advice-add 'push-mark :override #'helm--advice-push-mark)
+           (advice-remove 'push-mark #'helm--advice-push-mark))))
 
 ;;; Macros helper.
 ;;
@@ -274,6 +345,23 @@ and not `exit-minibuffer' or other unwanted functions."
 
 ;;; Iterators
 ;;
+(cl-defmacro helm-position (item seq &key test all)
+  "A simple and faster replacement of CL `position'.
+
+Returns ITEM first occurence position found in SEQ.
+When SEQ is a string, ITEM have to be specified as a char.
+Argument TEST when unspecified default to `eq'.
+When argument ALL is non--nil return a list of all ITEM positions
+found in SEQ."
+  (let ((key (if (stringp seq) 'across 'in)))
+    `(cl-loop with deftest = 'eq
+              for c ,key ,seq
+              for index from 0
+              when (funcall (or ,test deftest) c ,item)
+              if ,all collect index into ls
+              else return index
+              finally return ls)))
+
 (defun helm-iter-list (seq)
   "Return an iterator object from SEQ."
   (let ((lis seq))
@@ -387,21 +475,25 @@ e.g helm.el$
   "Show long message during `helm' session in BUFNAME.
 INSERT-CONTENT-FN is the function that insert
 text to be displayed in BUFNAME."
-  (let ((winconf (current-frame-configuration)))
-    (unwind-protect
-         (progn
-           (setq helm-suspend-update-flag t)
-           (set-buffer (get-buffer-create bufname))
-           (switch-to-buffer bufname)
-           (when helm-help-full-frame (delete-other-windows))
-           (delete-region (point-min) (point-max))
-           (org-mode)
-           (save-excursion
-             (funcall insert-content-fn))
-           (buffer-disable-undo)
-           (helm-help-event-loop))
-      (setq helm-suspend-update-flag nil)
-      (set-frame-configuration winconf))))
+  (let ((winconf (current-frame-configuration))
+        (hframe (selected-frame)))
+    (with-selected-frame helm-initial-frame
+      (select-frame-set-input-focus helm-initial-frame)
+      (unwind-protect
+           (progn
+             (setq helm-suspend-update-flag t)
+             (set-buffer (get-buffer-create bufname))
+             (switch-to-buffer bufname)
+             (when helm-help-full-frame (delete-other-windows))
+             (delete-region (point-min) (point-max))
+             (org-mode)
+             (save-excursion
+               (funcall insert-content-fn))
+             (buffer-disable-undo)
+             (helm-help-event-loop))
+        (raise-frame hframe)
+        (setq helm-suspend-update-flag nil)
+        (set-frame-configuration winconf)))))
 
 (defun helm-help-scroll-up (amount)
   (condition-case _err
@@ -527,30 +619,19 @@ Otherwise make a list with one element."
       obj
     (list obj)))
 
-(cl-defmacro helm-position (item seq &key (test 'eq) all)
-  "A simple and faster replacement of CL `position'.
-Return position of first occurence of ITEM found in SEQ.
-Argument SEQ can be a string, in this case ITEM have to be a char.
-Argument ALL, if non--nil specify to return a list of positions of
-all ITEM found in SEQ."
-  (let ((key (if (stringp seq) 'across 'in)))
-    `(cl-loop for c ,key ,seq
-           for index from 0
-           when (funcall ,test c ,item)
-           if ,all collect index into ls
-           else return index
-           finally return ls)))
-
 (cl-defun helm-fast-remove-dups (seq &key (test 'eq))
   "Remove duplicates elements in list SEQ.
+
 This is same as `remove-duplicates' but with memoisation.
 It is much faster, especially in large lists.
 A test function can be provided with TEST argument key.
-Default is `eq'."
+Default is `eq'.
+NOTE: Comparison of special elisp objects fails because their printed
+representation which is stored in hash-tables can't be compared."
   (cl-loop with cont = (make-hash-table :test test)
-        for elm in seq
-        unless (gethash elm cont)
-        collect (puthash elm elm cont)))
+           for elm in seq
+           unless (gethash elm cont)
+           collect (puthash elm elm cont)))
 
 (defsubst helm--string-join (strings &optional separator)
   "Join all STRINGS using SEPARATOR."
@@ -820,7 +901,7 @@ of this function is really needed."
   "Used to build persistent actions describing CANDIDATE with FUN.
 Argument NAME is used internally to know which command to use when
 symbol CANDIDATE refers at the same time to variable and a function.
-See `helm-elisp--show-help'."
+See `helm-elisp-show-help'."
   (let ((hbuf (get-buffer (help-buffer))))
     (cond  ((helm-follow-mode-p)
             (if name
@@ -832,9 +913,9 @@ See `helm-elisp--show-help'."
               ;; When started from a help buffer,
               ;; Don't kill this buffer as it is helm-current-buffer.
               (unless (equal hbuf helm-current-buffer)
-                (kill-buffer hbuf)
                 (set-window-buffer (get-buffer-window hbuf)
-                                   helm-current-buffer))
+                                   helm-current-buffer)
+                (kill-buffer hbuf))
               (helm-attrset 'help-running-p nil)))
            (t
             (if name
@@ -942,6 +1023,31 @@ Useful in dired buffers when there is inserted subdirs."
    (if (eq major-mode 'dired-mode)
        (dired-current-directory)
        default-directory)))
+
+(defun helm-shadow-boring-files (files)
+  "Files matching `helm-boring-file-regexp' will be
+displayed with the `file-name-shadow' face if available."
+  (helm-shadow-entries files helm-boring-file-regexp-list))
+
+(defun helm-skip-boring-files (files)
+  "Files matching `helm-boring-file-regexp' will be skipped."
+  (helm-skip-entries files helm-boring-file-regexp-list))
+
+(defun helm-skip-current-file (files)
+  "Current file will be skipped."
+  (remove (buffer-file-name helm-current-buffer) files))
+
+(defun helm-w32-pathname-transformer (args)
+  "Change undesirable features of windows pathnames to ones more acceptable to
+other candidate transformers."
+  (if (eq system-type 'windows-nt)
+      (helm-transform-mapcar
+       (lambda (x)
+         (replace-regexp-in-string
+          "/cygdrive/\\(.\\)" "\\1:"
+          (replace-regexp-in-string "\\\\" "/" x)))
+       args)
+    args))
 
 (defun helm-w32-prepare-filename (file)
   "Convert filename FILE to something usable by external w32 executables."

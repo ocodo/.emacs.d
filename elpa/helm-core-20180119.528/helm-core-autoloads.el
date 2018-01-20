@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm" "helm.el" (22955 53440 313627 653000))
+;;;### (autoloads nil "helm" "helm.el" (23138 48463 170040 831000))
 ;;; Generated autoloads from helm.el
 
 (autoload 'helm-define-multi-key "helm" "\
@@ -60,8 +60,8 @@ In this example, `C-x v n' will run `git-gutter:next-hunk'
 subsequent \"n\"'s run this command again
 and subsequent \"p\"'s run `git-gutter:previous-hunk'.
 
-Arg MENU is a string displayed in minibuffer that
-describes SUBKEY and OTHER-SUBKEYS.
+If specified PROMPT can be displayed in minibuffer to
+describe SUBKEY and OTHER-SUBKEYS.
 Arg EXIT-FN specifies a function to run on exit.
 
 For any other keys pressed, run their assigned command as defined
@@ -70,7 +70,7 @@ in MAP and then exit the loop running EXIT-FN, if specified.
 NOTE: SUBKEY and OTHER-SUBKEYS bindings support only char syntax and
 vectors, so don't use strings to define them.
 
-\(fn MAP KEY SUBKEY COMMAND &optional OTHER-SUBKEYS MENU EXIT-FN)" nil nil)
+\(fn MAP KEY SUBKEY COMMAND &optional OTHER-SUBKEYS PROMPT EXIT-FN)" nil nil)
 
 (function-put 'helm-define-key-with-subkeys 'lisp-indent-function '1)
 
@@ -222,7 +222,7 @@ Call `helm' only with ANY-SOURCES and ANY-BUFFER as args.
 ;;;***
 
 ;;;### (autoloads nil nil ("helm-core-pkg.el" "helm-lib.el" "helm-multi-match.el"
-;;;;;;  "helm-source.el") (22955 53440 321627 660000))
+;;;;;;  "helm-source.el") (23138 48463 174040 836000))
 
 ;;;***
 
