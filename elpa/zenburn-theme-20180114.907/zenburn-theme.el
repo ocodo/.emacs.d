@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: http://github.com/bbatsov/zenburn-emacs
-;; Package-Version: 20171109.926
+;; Package-Version: 20180114.907
 ;; Version: 2.5
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -555,7 +555,9 @@ Also bind `class' to ((class color) (min-colors 89))."
    '(git-annex-dired-annexed-unavailable ((t (:inherit error :weight normal))))
 ;;;;; git-commit
    `(git-commit-comment-action  ((,class (:foreground ,zenburn-green+1 :weight bold))))
-   `(git-commit-comment-branch  ((,class (:foreground ,zenburn-blue+1  :weight bold))))
+   `(git-commit-comment-branch  ((,class (:foreground ,zenburn-blue+1  :weight bold)))) ; obsolete
+   `(git-commit-comment-branch-local  ((,class (:foreground ,zenburn-blue+1  :weight bold))))
+   `(git-commit-comment-branch-remote ((,class (:foreground ,zenburn-green  :weight bold))))
    `(git-commit-comment-heading ((,class (:foreground ,zenburn-yellow  :weight bold))))
 ;;;;; git-gutter
    `(git-gutter:added ((t (:foreground ,zenburn-green :weight bold :inverse-video t))))
@@ -846,6 +848,12 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(magit-section-highlight           ((t (:background ,zenburn-bg+05))))
    `(magit-section-heading             ((t (:foreground ,zenburn-yellow :weight bold))))
    `(magit-section-heading-selection   ((t (:foreground ,zenburn-orange :weight bold))))
+
+   `(magit-diff-added-highlight ((t (:background ,zenburn-green))))
+   `(magit-diff-removed-highlight ((t (:background ,zenburn-red-3))))
+   `(magit-diff-added ((t (:background ,zenburn-green-1))))
+   `(magit-diff-removed ((t (:background ,zenburn-red-4))))
+
    `(magit-diff-file-heading           ((t (:weight bold))))
    `(magit-diff-file-heading-highlight ((t (:background ,zenburn-bg+05  :weight bold))))
    `(magit-diff-file-heading-selection ((t (:background ,zenburn-bg+05
@@ -1094,6 +1102,10 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(p4-diff-file-face ((t :inherit diff-file-header)))
    `(p4-diff-head-face ((t :inherit diff-header)))
    `(p4-diff-ins-face ((t :inherit diff-added)))
+;;;;; c/perl
+   `(cperl-nonoverridable-face ((t (:foreground ,zenburn-magenta))))
+   `(cperl-array-face ((t (:foreground ,zenburn-yellow, :backgorund ,zenburn-bg))))
+   `(cperl-hash-face ((t (:foreground ,zenburn-yellow-1, :background ,zenburn-bg))))
 ;;;;; perspective
    `(persp-selected-face ((t (:foreground ,zenburn-yellow-2 :inherit mode-line))))
 ;;;;; powerline
@@ -1155,6 +1167,16 @@ Also bind `class' to ((class color) (min-colors 89))."
    `(reb-match-1 ((t (:foreground ,zenburn-bg :background ,zenburn-blue))))
    `(reb-match-2 ((t (:foreground ,zenburn-bg :background ,zenburn-orange))))
    `(reb-match-3 ((t (:foreground ,zenburn-bg :background ,zenburn-red))))
+;;;;; realgud
+   `(realgud-overlay-arrow1 ((t (:foreground ,zenburn-green))))
+   `(realgud-overlay-arrow2 ((t (:foreground ,zenburn-yellow))))
+   `(realgud-overlay-arrow3 ((t (:foreground ,zenburn-orange))))
+   `(realgud-bp-enabled-face ((t (:inherit error))))
+   `(realgud-bp-disabled-face ((t (:inherit secondary-selection))))
+   `(realgud-bp-line-enabled-face ((t (:box (:color ,zenburn-red :style nil)))))
+   `(realgud-bp-line-disabled-face ((t (:box (:color "grey70" :style nil)))))
+   `(realgud-line-number ((t (:foreground ,zenburn-yellow))))
+   `(realgud-backtrace-number ((t (:foreground ,zenburn-yellow, :weight bold))))
 ;;;;; regex-tool
    `(regex-tool-matched-face ((t (:background ,zenburn-blue-4 :weight bold))))
 ;;;;; rpm-mode
@@ -1378,6 +1400,9 @@ Also bind `class' to ((class color) (min-colors 89))."
 ;;;;; ansi-color
    `(ansi-color-names-vector [,zenburn-bg ,zenburn-red ,zenburn-green ,zenburn-yellow
                                           ,zenburn-blue ,zenburn-magenta ,zenburn-cyan ,zenburn-fg])
+;;;;; company-quickhelp
+   `(company-quickhelp-color-background ,zenburn-bg+1)
+   `(company-quickhelp-color-foreground ,zenburn-fg)
 ;;;;; fill-column-indicator
    `(fci-rule-color ,zenburn-bg-05)
 ;;;;; nrepl-client
