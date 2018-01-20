@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "nvm" "nvm.el" (22873 40437 0 0))
+;;;### (autoloads nil "nvm" "nvm.el" (23138 48029 265219 160000))
 ;;; Generated autoloads from nvm.el
 
 (autoload 'nvm-use "nvm" "\
@@ -24,6 +24,12 @@ If CALLBACK is specified, active in that scope and then reset to
 previously used version.
 
 \(fn &optional PATH CALLBACK)" nil nil)
+
+(autoload 'nvm-use-for-buffer "nvm" "\
+Activate Node based on an .nvmrc for the current file.
+If buffer is not visiting a file, do nothing.
+
+\(fn)" nil nil)
 
 ;;;***
 
