@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "browse-kill-ring" "browse-kill-ring.el" (23064
-;;;;;;  61898 650661 710000))
+;;;### (autoloads nil "browse-kill-ring" "browse-kill-ring.el" (23138
+;;;;;;  48900 378561 528000))
 ;;; Generated autoloads from browse-kill-ring.el
 
 (autoload 'browse-kill-ring-default-keybindings "browse-kill-ring" "\
