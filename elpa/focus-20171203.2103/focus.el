@@ -4,7 +4,7 @@
 
 ;; Author: Lars Tveito <larstvei@ifi.uio.no>
 ;; URL: http://github.com/larstvei/Focus
-;; Package-Version: 20170612.743
+;; Package-Version: 20171203.2103
 ;; Created: 11th May 2015
 ;; Version: 0.1.1
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
@@ -99,17 +99,12 @@ The timer calls `focus-read-only-hide-cursor' after
                focus-read-only-blink-timer))
   (make-local-variable var))
 
-(defun focus-any (f lst)
-  "Apply F to each element of LST and return first NON-NIL."
-  (when lst
-    (let ((v (funcall f (car lst))))
-      (if v v (focus-any f (cdr lst))))))
-
 (defun focus-get-thing ()
   "Return the current thing, based on `focus-mode-to-thing'."
   (or focus-current-thing
       (let* ((modes (mapcar 'car focus-mode-to-thing))
-             (mode  (focus-any 'derived-mode-p modes)))
+             (mode  (or (cl-find major-mode modes)
+                        (apply #'derived-mode-p modes))))
         (if mode (cdr (assoc mode focus-mode-to-thing)) 'sentence))))
 
 (defun focus-bounds ()
