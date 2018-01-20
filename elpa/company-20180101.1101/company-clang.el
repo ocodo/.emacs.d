@@ -1,6 +1,6 @@
 ;;; company-clang.el --- company-mode completion backend for Clang  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009, 2011, 2013-2016  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2011, 2013-2017  Free Software Foundation, Inc.
 
 ;; Author: Nikolaj Schumacher
 
@@ -45,7 +45,8 @@ symbol is preceded by \".\", \"->\" or \"::\", ignoring
 
 If `company-begin-commands' is a list, it should include `c-electric-lt-gt'
 and `c-electric-colon', for automatic completion right after \">\" and
-\":\".")
+\":\"."
+  :type 'boolean)
 
 (defcustom company-clang-arguments nil
   "Additional arguments to pass to clang when completing.
@@ -263,7 +264,10 @@ or automatically through a custom `company-clang-prefix-guesser'."
   (apply 'company-clang--start-process
          prefix
          callback
-         (company-clang--build-complete-args (point))))
+         (company-clang--build-complete-args
+          (if (company-clang--check-version 4.0 9.0)
+              (point)
+            (- (point) (length prefix))))))
 
 (defun company-clang--prefix ()
   (if company-clang-begin-after-member-access
@@ -277,18 +281,26 @@ or automatically through a custom `company-clang-prefix-guesser'."
 (defvar company-clang--version nil)
 
 (defun company-clang--auto-save-p ()
-  (< company-clang--version 2.9))
+  (not
+   (company-clang--check-version 2.9 3.1)))
+
+(defun company-clang--check-version (min apple-min)
+  (pcase company-clang--version
+    (`(apple . ,ver) (>= ver apple-min))
+    (`(normal . ,ver) (>= ver min))
+    (_ (error "pcase-exhaustive is not in Emacs 24.3!"))))
 
 (defsubst company-clang-version ()
   "Return the version of `company-clang-executable'."
   (with-temp-buffer
     (call-process company-clang-executable nil t nil "--version")
     (goto-char (point-min))
-    (if (re-search-forward "clang\\(?: version \\|-\\)\\([0-9.]+\\)" nil t)
-        (let ((ver (string-to-number (match-string-no-properties 1))))
-          (if (> ver 100)
-              (/ ver 100)
-            ver))
+    (if (re-search-forward "\\(clang\\|Apple LLVM\\) version \\([0-9.]+\\)" nil t)
+        (cons
+         (if (equal (match-string-no-properties 1) "Apple LLVM")
+             'apple
+           'normal)
+         (string-to-number (match-string-no-properties 2)))
       0)))
 
 (defun company-clang (command &optional arg &rest ignored)
@@ -310,8 +322,11 @@ passed via standard input."
             (unless company-clang-executable
               (error "Company found no clang executable"))
             (setq company-clang--version (company-clang-version))
-            (when (< company-clang--version company-clang-required-version)
-              (error "Company requires clang version 1.1"))))
+            (unless (company-clang--check-version
+                     company-clang-required-version
+                     company-clang-required-version)
+              (error "Company requires clang version %s"
+                     company-clang-required-version))))
     (prefix (and (memq major-mode company-clang-modes)
                  buffer-file-name
                  company-clang-executable
