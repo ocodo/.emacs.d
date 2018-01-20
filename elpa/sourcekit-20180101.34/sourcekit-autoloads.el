@@ -3,10 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "sourcekit" "sourcekit.el" (0 0 0 0))
-;;; Generated autoloads from sourcekit.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "sourcekit" '("sourcekit-")))
+;;;### (autoloads nil nil ("sourcekit.el") (23138 47794 308519 854000))
 
 ;;;***
 

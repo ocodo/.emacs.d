@@ -4,7 +4,7 @@
 
 ;; Author: Nathan Kot <nk@nathankot.com>
 ;; URL: https://github.com/nathankot/company-sourcekit
-;; Package-Version: 20170126.353
+;; Package-Version: 20180101.34
 ;; Keywords: tools, processes
 ;; Version: 0.2.0
 ;; Package-Requires: ((emacs "24.3") (dash "2.12.1") (dash-functional "1.2.0") (request "0.2.0"))
@@ -168,7 +168,8 @@ CB will be given the response JSON on a successful request. If a query ever fail
       :headers headers
       :success (cl-function
                  (lambda (&key data &allow-other-keys)
-                   (message "[sourcekit] got query response")
+                   (when sourcekit-verbose
+                     (message "[sourcekit] got query response"))
                    (funcall cb data)))
       :error (cl-function
                ;; When exiting with an error, try get a new daemon
