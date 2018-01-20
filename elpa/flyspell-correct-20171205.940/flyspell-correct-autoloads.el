@@ -3,29 +3,29 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "flyspell-correct" "flyspell-correct.el" (0
-;;;;;;  0 0 0))
+;;;### (autoloads nil "flyspell-correct" "flyspell-correct.el" (23138
+;;;;;;  48677 274319 968000))
 ;;; Generated autoloads from flyspell-correct.el
 
-(autoload 'flyspell-correct-word-generic "flyspell-correct" "\
+(autoload 'flyspell-correct-at-point "flyspell-correct" "\
 Correct word before point using `flyspell-correct-interface'.
 Adapted from `flyspell-correct-word-before-point'.
 
 \(fn)" t nil)
 
-(autoload 'flyspell-correct-previous-word-generic "flyspell-correct" "\
-Correct the first misspelled word that occurs before point.
+(autoload 'flyspell-correct-previous "flyspell-correct" "\
+Correct the first misspelled word that occurs before POSITION.
 But don't look beyond what's visible on the screen.
 
-Uses `flyspell-correct-word-generic' function for correction.
+Uses `flyspell-correct-at-point' function for correction.
 
 \(fn POSITION)" t nil)
 
-(autoload 'flyspell-correct-next-word-generic "flyspell-correct" "\
-Correct the first misspelled word that occurs after point.
+(autoload 'flyspell-correct-next "flyspell-correct" "\
+Correct the first misspelled word that occurs after POSITION.
 But don't look beyond what's visible on the screen.
 
-Uses `flyspell-correct-word-generic' function for correction.
+Uses `flyspell-correct-at-point' function for correction.
 
 \(fn POSITION)" t nil)
 
@@ -42,19 +42,10 @@ https://github.com/syl20bnr/spacemacs/issues/6209#issuecomment-274320376
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flyspell-correct" '("flyspell-correct-")))
-
 ;;;***
 
-;;;### (autoloads nil "flyspell-correct-ido" "flyspell-correct-ido.el"
-;;;;;;  (0 0 0 0))
-;;; Generated autoloads from flyspell-correct-ido.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flyspell-correct-ido" '("flyspell-correct-ido")))
-
-;;;***
-
-;;;### (autoloads nil nil ("flyspell-correct-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("flyspell-correct-ido.el" "flyspell-correct-pkg.el")
+;;;;;;  (23138 48677 278319 973000))
 
 ;;;***
 
