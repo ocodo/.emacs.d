@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ivy-todo" "ivy-todo.el" (0 0 0 0))
+;;;### (autoloads nil "ivy-todo" "ivy-todo.el" (23138 48314 885807
+;;;;;;  901000))
 ;;; Generated autoloads from ivy-todo.el
 
 (autoload 'ivy-todo "ivy-todo" "\
@@ -13,8 +14,6 @@ With a `\\[universal-argument]' ARG, first change the active TODO list.
 With a `\\[universal-argument] \\[universal-argument]' ARG, change `ivy-todo-file'.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ivy-todo" '("ivy-todo-")))
 
 ;;;***
 

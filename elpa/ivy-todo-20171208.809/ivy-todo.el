@@ -5,7 +5,7 @@
 
 ;; Author: Erik Sjöstrand <sjostrand.erik@gmail.com>
 ;; URL: http://github.com/Kungsgeten/ivy-todo
-;; Package-Version: 20170315.334
+;; Package-Version: 20171208.809
 ;; Version: 1.00
 ;; Keywords: convenience
 ;; Package-Requires: ((ivy "0.8.0") (emacs "24.3"))
@@ -33,6 +33,10 @@ Normally use `ivy-todo--buffer-headline-name' instead of accessing this variable
 (defvar ivy-todo-guess-list t
   "Whether to guess TODO list based on the current project.")
 
+(defvar ivy-todo-default-tags nil
+  "A list of tags which will be applied to new headlines created by `ivy-todo'.
+If nil, no tags will be applied.")
+
 (defun ivy-todo--headlines ()
   "Return an list of level 1 headlines in `ivy-todo-file'."
   (org-element-map (ivy-todo--ast) 'headline
@@ -56,7 +60,8 @@ Ask if the user want to add it if it doesn't exist."
            (ivy-todo--replace-ast
             (org-element-adopt-elements
              (ivy-todo--ast)
-             (org-element-create 'headline `(:level 1 ,:title (,headline)))))
+             (org-element-create 'headline `(:level 1 ,:title (,headline)
+                                                    :tags ,ivy-todo-default-tags))))
            (ivy-todo--get-headline headline))
        nil))))
 
@@ -216,6 +221,14 @@ HEADLINE is a string or a cons (\"headline\" . buffer-pos)."
         (org-refile)
         (save-buffer)))))
 
+(defun ivy-todo-visit (headline)
+  "Visit HEADLINE in `ivy-todo-file'.
+HEADLINE is a string or a cons (\"headline\" . buffer-pos)."
+  (let ((headline-pos (cdr ivy-todo-headline)))
+    (with-current-buffer (find-file ivy-todo-file)
+      (ivy-todo--old-or-new-item headline headline-pos)
+      (save-buffer))))
+
 (ivy-set-actions
  'ivy-todo
  '(("," ivy-todo-set-priority "priority")
@@ -223,7 +236,8 @@ HEADLINE is a string or a cons (\"headline\" . buffer-pos)."
    ("e" ivy-todo-set-effort "effort")
    ("p" ivy-todo-set-property "property")
    ("r" ivy-todo-refile "refile")
-   ("t" ivy-todo-set-tags "tags")))
+   ("t" ivy-todo-set-tags "tags")
+   ("v" ivy-todo-visit "visit")))
 
 (provide 'ivy-todo)
 ;;; ivy-todo.el ends here
