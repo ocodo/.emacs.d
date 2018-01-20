@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "typescript-mode" "typescript-mode.el" (0 0
-;;;;;;  0 0))
+;;;### (autoloads nil "typescript-mode" "typescript-mode.el" (23138
+;;;;;;  47683 76087 825000))
 ;;; Generated autoloads from typescript-mode.el
 
 (autoload 'typescript-mode "typescript-mode" "\
@@ -20,7 +20,10 @@ Key bindings:
 
 (add-to-list 'auto-mode-alist '("\\.ts$" . typescript-mode))
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "typescript-mode" '("typescript-")))
+;;;***
+
+;;;### (autoloads nil nil ("typescript-mode-pkg.el") (23138 47678
+;;;;;;  616068 813000))
 
 ;;;***
 

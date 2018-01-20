@@ -21,7 +21,7 @@
 ;; -------------------------------------------------------------------------------------------
 
 ;; URL: http://github.com/ananthakumaran/typescript.el
-;; Package-Version: 20170831.619
+;; Package-Version: 20180118.2305
 ;; Version: 0.1
 ;; Keywords: typescript languages
 ;; Package-Requires: ()
@@ -104,6 +104,10 @@ and group 3 is the 'function' keyword.")
           "\\s-*=\\s-*{")
   "Regexp matching a typescript explicit prototype \"class\" declaration.
 An example of this is \"Class.prototype = { method1: ...}\".")
+
+(defconst typescript--module-declaration-re
+  "^\\s-*\\(?:declare\\|\\(?:export\\(?:\\s-+default\\)?\\)\\)?"
+  "Regexp matching ambient declaration modifier or export declaration")
 
 ;; var NewClass = BaseClass.extend(
 (defconst typescript--mp-class-decl-re
@@ -250,7 +254,8 @@ name as matched contains
 
 (defconst typescript--function-heading-1-re
   (concat
-   "^\\s-*function\\s-+\\(" typescript--name-re "\\)")
+   typescript--module-declaration-re
+   "\\s-*function\\s-+\\(" typescript--name-re "\\)")
   "Regexp matching the start of a typescript function header.
 Match group 1 is the name of the function.")
 
@@ -577,12 +582,14 @@ Match group 1 is the name of the macro.")
 (defcustom typescript-indent-level 4
   "Number of spaces for each indentation step in `typescript-mode'."
   :type 'integer
+  :safe 'integerp
   :group 'typescript)
 
 (defcustom typescript-expr-indent-offset 0
   "Number of additional spaces used for indentation of continued expressions.
 The value must be no less than minus `typescript-indent-level'."
   :type 'integer
+  :safe 'integerp
   :group 'typescript)
 
 (defcustom typescript-auto-indent-flag t
@@ -876,7 +883,20 @@ This function invokes `re-search-backward' but treats the buffer
 as if strings, preprocessor macros, and comments have been
 removed.
 
-If invoked while inside a macro, treat the macro as normal text."
+If invoked while inside a macro, treat the macro as normal text.
+
+IMPORTANT NOTE: searching for \"\\n\" with this function to find
+line breaks will generally not work, because the final newline of
+a one-line comment is considered to be part of the comment and
+will be skipped.  Take the following code:
+
+  let a = 1;
+  let b = 2; // Foo
+  let c = 3;
+
+If the point is in the last line, searching back for \"\\n\" will
+skip over the line with \"let b\". The newline found will be the
+one at the end of the line with \"let a\"."
   (let ((saved-point (point))
         (search-expr
          (cond ((null count)
@@ -1863,21 +1883,72 @@ This performs fontification according to `typescript--class-styles'."
                                    typescript--font-lock-keywords-3)
   "Font lock keywords for `typescript-mode'.  See `font-lock-keywords'.")
 
-;; XXX: typescript can continue a regexp literal across lines so long
-;; as the newline is escaped with \. Account for that in the regexp
-;; below.
-(defconst typescript--regexp-literal
-  "[=(,:]\\(?:\\s-\\|\n\\)*\\(/\\)\\(?:\\\\/\\|[^/*]\\)\\(?:\\\\/\\|[^/]\\)*\\(/\\)"
-  "Regexp matching a typescript regular expression literal.
-Match groups 1 and 2 are the characters forming the beginning and
-end of the literal.")
+;;; Propertize
 
-;; we want to match regular expressions only at the beginning of
-;; expressions
-(defconst typescript-font-lock-syntactic-keywords
-  `((,typescript--regexp-literal (1 "|") (2 "|")))
-  "Syntactic font lock keywords matching regexps in typescript.
-See `font-lock-keywords'.")
+;;
+;; The propertize code was adapted from:
+;; https://github.com/emacs-mirror/emacs/blob/489d6466372f488adc53897435fff290394b62f7/lisp/progmodes/js.el
+;;
+
+(defconst typescript--syntax-propertize-regexp-regexp
+  (rx
+   ;; Start of regexp.
+   "/"
+   (0+ (or
+        ;; Match characters outside of a character class.
+        (not (any ?\[ ?/ ?\\))
+        ;; Match backslash quoted characters.
+        (and "\\" not-newline)
+        ;; Match character class.
+        (and
+         "["
+         (0+ (or
+              (not (any ?\] ?\\))
+              (and "\\" not-newline)))
+         "]")))
+   (group (zero-or-one "/")))
+  "Regular expression matching a JavaScript regexp literal.")
+
+(defun typescript-syntax-propertize-regexp (end)
+  (let ((ppss (syntax-ppss)))
+    (when (eq (nth 3 ppss) ?/)
+      ;; A /.../ regexp.
+      (goto-char (nth 8 ppss))
+      (when (looking-at typescript--syntax-propertize-regexp-regexp)
+        ;; Don't touch text after END.
+        (when (> end (match-end 1))
+          (setq end (match-end 1)))
+        (put-text-property (match-beginning 1) end
+                           'syntax-table (string-to-syntax "\"/"))
+        (goto-char end)))))
+
+(defun typescript-syntax-propertize (start end)
+  ;; JavaScript allows immediate regular expression objects, written /.../.
+  (funcall
+   (syntax-propertize-rules
+    ;; Distinguish /-division from /-regexp chars (and from /-comment-starter).
+    ;; FIXME: Allow regexps after infix ops like + ...
+    ;; https://developer.mozilla.org/en/JavaScript/Reference/Operators
+    ;; We can probably just add +, -, <, >, %, ^, ~, ?, : at which
+    ;; point I think only * and / would be missing which could also be added,
+    ;; but need care to avoid affecting the // and */ comment markers.
+    ("\\(?:^\\|[=([{,:;|&!]\\|\\_<return\\_>\\)\\(?:[ \t]\\)*\\(/\\)[^/*]"
+     (1 (ignore
+	 (forward-char -1)
+         (when (or (not (memq (char-after (match-beginning 0)) '(?\s ?\t)))
+                   ;; If the / is at the beginning of line, we have to check
+                   ;; the end of the previous text.
+                   (save-excursion
+                     (goto-char (match-beginning 0))
+                     (forward-comment (- (point)))
+                     (memq (char-before)
+                           (eval-when-compile (append "=({[,:;" '(nil))))))
+           (put-text-property (match-beginning 1) (match-end 1)
+                              'syntax-table (string-to-syntax "\"/"))
+           (typescript-syntax-propertize-regexp end)))))
+    ;; Hash-bang at beginning of buffer.
+    ("\\`\\(#\\)!" (1 "< b")))
+   start end))
 
 ;;; Indentation
 
@@ -1895,6 +1966,21 @@ See `font-lock-keywords'.")
   (concat "[-+*/%<>=&^|?:.]\\([^-+*/]\\|$\\)\\|" typescript--indent-keyword-re)
   "Regexp matching operators that affect indentation of continued expressions.")
 
+;;
+;; We purposely do not allow the plus symbol as a prefix here, as this
+;; regex is used to check number literal in type annotations, and TS
+;; does not allow to use a plus symbol to prefix numbers there: you
+;; can use 1, but not +1 in a type annotation.
+;;
+;; This is meant to match NaN, floats, decimals, the two infinities
+;; and numbers recorded in binary, octal and hex.
+;;
+;; This regular expression was derived from:
+;; https://stackoverflow.com/a/30987109/
+;;
+(defconst typescript--number-literal-re
+  "\\(?:NaN\\|-?\\(?:0[Bb][01]+\\|0[Oo][0-7]+\\|0[Xx][0-9a-fA-F]+\\|Infinity\\|\\(?:[[:digit:]]*\\.[[:digit:]]+\\|[[:digit:]]+\\)\\(?:[Ee][+-]?[[:digit:]]+\\)?\\)\\)"
+  "Regexp that matches number literals.")
 
 (defun typescript--looking-at-operator-p ()
   "Return non-nil if point is on a typescript operator, other than a comma."
@@ -1902,8 +1988,10 @@ See `font-lock-keywords'.")
     (and (looking-at typescript--indent-operator-re)
          (or (not (looking-at ":"))
              (save-excursion
-               (and (typescript--re-search-backward "[?:{]\\|\\_<case\\_>" nil t)
-                    (looking-at "?"))))
+               (backward-sexp)
+               (and
+                (typescript--re-search-backward "[?:{]\\|\\_<case\\_>" nil t)
+                (looking-at "?"))))
          ;; Do not identify forward slashes appearing in a "list" as
          ;; an operator. The lists are: arrays, or lists of
          ;; arguments. In this context, they must be part of regular
@@ -1941,9 +2029,8 @@ See `font-lock-keywords'.")
      ;; "continuation".
      (not (looking-at "\\.\\.\\."))
      (or (typescript--looking-at-operator-p)
-         (and (typescript--re-search-backward "\n" nil t)
-              (progn
-                (skip-chars-backward " \t")
+         (and (progn
+                (typescript--backward-syntactic-ws)
                 (or (bobp) (backward-char))
                 (and (> (point) (point-min))
                      (save-excursion (backward-char) (not (looking-at "[/*]/")))
@@ -2052,60 +2139,52 @@ moved on success."
           ;; This handles the case of a function with return type annotation.
           (save-excursion
             (loop named search-loop
-                  do (progn
-                       (cond
-                        ;; Looking at the arrow of an arrow function:
-                        ;; move back over the arrow.
-                        ((looking-back "=>" (- (point) 2))
-                         (backward-char 2))
-                        ;; Looking at the end of the parameters list
-                        ;; of a generic: move back over the list.
-                        ((eq (char-before) ?>)
-                         (backward-char)
-                         (typescript--backward-over-generic-parameter-list))
-                        ;; Looking at a union: skip over the character.
-                        ((eq (char-before) ?|)
-                         (backward-char))
-                        ;; General case: we just move back over the current sexp.
-                        (t
-                         (condition-case nil
-                             (backward-sexp)
-                           (scan-error nil))))
-                       (typescript--backward-syntactic-ws)
-                       (let ((before (char-before)))
-                         ;; Check whether we are at "):".
-                         (when (and (eq before ?\:)
-                                    (progn
-                                      (backward-char)
-                                      (skip-syntax-backward " ")
-                                      (eq (char-before) ?\))))
-                           ;; Success! This the end of the parameter list.
-                           (cl-return-from search-loop (point)))
-                         ;; All the following cases are constructs that are allowed to
-                         ;; appear between the opening brace of a function and the
-                         ;; end of a parameter list.
-                         (unless
-                             (or
-                              ;; End of a generic.
-                              (eq before ?>)
-                              ;; Union of types
-                              (eq before ?|)
-                              ;; Dotted names
-                              (eq before ?.)
-                              ;; Typeguard (eg. foo is SomeClass)
-                              (looking-back "is" (- (point) 2))
-                              ;; This is also dealing with dotted names. This may come
-                              ;; into play if a jump back moves over an entire dotted
-                              ;; name at once.
-                              ;;
-                              ;; The earlier test for dotted names comes into play if the
-                              ;; logic moves over one part of a dotted name at a time (which
-                              ;; is what `backward-sexp` normally does).
-                              (looking-back typescript--dotted-name-re nil)
-                             )
-                           ;; We did not encounter a valid construct, so
-                           ;; the search is unsuccessful.
-                           (cl-return-from search-loop nil))))))
+                  do
+                  (typescript--backward-syntactic-ws)
+                  ;; Check whether we are at "):".
+                  (when (and (eq (char-before) ?\:)
+                             (progn
+                               (backward-char)
+                               (skip-syntax-backward " ")
+                               (eq (char-before) ?\))))
+                    ;; Success! This the end of the parameter list.
+                    (cl-return-from search-loop (point)))
+                  ;; If we recognize a structure that belongs in a return type annotation,
+                  ;; skip back over it, or fail.
+                  (cond
+                   ;; Arrow of a function definition, or typeguard (eg. foo is SomeClass)
+                   ((looking-back "=>\\|is" (- (point) 2))
+                    (backward-char 2))
+                   ;; End of the parameters list of a generic.
+                   ((eq (char-before) ?>)
+                    (backward-char)
+                    (typescript--backward-over-generic-parameter-list))
+                   ;; Union of types, or a dot in a dotted name.
+                   ((memq (char-before) '(?| ?.))
+                    (backward-char))
+                   ((or
+                     ;; End-delimiter of a delimited construct, for constructs
+                     ;; not handled above.
+                     (memq (char-before) '(?\) ?} ?\" ?\]))
+                     ;; This is also dealing with dotted names. This may come
+                     ;; into play if a jump back moves over an entire dotted
+                     ;; name at once.
+                     ;;
+                     ;; The earlier test for dotted names comes into play if the
+                     ;; logic moves over one part of a dotted name at a time (which
+                     ;; is what `backward-sexp` normally does).
+                     (looking-back typescript--dotted-name-re nil))
+                    (condition-case nil
+                        (backward-sexp)
+                      (scan-error nil)))
+                   ((looking-back typescript--number-literal-re
+                                  ;; We limit the search back to the previous space or end of line (if possible)
+                                  ;; to prevent the search from going over the whole buffer.
+                                  (save-excursion (re-search-backward "\\(?:\\s-\\|\n\\)" nil t)) t)
+                    (goto-char (match-beginning 0)))
+                   ;; Otherwise, we failed to find a location.
+                   (t
+                    (cl-return-from search-loop nil)))))
           ;; This handles the case of a function without return type annotation.
           (progn
             (typescript--backward-syntactic-ws)
@@ -2448,27 +2527,19 @@ Key bindings:
   :group 'typescript
   :syntax-table typescript-mode-syntax-table
 
-  (set (make-local-variable 'indent-line-function) 'typescript-indent-line)
-  (set (make-local-variable 'beginning-of-defun-function)
-       'typescript-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function)
-       'typescript-end-of-defun)
-
-  (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
-  (set (make-local-variable 'font-lock-defaults)
-       (list typescript--font-lock-keywords
-	     nil nil nil nil
-	     '(font-lock-syntactic-keywords
-               . typescript-font-lock-syntactic-keywords)))
-
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'parse-sexp-lookup-properties) t)
+  (setq-local indent-line-function 'typescript-indent-line)
+  (setq-local beginning-of-defun-function 'typescript-beginning-of-defun)
+  (setq-local end-of-defun-function 'typescript-end-of-defun)
+  (setq-local open-paren-in-column-0-is-defun-start nil)
+  (setq-local font-lock-defaults (list typescript--font-lock-keywords))
+  (setq-local syntax-propertize-function #'typescript-syntax-propertize)
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local parse-sexp-lookup-properties t)
 
   ;; Comments
-  (setq comment-start "// ")
-  (setq comment-end "")
-  (set (make-local-variable 'fill-paragraph-function)
-       'typescript-c-fill-paragraph)
+  (setq-local comment-start "// ")
+  (setq-local comment-end "")
+  (setq-local fill-paragraph-function 'typescript-c-fill-paragraph)
 
   ;; Parse cache
   (add-hook 'before-change-functions #'typescript--flush-caches t t)
@@ -2498,8 +2569,7 @@ Key bindings:
     (make-local-variable 'adaptive-fill-regexp)
     (c-setup-paragraph-variables))
 
-  (set (make-local-variable 'syntax-begin-function)
-       #'typescript--syntax-begin-function))
+  (setq-local syntax-begin-function #'typescript--syntax-begin-function))
 
 ;; Set our custom predicate for flyspell prog mode
 (put 'typescript-mode 'flyspell-mode-predicate
