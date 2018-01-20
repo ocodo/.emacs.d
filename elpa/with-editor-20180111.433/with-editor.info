@@ -1,7 +1,7 @@
 This is with-editor.info, produced by makeinfo version 5.2 from
 with-editor.texi.
 
-     Copyright (C) 2015-2017 Jonas Bernoulli <jonas@bernoul.li>
+     Copyright (C) 2015-2018 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
      of the GNU General Public License as published by the Free Software
@@ -38,9 +38,9 @@ library is made available as a separate package.  It also defines some
 additional functionality which makes it useful even for end-users, who
 don’t use Magit or another package which uses it internally.
 
-     This manual is for With-Editor version 2.7.0 (v2.7.0-4-gcacb41d+1).
+This manual is for With-Editor version 2.7.1.
 
-     Copyright (C) 2015-2017 Jonas Bernoulli <jonas@bernoul.li>
+     Copyright (C) 2015-2018 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
      of the GNU General Public License as published by the Free Software
@@ -64,6 +64,7 @@ Using the With-Editor package
 
 * Configuring With-Editor::
 * Using With-Editor commands::
+
 
 
 File: with-editor.info,  Node: Using the With-Editor package,  Next: Using With-Editor as a library,  Prev: Top,  Up: Top
@@ -316,11 +317,11 @@ Emacs and what is the output of ‘M-x with-editor-debug RET’.
 
 Tag Table:
 Node: Top771
-Node: Using the With-Editor package2536
-Node: Configuring With-Editor3122
-Node: Using With-Editor commands7519
-Node: Using With-Editor as a library10782
-Node: Debugging12477
+Node: Using the With-Editor package2510
+Node: Configuring With-Editor3096
+Node: Using With-Editor commands7493
+Node: Using With-Editor as a library10756
+Node: Debugging12451
 
 End Tag Table
 
