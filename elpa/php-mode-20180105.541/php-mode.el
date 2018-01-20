@@ -5,17 +5,18 @@
 ;;               2011, 2012, 2013, 2014, 2015, 2016, 2017 Eric James Michael Ritz
 
 ;; Author: Eric James Michael Ritz
+;; Maintainer: USAMI Kenta <tadsan@zonu.me>
 ;; URL: https://github.com/ejmr/php-mode
-;; Version: 1.18.3
+;; Keywords: languages php
+;; Version: 1.18.4
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
+;; License: GPL-3.0-or-later
 
-(defconst php-mode-version-number "1.18.3"
+(defconst php-mode-version-number "1.18.4"
   "PHP Mode version number.")
 
-(defconst php-mode-modified "2017-06-22"
+(defconst php-mode-modified "2017-12-03"
   "PHP Mode build date.")
-
-;;; License
 
 ;; This file is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -32,25 +33,6 @@
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 ;; 02110-1301, USA.
 
-;;; Usage
-
-;; Put this file in your Emacs lisp path (eg. site-lisp) and add to
-;; your .emacs file:
-;;
-;;   (require 'php-mode)
-
-;; To use abbrev-mode, add lines like this:
-;;   (add-hook 'php-mode-hook
-;;     '(lambda () (define-abbrev php-mode-abbrev-table "ex" "extends")))
-
-;; To make php-mode compatible with html-mode, see http://php-mode.sf.net
-
-;; Many options available under Help:Customize
-;; Options specific to php-mode are in
-;;  Programming/Languages/Php
-;; Since it inherits much functionality from c-mode, look there too
-;;  Programming/Languages/C
-
 ;;; Commentary:
 
 ;; PHP Mode is a major mode for editing PHP source code.  It's an
@@ -59,6 +41,26 @@
 ;; indents according to the PEAR coding guidelines.  It also includes
 ;; a couple handy IDE-type features such as documentation search and a
 ;; source and class browser.
+
+;; ## Usage
+
+;; Put this file in your Emacs lisp path (eg. site-lisp) and add to
+;; your .emacs file:
+
+;;   (require 'php-mode)
+
+;; To use abbrev-mode, add lines like this:
+
+;;   (add-hook 'php-mode-hook
+;;     '(lambda () (define-abbrev php-mode-abbrev-table "ex" "extends")))
+
+;; To make php-mode compatible with html-mode, see http://php-mode.sf.net
+
+;; Many options available under Help:Customize
+;; Options specific to php-mode are in
+;;  Programming/Languages/PHP
+;; Since it inherits much functionality from c-mode, look there too
+;;  Programming/Languages/C
 
 ;;; Code:
 
@@ -114,7 +116,7 @@
 ;; Local variables
 ;;;###autoload
 (defgroup php nil
-  "Major mode `php-mode' for editing PHP code."
+  "Major mode for editing PHP code."
   :tag "PHP"
   :prefix "php-"
   :group 'languages
@@ -171,7 +173,7 @@ Turning this on will open it whenever `php-mode' is loaded."
            "\\)\\>[^_]?"))
 
 (defun php-mode-extra-constants-set(sym value)
-  "Apply the list of extra constant keywords VALUE.
+  "Apply the list of extra constant keywords `VALUE'.
 
 This function is called when the custom variable php-extra-constants
 is updated. The web-mode-extra-constants list is appended to the list
@@ -187,7 +189,7 @@ of constants when set."
   (set sym value))
 
 (defcustom php-lineup-cascaded-calls nil
-  "Indent chained method calls to the previous line"
+  "Indent chained method calls to the previous line."
   :type 'boolean)
 
 ;;;###autoload
@@ -219,7 +221,7 @@ which will be the name of the method."
    "\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*("))
 
 (defun php-create-regexp-for-classlike (type)
-  "Accepts a `type' of a 'classlike' object as a string, such as
+  "Accepts a `TYPE' of a 'classlike' object as a string, such as
 'class' or 'interface', and returns a regexp as a string which
 can be used to match against definitions for that classlike."
   (concat
@@ -255,7 +257,7 @@ can be used to match against definitions for that classlike."
     "\\<\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*=\\s-*function\\s-*(" 1)
    ("Named Functions"
     "^\\s-*function\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*(" 1))
- "Imenu generic expression for PHP Mode. See `imenu-generic-expression'.")
+  "Imenu generic expression for PHP Mode.  See `imenu-generic-expression'.")
 
 (defcustom php-site-url "http://php.net/"
   "Default PHP.net site URL.
@@ -373,6 +375,31 @@ This variable can take one of the following symbol values:
   (message "PHP Mode %s of %s"
            php-mode-version-number php-mode-modified))
 
+(defvar php-available-project-root-files
+  '((projectile ".projectile")
+    (composer   "composer.json" "composer.lock")
+    (git        ".git")
+    (mercurial  ".hg")
+    (subversion ".svn")
+    ;; NOTICE: This method does not detect the top level of .editorconfig
+    ;;         However, we can integrate it by adding the editorconfig.el's API.
+    ;;(editorconfig . ".editorconfig")
+    ))
+
+;;;###autoload
+(progn
+  (defvar php-project-root 'auto
+    "Method of searching for the top level directory.
+
+`auto' (default)
+      Try to search file in order of `php-available-project-root-files'.
+
+SYMBOL
+      Key of `php-available-project-root-files'.")
+  (make-variable-buffer-local 'php-project-root)
+  (put 'php-project-root 'safe-local-variable
+       #'(lambda (v) (assq v php-available-project-root-files))))
+
 (defvar php-mode-map
   (let ((map (make-sparse-keymap)))
     ;; (define-key map [menu-bar php]
@@ -427,35 +454,7 @@ This variable can take one of the following symbol values:
     ;; choice.
     (define-key map [tab] 'indent-for-tab-command)
     map)
-  "Keymap for `php-mode'")
-
-(c-lang-defconst c-get-state-before-change-functions
-  ;; const might be a symbol in older versions
-  php (let ((const (c-lang-const c-get-state-before-change-functions)))
-        (cl-set-difference (if (listp const) const (list const))
-                           '(c-parse-quotes-before-change))))
-
-(defun php-unescape-identifiers (beg end &optional old-len)
-  "Change syntax of backslashes in identifiers between BEG and END, ignore OLD-LEN."
-  (c-save-buffer-state (num-beg num-end)
-    (save-restriction
-      (goto-char c-new-BEG)
-      (while (and (< (point) c-new-END)
-		  (search-forward "\\" c-new-END 'limit))
-        (if (and (not (php-in-string-p))
-                 (looking-at-p c-identifier-key))
-            ;; within function `c-forward-name' when looking at
-            ;; `c-identifier-key' ensure that `c-simple-skip-symbol-backward'
-            ;; skips over backslashes too in making it at word entry.
-	    (c-put-char-property (1- (point)) 'syntax-table '(2)))))))
-
-(c-lang-defconst c-before-font-lock-functions
-  ;; const might be a symbol in older versions
-  php (let ((const (c-lang-const c-before-font-lock-functions)))
-        (append (cl-set-difference (if (listp const) const (list const))
-                                   '(c-restore-<>-properties
-                                     c-parse-quotes-after-change))
-                '(php-unescape-identifiers))))
+  "Keymap for `php-mode'.")
 
 (c-lang-defconst c-mode-menu
   php (append '(["Complete function name" php-complete-function t]
@@ -681,8 +680,7 @@ but only if the setting is enabled"
    (tab-width . 4)))
 
 (defun php-enable-pear-coding-style ()
-  "Sets up php-mode to use the coding styles preferred for PEAR
-code and modules."
+  "Set up php-mode to use the coding styles preferred for PEAR code and modules."
   (interactive)
   (php-set-style "pear"))
 
@@ -696,8 +694,7 @@ code and modules."
    (php-style-delete-trailing-whitespace . t)))
 
 (defun php-enable-drupal-coding-style ()
-  "Makes php-mode use coding styles that are preferable for
-working with Drupal."
+  "Make php-mode use coding styles that are preferable for working with Drupal."
   (interactive)
   (php-set-style "drupal"))
 
@@ -711,8 +708,7 @@ working with Drupal."
     (fill-column . 78)))
 
 (defun php-enable-wordpress-coding-style ()
-  "Makes php-mode use coding styles that are preferable for
-working with Wordpress."
+  "Make php-mode use coding styles that are preferable for working with Wordpress."
   (interactive)
   (php-set-style "wordpress"))
 
@@ -725,8 +721,7 @@ working with Wordpress."
     (require-final-newline . t)))
 
 (defun php-enable-symfony2-coding-style ()
-  "Makes php-mode use coding styles that are preferable for
-working with Symfony2."
+  "Make php-mode use coding styles that are preferable for working with Symfony2."
   (interactive)
   (php-set-style "symfony2"))
 
@@ -741,7 +736,7 @@ working with Symfony2."
     (php-style-delete-trailing-whitespace . t)))
 
 (defun php-enable-psr2-coding-style ()
-  "Makes php-mode comply to the PSR-2 coding style"
+  "Make php-mode comply to the PSR-2 coding style."
   (interactive)
   (php-set-style "psr2"))
 
@@ -910,7 +905,7 @@ This is was done due to the problem reported here:
   )
 
 (defun php-lineup-string-cont (langelem)
-  "Line up string toward equal sign or dot
+  "Line up string toward equal sign or dot.
 e.g.
 $str = 'some'
      . 'string';
@@ -949,16 +944,16 @@ this ^ lineup"
   "Regular expression for the start of a PHP heredoc.")
 
 (defun php-heredoc-end-re (heredoc-start)
-  "Build a regular expression for the end of a heredoc started by
-the string HEREDOC-START."
+  "Build a regular expression for the end of a heredoc started by the string HEREDOC-START."
   ;; Extract just the identifier without <<< and quotes.
   (string-match "\\w+" heredoc-start)
   (concat "^\\(" (match-string 0 heredoc-start) "\\)\\W"))
 
 (defun php-syntax-propertize-function (start end)
   "Apply propertize rules from START to END."
-  ;; versions < git-snapshot as of 2017-10 need this here
-  (php-unescape-identifiers start end)
+  ;; (defconst php-syntax-propertize-function
+  ;;   (syntax-propertize-rules
+  ;;    (php-heredoc-start-re (0 (ignore (php-heredoc-syntax))))))
   (goto-char start)
   (while (and (< (point) end)
               (re-search-forward php-heredoc-start-re end t))
@@ -980,8 +975,7 @@ the string HEREDOC-START."
   (c-put-char-property (1- (point)) 'syntax-table (string-to-syntax "|")))
 
 (defun php-syntax-propertize-extend-region (start end)
-  "Extend the propertize region if START or END falls inside a
-PHP heredoc."
+  "Extend the propertize region if START or END falls inside a PHP heredoc."
   (let ((new-start)
         (new-end))
     (goto-char start)
@@ -1150,9 +1144,15 @@ After setting the stylevars run hooks according to STYLENAME
   (set (make-local-variable font-lock-constant-face) 'php-constant)
 
   (modify-syntax-entry ?_    "_" php-mode-syntax-table)
+  (modify-syntax-entry ?`    "\"" php-mode-syntax-table)
+  (modify-syntax-entry ?\"   "\"" php-mode-syntax-table)
   (modify-syntax-entry ?#    "< b" php-mode-syntax-table)
   (modify-syntax-entry ?\n   "> b" php-mode-syntax-table)
   (modify-syntax-entry ?$    "'" php-mode-syntax-table)
+
+  (set (make-local-variable 'syntax-propertize-via-font-lock)
+       '(("\\(\"\\)\\(\\\\.\\|[^\"\n\\]\\)*\\(\"\\)" (1 "\"") (3 "\""))
+         ("\\(\'\\)\\(\\\\.\\|[^\'\n\\]\\)*\\(\'\\)" (1 "\"") (3 "\""))))
 
   (add-to-list (make-local-variable 'syntax-propertize-extend-region-functions)
                #'php-syntax-propertize-extend-region)
@@ -1631,7 +1631,7 @@ Look at the `php-executable' variable instead of the constant \"php\" command."
 
 
 (defun php-send-region (start end)
-  "Send the region between `start' and `end' to PHP for execution.
+  "Send the region between `START' and `END' to PHP for execution.
 The output will appear in the buffer *PHP*."
   (interactive "r")
   (let ((php-buffer (get-buffer-create "*PHP*"))
@@ -1680,6 +1680,19 @@ The output will appear in the buffer *PHP*."
 
 (ad-activate 'fixup-whitespace)
 
+;; Advice `font-lock-fontify-keywords-region' to support namespace
+;; separators in class names. Use word syntax for backslashes when
+;; doing keyword fontification, but not when doing syntactic
+;; fontification because that breaks \ as escape character in strings.
+;;
+;; Special care is taken to restore the original syntax, because we
+;; want \ not to be word for functions like forward-word.
+(defadvice font-lock-fontify-keywords-region (around backslash-as-word activate)
+  "Fontify keywords with backslash as word character."
+  (let ((old-syntax (string (char-syntax ?\\))))
+    (modify-syntax-entry ?\\ "w")
+    ad-do-it
+    (modify-syntax-entry ?\\ old-syntax)))
 
 
 (defcustom php-class-suffix-when-insert "::"
@@ -1703,6 +1716,18 @@ The output will appear in the buffer *PHP*."
   (save-excursion
     (when (re-search-backward re-pattern nil t)
       (match-string-no-properties 1))))
+
+;;;###autoload
+(defun php-project-get-root-dir ()
+  "Return path to current PHP project."
+  (let ((detect-method (if (stringp php-project-root)
+                           (list php-project-root)
+                         (if (eq php-project-root 'auto)
+                             (cl-loop for m in php-available-project-root-files
+                                      append (cdr m))
+                           (cdr-safe (assq php-project-root php-available-project-root-files))))))
+    (cl-loop for m in detect-method
+             thereis (locate-dominating-file default-directory m))))
 
 ;;;###autoload
 (defun php-current-class ()
