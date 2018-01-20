@@ -7,7 +7,7 @@
 ;; Description: flx integration for ido
 ;; Created: Sun Apr 21 20:38:36 2013 (+0800)
 ;; Version: 0.6.1
-;; Package-Version: 20151030.1112
+;; Package-Version: 20180117.719
 ;; URL: https://github.com/lewang/flx
 ;; Package-Requires: ((flx "0.1") (cl-lib "0.3"))
 
@@ -68,11 +68,13 @@
 
 Flx will not kick in until collection is filtered below this
 size with idos' default \"flex\" algorithm."
+  :type 'integer
   :group 'ido)
 
 
 (defcustom flx-ido-use-faces t
   "Use `flx-highlight-face' to indicate characters contributing to best score."
+  :type 'boolean
   :group 'ido)
 
 (unless (fboundp 'delete-consecutive-dups)
