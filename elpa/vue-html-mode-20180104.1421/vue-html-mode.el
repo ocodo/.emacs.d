@@ -4,7 +4,7 @@
 
 ;; Author: Adam Niederer <adam.niederer@gmail.com>
 ;; URL: http://github.com/AdamNiederer/vue-html-mode
-;; Package-Version: 20170831.1631
+;; Package-Version: 20180104.1421
 ;; Version: 0.1
 ;; Keywords: languages vue template
 ;; Package-Requires: ()
@@ -43,31 +43,36 @@
   :link '(emacs-commentary-link :tag "Commentary" "vue-html-mode"))
 
 (defconst vue-html-complex-interp-regex
-  "\\({{\\)\\(.*?\\)\\(|\\) *\\(.*?\\)(.*) *\\(}}\\)")
+  "\\({{\\)\\([^{].*?\\)?\\(|\\) *\\(.*?\\)(.*) *\\(}}\\)")
 
 (defconst vue-html-filter-interp-regex
-  "\\({{\\)\\(.*?\\)\\(|\\) *\\([^\(\)]*?\\) *\\(}}\\)")
+  "\\({{\\)\\([^{].*?\\)?\\(|\\) *\\([^\(\)]*?\\) *\\(}}\\)")
 
 (defconst vue-html-simple-interp-regex
-  "\\({{\\)[A-z0-9 !@#$%^&*,.;'+-_/?\<\>\(\)]*\\(}}\\)")
+  "\\({{\\)\\(?:[^{].*?\\)?\\(}}\\)")
 
 (defconst vue-html-shorthand-regex
-  "\\s +\\([@:]\\)\\([A-z0-9.]+\\)=.*?")
+  "\\s +\\([@:]\\)\\([A-z0-9-.]+\\)=.*?")
 
 (defconst vue-html-directive-regex
-  "\\b\\(v-\\w+\\)\\(:[A-z.]\\)?=")
+  "\\b\\(v-[A-Za-z0-9-.]+\\)\\(:[A-z.]\\)?")
 
-(defconst vue-html-keyword-directives
-  '("v-for" "v-if" "v-else-if" "v-else" "v-once"))
+(defconst vue-html-keyword-regex
+  "\\(v-\\(?:for\\|if\\|else-if\\|else\\|once\\)\\)[^-.A-Za-z0-9]")
 
 (defcustom vue-html-tab-width 2
-  "Tab width for vue-html-mode"
+  "Tab width for vue-html-mode."
+  :group 'vue-html
+  :type 'integer)
+
+(defcustom vue-html-extra-indent 0
+  "The number of columns added to every line's indentation."
   :group 'vue-html
   :type 'integer)
 
 (defcustom vue-html-color-interpolations nil
-  "Whether to color the body of variable interpolations with the same color as
-delimiters. Does not affect the colors of filters and their arguments."
+  "Whether to color the body of variable interpolations the same as delimiters.
+Does not affect the colors of filters and their arguments."
   :group 'vue-html
   :type 'boolean)
 
@@ -75,8 +80,7 @@ delimiters. Does not affect the colors of filters and their arguments."
   `((,vue-html-simple-interp-regex . (0 font-lock-variable-name-face t))
     (,vue-html-filter-interp-regex . (2 font-lock-variable-name-face t))
     (,vue-html-complex-interp-regex . (2 font-lock-variable-name-face t)))
-  "List of Font Lock keywords which are applied depending on the value of
-`vue-html-color-interpolations'")
+  "List of Font Lock rules applied if `vue-html-color-interpolations' is non-nil.")
 
 (defconst vue-html-font-lock-keywords
   `((,vue-html-simple-interp-regex . (1 font-lock-variable-name-face t))
@@ -92,18 +96,34 @@ delimiters. Does not affect the colors of filters and their arguments."
     (,vue-html-directive-regex . (1 font-lock-builtin-face t))
     (,vue-html-shorthand-regex . (1 font-lock-builtin-face t))
     (,vue-html-shorthand-regex . (2 font-lock-variable-name-face t))
-    (,(regexp-opt vue-html-keyword-directives) . (0 font-lock-keyword-face t)))
-  "List of Font Lock keywords which are applied regardless of settings")
+    (,vue-html-keyword-regex . (1 font-lock-keyword-face t)))
+  "List of Font Lock keywords which are applied regardless of settings.")
 
 (defvar vue-html-mode-map
   (let ((map (make-keymap)))
     map)
-  "Keymap for vue-html-mode")
+  "Keymap for vue-html-mode.")
+
+(defun vue-html-last-line-p ()
+  "Return whether point is on the last line in the buffer."
+  (save-excursion (= (line-number-at-pos) (line-number-at-pos (point-max)))))
+
+(defun vue-html-line-empty-p ()
+  "Return whether point is on an empty line."
+  (string-match-p "^\s*$" (buffer-substring (point-at-bol) (point-at-eol))))
+
+(defun vue-html-indent ()
+  "Indent the line according to `vue-html-tab-width' and `vue-html-extra-indent'."
+  (cond
+   ((= 1 (line-number-at-pos)) (indent-line-to vue-html-extra-indent))
+   ((and (vue-html-last-line-p) (vue-html-line-empty-p)) (indent-line-to 0))
+   (t (sgml-indent-line))))
 
 ;;;###autoload
 (define-derived-mode vue-html-mode html-mode "vue-html"
-  "Major mode for Vue.js templates"
+  "Major mode for Vue.js templates."
   (setq tab-width vue-html-tab-width)
+  (setq indent-line-function #'vue-html-indent)
   (font-lock-add-keywords nil vue-html-font-lock-keywords)
   (when vue-html-color-interpolations
     (font-lock-add-keywords nil vue-html-color-interpolations-font-lock-keywords)))
