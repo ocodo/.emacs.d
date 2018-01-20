@@ -4,11 +4,10 @@
 ;; Maintainer: Somelauw
 ;; Original-author: Edward Tjörnhammar
 ;; URL: https://github.com/Somelauw/evil-org-mode.git
-;; Package-Version: 20171107.1159
 ;; Git-Repository: git://github.com/Somelauw/evil-org-mode.git
 ;; Created: 2012-06-14
 ;; Forked-since: 2017-02-12
-;; Version: 1.0.0
+;; Version: 1.0.2
 ;; Package-Requires: ((emacs "24.4") (evil "1.0"))
 ;; Keywords: evil vim-emulation org-mode key-bindings presets
 
@@ -96,6 +95,13 @@ By default, o and O are bound to ‘evil-org-open-above’ and ‘evil-org-open-
   :group 'evil-org
   :type 'boolean)
 
+(defcustom evil-org-want-hybrid-shift t
+  "Whether HJKL should fall back on default bindings if not on heading/item.
+This variable only takes effect when shift keytheme is enabled and should be set
+before calling `evil-org-set-keytheme'."
+  :group 'evil-org
+  :type 'boolean)
+
 ;;; Variable declarations
 (defvar browse-url-generic-program)
 (defvar browse-url-generic-args)
@@ -112,6 +118,9 @@ By default, o and O are bound to ‘evil-org-open-above’ and ‘evil-org-open-
   :keymap evil-org-mode-map
   :group 'evil-org
   )
+
+(with-eval-after-load 'evil-surround
+  (add-to-list 'evil-surround-operator-alist '(evil-org-delete . delete)))
 
 (defun evil-org-eol-call (fun &rest arguments)
   "Go to end of line and call provided function.
@@ -278,7 +287,9 @@ The behavior of this function can be controlled using `evil-org-special-o/O’."
   (cond ((and (not arg) (evil-org--empty-element-p))
          (delete-region (line-beginning-position) (line-end-position)))
         ((eolp)
-         (call-interactively #'evil-org-open-below))
+         (if (bolp)
+             (call-interactively #'org-return)
+           (call-interactively #'evil-org-open-below)))
         ('otherwise
          (call-interactively #'org-return-indent))))
 
@@ -289,10 +300,19 @@ The behavior of this function can be controlled using `evil-org-special-o/O’."
                 (row (nth (1- (org-table-current-line)) rows)))
            (cl-every 'string-empty-p row)))
         ((org-at-item-p)
-         (let ((e (org-element-at-point)))
-           (or (not (org-element-property :contents-begin e))
-               (> (org-element-property :contents-begin e)
-                  (line-end-position)))))))
+         (string-match-p "^[[:space:]]*-[[:space:]]*\\(::[[:space:]]*\\)?$"
+                         (thing-at-point 'line)))))
+
+;; other
+(defun evil-org-shift-fallback-command ()
+  "Call the default evil command that is bound the currently pressed key."
+  (when (and evil-mode evil-org-mode evil-org-want-hybrid-shift)
+    (let ((key (this-command-keys)))
+      (when-let ((command (or (lookup-key evil-normal-state-map key)
+                              (lookup-key evil-motion-state-map key))))
+        (when (commandp command)
+          (call-interactively command)
+          t)))))
 
 (defmacro evil-org-define-eol-command (cmd)
   "Return a function that executes CMD at eol and then enters insert state.
@@ -682,7 +702,16 @@ Includes tables, list items and subtrees."
       (capitalize .left) 'org-shiftleft
       (capitalize .right) 'org-shiftright
       (capitalize .down) 'org-shiftdown
-      (capitalize .up) 'org-shiftup)))
+      (capitalize .up) 'org-shiftup)
+
+    ;; Make shift keys fall back on the keys they have replaced
+    (when evil-org-want-hybrid-shift
+      (dolist (hook '(org-shiftleft-final-hook
+                      org-shiftright-final-hook
+                      org-shiftdown-final-hook
+                      org-shiftup-final-hook))
+        (add-hook hook #'evil-org-shift-fallback-command 'append)))))
+
 
 (defun evil-org--populate-todo-bindings ()
   "Bindings for easy todo insertion."

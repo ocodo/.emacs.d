@@ -3,14 +3,19 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "evil-org" "evil-org.el" (23064 61707 655145
-;;;;;;  641000))
+;;;### (autoloads nil "evil-org" "evil-org.el" (23138 48716 978366
+;;;;;;  35000))
 ;;; Generated autoloads from evil-org.el
 
 (autoload 'evil-org-mode "evil-org" "\
 Buffer local minor mode for evil-org
 
 \(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads nil nil ("evil-org-agenda.el" "evil-org-pkg.el")
+;;;;;;  (23138 48716 978366 35000))
 
 ;;;***
 
