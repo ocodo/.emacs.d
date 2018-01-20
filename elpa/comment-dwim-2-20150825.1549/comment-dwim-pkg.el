@@ -1,1 +1,0 @@
-(define-package "comment-dwim-2" "20150825.1549" "An all-in-one comment command to rule them all" 'nil :stars '(#("37" 0 2 (font-lock-face paradox-star-face))) :url "https://github.com/remyferre/comment-dwim-2" :keywords '("convenience"))
