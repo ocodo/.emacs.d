@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "easy-hugo" "easy-hugo.el" (23064 61781 502951
-;;;;;;  484000))
+;;;### (autoloads nil "easy-hugo" "easy-hugo.el" (23138 48782 270438
+;;;;;;  699000))
 ;;; Generated autoloads from easy-hugo.el
 
 (autoload 'easy-hugo-article "easy-hugo" "\
@@ -98,8 +98,8 @@ Cancel timer that google-cloud-storage-deploy after the specified number of minu
 
 \(fn)" t nil)
 
-(autoload 'easy-hugo-helm-ag "easy-hugo" "\
-Search for blog article with helm-ag.
+(autoload 'easy-hugo-ag "easy-hugo" "\
+Search for blog article with counsel-ag or helm-ag.
 
 \(fn)" t nil)
 
