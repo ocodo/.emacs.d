@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "puppet-mode" "puppet-mode.el" (0 0 0 0))
+;;;### (autoloads nil "puppet-mode" "puppet-mode.el" (23138 47931
+;;;;;;  964959 277000))
 ;;; Generated autoloads from puppet-mode.el
 
 (autoload 'puppet-mode "puppet-mode" "\
@@ -13,7 +14,10 @@
 
 (add-to-list 'auto-mode-alist '("\\.pp\\'" . puppet-mode))
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "puppet-mode" '("puppet-")))
+;;;***
+
+;;;### (autoloads nil nil ("puppet-mode-pkg.el") (23138 47929 640952
+;;;;;;  601000))
 
 ;;;***
 
