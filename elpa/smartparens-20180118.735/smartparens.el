@@ -695,6 +695,7 @@ You can enable pre-set bindings by customizing
     (define-key map [remap backward-kill-word] 'sp-backward-kill-word)
     (define-key map [remap kill-region] 'sp-kill-region)
     (define-key map [remap delete-region] 'sp-delete-region)
+    (define-key map [remap kill-whole-line] 'sp-kill-whole-line)
     map)
   "Keymap used for `smartparens-strict-mode'.")
 
@@ -3768,7 +3769,8 @@ default."
         ;; opener of a sexp with this opener.  In which case we should
         ;; probably rewrap.
         (unless (sp--looking-at-p (sp--get-closing-regexp))
-          (when open-pair
+          (when (and open-pair
+                     (= 1 (- (point) sp-pre-command-point)))
             (-when-let (prefix-pair (sp-get-pair (substring open-pair 0 -1)))
               (let ((last-char-of-open-pair (substring open-pair -1)))
                 (unwind-protect
@@ -4782,6 +4784,7 @@ on it when calling directly."
              ;; should probably use this one from `sp-get-thing')
              (eq (char-syntax (string-to-char delimiter)) 34))
         (if (eq t (sp-point-in-string))
+            ;; TODO: this is duplicated in `sp-get-thing', move to a function
             (save-excursion
               (save-restriction
                 (widen)
@@ -7570,37 +7573,43 @@ Examples:
 
   (foo |bar baz) -> [(foo |bar baz)] ;; \\[universal-argument] ["
   (interactive (list
-                (let ((available-pairs (sp--get-pair-list-context 'wrap))
-                      ev ac (pair-prefix ""))
-                  (while (not ac)
-                    (setq ev (read-event (format "Rewrap with: %s" pair-prefix) t))
-                    (setq pair-prefix (concat pair-prefix (format-kbd-macro (vector ev))))
-                    (unless (--any? (string-prefix-p pair-prefix (car it)) available-pairs)
-                      (user-error "Impossible pair prefix selected: %s" pair-prefix))
-                    (setq ac (--first (equal pair-prefix (car it)) available-pairs)))
-                  ac)
+                (catch 'done
+                  (let ((available-pairs (sp--get-pair-list-context 'wrap))
+                        ev ac (pair-prefix ""))
+                    (while (not ac)
+                      (setq ev (read-event (format "Rewrap with: %s" pair-prefix) t))
+                      (if (and (equal pair-prefix "")
+                               (eq ev 'return))
+                          (throw 'done nil))
+                      (setq pair-prefix (concat pair-prefix (format-kbd-macro (vector ev))))
+                      (unless (--any? (string-prefix-p pair-prefix (car it)) available-pairs)
+                        (user-error "Impossible pair prefix selected: %s" pair-prefix))
+                      (setq ac (--first (equal pair-prefix (car it)) available-pairs)))
+                    ac))
                 current-prefix-arg))
-  (-when-let (enc (sp-get-enclosing-sexp))
-    (save-excursion
-      (sp-get enc
-        (goto-char :end)
-        (unless keep-old
-          (delete-char (- :cl-l)))
-        (insert (cdr pair))
-        (goto-char :beg)
-        (insert (car pair))
-        (unless keep-old
-          (delete-char :op-l))
-        (setq sp-last-wrapped-region
-              (sp--get-last-wraped-region
-               :beg (+ :end
-                      (length (car pair))
-                      (length (cdr pair))
-                      (- :op-l)
-                      (- :cl-l))
-                (car pair) (cdr pair)))))
-    (sp--run-hook-with-args (car pair) :post-handlers 'rewrap-sexp
-                            (list :parent (sp-get enc :op)))))
+  (if (not pair)
+      (sp-unwrap-sexp)
+    (-when-let (enc (sp-get-enclosing-sexp))
+      (save-excursion
+        (sp-get enc
+          (goto-char :end)
+          (unless keep-old
+            (delete-char (- :cl-l)))
+          (insert (cdr pair))
+          (goto-char :beg)
+          (insert (car pair))
+          (unless keep-old
+            (delete-char :op-l))
+          (setq sp-last-wrapped-region
+                (sp--get-last-wraped-region
+                 :beg (+ :end
+                        (length (car pair))
+                        (length (cdr pair))
+                        (- :op-l)
+                        (- :cl-l))
+                  (car pair) (cdr pair)))))
+      (sp--run-hook-with-args (car pair) :post-handlers 'rewrap-sexp
+                              (list :parent (sp-get enc :op))))))
 
 (defun sp-swap-enclosing-sexp (&optional arg)
   "Swap the enclosing delimiters of this and the parent expression.
@@ -9001,6 +9010,7 @@ by closing delimiters.
 This function does *not* check that the delimiters are correctly
 ordered, that is [(]) is correct even though it is not logically
 properly balanced."
+  (interactive "r")
   (save-excursion
     (save-restriction
       (when (eq (sp-point-in-string start) (sp-point-in-string end))
