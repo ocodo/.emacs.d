@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "marshal" "marshal.el" (0 0 0 0))
+;;;### (autoloads nil "marshal" "marshal.el" (23138 48123 301438
+;;;;;;  171000))
 ;;; Generated autoloads from marshal.el
 
 (autoload 'marshal "marshal" "\
@@ -23,7 +24,10 @@
 
 (function-put 'marshal-defclass 'lisp-indent-function '2)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "marshal" '("unmarshal-" "marshal-")))
+;;;***
+
+;;;### (autoloads nil nil ("marshal-pkg.el") (23138 48121 241433
+;;;;;;  673000))
 
 ;;;***
 

@@ -4,8 +4,8 @@
 
 ;; Author: Yann Hodique <hodiquey@vmware.com>
 ;; Keywords: eieio
-;; Package-Version: 20160807.1954
-;; Version: 0.7.0
+;; Package-Version: 20180102.201
+;; Version: 0.8.2
 ;; URL: https://github.com/sigma/marshal.el
 ;; Package-Requires: ((eieio "1.4") (json "1.3") (ht "2.1"))
 
@@ -98,9 +98,7 @@
 
 ;;; Code:
 
-(require 'json)
 (require 'eieio)
-(require 'ht)
 
 ;;; eieio backward-compatibility
 (dolist (sym '(object-class object-p oref oset))
@@ -109,13 +107,22 @@
       (fset new-sym sym))))
 
 ;;; json hotfix
-(when (json-alist-p '(((foo))))
-  (defun json-alist-p (list)
-    (while (consp list)
-      (setq list (if (and (consp (car list)) (atom (caar list)))
-                     (cdr list)
-                   'not-alist)))
-    (null list)))
+(eval-after-load 'json
+  '(when (json-alist-p '(((foo))))
+     (defun json-alist-p (list)
+       (while (consp list)
+         (setq list (if (and (consp (car list)) (atom (caar list)))
+                        (cdr list)
+                      'not-alist)))
+       (null list))))
+
+;;; load json library lazily
+(autoload 'json-encode "json")
+(autoload 'json-read-from-string "json")
+
+;;; load ht library lazily
+(autoload 'ht-empty? "ht")
+(autoload 'ht-items "ht")
 
 ;;; Defined drivers
 
@@ -239,17 +246,18 @@
 
 (defmethod marshal-preprocess ((obj marshal-driver-json) blob)
   (let ((json-array-type 'list)
-        (json-object-type 'alist))
+        (json-object-type 'alist)
+        (json-false :json-false))
     (json-read-from-string (call-next-method))))
 
 (defmethod marshal-postprocess ((obj marshal-driver-json) blob)
   (json-encode (call-next-method)))
 
 (defmethod marshal-unmarshal-bool :static ((obj marshal-driver-json) b)
-  (not (eq b json-false)))
+  (not (eq b :json-false)))
 
 (defmethod marshal-marshal-bool :static ((obj marshal-driver-json) b)
-  (or b json-false))
+  (or b :json-false))
 
 ;;; plist-based driver
 
@@ -332,11 +340,13 @@
          (marshal-info (cdr (assoc type (marshal-get-marshal-info obj)))))
     (marshal-open driver)
     (when marshal-info
+      (when (and hint (not (eq hint (eieio-object-class obj))))
+        (marshal-write driver (marshal-get-class-slot hint)
+                       (eieio-object-class obj)))
       (dolist (s (object-slots obj))
         (let ((path (cdr (assoc s marshal-info))))
           (when (and path
                      (slot-boundp obj s))
-            
             (marshal-write driver path
                            (marshal-internal
                             (eieio-oref obj s)
@@ -384,7 +394,18 @@
 
 (defun unmarshal-internal (obj blob type)
   (let ((obj (if (class-p obj)
-                 (make-instance obj)
+                 (let ((driver (marshal-get-driver type)))
+                   (let ((cls (or (and
+                                   (not (null blob))
+                                   (let ((driver (marshal-get-driver type)))
+                                     (prog2
+                                         (marshal-open driver blob)
+                                         (marshal-read
+                                          driver
+                                          (marshal-get-class-slot obj))
+                                       (marshal-close driver))))
+                                  obj))) 
+                     (make-instance cls)))
                obj)))
     (unmarshal--internal obj blob type)))
 
@@ -427,6 +448,8 @@
                                 'ignore))
          (base-cls (or (plist-get options :marshal-base-cls)
                        'marshal-base))
+         (cls-slot (or (plist-get options :marshal-class-slot)
+                       :-cls))
          (marshal-info (marshal--transpose-alist2
                         (remove nil
                                 (mapcar
@@ -456,6 +479,14 @@
        (defclass ,name (,@superclass ,base-cls)
          (,@slots)
          ,@options-and-doc)
+
+       (defmethod marshal-get-class-slot :static ((obj ,name))
+         (let ((cls (if (eieio-object-p obj)
+                        (eieio-object-class obj)
+                      obj)))
+           (get cls :marshal-class-slot)))
+
+       (put ',name :marshal-class-slot ',cls-slot)
 
        (defmethod marshal-get-marshal-info :static ((obj ,name))
          (let ((cls (if (eieio-object-p obj)
