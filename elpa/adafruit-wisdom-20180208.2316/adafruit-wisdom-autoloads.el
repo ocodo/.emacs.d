@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "adafruit-wisdom" "adafruit-wisdom.el" (23138
-;;;;;;  48973 394632 803000))
+;;;### (autoloads nil "adafruit-wisdom" "adafruit-wisdom.el" (23166
+;;;;;;  22928 100982 358000))
 ;;; Generated autoloads from adafruit-wisdom.el
 
 (autoload 'adafruit-wisdom-select "adafruit-wisdom" "\
