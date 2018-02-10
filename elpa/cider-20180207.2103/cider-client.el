@@ -180,7 +180,7 @@ connections are returned, instead of just the most recent."
 
 (defun cider-connection-type-for-buffer (&optional buffer)
   "Return the matching connection type (clj or cljs) for BUFFER.
-In cljc and cljx buffers return \"multi\". This function infers connection
+In cljc buffers return \"multi\". This function infers connection
 type based on the major mode. See `cider-project-connections-types' for a
 list of types of actual connections within a project.  BUFFER defaults to
 the `current-buffer'."
@@ -188,7 +188,6 @@ the `current-buffer'."
     (cond
      ((derived-mode-p 'clojurescript-mode) "cljs")
      ((derived-mode-p 'clojurec-mode) "multi")
-     ((derived-mode-p 'clojurex-mode) "multi")
      ((derived-mode-p 'clojure-mode) "clj")
      (cider-repl-type))))
 
@@ -362,7 +361,7 @@ to a still-undetermined bug in the state-stracker backend."
   "Call FUNCTION once for each appropriate connection.
 The function is called with one argument, the connection buffer.
 The appropriate connections are found by inspecting the current buffer.  If
-the buffer is associated with a .cljc or .cljx file, BODY will be executed
+the buffer is associated with a .cljc file, BODY will be executed
 multiple times.
 
 WHICH is one of the following keywords identifying which connections to map
@@ -372,9 +371,8 @@ over.
         there is no Clojure connection (use this for commands only
         supported in Clojure).
  :cljs - Like :clj, but demands a ClojureScript connection instead.
- :both - In `clojurec-mode' or `clojurex-mode' act on both connections,
-         otherwise function like :any.  Obviously, this option might run
-         FUNCTION twice.
+ :both - In `clojurec-mode' act on both connections, otherwise function
+         like :any.  Obviously, this option might run FUNCTION twice.
 
 If ANY-MODE is non-nil, :clj and :cljs don't signal errors due to being in
 the wrong major mode (they still signal if the desired connection type
@@ -383,7 +381,7 @@ connection but can be invoked from any buffer (like `cider-refresh')."
   (cl-labels ((err (msg) (user-error (concat "`%s' " msg) this-command)))
     ;; :both in a clj or cljs buffer just means :any.
     (let* ((which (if (and (eq which :both)
-                           (not (cider--cljc-or-cljx-buffer-p)))
+                           (not (cider--cljc-buffer-p)))
                       :any
                     which))
            (curr

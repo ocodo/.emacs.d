@@ -136,7 +136,9 @@ will be used."
   :package-version '(cider . "0.10.0"))
 
 (defcustom cider-repl-result-prefix ""
-  "The prefix displayed in the REPL before a result value."
+  "The prefix displayed in the REPL before a result value.
+By default there's no prefix, but you can specify something
+like \"=>\" if want results to stand out more."
   :type 'string
   :group 'cider
   :package-version '(cider . "0.5.0"))
@@ -148,6 +150,18 @@ you'd like to use the default Emacs behavior use
 `indent-for-tab-command'."
   :type 'symbol
   :group 'cider-repl)
+
+(defcustom cider-repl-print-length 100
+  "Initial value for *print-length* set during REPL start."
+  :type 'integer
+  :group 'cider
+  :package-version '(cider . "0.17.0"))
+
+(defcustom cider-repl-print-level nil
+  "Initial value for *print-level* set during REPL start."
+  :type 'integer
+  :group 'cider
+  :package-version '(cider . "0.17.0"))
 
 (defcustom cider-repl-display-help-banner t
   "When non-nil a bit of help text will be displayed on REPL start."
@@ -284,6 +298,25 @@ efficiency."
     "inhibit-cider-middleware" "true")
    (cider-current-connection)))
 
+(defun cider-repl--build-config-expression ()
+  "Build the initial config expression."
+  (when (or cider-repl-print-length cider-repl-print-level)
+    (concat
+     "(do"
+     (when cider-repl-print-length (format " (set! *print-length* %d)" cider-repl-print-length))
+     (when cider-repl-print-level (format " (set! *print-level* %d)" cider-repl-print-level))
+     ")")))
+
+(defun cider-repl-set-config ()
+  "Set an inititial REPL configuration."
+  (interactive)
+  (when-let* ((config-expression (cider-repl--build-config-expression)))
+    (nrepl-send-sync-request
+     (lax-plist-put
+      (nrepl--eval-request config-expression)
+      "inhibit-cider-middleware" "true")
+     (cider-current-connection))))
+
 (defun cider-repl-init (buffer &optional no-banner)
   "Initialize the REPL in BUFFER.
 BUFFER must be a REPL buffer with `cider-repl-mode' and a running
@@ -295,6 +328,7 @@ client process connection.  Unless NO-BANNER is non-nil, insert a banner."
     ((pred identity) (pop-to-buffer buffer)))
   (cider-repl-set-initial-ns buffer)
   (cider-repl-require-repl-utils)
+  (cider-repl-set-config)
   (unless no-banner
     (cider-repl--insert-banner-and-prompt buffer))
   buffer)
@@ -999,7 +1033,7 @@ With a prefix argument CLEAR-REPL it will clear the entire REPL buffer instead."
 (defun cider-repl-set-ns (ns)
   "Switch the namespace of the REPL buffer to NS.
 
-If called from a cljc or cljx buffer act on both the Clojure and
+If called from a cljc buffer act on both the Clojure and
 ClojureScript REPL if there are more than one REPL present.
 
 If invoked in a REPL buffer the command will prompt for the name of the
@@ -1546,6 +1580,8 @@ constructs."
         ["Close ancillary buffers" cider-close-ancillary-buffers]
         ["Quit" cider-quit]
         ["Restart" cider-restart]
+        "--"
+        ["Clojure Cheatsheet" cider-cheatsheet]
         "--"
         ["A sip of CIDER" cider-drink-a-sip]
         ["View manual online" cider-view-manual]

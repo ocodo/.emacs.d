@@ -87,12 +87,12 @@ which nREPL uses for temporary evaluation file names."
   (let ((fname (file-name-nondirectory file-name)))
     (string-match-p "^form-init" fname)))
 
-(defun cider--cljc-or-cljx-buffer-p (&optional buffer)
-  "Return non-nil if the current buffer is visiting a cljc or cljx file.
+(defun cider--cljc-buffer-p (&optional buffer)
+  "Return non-nil if the current buffer is visiting a cljc file.
 
 If BUFFER is provided act on that buffer instead."
   (with-current-buffer (or buffer (current-buffer))
-    (or (derived-mode-p 'clojurec-mode) (derived-mode-p 'clojurex-mode))))
+    (or (derived-mode-p 'clojurec-mode))))
 
 
 ;;; Thing at point
@@ -642,6 +642,8 @@ through a stack of help buffers.  Variables `help-back-label' and
     "Oh, what a day... what a lovely day!"
     "What a day! What cannot be accomplished on such a splendid day!"
     "Home is where your REPL is."
+    "The worst day programming is better than the best day working."
+    "The only thing worse than a rebel without a cause is a REPL without a cause."
     ,(format "%s, I've a feeling we're not in Kansas anymore."
              (cider-user-first-name))
     ,(format "%s, this could be the start of a beautiful program."

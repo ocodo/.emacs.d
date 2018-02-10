@@ -141,6 +141,29 @@ version from the CIDER package or library.")
   :safe #'stringp
   :package-version '(cider . "0.9.0"))
 
+(defcustom cider-clojure-command
+  "clojure"
+  "The command used to execute clojure with tools.deps (requires Clojure 1.9+)."
+  :type 'string
+  :group 'cider
+  :package-version '(cider . "0.17.0"))
+
+(defcustom cider-clojure-global-options
+  nil
+  "Command line options used to execute clojure with tools.deps."
+  :type 'string
+  :group 'cider
+  :safe #'stringp
+  :package-version '(cider . "0.17.0"))
+
+(defcustom cider-clojure-parameters
+  "-e '(require (quote cider-nrepl.main)) (cider-nrepl.main/init [\"cider.nrepl/cider-middleware\"])'"
+  "Params passed to clojure to start an nREPL server via `cider-jack-in'."
+  :type 'string
+  :group 'cider
+  :safe #'stringp
+  :package-version '(cider . "0.17.0"))
+
 (defcustom cider-gradle-command
   "gradle"
   "The command used to execute Gradle."
@@ -165,10 +188,12 @@ version from the CIDER package or library.")
   :package-version '(cider . "0.10.0"))
 
 (defcustom cider-default-repl-command
-  "lein"
+  cider-clojure-command
   "The default command and parameters to use when connecting to nREPL.
 This value will only be consulted when no identifying file types, i.e.
-project.clj for leiningen or build.boot for boot, could be found."
+project.clj for leiningen or build.boot for boot, could be found.
+
+As tools.deps is bundled with Clojure itself, it's the default REPL command."
   :type 'string
   :group 'cider
   :safe #'stringp
@@ -185,6 +210,7 @@ cannot decide which of many build systems to use and will never override a
 command when there is no ambiguity."
   :type '(choice (const "lein")
                  (const "boot")
+                 (const "clojure")
                  (const "gradle")
                  (const :tag "Always ask" nil))
   :group 'cider
@@ -265,6 +291,7 @@ Sub-match 1 must be the project path.")
   (pcase project-type
     ("lein" cider-lein-command)
     ("boot" cider-boot-command)
+    ("clojure" cider-clojure-command)
     ("gradle" cider-gradle-command)
     (_ (user-error "Unsupported project type `%s'" project-type))))
 
@@ -275,6 +302,7 @@ Throws an error if PROJECT-TYPE is unknown.  Known types are
   (pcase project-type
     ("lein" (cider--lein-resolve-command))
     ("boot" (cider--boot-resolve-command))
+    ("clojure" (cider--clojure-resolve-command))
     ("gradle" (cider--gradle-resolve-command))
     (_ (user-error "Unsupported project type `%s'" project-type))))
 
@@ -283,6 +311,7 @@ Throws an error if PROJECT-TYPE is unknown.  Known types are
   (pcase project-type
     ("lein" cider-lein-global-options)
     ("boot" cider-boot-global-options)
+    ("clojure" cider-clojure-global-options)
     ("gradle" cider-gradle-global-options)
     (_ (user-error "Unsupported project type `%s'" project-type))))
 
@@ -291,6 +320,7 @@ Throws an error if PROJECT-TYPE is unknown.  Known types are
   (pcase project-type
     ("lein" cider-lein-parameters)
     ("boot" cider-boot-parameters)
+    ("clojure" cider-clojure-parameters)
     ("gradle" cider-gradle-parameters)
     (_ (user-error "Unsupported project type `%s'" project-type))))
 
@@ -385,7 +415,7 @@ string is quoted for passing as argument to an inferior shell."
   (shell-quote-argument (format "[%s %S%s]" (car list) (cadr list) (cider--lein-artifact-exclusions exclusions))))
 
 (defun cider-lein-jack-in-dependencies (global-opts params dependencies dependencies-exclusions lein-plugins)
-    "Create lein jack-in dependencies.
+  "Create lein jack-in dependencies.
 Does so by concatenating GLOBAL-OPTS, DEPENDENCIES, with DEPENDENCIES-EXCLUSIONS
 removed, LEIN-PLUGINS, and finally PARAMS."
   (concat
@@ -404,6 +434,22 @@ removed, LEIN-PLUGINS, and finally PARAMS."
               " -- ")
    " -- "
    params))
+
+(defun cider-clojure-jack-in-dependencies (global-opts params dependencies)
+  "Create Clojure tools.deps jack-in dependencies.
+Does so by concatenating GLOBAL-OPTS, DEPENDENCIES finally PARAMS."
+  (let ((dependencies (append dependencies
+                              `(("cider/orchard" "0.1.0-SNAPSHOT")
+                                ("cider/cider-nrepl" ,(upcase cider-version))))))
+    (concat
+     global-opts
+     (unless (seq-empty-p global-opts) " ")
+     "-Sdeps '{:deps {"
+     (mapconcat #'identity
+                (seq-map (lambda (dep) (format "%s {:mvn/version \"%s\"}" (car dep) (cadr dep)))  dependencies)
+                " ")
+     "}}' "
+     params)))
 
 (defun cider-add-clojure-dependencies-maybe (dependencies)
   "Return DEPENDENCIES with an added Clojure dependency if requested.
@@ -445,6 +491,11 @@ dependencies."
               cider-jack-in-dependencies)
              cider-jack-in-lein-plugins
              cider-jack-in-nrepl-middlewares))
+    ("clojure" (cider-clojure-jack-in-dependencies
+                global-opts
+                params
+                (cider-add-clojure-dependencies-maybe
+                 cider-jack-in-dependencies)))
     ("gradle" (concat
                global-opts
                (unless (seq-empty-p global-opts) " ")
@@ -476,6 +527,17 @@ it should start a ClojureScript REPL."
   :package-version '(cider . "0.11.0")
   :group 'cider)
 
+(defcustom cider-cljs-clojure-repl "(cemerick.piggieback/cljs-repl (cljs.repl.rhino/repl-env))"
+  "Clojure form that returns a ClojureScript REPL environment.
+This is only used in clj projects.  It is evaluated in a Clojure REPL and
+it should start a ClojureScript REPL."
+  :type `(choice ,@(seq-map (lambda (x) `(const :tag ,(apply #'concat (cdr x)) ,(car x)))
+                            cider--cljs-repl-types)
+                 (string :tag "Custom"))
+  :safe (lambda (x) (assoc x cider--cljs-repl-types))
+  :package-version '(cider . "0.17.0")
+  :group 'cider)
+
 (defcustom cider-cljs-boot-repl "(do (require 'adzerk.boot-cljs-repl) (adzerk.boot-cljs-repl/start-repl))"
   "Clojure form that returns a ClojureScript REPL environment.
 This is only used in boot projects.  It is evaluated in a Clojure REPL and
@@ -503,6 +565,7 @@ it should start a ClojureScript REPL."
   (pcase project-type
     ("lein" cider-cljs-lein-repl)
     ("boot" cider-cljs-boot-repl)
+    ("clojure" cider-cljs-clojure-repl)
     ("gradle" cider-cljs-gradle-repl)
     (_ (error "Unsupported project type `%s'" project-type))))
 
@@ -513,7 +576,7 @@ it should start a ClojureScript REPL."
       (save-excursion
         (goto-char (point-min))
         (when-let* ((url (and (search-forward-regexp "http://localhost:[0-9]+" nil 'noerror)
-                             (match-string 0))))
+                              (match-string 0))))
           (when (y-or-n-p (format "Visit ‘%s’ in a browser? " url))
             (browse-url url)))))))
 
@@ -591,7 +654,7 @@ be reused."
       (if (get-buffer-process exact-buff)
           (when (y-or-n-p (format "REPL buffer already exists (%s).  \
 Do you really want to create a new one? "
-                                  exact-buff))
+                           exact-buff))
             'new)
         exact-buff)
     (or (cider--select-zombie-buffer repl-buffers) 'new)))
@@ -674,6 +737,7 @@ gets associated with it."
            (t (cider-assoc-project-with-connection nil conn)))))
       conn)))
 
+;;;###autoload
 (defun cider-connect-clojurescript ()
   "Connect to a ClojureScript REPL.
 
@@ -791,6 +855,7 @@ Use `cider-ps-running-nrepls-command' and `cider-ps-running-nrepl-path-regexp-li
   (let* ((default-directory (clojure-project-dir (cider-current-dir)))
          (build-files '(("lein" . "project.clj")
                         ("boot" . "build.boot")
+                        ("clojure" . "deps.edn")
                         ("gradle" . "build.gradle"))))
     (delq nil
           (mapcar (lambda (candidate)
@@ -845,6 +910,16 @@ In case `default-directory' is non-local we assume the command is available."
   (when-let* ((command (or (and (file-remote-p default-directory) cider-gradle-command)
                            (executable-find cider-gradle-command)
                            (executable-find (concat cider-gradle-command ".exe")))))
+    (shell-quote-argument command)))
+
+;; TODO: Implement a check for `cider-clojure-command' over tramp
+(defun cider--clojure-resolve-command ()
+  "Find `cider-clojure-command' on `exec-path' if possible, or return nil.
+
+In case `default-directory' is non-local we assume the command is available."
+  (when-let* ((command (or (and (file-remote-p default-directory) cider-clojure-command)
+                           (executable-find cider-clojure-command)
+                           (executable-find (concat cider-clojure-command ".exe")))))
     (shell-quote-argument command)))
 
 
@@ -928,7 +1003,8 @@ process buffer."
   '(progn
      (define-key clojure-mode-map (kbd "C-c M-j") #'cider-jack-in)
      (define-key clojure-mode-map (kbd "C-c M-J") #'cider-jack-in-clojurescript)
-     (define-key clojure-mode-map (kbd "C-c M-c") #'cider-connect)))
+     (define-key clojure-mode-map (kbd "C-c M-c") #'cider-connect)
+     (define-key clojure-mode-map (kbd "C-c M-C") #'cider-connect-clojurescript)))
 
 (provide 'cider)
 
