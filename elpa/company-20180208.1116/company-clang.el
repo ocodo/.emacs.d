@@ -201,34 +201,35 @@ or automatically through a custom `company-clang-prefix-guesser'."
         (goto-char (point-min))))))
 
 (defun company-clang--start-process (prefix callback &rest args)
-  (let ((objc (derived-mode-p 'objc-mode))
-        (buf (get-buffer-create "*clang-output*"))
-        ;; Looks unnecessary in Emacs 25.1 and later.
-        (process-adaptive-read-buffering nil))
-    (if (get-buffer-process buf)
-        (funcall callback nil)
-      (with-current-buffer buf
-        (erase-buffer)
-        (setq buffer-undo-list t))
-      (let* ((process-connection-type nil)
-             (process (apply #'start-file-process "company-clang" buf
-                             company-clang-executable args)))
-        (set-process-sentinel
-         process
-         (lambda (proc status)
-           (unless (string-match-p "hangup" status)
-             (funcall
-              callback
-              (let ((res (process-exit-status proc)))
-                (with-current-buffer buf
-                  (unless (eq 0 res)
-                    (company-clang--handle-error res args))
-                  ;; Still try to get any useful input.
-                  (company-clang--parse-output prefix objc)))))))
-        (unless (company-clang--auto-save-p)
-          (send-region process (point-min) (point-max))
-          (send-string process "\n")
-          (process-send-eof process))))))
+  (let* ((objc (derived-mode-p 'objc-mode))
+         (buf (get-buffer-create "*clang-output*"))
+         ;; Looks unnecessary in Emacs 25.1 and later.
+         (process-adaptive-read-buffering nil)
+         (existing-process (get-buffer-process buf)))
+    (when existing-process
+      (kill-process existing-process))
+    (with-current-buffer buf
+      (erase-buffer)
+      (setq buffer-undo-list t))
+    (let* ((process-connection-type nil)
+           (process (apply #'start-file-process "company-clang" buf
+                           company-clang-executable args)))
+      (set-process-sentinel
+       process
+       (lambda (proc status)
+         (unless (string-match-p "hangup\\|killed" status)
+           (funcall
+            callback
+            (let ((res (process-exit-status proc)))
+              (with-current-buffer buf
+                (unless (eq 0 res)
+                  (company-clang--handle-error res args))
+                ;; Still try to get any useful input.
+                (company-clang--parse-output prefix objc)))))))
+      (unless (company-clang--auto-save-p)
+        (send-region process (point-min) (point-max))
+        (send-string process "\n")
+        (process-send-eof process)))))
 
 (defsubst company-clang--build-location (pos)
   (save-excursion
