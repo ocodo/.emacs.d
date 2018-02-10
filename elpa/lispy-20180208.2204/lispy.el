@@ -196,6 +196,11 @@ The hint will consist of the possible nouns that apply to the verb."
   :type 'boolean
   :group 'lispy)
 
+(defcustom lispy-close-quotes-at-end-p nil
+  "If t, when pressing the `\"' at the end of a quoted string, it will move you past the end quote."
+  :type 'boolean
+  :group 'lispy)
+
 (defcustom lispy-helm-columns '(70 80)
   "Max lengths of tag and tag+filename when completing with `helm'."
   :group 'lispy
@@ -1681,8 +1686,10 @@ otherwise the whole string is unquoted."
                 (not (= (point) (car bnd))))
            (if arg
                (lispy-unstringify)
-             (insert "\\\"\\\"")
-             (backward-char 2)))
+             (if (and lispy-close-quotes-at-end-p (looking-at "\""))
+                 (forward-char 1)
+                 (progn (insert "\\\"\\\""))
+               (backward-char 2))))
 
           (arg
            (lispy-stringify))
@@ -1761,7 +1768,7 @@ If jammed between parens, \"(|(\" unjam: \"(| (\"."
   "If true (the default), then add a space before inserting a colon following `lispy-colon-no-space-regex'. To disable this behavior, set this variable to nil.")
 
 (defvar lispy-colon-no-space-regex
-  '((lisp-mode . "\\s-\\|[:^?#]\\|\\(?:\\s([[:word:]-]*\\)"))
+  '((lisp-mode . "\\s-\\|[:^?#]\\|ql\\|\\(?:\\s([[:word:]-]*\\)"))
   "Overrides REGEX that `lispy-colon' will consider for `major-mode'.
 `lispy-colon' will insert \" :\" instead of \" \" unless
 `lispy-no-space' is t or `looking-back' REGEX.")
@@ -1783,7 +1790,7 @@ If jammed between parens, \"(|(\" unjam: \"(| (\"."
 
 (defun lispy-at ()
   (interactive)
-  (lispy--space-unless "\\s-\\|\\s(\\|[:?]\\|\\\\\\|~")
+  (lispy--space-unless "\\s-\\|\\s(\\|[:?]\\|\\\\\\|~\\|,")
   (insert "@"))
 
 (defun lispy-tick (arg)
@@ -4203,7 +4210,8 @@ If STR is too large, pop it to a buffer instead."
         (let ((inhibit-read-only t))
           (delete-region (point-min) (point-max))
           (insert str)
-          (goto-char (point-min))))
+          (goto-char (point-min)))
+        str)
     (condition-case nil
         (message str)
       (error (message (replace-regexp-in-string "%" "%%" str))))))

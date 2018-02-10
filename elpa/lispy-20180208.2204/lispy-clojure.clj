@@ -511,6 +511,8 @@ malleable to refactoring."
                   (catch Exception _))
         full-expr (read-string (format "[%s]" e-str))
         expr1 (xcond
+                ((nil? context-str)
+                 (cons 'do full-expr))
                 ((= (count full-expr) 2)
                  (shadow-dest full-expr))
                 ((add-location-to-deflike expr file line))
@@ -525,10 +527,7 @@ malleable to refactoring."
 (defn file->elisp [f]
   (if (fs/exists? f)
     f
-    (let [s (. (io/resource f) getPath)]
-      (if-let [[_ ar-file ar-path] (re-matches #"file:([^!]+)!/(.*)" s)]
-        (str ar-file ":" ar-path)
-        s))))
+    (. (io/resource f) getPath)))
 
 (defn location [sym]
   (let [rs (resolve sym)

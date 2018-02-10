@@ -64,12 +64,16 @@
                       (deactivate-mark)
                       (lispy--string-dwim)))))
     (let ((f-str
-           (if lispy--clojure-middleware-loaded-p
-               (format (if (eq this-command 'special-lispy-eval)
-                           "(lispy-clojure/pp (lispy-clojure/reval %S %S :file %S :line %S))"
-                         "(lispy-clojure/reval %S %S :file %S :line %S)")
-                       e-str c-str (buffer-file-name) (line-number-at-pos))
-             e-str)))
+           (cond
+             ((eq major-mode 'clojurescript-mode)
+              e-str)
+             (lispy--clojure-middleware-loaded-p
+              (format (if (eq this-command 'special-lispy-eval)
+                          "(lispy-clojure/pp (lispy-clojure/reval %S %S :file %S :line %S))"
+                        "(lispy-clojure/reval %S %S :file %S :line %S)")
+                      e-str c-str (buffer-file-name) (line-number-at-pos)))
+             (t
+              e-str))))
       (cond ((eq current-prefix-arg 7)
              (kill-new f-str))
             ((eq lispy-clojure-eval-method 'spiral)
@@ -89,13 +93,19 @@
   (remove-hook 'nrepl-connected-hook
                'lispy--clojure-eval-hook-lambda))
 
+(cider-add-to-alist 'cider-jack-in-dependencies
+                    "org.tcrawley/dynapath" "0.2.5")
+(cider-add-to-alist 'cider-jack-in-dependencies
+                    "com.cemerick/pomegranate" "0.4.0")
+
 (defun lispy--eval-clojure (str &optional add-output)
   "Eval STR as Clojure code.
 The result is a string.
 
 When ADD-OUTPUT is non-nil, add the standard output to the result."
   (require 'cider)
-  (add-hook 'cider-connected-hook #'lispy--clojure-middleware-load)
+  (unless (eq major-mode 'clojurescript-mode)
+    (add-hook 'cider-connected-hook #'lispy--clojure-middleware-load))
   (let (deactivate-mark)
     (if (null (cider-default-connection t))
         (progn
@@ -386,20 +396,44 @@ Besides functions, handles specials, keywords, maps, vectors and sets."
     (lispy--eval-clojure str)
     (lispy-flow 1)))
 
+(defun lispy-goto-line (line)
+  (goto-char (point-min))
+  (forward-line (1- line)))
+
+(defun lispy-find-archive (archive path)
+  (require 'arc-mode)
+  (let ((name (format "%s:%s" archive path)))
+    (switch-to-buffer
+     (or (find-buffer-visiting name)
+         (with-current-buffer (generate-new-buffer name)
+           (archive-zip-extract archive path)
+           (set-visited-file-name name)
+           (setq-local default-directory (file-name-directory archive))
+           (setq-local buffer-read-only t)
+           (set-buffer-modified-p nil)
+           (set-auto-mode)
+           (current-buffer))))))
+
 (defun lispy-goto-symbol-clojure (symbol)
   "Goto SYMBOL."
   (lispy--clojure-detect-ns)
-  (let* ((r (read (lispy--eval-clojure
+  (let* ((r (read (lispy-eval-clojure
                    (format "(lispy-clojure/location '%s)" symbol))))
-         (f1 (car r)))
-    (if (and r (or (file-exists-p f1)
-                   (file-exists-p (car (split-string f1 ":")))))
-        (progn
-          (find-file (car r))
-          (goto-char (point-min))
-          (forward-line (1- (cadr r))))
-      (warn "unexpected: %S" symbol)
-      (cider-find-var symbol))))
+         (url (car r))
+         (line (cadr r))
+         archive)
+    (cond
+      ((file-exists-p url)
+       (find-file url)
+       (lispy-goto-line line))
+      ((and (string-match "\\`file:\\([^!]+\\)!/\\(.*\\)\\'" url)
+            (file-exists-p (setq archive (match-string 1 url))))
+       (let ((path (match-string 2 url)))
+         (lispy-find-archive archive path)
+         (lispy-goto-line line)))
+      (t
+       (warn "unexpected: %S" symbol)
+       (cider-find-var symbol)))))
 
 (defun lispy-goto-symbol-clojurescript (symbol)
   "Goto SYMBOL."
