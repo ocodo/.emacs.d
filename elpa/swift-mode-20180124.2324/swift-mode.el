@@ -7,7 +7,7 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;;
-;; Version: 4.0.1
+;; Version: 4.1.0
 ;; Package-Requires: ((emacs "24.4") (seq "2.3"))
 ;; Keywords: languages swift
 ;; URL: https://github.com/swift-emacs/swift-mode
@@ -213,7 +213,10 @@ Signal `scan-error' if it hits opening parentheses."
   (setq-local swift-mode:anchor-overlay
               (make-overlay (point-min) (point-min) nil t))
 
-  (delete-overlay swift-mode:anchor-overlay))
+  (delete-overlay swift-mode:anchor-overlay)
+
+  (add-hook 'which-func-functions #'swift-mode:current-defun-name)
+  (setq-local add-log-current-defun-function #'swift-mode:current-defun-name))
 
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.swift\\'" . swift-mode))
 
