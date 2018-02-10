@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ox-blackfriday" "ox-blackfriday.el" (23138
-;;;;;;  48008 769167 435000))
+;;;### (autoloads nil "ox-blackfriday" "ox-blackfriday.el" (23166
+;;;;;;  23232 960615 121000))
 ;;; Generated autoloads from ox-blackfriday.el
 
 (autoload 'org-blackfriday-export-as-markdown "ox-blackfriday" "\
@@ -78,8 +78,8 @@ Return output file name.
 
 ;;;***
 
-;;;### (autoloads nil "ox-hugo" "ox-hugo.el" (23138 48008 773167
-;;;;;;  446000))
+;;;### (autoloads nil "ox-hugo" "ox-hugo.el" (23166 23232 964615
+;;;;;;  116000))
 ;;; Generated autoloads from ox-hugo.el
 
 (autoload 'org-hugo-slug "ox-hugo" "\
@@ -163,7 +163,7 @@ This is an Export \"What I Mean\" function:
 - If the current subtree doesn't have that property, but one of its
   parent subtrees has, then export from that subtree's scope.
 - If none of the subtrees have that property (or if there are no Org
-  subtrees at all), but the Org #+TITLE keyword is present,
+  subtrees at all), but the Org #+title keyword is present,
   export the whole Org file as a post with that title (calls
   `org-hugo-export-to-md' with its SUBTREEP argument set to nil).
 
@@ -171,11 +171,11 @@ This is an Export \"What I Mean\" function:
   (that have the \"EXPORT_FILE_NAME\" property) in the current file
   to multiple Markdown posts.
 - If ALL-SUBTREES is non-nil, and again if none of the subtrees have
-  that property (or if there are no Org subtrees), but the Org #+TITLE
+  that property (or if there are no Org subtrees), but the Org #+title
   keyword is present, export the whole Org file.
 
 - If the file neither has valid Hugo post subtrees, nor has the
-  #+TITLE present, throw a user error.  If NOERROR is non-nil, use
+  #+title present, throw a user error.  If NOERROR is non-nil, use
   `message' to display the error message instead of signaling a user
   error.
 
@@ -216,8 +216,8 @@ buffer and returned as a string in Org format.
 
 ;;;***
 
-;;;### (autoloads nil nil ("ox-hugo-pkg.el") (23138 48008 769167
-;;;;;;  435000))
+;;;### (autoloads nil nil ("ox-hugo-pkg.el") (23166 23232 964615
+;;;;;;  116000))
 
 ;;;***
 

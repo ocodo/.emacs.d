@@ -316,13 +316,13 @@ This function is adapted from `org-html--make-attribute-string'."
   "Wrap the CONTENTS with HTML div tags.
 
 The div wrapping is done only if HTML attributes are set for the
-ELEM Org element using #+ATTR_HTML.
+ELEM Org element using #+attr_html.
 
-If #+ATTR_CSS is also used, and if a class is specified in
-#+ATTR_HTML, then an inline style is also inserted that applies
+If #+attr_css is also used, and if a class is specified in
+#+attr_html, then an inline style is also inserted that applies
 the specified CSS to that class.
 
-If CONTENTS is nil, and #+ATTR_CSS is used, return only the HTML
+If CONTENTS is nil, and #+attr_css is used, return only the HTML
 style tag."
   (let* ((elem-type (org-element-type elem))
          (attr (let ((attr1 (org-export-read-attribute :attr_html elem)))
@@ -332,7 +332,14 @@ style tag."
                    ;; would be meant for links inside the paragraph
                    ;; instead of the paragraph itself.
                    (plist-put attr1 :target nil)
-                   (plist-put attr1 :rel nil))
+                   (plist-put attr1 :rel nil)
+                   ;; Remove other attributes from the list of a
+                   ;; paragraph's HTML attributes which would be meant
+                   ;; for the inline images inside that paragraph.
+                   (plist-put attr1 :src nil)
+                   (plist-put attr1 :alt nil)
+                   (plist-put attr1 :height nil)
+                   (plist-put attr1 :width nil))
                  attr1))
          (attr-str (org-html--make-attribute-string attr))
          (ret contents))
@@ -531,7 +538,8 @@ INFO is a plist holding contextual information."
     ;; (message "[ox-bf-processing-type DBG] processing-type: %s" processing-type)
     (cond
      ((memq processing-type '(t mathjax))
-      (let* ((latex-env (org-element-property :value latex-environment))
+      (let* ((latex-env (org-remove-indentation
+                         (org-element-property :value latex-environment)))
              (env (org-html-format-latex latex-env 'mathjax info))
              (env (org-blackfriday-escape-chars-in-equation env)))
         ;; (message "[ox-bf-latex-env DBG] latex-env: %s" latex-env)
@@ -649,7 +657,7 @@ This function is adapted from `org-html-special-block'."
                                         (concat class " " block-type)
                                       block-type)))))
     (let* ((contents (or contents ""))
-           ;; If #+NAME is specified, use that for the HTML element
+           ;; If #+name is specified, use that for the HTML element
            ;; "id" attribute.
            (name (org-element-property :name special-block))
            (attr-str (org-html--make-attribute-string
@@ -857,7 +865,7 @@ contextual information."
                                    table-num caption-str))))
          (attr (org-export-read-attribute :attr_html table))
          ;; At the moment only the `class' attribute is supported in
-         ;; #+ATTR_HTML above tables.
+         ;; #+attr_html above tables.
          (table-class-user (plist-get attr :class))
          (table-class-auto (concat "table-"
                                    (if table-num
