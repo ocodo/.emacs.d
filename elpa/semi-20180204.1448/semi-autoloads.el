@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "mime-edit" "mime-edit.el" (22540 4653 0 0))
+;;;### (autoloads nil "mime-edit" "mime-edit.el" (23166 23268 868572
+;;;;;;  855000))
 ;;; Generated autoloads from mime-edit.el
 
 (autoload 'mime-edit-mode "mime-edit" "\
@@ -165,7 +166,8 @@ converted to MIME-Edit tags.
 
 ;;;***
 
-;;;### (autoloads nil "mime-play" "mime-play.el" (22540 4653 0 0))
+;;;### (autoloads nil "mime-play" "mime-play.el" (23166 23268 872572
+;;;;;;  850000))
 ;;; Generated autoloads from mime-play.el
 
 (autoload 'mime-preview-play-current-entity "mime-play" "\
@@ -188,7 +190,8 @@ specified, play as it.  Default MODE is \"play\".
 
 ;;;***
 
-;;;### (autoloads nil "mime-view" "mime-view.el" (22540 4653 0 0))
+;;;### (autoloads nil "mime-view" "mime-view.el" (23166 23268 864572
+;;;;;;  860000))
 ;;; Generated autoloads from mime-view.el
 
 (autoload 'mime-display-message "mime-view" "\
@@ -229,7 +232,8 @@ message.  It must be nil, `binary' or `cooked'.  If it is nil,
 
 ;;;***
 
-;;;### (autoloads nil "postpet" "postpet.el" (22540 4653 0 0))
+;;;### (autoloads nil "postpet" "postpet.el" (23166 23268 880572
+;;;;;;  841000))
 ;;; Generated autoloads from postpet.el
 
 (autoload 'postpet-decode "postpet" "\
@@ -248,7 +252,7 @@ message.  It must be nil, `binary' or `cooked'.  If it is nil,
 ;;;;;;  "mime-mac.el" "mime-partial.el" "mime-pgp.el" "mime-setup.el"
 ;;;;;;  "mime-shr.el" "mime-signature.el" "mime-tnef.el" "mime-vcard.el"
 ;;;;;;  "mime-w3.el" "semi-def.el" "semi-pkg.el" "semi-setup.el"
-;;;;;;  "signature.el") (22540 4653 0 0))
+;;;;;;  "signature.el") (23166 23268 892572 826000))
 
 ;;;***
 

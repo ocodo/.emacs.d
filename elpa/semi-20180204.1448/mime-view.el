@@ -85,6 +85,12 @@ buttom. Nil means don't scroll at all."
   :group 'mime-view
   :type 'boolean)
 
+(defcustom mime-view-multipart/alternative-show-all-children nil
+  "When non-nil, show hidden descendant entities's buttons in
+multipart/alternative entities."
+  :group 'mime-view
+  :type 'boolean)
+
 (defcustom mime-view-text/html-score 3
   "Score for text/html entity when previewer is available."
   :group 'mime-view
@@ -1091,6 +1097,22 @@ Score is integer or function or variable.  The function receives entity and retu
       mime-view-text/html-score
     mime-view-entity-lowest-score))
 
+(defun mime-view-multipart-descendant-button (entity situation)
+  (let ((default-situation
+	  (delq nil (cons (assq 'major-mode situation)
+			  (cdr (assq 'childrens-situation situation))))))
+    (mapc
+     (lambda (child)
+       (setq situation (copy-alist (mime-find-entity-preview-situation
+				    child default-situation)))
+       (mime-display-entity
+	child (if (eq (cdr (assq 'type situation)) 'multipart)
+		  (put-alist 'body-presentation-method
+			     'mime-view-multipart-descendant-button
+			     situation)
+		(put-alist 'body 'invisible situation))))
+     (mime-entity-children entity))))
+
 (defun mime-display-multipart/alternative (entity situation)
   (let ((original-major-mode-cell (assq 'major-mode situation))
 	(default-situation
@@ -1119,9 +1141,15 @@ Score is integer or function or variable.  The function receives entity and retu
     (mapc (lambda (pair)
 	    (mime-display-entity
 	     (car pair)
-	     (if (eq p (car pair))
-		 (cdr pair)
-	       (put-alist 'body 'invisible (copy-alist (cdr pair))))))
+	     (cond
+	      ((eq p (car pair))
+	       (cdr pair))
+	      ((and mime-view-multipart/alternative-show-all-children
+		    (eq (cdr (assq 'type (cdr pair))) 'multipart))
+	       (put-alist 'body-presentation-method
+			  'mime-view-multipart-descendant-button
+			  (copy-alist (cdr pair))))
+	      (t (put-alist 'body 'invisible (copy-alist (cdr pair)))))))
 	  pairs)
     ))
 
