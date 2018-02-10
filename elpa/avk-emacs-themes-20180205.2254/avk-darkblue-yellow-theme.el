@@ -1,4 +1,4 @@
-;;; avk-darkblue-white-theme.el --- DarkBlue+White theme from AVK
+;;; avk-darkblue-yellow-theme.el --- DarkBlue+White theme from AVK
 
 ;; Copyright (C) 2015 Alex V. Koval
 
@@ -11,7 +11,7 @@
 
 ;;; Commentary:
 ;;
-;; Alex V. Koval avk-darkblue-white theme
+;; Alex V. Koval avk-darkblue-yellow theme
 ;;
 ;; Dark contrast theme. Getting the right balance for dark theme contast was as challange
 ;; as most of popular themes mentioned low contrast (e.g. solarized family and some others)
@@ -28,16 +28,17 @@
 ;; - doom-* themes (doom-vibrant, doom-molokai)
 ;; - warm-night
 ;; - moe-dark
-
+;;
 
 ;;; Code:
 
 
-(deftheme avk-darkblue-white "DarkBlue background + white font foreground theme from AVK")
+(deftheme avk-darkblue-yellow "DarkBlue background + yellow font foreground theme from AVK")
 
 (let ((class '((class color) (min-colors 89))))
   (custom-theme-set-faces
-   `avk-darkblue-white
+   'avk-darkblue-yellow
+
    `(ac-candidate-face ((t (:background "gray23" :foreground "yellow2" :weight bold))))
    `(ac-selection-face ((t (:background "royalBlue4" :foreground "yellow2" :weight bold))))
    `(ahg-status-deleted-face ((default (:inherit font-lock-warning-face)) (nil nil)))
@@ -51,11 +52,11 @@
    `(compilation-line-number ((t (:foreground "orange red" :weight bold))))
    `(cursor ((t (:background "green"))))
    `(custom-variable-tag ((((class color) (background dark)) (:inherit variable-pitch :foreground "DarkOrange" :weight bold))))
-   `(default ((t (:stipple nil :background "#191935" :foreground "ivory3" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal ))))
+   `(default ((t (:stipple nil :background "#191935" :foreground "wheat3" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal ))))
    `(diff-added ((t (:foreground "lawn green"))))
    `(diff-removed ((t (:foreground "light coral"))))
    `(dired-directory ((t (:inherit font-lock-function-name-face))))
-   `(dired-header ((t (:inherit font-lock-type-face :inverse-video t :weight bold :height 1.1))))
+   `(dired-header ((t (:inherit font-lock-type-face :weight bold :height 1.2 :family "verdana"))))
    `(dired-mark ((t (:inherit font-lock-constant-face :foreground "VioletRed4"))))
    `(dired-marked ((t (:background "VioletRed4" :underline "green"))))
    `(django-tag-face ((t (:background "#092e20" :box (:line-width 1 :color "grey22")))) t)
@@ -73,23 +74,20 @@
    `(flycheck-fringe-error ((t (:inherit (flycheck-error)))))
    `(font-lock-builtin-face ((((class color) (min-colors 88) (background dark)) (:foreground "green"))))
    `(font-lock-comment-delimiter-face ((default (:inherit font-lock-comment-face)) (((class color) (min-colors 16)) nil)))
-   `(font-lock-comment-face ((t (:foreground "rosy brown" :slant italic :weight normal))))
-   `(font-lock-function-name-face ((t (:background "midnight blue" :foreground "gray77" :box (:line-width 2 :color "black" :style pressed-button) :weight bold))))
+   `(font-lock-comment-face ((t (:foreground "honeydew4" :slant italic :weight normal))))
+   `(font-lock-function-name-face ((t (:background "#530047" :foreground "gray77" :box (:line-width 2 :color "black" :style pressed-button) :weight bold))))
    `(font-lock-keyword-face ((((class color) (min-colors 88) (background dark)) (:foreground "PaleVioletRed3" :weight bold))))
-   `(font-lock-string-face ((t (:foreground "chartreuse4"))))
+   `(font-lock-string-face ((t (:foreground "forest green"))))
    `(font-lock-warning-face ((((class color) (min-colors 88) (background dark)) (:foreground "PaleVioletRed3" :weight bold))))
    `(helm-buffer-saved-out ((t (:foreground "red"))))
-   `(helm-buffer-directory ((t (:inherit dired-directory))))
-   `(helm-dired-directory ((t (:inherit dired-directory))))
    `(helm-ff-directory ((t (:inherit dired-directory))))
-   `(helm-ff-dotted-directory ((t (:inherit dired-header))))
    `(helm-ff-executable ((t (:foreground "green" :weight bold))))
    `(helm-ff-invalid-symlink ((t (:inherit dired-symlink :strike-through "red"))))
    `(helm-ff-symlink ((t (:inherit dired-symlink))))
    `(helm-selection ((t (:inherit region))))
    `(helm-source-header ((t (:inherit font-lock-function-name-face))))
    `(helm-visible-mark ((t (:background "dark green"))))
-   `(highlight ((t (:weight normal :background "gray6"))))
+   `(highlight ((t (:background "gray30"))))
    `(highlight-changes ((((min-colors 88) (class color)) (:background "#00254a"))))
    `(highlight-changes-delete ((((min-colors 88) (class color)) (:background "#8b6969"))))
    `(hl-line ((t (:background "#0b3540"))))
@@ -101,8 +99,8 @@
    `(jabber-chat-prompt-local ((t (:inherit org-level-4))))
    `(jabber-roster-user-online ((t (:inherit font-lock-string-face))))
    `(lazy-highlight ((((class color) (min-colors 88) (background dark)) (:background "darkgreen" :foreground "black"))))
-   `(linum ((t (:foreground "gray50" :height 0.9 :background "#16103a" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :weight normal))))
-   `(line-number ((t (:foreground "#655d5d" :height 0.9 :background "#292424" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :weight normal))))
+   `(linum ((t (:foreground "DeepSkyBlue3" :height 0.9 :background "#16103a" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :weight normal))))
+   `(line-number ((t (:foreground "DeepSkyBlue3" :height 0.9 :background "#16103a" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :weight normal))))
    `(line-number-current-line ((t (:inherit line-number :inverse-video t :foreground "gray40"))))
    `(match ((((class color) (min-colors 88) (background dark)) (:background "SlateBlue4" :foreground "white"))))
    `(message-cited-text ((((class color) (background dark)) (:foreground "SandyBrown"))))
@@ -111,6 +109,9 @@
    `(message-header-subject ((((class color) (background dark)) (:foreground "yellow2"))))
    `(message-separator ((((class color) (background dark)) (:foreground "thistle"))))
    `(minibuffer-prompt ((((background dark)) (:foreground "gold2" :weight bold))))
+;   `(mode-line-80col-face ((t  (:inherit 'mode-line-position-face :foreground "black" :background "#eab700"))))
+;   `(mode-line-read-only-face ((t  (:foreground "blue4" :weight bold))))
+
    `(mode-line ((t (:box (:line-width 2 :color "#315068" :style released-button) :inverse-video nil :foreground "gray90" :background "#315068"))))
    `(mode-line-inactive ((t (:weight light :box (:line-width 1 :color "#27313f" :style nil) :inverse-video nil :foreground "gray60" :background "#27313f" :inherit (mode-line)))))
    `(mode-line-read-only-face ((t (:foreground "cyan3"))))
@@ -122,6 +123,8 @@
    `(mode-line-minor-mode-face ((t (:foreground "gray40"))))
    `(mode-line-process-face ((t :(foreground "LimeGreen"))))
    `(mode-line-80col-face ((t (mode-line-position-face :foreground "black" :background "#eab700"))))
+
+
    `(mumamo-background-chunk-major ((((class color) (min-colors 88) (background dark)) (:background "#123a4d"))))
    `(mumamo-background-chunk-submode1 ((((class color) (min-colors 88) (background dark)) (:background "#2e2e51"))))
    `(notmuch-hello-logo-background ((t (:background "#2f4f4f"))))
@@ -134,15 +137,16 @@
    `(org-agenda-done ((t (:foreground "dark gray" :strike-through "dark slate blue"))))
    `(org-agenda-structure ((t (:height 1.4 :foreground "light sky blue"))))
    `(org-archived ((t (:foreground "LemonChiffon4"))))
-   `(org-column ((t (:weight normal :slant normal :inherit default))))
    `(org-checkbox ((t (:inherit font-lock-function-name-face))))
+   `(org-column ((t (:weight normal :slant normal :inherit default))))
    `(org-column-title ((t (:background "dark green" :underline t :weight bold))))
    `(org-date ((t (:foreground "dark orange" :underline t :weight bold))))
    `(org-done ((t (:foreground "cornsilk4" :strike-through t :weight normal))))
    `(org-habit-alert-face ((((background dark)) (:background "gold" :foreground "red3"))))
+   `(org-habit-overdue-face ((t (:strike-through t :foreground "firebrick"))))
+   `(org-habit-overdue-future-face ((t (:foreground "darkred" :underline (:color foreground-color :style wave)))))
    `(org-headline-done ((((class color) (min-colors 16) (background dark)) (:foreground "dim gray" :strike-through t))))
    `(org-hide ((((background dark)) (:foreground "darkslategrey"))))
-   `(outline-1 ((t (:foreground "LightSteelBlue2" :inherit nil))))
    `(org-level-2 ((((class color) (min-colors 16) (background dark)) (:foreground "RosyBrown2"))))
    `(org-level-4 ((((class color) (min-colors 88) (background dark)) (:foreground "darkgoldenrod3"))))
    `(org-link ((t (:foreground "DarkGoldenrod1" :underline "IndianRed3" :weight bold))))
@@ -152,6 +156,7 @@
    `(org-scheduled-today ((t (:foreground "SeaGreen3" :slant italic))))
    `(org-todo ((t (:foreground "forest green" :weight bold :box (:line-width 1 :color "dark green" :style nil) :foreground "forest green"))))
    `(org-upcoming-deadline ((t (:foreground "hot pink"))))
+   `(outline-1 ((t (:foreground "LightSteelBlue2" :inherit nil :height 1.3))))
    `(outline-3 ((t (:foreground "seashell3"))))
    `(outline-7 ((t (:foreground "chartreuse"))))
    `(py-XXX-tag-face ((t (:background "medium violet red" :foreground "white"))) t)
@@ -177,6 +182,7 @@
    `(whitespace-tab ((t (:background "#03222f"))))
    `(widget-button ((t (:foreground "yellow2"))))
    `(fringe ((t (:background "#0f1a39" :foreground "yellow"))))
+
    `(ediff-current-diff-A ((t (:background "pale green" :foreground "firebrick"))))
    `(ediff-current-diff-Ancestor ((t (:background "VioletRed" :foreground "Black"))))
    `(ediff-current-diff-B ((t (:background "Yellow" :foreground "DarkOrchid"))))
@@ -194,7 +200,9 @@
    `(ediff-odd-diff-B ((t (:background "light grey" :foreground "Black"))))
    `(ediff-odd-diff-C ((t (:background "Grey" :foreground "White"))))
    `(highlight-indentation-face ((t (:background "#202335"))))
-))
+   `(ledger-occur-xact-face ((t (:background "gray5"))))
+   )
+  )
 
 ;;;###autoload
 (when (and load-file-name (boundp 'custom-theme-load-path))
@@ -202,5 +210,5 @@
       'custom-theme-load-path
       (file-name-as-directory (file-name-directory load-file-name))))
 
-(provide-theme 'avk-darkblue-white)
-;;; avk-darkblue-white-theme.el ends here
+(provide-theme 'avk-darkblue-yellow)
+;;; avk-darkblue-yellow-theme.el ends here
