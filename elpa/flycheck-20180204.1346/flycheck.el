@@ -226,6 +226,7 @@ attention to case differences."
     r-lintr
     racket
     rpm-rpmlint
+    markdown-markdownlint-cli
     markdown-mdl
     nix
     rst-sphinx
@@ -2391,10 +2392,8 @@ otherwise search for the best checker from `flycheck-checkers'.
 Return checker if there is a checker for the current buffer, or
 nil otherwise."
   (if flycheck-checker
-      (if (flycheck-may-use-checker flycheck-checker)
-          flycheck-checker
-        (error "Flycheck cannot use %s in this buffer, type M-x flycheck-verify-setup for more details"
-               flycheck-checker))
+      (when (flycheck-may-use-checker flycheck-checker)
+        flycheck-checker)
     (seq-find #'flycheck-may-use-checker flycheck-checkers)))
 
 (defun flycheck-get-next-checker-for-buffer (checker)
@@ -7793,6 +7792,17 @@ When non-nil, stack will append '--nix' flag to any call."
   :safe #'booleanp
   :package-version '(flycheck . "26"))
 
+(flycheck-def-option-var flycheck-ghc-stack-project-file nil haskell-stack-ghc
+  "Override project stack.yaml file.
+
+The value of this variable is a file path that refers to a yaml
+file for the current stack project. Relative file paths are
+resolved against the checker's working directory. When non-nil,
+stack will get overridden value via `--stack-yaml'."
+  :type 'string
+  :safe #'stringp
+  :package-version '(flycheck . "32"))
+
 (flycheck-def-option-var flycheck-ghc-no-user-package-database nil haskell-ghc
   "Whether to disable the user package database in GHC.
 
@@ -7889,6 +7899,7 @@ contains a cabal file."
 
 See URL `https://github.com/commercialhaskell/stack'."
   :command ("stack"
+            (option "--stack-yaml" flycheck-ghc-stack-project-file)
             (option-flag "--nix" flycheck-ghc-stack-use-nix)
             "ghc" "--" "-Wall" "-no-link"
             "-outputdir" (eval (flycheck-haskell-ghc-cache-directory))
@@ -8152,6 +8163,23 @@ See URL `https://eslint.org' for more information about ESLint."
           (let-alist (caar (flycheck-parse-json output))
             .messages)))
 
+(defun flycheck-eslint--find-working-directory (_checker)
+  "Look for a working directory to run CHECKER in.
+
+This will either be the directory that contains `.eslintrc' by
+supports configuration files formats or `.eslintignore', if no
+such file is found in the directory hierarchy, searches
+`node_modules' directory to detect root of project."
+  (let* ((regex-config (concat "\\`\\.eslintrc"
+                               "\\(\\.\\(js\\|ya?ml\\|json\\)\\)?\\'")))
+    (when buffer-file-name
+      (or (locate-dominating-file buffer-file-name "node_modules")
+          (locate-dominating-file buffer-file-name ".eslintignore")
+          (locate-dominating-file
+           (file-name-directory buffer-file-name)
+           (lambda (directory)
+             (> (length (directory-files directory nil regex-config t)) 0)))))))
+
 (flycheck-define-checker javascript-eslint
   "A Javascript syntax and style checker using eslint.
 
@@ -8163,6 +8191,7 @@ See URL `http://eslint.org/'."
   :error-parser flycheck-parse-eslint
   :enabled (lambda () (flycheck-eslint-config-exists-p))
   :modes (js-mode js-jsx-mode js2-mode js2-jsx-mode js3-mode rjsx-mode)
+  :working-directory flycheck-eslint--find-working-directory
   :verify
   (lambda (_)
     (let* ((default-directory
@@ -8339,12 +8368,22 @@ Relative paths are relative to the file being checked."
   :safe #'flycheck-string-list-p
   :package-version '(flycheck . "0.24"))
 
+(flycheck-def-option-var flycheck-perl-module-list nil perl
+  "A list of modules to use for Perl.
+
+The value of this variable is a list of strings, where each
+string is a module to 'use' in Perl."
+  :type '(repeat :tag "Module")
+  :safe #'flycheck-string-list-p
+  :package-version '(flycheck . "32"))
+
 (flycheck-define-checker perl
   "A Perl syntax checker using the Perl interpreter.
 
 See URL `https://www.perl.org'."
   :command ("perl" "-w" "-c"
-            (option-list "-I" flycheck-perl-include-path))
+            (option-list "-I" flycheck-perl-include-path)
+            (option-list "-M" flycheck-perl-module-list concat))
   :standard-input t
   :error-patterns
   ((error line-start (minimal-match (message))
@@ -8948,6 +8987,28 @@ See URL `https://sourceforge.net/projects/rpmlint/'."
                             ;; In `sh-mode', we need the proper shell
                             (eq sh-shell 'rpm))))
 
+(flycheck-def-config-file-var flycheck-markdown-markdownlint-cli-config
+    markdown-markdownlint-cli nil
+  :safe #'stringp
+  :package-version '(flycheck . "32"))
+
+(flycheck-define-checker markdown-markdownlint-cli
+  "Markdown checker using markdownlint-cli.
+
+See URL `https://github.com/igorshubovych/markdownlint-cli'."
+  :command ("markdownlint"
+            (config-file "--config" flycheck-markdown-markdownlint-cli-config)
+            source)
+  :error-patterns
+  ((error line-start
+          (file-name) ": " line ": " (id (one-or-more (not (any space))))
+          " " (message) line-end))
+  :error-filter
+  (lambda (errors)
+    (flycheck-sanitize-errors
+     (flycheck-remove-error-file-names "(string)" errors)))
+  :modes (markdown-mode gfm-mode))
+
 (flycheck-def-option-var flycheck-markdown-mdl-rules nil markdown-mdl
   "Rules to enable for mdl.
 
@@ -9211,21 +9272,25 @@ See URL `http://jruby.org/'."
   :modes (enh-ruby-mode ruby-mode)
   :next-checkers ((warning . ruby-rubylint)))
 
-(flycheck-def-args-var flycheck-cargo-rustc-args (rust-cargo)
-  :package-version '(flycheck . "30"))
+(flycheck-def-args-var flycheck-cargo-check-args (rust-cargo)
+  :package-version '(flycheck . "32"))
 
-(flycheck-def-args-var flycheck-rust-args (rust-cargo rust)
+(flycheck-def-args-var flycheck-rust-args (rust)
   :package-version '(flycheck . "0.24"))
 
 (flycheck-def-option-var flycheck-rust-check-tests t (rust-cargo rust)
   "Whether to check test code in Rust.
 
-When non-nil, `rustc' is passed the `--test' flag, which will
-check any code marked with the `#[cfg(test)]' attribute and any
-functions marked with `#[test]'. Otherwise, `rustc' is not passed
-`--test' and test code will not be checked.  Skipping `--test' is
-necessary when using `#![no_std]', because compiling the test
-runner requires `std'."
+For the `rust' checker: When non-nil, `rustc' is passed the
+`--test' flag, which will check any code marked with the
+`#[cfg(test)]' attribute and any functions marked with
+`#[test]'. Otherwise, `rustc' is not passed `--test' and test
+code will not be checked.  Skipping `--test' is necessary when
+using `#![no_std]', because compiling the test runner requires
+`std'.
+
+For the `rust-cargo' checker: When non-nil, calls `cargo test
+--no-run' instead of `cargo check'."
   :type 'boolean
   :safe #'booleanp
   :package-version '("flycheck" . "0.19"))
@@ -9270,7 +9335,7 @@ for the `--crate-type' flag of rustc."
 (make-variable-buffer-local 'flycheck-rust-crate-type)
 
 (flycheck-def-option-var flycheck-rust-binary-name nil rust-cargo
-  "The name of the binary to pass to `cargo rustc --CRATE-TYPE'.
+  "The name of the binary to pass to `cargo check --CRATE-TYPE'.
 
 The value of this variable is a string denoting the name of the
 target to check: usually the name of the crate, or the name of
@@ -9320,24 +9385,22 @@ A valid Cargo target type is one of `lib', `bin', `example',
 (flycheck-define-checker rust-cargo
   "A Rust syntax checker using Cargo.
 
-This syntax checker requires Rust 1.15 or newer.  See URL
+This syntax checker requires Rust 1.17 or newer.  See URL
 `https://www.rust-lang.org'."
-  :command ("cargo" "rustc"
+  :command ("cargo"
+            (eval (if flycheck-rust-check-tests
+                      "test"
+                    "check"))
+            (eval (when flycheck-rust-check-tests
+                    "--no-run"))
             (eval (when flycheck-rust-crate-type
                     (concat "--" flycheck-rust-crate-type)))
             ;; All crate targets except "lib" need a binary name
             (eval (when (and flycheck-rust-crate-type
                              (not (string= flycheck-rust-crate-type "lib")))
                     flycheck-rust-binary-name))
-            "--message-format=json"
-            (eval flycheck-cargo-rustc-args)
-            "--"
-            ;; Passing the "--test" flag when the target is a test binary or
-            ;; bench is unnecessary and triggers an error.
-            (eval (when flycheck-rust-check-tests
-                    (unless (member flycheck-rust-crate-type '("test" "bench"))
-                      "--test")))
-            (eval flycheck-rust-args))
+            (eval flycheck-cargo-check-args)
+            "--message-format=json")
   :error-parser flycheck-parse-cargo-rustc
   :error-filter flycheck-rust-error-filter
   :error-explainer flycheck-rust-error-explainer
