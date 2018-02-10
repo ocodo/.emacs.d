@@ -15,7 +15,7 @@
 (defconst php-mode-version-number "1.18.4"
   "PHP Mode version number.")
 
-(defconst php-mode-modified "2017-12-03"
+(defconst php-mode-modified "2018-01-30"
   "PHP Mode build date.")
 
 ;; This file is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@
 
 ;; ## Usage
 
-;; Put this file in your Emacs lisp path (eg. site-lisp) and add to
+;; Put this file in your Emacs Lisp path (eg. site-lisp) and add to
 ;; your .emacs file:
 
 ;;   (require 'php-mode)
@@ -81,8 +81,10 @@
 (require 'flymake)
 (require 'etags)
 (require 'speedbar)
+(require 'imenu)
 
 (require 'cl-lib)
+(require 'mode-local)
 
 (eval-when-compile
   (require 'regexp-opt)
@@ -259,13 +261,23 @@ can be used to match against definitions for that classlike."
     "^\\s-*function\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*(" 1))
   "Imenu generic expression for PHP Mode.  See `imenu-generic-expression'.")
 
-(defcustom php-site-url "http://php.net/"
+(defcustom php-do-not-use-semantic-imenu t
+  "Customize `imenu-create-index-function' for `php-mode'.
+
+If using `semantic-mode' `imenu-create-index-function' will be
+set to `semantic-create-imenu-index' due to `c-mode' being its
+parent.  Set this variable to t if you want to use
+`imenu-default-create-index-function' even with `semantic-mode'
+enabled."
+  :type 'boolean)
+
+(defcustom php-site-url "https://secure.php.net/"
   "Default PHP.net site URL.
 
 The URL to use open PHP manual and search word.
 You can find a mirror site closer to you."
   :type 'string
-  :link '(url-link :tag "List of Mirror Sites" "http://php.net/mirrors.php"))
+  :link '(url-link :tag "List of Mirror Sites" "https://secure.php.net/mirrors.php"))
 
 (defcustom php-manual-url 'en
   "URL at which to find PHP manual.
@@ -337,7 +349,7 @@ Turning this on will force PEAR rules on all PHP files."
 mumamo-mode turned on. Detects if there are any HTML tags in the
 buffer before warning, but this is is not very smart; e.g. if you
 have any tags inside a PHP string, it will be fooled."
-  :type '(choice (const :tag "Warg" t) (const "Don't warn" nil)))
+  :type '(choice (const :tag "Warn" t) (const "Don't warn" nil)))
 
 (defcustom php-mode-coding-style 'pear
   "Select default coding style to use with php-mode.
@@ -468,6 +480,16 @@ SYMBOL
 
 (c-lang-defconst c-vsemi-status-unknown-p-fn
   php 'php-c-vsemi-status-unknown-p)
+
+(c-lang-defconst c-get-state-before-change-functions
+  php nil)
+
+(c-lang-defconst c-before-font-lock-functions
+  php (let (functions)
+        (when (fboundp #'c-change-expand-fl-region)
+          (cl-pushnew 'c-change-expand-fl-region functions))
+        (when (fboundp #'c-depropertize-new-text)
+          (cl-pushnew 'c-depropertize-new-text functions))))
 
 ;; Make php-mode recognize opening tags as preprocessor macro's.
 ;;
@@ -939,9 +961,10 @@ this ^ lineup"
     (beginning-of-line)
     (if (looking-at-p "\\s-*;\\s-*$") 0 '+)))
 
-(defconst php-heredoc-start-re
-  "<<<\\(?:\\w+\\|'\\w+'\\)$"
-  "Regular expression for the start of a PHP heredoc.")
+(eval-and-compile
+  (defconst php-heredoc-start-re
+    "<<<\\(?:\\w+\\|'\\w+'\\)$"
+    "Regular expression for the start of a PHP heredoc."))
 
 (defun php-heredoc-end-re (heredoc-start)
   "Build a regular expression for the end of a heredoc started by the string HEREDOC-START."
@@ -951,9 +974,6 @@ this ^ lineup"
 
 (defun php-syntax-propertize-function (start end)
   "Apply propertize rules from START to END."
-  ;; (defconst php-syntax-propertize-function
-  ;;   (syntax-propertize-rules
-  ;;    (php-heredoc-start-re (0 (ignore (php-heredoc-syntax))))))
   (goto-char start)
   (while (and (< (point) end)
               (re-search-forward php-heredoc-start-re end t))
@@ -962,7 +982,12 @@ this ^ lineup"
   (while (re-search-forward "['\"]" end t)
     (when (php-in-comment-p)
       (c-put-char-property (match-beginning 0)
-                           'syntax-table (string-to-syntax "_")))))
+                           'syntax-table (string-to-syntax "_"))))
+  (funcall
+   (syntax-propertize-rules
+    ("\\(\"\\)\\(\\\\.\\|[^\"\n\\]\\)*\\(\"\\)" (1 "\"") (3 "\""))
+    ("\\('\\)\\(\\\\.\\|[^'\n\\]\\)*\\('\\)" (1 "\"") (3 "\"")))
+   start end))
 
 (defun php-heredoc-syntax ()
   "Mark the boundaries of searched heredoc."
@@ -1150,14 +1175,9 @@ After setting the stylevars run hooks according to STYLENAME
   (modify-syntax-entry ?\n   "> b" php-mode-syntax-table)
   (modify-syntax-entry ?$    "'" php-mode-syntax-table)
 
-  (set (make-local-variable 'syntax-propertize-via-font-lock)
-       '(("\\(\"\\)\\(\\\\.\\|[^\"\n\\]\\)*\\(\"\\)" (1 "\"") (3 "\""))
-         ("\\(\'\\)\\(\\\\.\\|[^\'\n\\]\\)*\\(\'\\)" (1 "\"") (3 "\""))))
-
+  (setq-local syntax-propertize-function #'php-syntax-propertize-function)
   (add-to-list (make-local-variable 'syntax-propertize-extend-region-functions)
                #'php-syntax-propertize-extend-region)
-  (set (make-local-variable 'syntax-propertize-function)
-       #'php-syntax-propertize-function)
 
   (setq imenu-generic-expression php-imenu-generic-expression)
 
@@ -1211,6 +1231,13 @@ After setting the stylevars run hooks according to STYLENAME
     (with-silent-modifications
       (save-excursion
         (php-syntax-propertize-function (point-min) (point-max))))))
+
+(defvar-mode-local php-mode imenu-create-index-function
+  (if php-do-not-use-semantic-imenu
+      #'imenu-default-create-index-function
+    (require 'semantic/imenu)
+    #'semantic-create-imenu-index)
+  "Imenu index function for PHP.")
 
 
 ;; Define function name completion function
@@ -1497,8 +1524,8 @@ a completion list."
 
 (defvar php-phpdoc-font-lock-keywords
   `((,(lambda (limit)
-	(c-font-lock-doc-comments "/\\*\\*" limit
-	  php-phpdoc-font-lock-doc-comments)))))
+        (c-font-lock-doc-comments "/\\*\\*" limit
+          php-phpdoc-font-lock-doc-comments)))))
 
 (defconst php-font-lock-keywords-1 (c-lang-const c-matchers-1 php)
   "Basic highlighting for PHP Mode.")
@@ -1536,8 +1563,12 @@ a completion list."
      ;; - when used as a type hint
      ;; - when used as a return type
      ("(\\(array\\))" 1 font-lock-type-face)
-     ("\\b\\(array\\)\\s-+\\$" 1 font-lock-type-face)
+     ("\\b\\(array\\)\\s-+&?\\$" 1 font-lock-type-face)
      (")\\s-*:\\s-*\\??\\(array\\)\\b" 1 font-lock-type-face)
+
+     ;; namespaces
+     ("\\(\\([a-zA-Z0-9_]+\\\\\\)+[a-zA-Z0-9_]+\\|\\(\\\\[a-zA-Z0-9_]+\\)+\\)[^:a-zA-Z0-9_\\\\]" 1 'font-lock-type-face)
+     ("\\(\\([a-zA-Z0-9_]+\\\\\\)+[a-zA-Z0-9_]+\\|\\(\\\\[a-zA-Z0-9_]+\\)+\\)::" 1 'php-constant)
 
      ;; Support the ::class constant in PHP5.6
      ("\\sw+\\(::\\)\\(class\\)\\b" (1 'php-paamayim-nekudotayim) (2 'php-constant)))
@@ -1679,20 +1710,6 @@ The output will appear in the buffer *PHP*."
       (delete-char 1))))
 
 (ad-activate 'fixup-whitespace)
-
-;; Advice `font-lock-fontify-keywords-region' to support namespace
-;; separators in class names. Use word syntax for backslashes when
-;; doing keyword fontification, but not when doing syntactic
-;; fontification because that breaks \ as escape character in strings.
-;;
-;; Special care is taken to restore the original syntax, because we
-;; want \ not to be word for functions like forward-word.
-(defadvice font-lock-fontify-keywords-region (around backslash-as-word activate)
-  "Fontify keywords with backslash as word character."
-  (let ((old-syntax (string (char-syntax ?\\))))
-    (modify-syntax-entry ?\\ "w")
-    ad-do-it
-    (modify-syntax-entry ?\\ old-syntax)))
 
 
 (defcustom php-class-suffix-when-insert "::"
