@@ -12,9 +12,9 @@
        ((:keywords "tools" "processes" "convenience")
 	(:url . "https://github.com/leoliu/ack-el"))])
  (ada-mode .
-	   [(5 2 2)
+	   [(5 3 1)
 	    ((wisi
-	      (1 1 5))
+	      (1 1 6))
 	     (cl-lib
 	      (0 4))
 	     (emacs
@@ -46,7 +46,7 @@
 		     ((:url . "https://github.com/Malabarba/aggressive-indent-mode")
 		      (:keywords "indent" "lisp" "maint" "tools"))])
  (ahungry-theme .
-		[(1 4 0)
+		[(1 10 0)
 		 ((emacs
 		   (24)))
 		 "Ahungry color theme for Emacs.  Make sure to (load-theme 'ahungry)." tar
@@ -63,14 +63,14 @@
 	((:url . "http://elpa.gnu.org/packages/ampc.html")
 	 (:keywords "ampc" "mpc" "mpd"))])
  (arbitools .
-	    [(0 71)
+	    [(0 94)
 	     ((cl-lib
 	       (0 5)))
 	     "Package for chess tournaments administration" single
 	     ((:url . "http://elpa.gnu.org/packages/arbitools.html")
 	      (:keywords))])
  (ascii-art-to-unicode .
-		       [(1 9)
+		       [(1 11)
 			nil "a small artist adjunct" single
 			((:url . "http://www.gnuvola.org/software/aa2u/")
 			 (:keywords "ascii" "unicode" "box-drawing"))])
@@ -80,7 +80,7 @@
 	 ((:keywords "async")
 	  (:url . "http://elpa.gnu.org/packages/async.html"))])
  (auctex .
-	 [(11 91 0)
+	 [(12 1 0)
 	  nil "Integrated environment for *TeX*" tar
 	  ((:url . "http://www.gnu.org/software/auctex/"))])
  (aumix-mode .
@@ -88,6 +88,11 @@
 	      nil "run the aumix program in a buffer" single
 	      ((:url . "http://user42.tuxfamily.org/aumix-mode/index.html")
 	       (:keywords "multimedia" "mixer" "aumix"))])
+ (auto-correct .
+	       [(1 1 3)
+		nil "Remembers and automatically fixes past corrections" single
+		((:url . "http://elpa.gnu.org/packages/auto-correct.html")
+		 (:keywords "editing"))])
  (auto-overlays .
 		[(0 10 9)
 		 nil "Automatic regexp-delimited overlays" tar
@@ -102,8 +107,14 @@
        "tree-based completion" tar
        ((:keywords "point" "location")
 	(:url . "https://github.com/abo-abo/avy"))])
+ (bbdb .
+       [(3 2)
+	((emacs
+	  (24)))
+	"core of BBDB" tar
+	((:url . "http://elpa.gnu.org/packages/bbdb.html"))])
  (beacon .
-	 [(1 3 2)
+	 [(1 3 3)
 	  ((seq
 	    (2 14)))
 	  "Highlight the cursor whenever the window scrolls" single
@@ -123,6 +134,11 @@
 	     nil "Caps-lock as a minor mode" single
 	     ((:url . "http://elpa.gnu.org/packages/caps-lock.html")
 	      (:keywords))])
+ (captain .
+	  [(1 0 3)
+	   nil "CAPiTalization is Automatic IN emacs" single
+	   ((:url . "http://elpa.gnu.org/packages/captain.html")
+	    (:keywords "editing"))])
  (chess .
 	[(2 0 4)
 	 ((cl-lib
@@ -220,7 +236,7 @@
 	 ((:url . "http://elpa.gnu.org/packages/crisp.html")
 	  (:keywords "emulations" "brief" "crisp"))])
  (csv-mode .
-	   [(1 6)
+	   [(1 7)
 	    nil "Major mode for editing comma/char separated values" single
 	    ((:url . "http://elpa.gnu.org/packages/csv-mode.html")
 	     (:keywords "convenience"))])
@@ -249,7 +265,7 @@
 		((:url . "http://elpa.gnu.org/packages/dbus-codegen.html")
 		 (:keywords "comm" "dbus" "convenience"))])
  (debbugs .
-	  [(0 14)
+	  [(0 15)
 	   ((soap-client
 	     (3 1 1))
 	    (cl-lib
@@ -325,7 +341,7 @@
 	     ((:keywords "killing" "convenience")
 	      (:url . "https://github.com/leoliu/easy-kill"))])
  (ebdb .
-       [(0 2)
+       [(0 4 2)
 	((emacs
 	  (25 1))
 	 (cl-lib
@@ -345,7 +361,7 @@
 	      ((:url . "http://elpa.gnu.org/packages/ebdb-gnorb.html")
 	       (:keywords))])
  (ebdb-i18n-chn .
-		[(1 0 1)
+		[(1 2)
 		 ((pyim
 		   (1 6 0))
 		  (ebdb
@@ -359,11 +375,13 @@
 	     ((:url . "http://elpa.gnu.org/packages/ediprolog.html")
 	      (:keywords "languages" "processes"))])
  (el-search .
-	    [(1 3 2)
+	    [(1 5 4)
 	     ((emacs
 	       (25))
 	      (stream
-	       (2 2 3)))
+	       (2 2 4))
+	      (cl-print
+	       (1 0)))
 	     "Expression based interactive search for Emacs Lisp" tar
 	     ((:keywords "lisp")
 	      (:url . "http://elpa.gnu.org/packages/el-search.html"))])
@@ -412,7 +430,7 @@
 	       ((:keywords "calendar")
 		(:url . "http://elpa.gnu.org/packages/excorporate.html"))])
  (exwm .
-       [(0 15)
+       [(0 16)
 	((xelb
 	  (0 12)))
 	"Emacs X Window Manager" tar
@@ -451,7 +469,7 @@
 	  ((:url . "https://github.com/leoliu/ggtags")
 	   (:keywords "tools" "convenience"))])
  (gited .
-	[(0 3 3)
+	[(0 3 4)
 	 ((emacs
 	   (24 4))
 	  (cl-lib
@@ -459,13 +477,20 @@
 	 "Operate on Git branches like dired" tar
 	 ((:keywords "git" "vc" "convenience")
 	  (:url . "http://elpa.gnu.org/packages/gited.html"))])
+ (gle-mode .
+	   [(1 1)
+	    ((cl-lib
+	      (0 5)))
+	    "Major mode to edit Graphics Layout Engine files" single
+	    ((:url . "http://elpa.gnu.org/packages/gle-mode.html")
+	     (:keywords))])
  (gnome-c-style .
 		[(0 1)
 		 nil "minor mode for editing GNOME-style C source code" tar
 		 ((:keywords "gnome" "c" "coding style")
 		  (:url . "http://elpa.gnu.org/packages/gnome-c-style.html"))])
  (gnorb .
-	[(1 2 3)
+	[(1 4 2)
 	 ((cl-lib
 	   (0 5)))
 	 "Glue code between Gnus, Org, and BBDB" tar
@@ -521,7 +546,7 @@
 	 ((:keywords "bindings")
 	  (:url . "https://github.com/abo-abo/hydra"))])
  (hyperbole .
-	    [(6 0 2)
+	    [(7 0 2)
 	     ((emacs
 	       (24 4)))
 	     "GNU Hyperbole: The Everyday Hypertextual Information Manager" tar
@@ -540,7 +565,7 @@
 	     ((:url . "http://elpa.gnu.org/packages/iterators.html")
 	      (:keywords "extensions" "elisp"))])
  (ivy .
-      [(0 9 1)
+      [(0 10 0)
        ((emacs
 	 (24 1)))
        "Incremental Vertical completYon" tar
@@ -664,6 +689,15 @@
 	    "Create keyboard events from Midi input" single
 	    ((:url . "http://elpa.gnu.org/packages/midi-kbd.html")
 	     (:keywords "convenience" "hardware" "multimedia"))])
+ (mines .
+	[(1 6)
+	 ((emacs
+	   (24 4))
+	  (cl-lib
+	   (0 5)))
+	 "Minesweeper game" tar
+	 ((:keywords "games")
+	  (:url . "https://github.com/calancha/Minesweeper"))])
  (minibuffer-line .
 		  [(0 1)
 		   nil "Display status info in the minibuffer window" single
@@ -717,7 +751,7 @@
 	      ((:url . "http://elpa.gnu.org/packages/nhexl-mode.html")
 	       (:keywords "data"))])
  (nlinum .
-	 [(1 7)
+	 [(1 8 1)
 	  nil "Show line numbers in the margin" single
 	  ((:url . "http://elpa.gnu.org/packages/nlinum.html")
 	   (:keywords "convenience"))])
@@ -752,11 +786,8 @@
 	     "guide your eyes while scrolling" single
 	     ((:url . "https://github.com/michael-heerdegen/on-screen.el")
 	      (:keywords "convenience"))])
- (org .
-      [(20170828)
-       nil "Outline-based notes management and organizer" tar nil])
  (org-edna .
-	   [(1 0 -3 1)
+	   [(1 0 -2 6)
 	    ((emacs
 	      (25 1))
 	     (seq
@@ -783,6 +814,15 @@
 	   nil "Predictive abbreviation expansion" single
 	   ((:url . "http://elpa.gnu.org/packages/pabbrev.html")
 	    (:keywords))])
+ (paced .
+	[(1 1 2)
+	 ((emacs
+	   (25 1))
+	  (async
+	   (1 9 1)))
+	 "Predictive Abbreviation Completion and Expansion using Dictionaries" tar
+	 ((:keywords "convenience" "completion")
+	  (:url . "https://savannah.nongnu.org/projects/paced-el/"))])
  (parsec .
 	 [(0 1 3)
 	  ((emacs
@@ -831,6 +871,11 @@
 		nil "Colorize color names in buffers" single
 		((:url . "http://elpa.gnu.org/packages/rainbow-mode.html")
 		 (:keywords "faces"))])
+ (rbit .
+       [(0 1)
+	nil "Red-black persistent interval trees" single
+	((:url . "http://elpa.gnu.org/packages/rbit.html")
+	 (:keywords "data structures" "binary tree" "intervals"))])
  (rcirc-color .
 	      [(0 3)
 	       nil "color nicks" single
@@ -844,11 +889,11 @@
  (realgud .
 	  [(1 4 4)
 	   ((load-relative
-	     (1 3))
+	     (1 2))
 	    (loc-changes
 	     (1 2))
 	    (test-simple
-	     (1 3 0))
+	     (1 2 0))
 	    (cl-lib
 	     (0 5))
 	    (emacs
@@ -917,7 +962,7 @@
 	      ((:url . "http://elpa.gnu.org/packages/smart-yank.html")
 	       (:keywords "convenience"))])
  (sml-mode .
-	   [(6 7)
+	   [(6 8)
 	    ((emacs
 	      (24))
 	     (cl-lib
@@ -933,8 +978,10 @@
 	       ((:keywords "soap" "web-services" "comm" "hypermedia")
 		(:url . "http://elpa.gnu.org/packages/soap-client.html"))])
  (sokoban .
-	  [(1 4 5)
-	   nil "Implementation of Sokoban for Emacs." tar
+	  [(1 4 6)
+	   ((emacs
+	     (23 1)))
+	   "Implementation of Sokoban for Emacs." tar
 	   ((:keywords "games")
 	    (:url . "http://elpa.gnu.org/packages/sokoban.html"))])
  (sotlisp .
@@ -949,6 +996,11 @@
 	   nil "Add spinners and progress-bars to the mode-line for ongoing operations" single
 	   ((:url . "https://github.com/Malabarba/spinner.el")
 	    (:keywords "processes" "mode-line"))])
+ (sql-indent .
+	     [(1 0)
+	      nil "Support for indenting code in SQL files." tar
+	      ((:keywords "languages" "sql")
+	       (:url . "http://elpa.gnu.org/packages/sql-indent.html"))])
  (stream .
 	 [(2 2 4)
 	  ((emacs
@@ -1001,12 +1053,12 @@
 		  ((:url . "http://elpa.gnu.org/packages/timerfunctions.html")
 		   (:keywords))])
  (tiny .
-       [(0 1 1)
+       [(0 2 1)
 	nil "Quickly generate linear ranges in Emacs" tar
 	((:keywords "convenience")
 	 (:url . "https://github.com/abo-abo/tiny"))])
  (tramp-theme .
-	      [(0 1 1)
+	      [(0 2)
 	       ((emacs
 		 (24 1)))
 	       "Custom theme for remote buffers" single
@@ -1064,8 +1116,15 @@
 	 "A diff tool similar to  vimdiff" single
 	 ((:url . "https://github.com/justbur/emacs-vdiff")
 	  (:keywords "diff"))])
+ (vigenere .
+	   [(1 0)
+	    ((emacs
+	      (25 1)))
+	    "Run a vigenere cipher on a block of text ;" single
+	    ((:url . "https://elpa.gnu.org/packages/vigenere.html")
+	     (:keywords "data" "vigenere" "cipher"))])
  (vlf .
-      [(1 7)
+      [(1 7 1)
        nil "View Large Files" tar
        ((:keywords "large files" "utilities")
 	(:url . "https://github.com/m00natic/vlfi"))])
@@ -1101,7 +1160,7 @@
 	     ((:keywords "communication" "websocket" "server")
 	      (:url . "http://elpa.gnu.org/packages/websocket.html"))])
  (which-key .
-	    [(3 0 2)
+	    [(3 1 0)
 	     ((emacs
 	       (24 4)))
 	     "Display available keybindings in popup" tar
@@ -1112,11 +1171,11 @@
 	      ((:url . "http://elpa.gnu.org/packages/windresize.html")
 	       (:keywords "window"))])
  (wisi .
-       [(1 1 5)
+       [(1 1 6)
 	((cl-lib
 	  (0 4))
 	 (emacs
-	  (24 2)))
+	  (24 3)))
 	"Utilities for implementing an indentation/navigation engine using a generalized LALR parser" tar
 	((:keywords "parser" "indentation" "navigation")
 	 (:url . "http://www.nongnu.org/ada-mode/wisi/wisi.html"))])
@@ -1126,7 +1185,7 @@
 	   ((:url . "http://elpa.gnu.org/packages/wpuzzle.html")
 	    (:keywords))])
  (xclip .
-	[(1 3)
+	[(1 4)
 	 nil "use xclip to copy&paste" single
 	 ((:url . "http://elpa.gnu.org/packages/xclip.html")
 	  (:keywords "convenience" "tools"))])
