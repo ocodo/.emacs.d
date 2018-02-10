@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "swiper" "swiper.el" (23138 47755 760378 846000))
+;;;### (autoloads nil "swiper" "swiper.el" (23166 23318 856514 299000))
 ;;; Generated autoloads from swiper.el
 
 (autoload 'swiper-avy "swiper" "\
@@ -21,10 +21,6 @@ When non-nil, INITIAL-INPUT is the initial search pattern.
 Run `swiper' for all open buffers.
 
 \(fn &optional INITIAL-INPUT)" t nil)
-
-;;;***
-
-;;;### (autoloads nil nil ("swiper-pkg.el") (23138 47752 60364 835000))
 
 ;;;***
 

@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20180119.911
+;; Package-Version: 20180209.1316
 ;; Version: 0.10.0
 ;; Package-Requires: ((emacs "24.1") (ivy "0.9.0"))
 ;; Keywords: matching
@@ -256,9 +256,11 @@
     gnus-group-mode
     emms-playlist-mode
     emms-stream-mode
+    eshell-mode
     erc-mode
     forth-mode
     forth-block-mode
+    helpful-mode
     nix-mode
     org-agenda-mode
     dired-mode
@@ -321,7 +323,7 @@
 
 (defun swiper--line ()
   (let* ((beg (cond ((and (eq major-mode 'dired-mode)
-                          dired-isearch-filenames)
+                          (bound-and-true-p dired-isearch-filenames))
                      (dired-move-to-filename)
                      (point))
                     (swiper-use-visual-line
@@ -668,22 +670,29 @@ WND, when specified is the window."
            (end (or end (save-excursion
                           (forward-line wh)
                           (point))))
-           (case-fold-search (and ivy-case-fold-search
-                                  (string= re (downcase re)))))
+           (case-fold-search (ivy--case-fold-p re)))
       (when (>= (length re) swiper-min-highlight)
         (save-excursion
           (goto-char beg)
           ;; RE can become an invalid regexp
           (while (and (ignore-errors (re-search-forward re end t))
                       (> (- (match-end 0) (match-beginning 0)) 0))
-            (let ((mb (match-beginning 0))
-                  (me (match-end 0)))
-              (unless (> (- me mb) 2017)
-                (swiper--add-overlay mb me
-                                     (if (zerop ivy--subexps)
-                                         (cadr swiper-faces)
-                                       (car swiper-faces))
-                                     wnd 0)))
+            (unless (and (consp ivy--old-re)
+                         (null
+                          (save-match-data
+                            (ivy--re-filter ivy--old-re
+                                            (list
+                                             (buffer-substring-no-properties
+                                              (line-beginning-position)
+                                              (line-end-position)))))))
+              (let ((mb (match-beginning 0))
+                    (me (match-end 0)))
+                (unless (> (- me mb) 2017)
+                  (swiper--add-overlay mb me
+                                       (if (zerop ivy--subexps)
+                                           (cadr swiper-faces)
+                                         (car swiper-faces))
+                                       wnd 0))))
             (let ((i 1)
                   (j 0))
               (while (<= (cl-incf j) ivy--subexps)
@@ -865,9 +874,7 @@ otherwise continue prompting for buffers."
            (re-full (funcall ivy--regex-function str))
            re re-tail
            cands match
-           (case-fold-search
-            (and ivy-case-fold-search
-                 (string= str (downcase str)))))
+           (case-fold-search (ivy--case-fold-p str)))
       (if (stringp re-full)
           (setq re re-full)
         (setq re (caar re-full))
