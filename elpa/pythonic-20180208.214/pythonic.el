@@ -4,7 +4,7 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/pythonic
-;; Package-Version: 20171219.810
+;; Package-Version: 20180208.214
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5") (dash "2.11") (s "1.9") (f "0.17.2"))
 
@@ -51,6 +51,34 @@
   "Determine docker remote virtual environment."
   (and (pythonic-remote-p)
        (s-starts-with-p "/docker:" (pythonic-tramp-connection))))
+
+(defun pythonic-remote-vagrant-p ()
+  "Determine vagrant remote virtual environment."
+  (and (pythonic-remote-p)
+       (s-equals-p (pythonic-remote-host) "localhost")
+       (s-equals-p (pythonic-remote-user) "vagrant")))
+
+(defun pythonic-remote-user ()
+  "Get user of the connection to the remote python interpreter."
+  (tramp-file-name-user
+   (tramp-dissect-file-name
+    (pythonic-tramp-connection))))
+
+(defun pythonic-remote-host ()
+  "Get host of the connection to the remote python interpreter."
+  (replace-regexp-in-string
+   "#.*\\'" ""
+   (tramp-file-name-host
+    (tramp-dissect-file-name
+     (pythonic-tramp-connection)))))
+
+(defun pythonic-remote-port ()
+  "Get port of the connection to the remote python interpreter."
+  (let ((hostname (tramp-file-name-host
+                   (tramp-dissect-file-name
+                    (pythonic-tramp-connection)))))
+    (when (s-contains-p "#" hostname)
+      (string-to-number (replace-regexp-in-string "\\`.*#" "" hostname)))))
 
 (defun pythonic-file-name (file)
   "Normalized FILE location with out tramp prefix."
