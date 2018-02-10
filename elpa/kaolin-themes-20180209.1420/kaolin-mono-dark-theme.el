@@ -1,32 +1,37 @@
-;;; kaolin-galaxy-theme.el --- Bright theme based on one of the Sebastian Andaur arts.
+;;; kaolin-mono-dark-theme.el --- Almost monochrome dark green Kaolin theme.
 ;;; Commentary:
 
 ;;; Code:
 (require 'kaolin-themes)
 
-(define-kaolin-theme mono "TODO"
+(define-kaolin-theme mono-dark "Almost monochrome dark green Kaolin theme."
   ;; Palette modification
   (
-   (bg0          "#0c120f")
-   (bg1          "#111915")
-   (bg2          "#16211C")
-   (bg3          "#1B2822")
-   (bg4          "#25352D")
+   (bg0 "#0c120f")
+   (bg1 "#111915")
+   (bg2 "#16211C")
+   (bg3 "#1B2822")
+   (bg4 "#25352D")
+
+   (fg0 "#f5f6f5")
+   (fg1 "#e9eae7")
+   (fg2 "#dcded9")
+   (fg3 "#cfd2cb")
+   (fg4 "#c5c9c0")
 
    ;; Accent color
    (hl aquamarine3)
-   (keyword spring-green6)
+   (keyword spring-green8)
 
    (second-key  magenta4 cerise4)
-   ;; TODO: adjust contrast with keyword
-   (builtin     fg0)
+   ;; (builtin     "#E0F3EB")
+   (builtin     spring-green9)
    (functions   builtin)
    (const       builtin)
    (var         const)
-   (type        fg0)
+   (type        spring-green7)
 
-   ;; (comment     spring-green4)
-   (comment     "#3b5749")
+   (comment "#41544B")
    (alt-comment gray6)
    (warning     orange1)
    (err         red1)
@@ -34,18 +39,19 @@
    (prep        aquamarine1)
    (num         aquamarine1)
    (bool        num)
-   (str         aquamarine1)
+   (str         spring-green3)
    (str-alt     str)
    (doc         str-alt)
 
-
    (dim-buffer bg0)
-   (hl-line    bg3)
+   ;; TODO:
+   (hl-line    (if kaolin-hl-line-colored brown6 bg3))
    (hl-indent  bg4)
    (selection  bg4)
    (pulse      bg4)
 
-   (todo red3)
+   (todo red1)
+
    (done spring-green1)
 
    (tooltip-hl-bg bg4)
@@ -65,9 +71,13 @@
    (rb8 gray9)
    (rb9 gray9)
 
-   (diff-add aquamarine3)
+   (diff-add teal3)
    (diff-mod amber3)
-   (diff-rem red3)
+   (diff-rem red1)
+
+   (diff-bg-add spring-green4)
+   (diff-bg-mod amber4)
+   (diff-bg-rem crimson4)
 
    ;; Mode-line
    (line-fg           fg4)
@@ -88,11 +98,9 @@
 
    (win-border    bg3)
    (line-num-bg   bg1)
-   (line-num-fg   bg4 black4)
-
-   (evil-normal capri4)
-
+   (line-num-fg   spring-green6 black4)
    (line-num-hl  gray9)
+
    (cursor       white2))
 
   ;; Custom theme set faces
@@ -100,23 +108,22 @@
    (default             (:background bg1 :foreground fg3))
    (minibuffer-prompt   (:foreground prep :bold bold))
 
-   (link                (:foreground pink1 :underline underline))
+   (link                (:foreground prep :underline underline))
    (show-paren-mismatch (:background bg2 :foreground red0))
 
-   (telephone-line-accent-active   (:inherit 'mode-line :background line-bg2 :foreground azure6))
+   (telephone-line-accent-active   (:inherit 'mode-line :background line-bg2 :foreground azure8))
    (telephone-line-accent-inactive (:inherit 'mode-line-inactive :background line-bg1 :foreground gray9))
 
-   (org-document-title  (:foreground cerulean6 :bold bold))
-   (org-document-info   (:foreground cerulean6))
+   (org-level-1         (:foreground teal1 :bold bold :height 1.1))
+   (org-level-2         (:foreground keyword :bold nil))
+   (org-level-3         (:foreground spring-green3 :bold nil))
+   (org-level-4         (:foreground aquamarine1 :bold nil))
+   (org-document-title  (:foreground cerulean7 :bold bold))
+   (org-document-info   (:foreground cerulean7))
    (org-date            (:foreground spring-green3 :underline underline))
    (org-code            (:foreground vermilion4))
    (org-verbatim        (:foreground orange1))
    (org-quote           (:foreground blue4)))
-
-  ;; Set custom vars
-  (custom-theme-set-variables
-   'kaolin-galaxy
-   '(kaolin-hl-line-colored t))
 
   (when kaolin-git-gutter-solid
     (custom-theme-set-faces
@@ -126,4 +133,4 @@
      `(git-gutter:deleted   ((t (:background ,diff-rem :foreground ,diff-rem)))))))
 
 
-;;; kaolin-galaxy-theme.el ends here
+;;; kaolin-mono-dark-theme.el ends here

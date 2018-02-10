@@ -9,7 +9,7 @@
   ;; Palette modification
   (
    ;; Colors
-   (spring-green5 "#3e594e")
+   (spring-green6 "#3e594e")
    (aquamarine4   "#518270")
    (orange0       "#d1832e")
 
@@ -18,6 +18,7 @@
    (cyan3         "#6facb3")
 
    ;; Color vars
+   ;; TODO change to more green
    (bg0 "#f5f6f5")
    (bg1 "#e9eae7")
    (bg2 "#dcded9")
@@ -34,10 +35,10 @@
    (second-key  teal2)
    (var         ultramarine4)
    (const       violet4)
-   (builtin     aquamarine4)
-   (comment     chartreuse6)
-   (alt-comment azure6)
-   (functions   builtin)
+   (builtin     cyan4)
+   (comment     lime7)
+   (alt-comment azure8)
+   (functions   teal1)
    (str         brown1)
    (str-alt     brown1)
    (doc         str-alt)
@@ -97,7 +98,7 @@
 
    (win-border    bg3)
    (line-num-bg   bg1)
-   (line-num-fg   chartreuse6)
+   (line-num-fg   chartreuse8)
    (line-num-hl   hl)
 
    (cursor        gray3)
@@ -108,6 +109,9 @@
    (ivy4          red4))
 
   ((link                   (:foreground capri1 :underline underline))
+
+   (highlight-quoted-quote   (:foreground keyword))
+   (highlight-quoted-symbol  (:foreground teal2))
 
    (org-level-1            (:foreground teal1 :bold bold :height 1.1))
    (org-level-2            (:foreground ultramarine4 :bold nil))

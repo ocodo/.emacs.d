@@ -5,7 +5,7 @@
 ;; Author: Ogden Webb <ogdenwebb@gmail.com>
 ;; URL: https://github.com/ogdenwebb/emacs-kaolin-themes
 ;; Package-Requires: ((emacs "25.1") (autothemer "0.2.2") (cl-lib "0.6"))
-;; Version: 1.2.0
+;; Version: 1.3.0
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,11 +28,13 @@
 ;;
 ;; =======  This package includes the following themes  =======
 ;;
-;;  * kaolin-dark - a dark jade variant inspired by Sierra.vim
-;;  * kaolin-light - light variant of the original kaolin-dark
-;;  * kaolin-eclipse - a dark purple variant
-;;  * kaolin-ocean - dark blue variant
+;;  * kaolin-dark - a dark jade variant inspired by Sierra.vim.
+;;  * kaolin-light - light variant of the original kaolin-dark.
+;;  * kaolin-eclipse - a dark purple variant.
+;;  * kaolin-ocean - dark blue variant.
 ;;  * kaolin-galaxy - bright theme based on one of the Sebastian Andaur arts.
+;;  * kaolin-aurora - Kaolin meets polar lights.
+;;  * kaolin-mono-dark - almost monochrome dark green Kaolin theme.
 ;;
 ;;
 ;; =======  Configuration example  =======
@@ -69,7 +71,7 @@
 
 
 (defgroup kaolin-themes nil
-  "Kaolin theme properties"
+  "Kaolin theme properties."
   :group 'faces)
 
 (defcustom kaolin-bold t
@@ -95,9 +97,13 @@
 
 ;; TODO: implement
 (defcustom kaolin-comment-style 'normal
-  "Sets the style of comments: normal, bright or colored."
+  "Sets the style of comments: normal, alt(darker for dark theme and lighter for light themes) or colored."
   :options '(bright normal color)
   :group 'kaolin-themes)
+
+;; (pcase kaolin-comment-style
+;;   ('normal (message "Normal!"))
+;;   ('bright (message "bright!")))
 
 (defcustom kaolin-git-gutter-solid nil
   "If t, display solid line to highlight git-gutter changes in fringe."

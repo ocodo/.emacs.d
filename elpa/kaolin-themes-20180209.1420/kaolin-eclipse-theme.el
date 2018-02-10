@@ -61,13 +61,13 @@
    (rb4 blue4)
    (rb5 violet4)
    (rb6 violet3)
-   (rb7 orange6)
+   (rb7 orange8)
    (rb8 azure2)
    (rb9 pink3)
 
-   (diff-add aquamarine4)
-   (diff-mod magenta4)
-   (diff-rem red4)
+   (diff-add teal3)
+   (diff-mod violet3)
+   (diff-rem crimson3)
 
    ;; Mode-line
    (line-fg           fg4)
@@ -103,10 +103,6 @@
    (org-quote           (:foreground magenta3)))
 
   ;; Set custom vars
-  (custom-theme-set-variables
-   'kaolin-eclipse
-   '(kaolin-hl-line-colored t))
-
   (when kaolin-git-gutter-solid
     (custom-theme-set-faces
      'kaolin-eclipse

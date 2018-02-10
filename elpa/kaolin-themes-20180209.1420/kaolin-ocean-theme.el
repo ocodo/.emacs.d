@@ -26,7 +26,7 @@
    (bool        num)
    (prep        violet1)
 
-   (comment     gray0)
+   (comment     gray2)
    (alt-comment "#34344c")
    (str         amber3 "#ffd787")
    (str-alt     vermilion4)
@@ -83,7 +83,7 @@
    (win-border    bg3)
    (line-num-bg   bg1)
    (line-num-fg   bg4)
-   (line-num-hl   blue6 gray9)
+   (line-num-hl   blue8 gray9)
    (cursor        "#c3c8e0"))
 
   ;; Custom theme set faces
@@ -100,10 +100,6 @@
    (git-gutter:deleted  (:background diff-rem :foreground diff-rem)))
 
   ;; Set custom vars
-  (custom-theme-set-variables
-   'kaolin-ocean
-   '(kaolin-hl-line-colored t))
-
   (when kaolin-git-gutter-solid
     (custom-theme-set-faces
      'kaolin-ocean
