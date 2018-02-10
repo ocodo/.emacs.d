@@ -4,7 +4,7 @@
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20171123.201
+;; Package-Version: 20180125.944
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -1534,7 +1534,7 @@ do nothing."
 
 
 (defun ahg-maybe-revset (rev)
-  (not (null (string-match "[()]" rev))))
+  (not (null (string-match "[:()]" rev))))
 
 
 ;; helper function used by ahg-short-log, ahg-log and ahg-log-cur-file to
