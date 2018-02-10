@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/define-word
-;; Package-Version: 20180105.1152
+;; Package-Version: 20180128.725
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: dictionary, convenience
@@ -132,8 +132,7 @@ In a non-interactive call SERVICE can be passed."
             ((and define-word-unpluralize
                   (cl-every (lambda (x) (string-match "[Pp]\\(?:lural\\|l\\.\\).*of \\(.*\\)\\." x))
                             results))
-             (define-word (match-string 1 (car (last results))) 'wordnik)
-             '("Fetching singular..."))
+             (define-word (match-string 1 (car (last results))) 'wordnik))
             (t
              (when (> (length results) define-word-limit)
                (setq results (cl-subseq results 0 define-word-limit)))
