@@ -4,7 +4,7 @@
 
 ;; Author: Jonathan Chu <me@jonathanchu.is>
 ;; URL: https://github.com/jonathanchu/atom-one-dark-theme
-;; Package-Version: 20180116.1024
+;; Package-Version: 20180201.1853
 ;; Version: 0.4.0
 
 ;; This file is not part of GNU Emacs.
@@ -36,7 +36,7 @@
     ("atom-one-dark-fg"       . "#ABB2BF")
     ("atom-one-dark-bg"       . "#282C34")
     ("atom-one-dark-bg-1"     . "#121417")
-    ("atom-one-dark-bg-hl"    . "#2F343D")
+    ("atom-one-dark-bg-hl"    . "#2C323C")
     ("atom-one-dark-gutter"   . "#4B5363")
     ("atom-one-dark-mono-1"   . "#ABB2BF")
     ("atom-one-dark-mono-2"   . "#828997")
