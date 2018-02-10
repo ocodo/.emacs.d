@@ -4,7 +4,7 @@
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/projectile
-;; Package-Version: 20180118.745
+;; Package-Version: 20180128.655
 ;; Keywords: project, convenience
 ;; Version: 0.15.0-cvs
 ;; Package-Requires: ((emacs "24.3") (pkg-info "0.4"))
@@ -906,10 +906,10 @@ will return the current directory, otherwise it'd raise an error."
   ;; instead
   (or (cl-subst nil 'none
                 (or (and projectile-cached-buffer-file-name
-                         (equal projectile-cached-buffer-file-name buffer-file-name)
+                         (equal projectile-cached-buffer-file-name (or buffer-file-name 'none))
                          projectile-cached-project-root)
                     (progn
-                      (setq projectile-cached-buffer-file-name buffer-file-name)
+                      (setq projectile-cached-buffer-file-name (or buffer-file-name 'none))
                       (setq projectile-cached-project-root
                             ;; The `is-local' and `is-connected' variables are
                             ;; used to fix the behavior where Emacs hangs
@@ -2333,6 +2333,9 @@ TEST-DIR which specifies the path to the tests relative to the project root."
                                   :configure "meson %s"
                                   :compile "ninja"
                                   :test "ninja test")
+(projectile-register-project-type 'nix '("default.nix")
+                                  :compile "nix-build"
+                                  :test "nix-build")
 ;; Make & CMake
 (projectile-register-project-type 'make '("Makefile")
                                   :compile "make"
