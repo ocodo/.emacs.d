@@ -3,8 +3,8 @@
 ;; Copyright (C) 2006-2009, 2011-2012, 2015, 2016, 2017
 ;;   Phil Hagelberg, Doug Alcorn, Will Farrington, Chen Bin
 ;;
-;; Version: 5.4.6
-;; Package-Version: 20171219.1858
+;; Version: 5.4.7
+;; Package-Version: 20180201.2102
 ;; Author: Phil Hagelberg, Doug Alcorn, and Will Farrington
 ;; Maintainer: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/technomancy/find-file-in-project
@@ -33,7 +33,10 @@
 ;;; Commentary:
 
 ;; This program provides a couple methods for quickly finding any file
-;; in a given project.  It depends on GNU find.
+;; in a given project.
+;; - Only dependency is GNU/BSD find
+;; - Works on Windows with minimum setup
+;; - Works flawlessly on Tramp Mode (https://www.emacswiki.org/emacs/TrampMode)
 ;;
 ;; Usage,
 ;;   - `M-x find-file-in-project-by-selected' use the selected region
@@ -58,11 +61,6 @@
 ;; .rb files that don't exist in the "vendor" directory.  In that case
 ;; you could set `ffip-find-options' to "-not -regex \".*vendor.*\"".
 
-;; The variable `ffip-filename-rules' create some extra file names for
-;; search when calling `find-file-in-project-by-selected'. For example,
-;; When file basename `helloWorld' provided, `HelloWorld', `hello-world'
-;; are added as the file name search patterns.
-;; `C-h v ffip-filename-rules' to see its default value.
 ;; `find-file-with-similar-name' find file with similar name to current
 ;; opened file. The regular expression `ffip-strip-file-name-regex' is
 ;; also used by `find-file-with-similar-name'.
@@ -163,11 +161,6 @@
   "Dictionary to look up windows split ratio.
 Used by `ffip-split-window-horizontally' and `ffip-split-window-vertically'.")
 
-(defvar ffip-filename-rules
-  '(ffip-filename-identity
-    (ffip-filename-dashes-to-camelcase ffip-filename-camelcase-to-dashes))
-  "Rules to create extra file names for GNU Find.")
-
 (defvar ffip-strip-file-name-regex
   "\\(\\.mock\\|\\.test\\|\\.mockup\\)"
   "Strip file name to get minimum keyword with this regex.
@@ -183,12 +176,19 @@ It's used by `find-file-with-similar-name'.")
   "Hook when `ffip-diff-apply-hunk' find the file to apply hunk.
 The file path is passed to the hook as the first argument.")
 
+(defun ffip-shell-command-to-string (command)
+  "Execute shell COMMAND and return its output as a string."
+  (with-output-to-string
+    (with-current-buffer
+        standard-output
+      (shell-command command t))))
+
 ;;;###autoload
 (defun ffip-git-diff-current-file ()
   "Run 'git diff version:current-file current-file'."
   (let* ((default-directory (locate-dominating-file default-directory ".git"))
          (line (ivy-read "diff current file:" (my-git-versions))))
-    (shell-command-to-string (format "git --no-pager diff %s:%s %s"
+    (ffip-shell-command-to-string (format "git --no-pager diff %s:%s %s"
                                      (replace-regexp-in-string "^ *\\*? *" "" (car (split-string line "|" t)))
                                      (file-relative-name buffer-file-name default-directory)
                                      buffer-file-name))))
@@ -198,7 +198,7 @@ The file path is passed to the hook as the first argument.")
   (let* ((default-directory (locate-dominating-file default-directory ".git"))
          (line (ivy-read "diff current file:" (my-git-versions)))
          (version (replace-regexp-in-string "^ *\\*? *" "" (car (split-string line "|" t)))))
-    (shell-command-to-string (format "git --no-pager diff %s" version))))
+    (ffip-shell-command-to-string (format "git --no-pager diff %s" version))))
 
 (defvar ffip-diff-backends
   '(ffip-git-diff-current-file
@@ -206,19 +206,18 @@ The file path is passed to the hook as the first argument.")
     ("`git diff HEAD^` in project" . "cd $(git rev-parse --show-toplevel) && git diff HEAD^")
     ("`git diff --cached` in project" . "cd $(git rev-parse --show-toplevel) && git diff --cached")
     ("`git diff` in project" . "cd $(git rev-parse --show-toplevel) && git diff")
-    ("`git diff` current file" . (shell-command-to-string (format "cd $(git rev-parse --show-toplevel) && git diff '%s'"
+    ("`git diff` current file" . (ffip-shell-command-to-string (format "cd $(git rev-parse --show-toplevel) && git diff '%s'"
                                                                     (buffer-file-name))))
-    ("`git log -p` current file" . (shell-command-to-string (format "cd $(git rev-parse --show-toplevel) && git --no-pager log --date=short -p '%s'"
+    ("`git log -p` current file" . (ffip-shell-command-to-string (format "cd $(git rev-parse --show-toplevel) && git --no-pager log --date=short -p '%s'"
                                                      (buffer-file-name))))
-    ("`git log -S keyword -p` in project" . (shell-command-to-string (format "cd $(git rev-parse --show-toplevel) && git --no-pager log --date=short -S'%s' -p"
+    ("`git log -S keyword -p` in project" . (ffip-shell-command-to-string (format "cd $(git rev-parse --show-toplevel) && git --no-pager log --date=short -S'%s' -p"
                                                               (read-string "Git search string:"))))
     ("Diff from `kill-ring'" . (car kill-ring)))
   "The list of back-ends.
-If back-end is string, it is run in `shell-command-to-string'.
-If it's a function or lisp expression, it will be executed and return a string.
+If back-end is string, it's run in `shell-command-to-string'.
+If it's a function or expression, it'll be executed and return a string.
 
-The output of execution is inserted into *ffip-diff* buffer with `ffip-diff-mode' on.
-`ffip-diff-mode' inherits from `diff-mode'.")
+The output is inserted into *ffip-diff* buffer.")
 
 (defvar ffip-find-executable nil "Path of GNU find.  If nil we will guess.")
 
@@ -227,13 +226,13 @@ The output of execution is inserted into *ffip-diff* buffer with `ffip-diff-mode
 May be set using .dir-locals.el.  Checks each entry if set to a list.")
 
 (defvar ffip-prefer-ido-mode (not (require 'ivy nil t))
-  "Use `ido-mode' instead of `ivy-mode' to display cands.")
+  "Use ido instead of ivy to display candidates.")
 
 (defvar ffip-patterns nil
   "List of patterns to look for with `find-file-in-project'.")
 
 (defvar ffip-match-path-instead-of-filename nil
-  "Match full path instead of file name when calling `find-file-in-project-by-selected'")
+  "Match full path instead of file name when calling `find-file-in-project-by-selected'.")
 
 (defvar ffip-prune-patterns
   '(;; VCS
@@ -317,7 +316,7 @@ Use this to exclude portions of your project: \"-not -regex \\\".*svn.*\\\"\".")
 This overrides variable `ffip-project-root' when set.")
 
 (defvar ffip-ivy-last-saved nil
-  "Backup of `ivy-last'.  Requires ivy-mode.")
+  "Backup of `ivy-last'.  Requires ivy.")
 
 (defvar ffip-full-paths t
   "If nil only file names in search results are visible.")
@@ -326,23 +325,27 @@ This overrides variable `ffip-project-root' when set.")
 
 ;;;###autoload
 (defun ffip-copy-without-change (p)
+  "Copy P without change."
   (kill-new p)
   (message "%s => kill-ring" p))
 
 ;;;###autoload
 (defun ffip-copy-reactjs-import(p)
+  "Create ReactJS link from P and copy the result."
   (setq p (format "import str from '%s';" p))
   (kill-new p)
   (message "%s => kill-ring" p))
 
 ;;;###autoload
 (defun ffip-copy-org-file-link(p)
+  "Create org link from P and copy the result."
   (setq p (format "[[file:%s]]" p))
   (kill-new p)
   (message "%s => kill-ring" p))
 
 ;;;###autoload
-(defvar ffip-find-relative-path-callback 'ffip-copy-without-change)
+(defvar ffip-find-relative-path-callback 'ffip-copy-without-change
+  "The callback after calling `find-relative-path'.")
 
 ;;;###autoload
 (defun ffip-project-root ()
@@ -362,6 +365,7 @@ This overrides variable `ffip-project-root' when set.")
           default-directory))))
 
 (defun ffip--read-file-text (file)
+  "Read text from FILE."
   (read (decode-coding-string
          (with-temp-buffer
            (set-buffer-multibyte nil)
@@ -369,31 +373,9 @@ This overrides variable `ffip-project-root' when set.")
            (insert-file-contents-literally file)
            (buffer-substring-no-properties (point-min) (point-max))) 'utf-8)))
 
-(defun ffip--find-rule-to-execute (keyword f)
-  "If F is a function, return it.
-
-If F is a list, assume each element is a function.
-Run each element with keyword as 1st parameter as KEYWORD and 2nd parameter as t.
-If the result is true, return the function."
-  (let (rlt found fn)
-    (cond
-     ((functionp f) (setq rlt f))
-
-     ((listp f)
-      (while (and f (not found))
-        (setq fn (car f))
-        (if (funcall fn keyword t)
-            (setq found t)
-          (setq f (cdr f))))
-      (setq rlt (if found fn 'identity)))
-
-     (t (setq rlt 'identity)))
-
-    rlt))
-
 ;;;###autoload
 (defun ffip-save-ivy-last ()
-  "Save `ivy-last' into `ffip-ivy-last-saved'.  Requires `ivy-mode'."
+  "Save `ivy-last' into `ffip-ivy-last-saved'.  Requires ivy."
   (interactive)
   (if (boundp 'ivy-last)
       (setq ffip-ivy-last-saved ivy-last)
@@ -457,65 +439,59 @@ If CHECK-ONLY is true, only do the check."
     rlt))
 
 (defun ffip--create-filename-pattern-for-gnufind (keyword)
+  "Create search patthern from KEYWORD."
   (let* ((rlt ""))
     (cond
      ((not keyword)
       (setq rlt ""))
-     ((not ffip-filename-rules)
+     (t
       (setq rlt (concat (if ffip-match-path-instead-of-filename "-iwholename" "-name")
                         " \"*"
                         keyword
-                        "*\"" )))
-     (t
-      (dolist (f ffip-filename-rules rlt)
-        (let (tmp fn)
-          (setq fn (ffip--find-rule-to-execute keyword f))
-          (setq tmp (funcall fn keyword))
-          (when tmp
-            (setq rlt (concat rlt (unless (string= rlt "") " -o")
-                              " "
-                              (if ffip-match-path-instead-of-filename "-iwholename" "-name")
-                              " \"*"
-                              tmp
-                              "*\"")))))
-      (unless (string= "" rlt)
-        (setq rlt (concat "\\(" rlt " \\)")))))
-
+                        "*\"" ))))
     (if ffip-debug (message "ffip--create-filename-pattern-for-gnufind called. rlt=%s" rlt))
     rlt))
 
-(defun ffip--win-executable-find (driver path exe)
-  (let* (rlt)
-    (if (executable-find (concat driver path exe))
-        (setq rlt (concat driver path exe)))
-    rlt))
+(defun ffip--win-executable-find (exe)
+  "Find EXE on windows."
+  (let* ((drivers '("c" "d" "e" "g" "h" "i" "j" "k"))
+          (i 0)
+          j
+          (dirs '(":\\\\cygwin64\\\\bin\\\\"
+                 ":\\\\msys64\\\\usr\\\\bin\\\\"))
+          rlt)
+     (while (and (not rlt)
+                 (< i (length dirs)))
+       (setq j 0)
+       (while (and (not rlt)
+                   (< j (length drivers)))
+         (setq rlt (executable-find (concat (nth j drivers) (nth i dirs) exe)))))
+     (unless rlt
+       ;; nothing found, fall back to exe
+       (setq rlt exe))
+     rlt))
 
 (defun ffip--executable-find (exe)
-  (let* ((rlt (if (eq system-type 'windows-nt)
-                  (or
-                   ;; cygwin
-                   (ffip--win-executable-find "c" ":\\\\cygwin64\\\\bin\\\\" exe)
-                   (ffip--win-executable-find "d" ":\\\\cygwin64\\\\bin\\\\" exe)
-                   (ffip--win-executable-find "e" ":\\\\cygwin64\\\\bin\\\\" exe)
-                   (ffip--win-executable-find "c" ":\\\\cygwin\\\\bin\\\\" exe)
-                   (ffip--win-executable-find "d" ":\\\\cygwin\\\\bin\\\\" exe)
-                   (ffip--win-executable-find "e" ":\\\\cygwin\\\\bin\\\\" exe)
-                   ;; msys2
-                   (ffip--win-executable-find "c" ":\\\\msys64\\\\usr\\\\bin\\\\" exe)
-                   (ffip--win-executable-find "d" ":\\\\msys64\\\\usr\\\\bin\\\\" exe)
-                   (ffip--win-executable-find "e" ":\\\\msys64\\\\usr\\\\bin\\\\" exe)
-                   (ffip--win-executable-find "c" ":\\\\msys32\\\\usr\\\\bin\\\\" exe)
-                   (ffip--win-executable-find "d" ":\\\\msys32\\\\usr\\\\bin\\\\" exe)
-                   (ffip--win-executable-find "e" ":\\\\msys32\\\\usr\\\\bin\\\\" exe))
-                ;; *nix
-                (executable-find exe))))
-    (unless rlt
-      ;; well, `executable-find' failed
+  "Find EXE on all environments."
+  (let* (rlt)
+    (cond
+     ((file-remote-p default-directory)
+      ;; In tramp mode and local windows, remote nix-like,
+      ;; the `ffip-find-executable' with windows path can't be applied.
+      ;; Assume remote server has already added EXE into $PATH!
+      ;; Thanks for ShuguangSun for the fix
       (setq rlt exe))
+     ((setq rlt ffip-find-executable))
+     ((eq system-type 'windows-nt)
+      (setq rlt (ffip--win-executable-find exe)))
+     ((setq rlt (executable-find exe)))
+     (t
+      ;; well, `executable-find' failed
+      (setq rlt exe)))
     rlt))
 
 (defun ffip--join-patterns (patterns)
-  "Turn `ffip-patterns' into a string that `find' can use."
+  "Convert PATTERNS into cli arguments."
   (if ffip-patterns
       (format "\\( %s \\)" (mapconcat (lambda (pat) (format "-iwholename \"%s\"" pat))
                          patterns " -or "))
@@ -530,8 +506,8 @@ If CHECK-ONLY is true, only do the check."
 (defun ffip-completing-read (prompt collection &optional action)
   "Read a string in minibuffer, with completion.
 
-PROMPT is a string with same format as similar paramters in `ido-completing-read'.
-Collection is a list of strings.
+PROMPT is a string with same format parameters in `ido-completing-read'.
+COLLECTION is a list of strings.
 
 ACTION is a lambda function to call after selecting a result.
 
@@ -581,20 +557,14 @@ DIRECTORY-TO-SEARCH specify the root directory to search."
                    (ffip-get-project-root-directory)))
          (default-directory (file-name-as-directory root))
          (cmd (format "%s . \\( %s \\) -prune -o -type %s %s %s %s -print"
-                      (if ffip-find-executable ffip-find-executable (ffip--executable-find "find"))
+                      (ffip--executable-find "find")
                       (ffip--prune-patterns)
                       (if is-finding-directory "d" "f")
                       (ffip--join-patterns ffip-patterns)
                       ;; When finding directory, the keyword is like:
                       ;; "proj/hello/world"
-                      (cond
-                       ((listp keyword)
-                        ;; already got enough files names to handle
-                        (let* ((ffip-filename-rules nil))
-                          (ffip--create-filename-pattern-for-gnufind keyword)))
-                       (t
-                        (if is-finding-directory (format "-iwholename \"*%s\"" keyword)
-                          (ffip--create-filename-pattern-for-gnufind keyword))))
+                      (if is-finding-directory (format "-iwholename \"*%s\"" keyword)
+                        (ffip--create-filename-pattern-for-gnufind keyword))
                       ffip-find-options)))
 
     (if ffip-debug (message "run cmd at %s: %s" default-directory cmd))
@@ -606,11 +576,11 @@ DIRECTORY-TO-SEARCH specify the root directory to search."
                       (cons (file-name-nondirectory file)
                             (expand-file-name file))))
                   ;; #15 improving handling of directories containing space
-                  (split-string (shell-command-to-string cmd) "[\r\n]+" t)))
+                  (split-string (ffip-shell-command-to-string cmd) "[\r\n]+" t)))
     rlt))
 
 (defun ffip--forward-line (lnum)
-  "Forward LNUM lines"
+  "Forward LNUM lines."
   (if ffip-debug (message "ffip--forward-line called => %s" lnum))
   (when (and lnum (> lnum 0))
     (goto-char (point-min))
@@ -618,7 +588,10 @@ DIRECTORY-TO-SEARCH specify the root directory to search."
 
 ;;;###autoload
 (defun ffip-find-files (keyword open-another-window &optional find-directory fn)
-  "The API to find files."
+  "Use KEYWORD to find files.
+If OPEN-ANOTHER-WINDOW is t, the results are displayed in a new window.
+If FIND-DIRECTORY is t, only search directories.  FN is callback.
+This function is the API to find files."
   (let* (cands
          lnum
          file
@@ -655,6 +628,7 @@ DIRECTORY-TO-SEARCH specify the root directory to search."
       (message "Nothing found!")))))
 
 (defun ffip--prepare-root-data-for-project-file (root)
+  "Prepare data for ROOT."
   (cons 'ffip-project-root root))
 
 (defun ffip-read-keyword ()
@@ -727,7 +701,8 @@ You can override this by setting the variable `ffip-project-root'."
 
 ;;;###autoload
 (defun find-file-in-current-directory (&optional open-another-window)
-  "Like `find-file-in-project'.  But search only in current directory."
+  "Like `find-file-in-project'.  But search only in current directory.
+IF OPEN-ANOTHER-WINDOW is t, results are displayed in new window."
   (interactive "P")
   (let* ((ffip-project-root default-directory))
     (find-file-in-project open-another-window)))
@@ -755,9 +730,8 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
 
 ;;;###autoload
 (defun find-file-with-similar-name (&optional open-another-window)
-  "Use base name of current file as keyword which could be further stripped
+  "Use base name of current file as keyword which could be further stripped.
 by `ffip-strip-file-name-regex'.
-
 If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
   (interactive "P")
   (when buffer-file-name
@@ -770,7 +744,8 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
 
 ;;;###autoload
 (defun find-file-in-current-directory-by-selected (&optional open-another-window)
-  "Like `find-file-in-project-by-selected'.  But search only in current directory."
+  "Like `find-file-in-project-by-selected' but search current directory.
+If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
   (interactive "P")
   (let* ((ffip-project-root default-directory))
     (find-file-in-project-by-selected open-another-window)))
@@ -823,7 +798,7 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
 
 
 (defun ffip-path (candidate)
-  "Get path from ivy candidate."
+  "Get path from ivy CANDIDATE."
   (let* ((default-directory (ffip-project-root)))
     (file-truename (if (consp candidate) (cdr candidate)
                      candidate))))
@@ -851,29 +826,31 @@ Window split in RATIO."
 
 ;;;###autoload
 (defun ffip-split-window-horizontally (&optional ratio)
-  "Find&Open file in horizontal split window.  New window size is looked
-up in `ffip-window-ratio-alist' by RATIO.
+  "Find&Open file in horizontal split window.
+New window size is looked up in `ffip-window-ratio-alist' by RATIO.
 Keyword to search new file is selected text or user input."
   (interactive "P")
   (ffip-split-window-api 'split-window-horizontally 'windmove-right ratio))
 
 ;;;###autoload
 (defun ffip-split-window-vertically (&optional ratio)
-  "Find&Open file in vertical split window.  New window size is looked
-up in `ffip-window-ratio-alist' by RATIO.
+  "Find&Open file in vertical split window.
+New window size is looked up in `ffip-window-ratio-alist' by RATIO.
 Keyword to search new file is selected text or user input."
   (interactive "P")
   (ffip-split-window-api 'split-window-vertically 'windmove-down ratio))
 
 ;;;###autoload
 (defun ffip-diff-quit ()
+  "Quit."
   (interactive)
   ;; kill buffer instead of bury it
- (quit-window t))
+  (quit-window t))
 
 ;;;###autoload
 (defun ffip-diff-find-file (&optional open-another-window)
-  "File file(s) in current hunk."
+  "File file(s) in current hunk.
+If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window."
   (interactive "P")
   (let* ((files (mapcar 'file-name-nondirectory (diff-hunk-file-names)))
          (alnum 0)
@@ -915,7 +892,7 @@ Keyword to search new file is selected text or user input."
     (define-key map "N" 'diff-file-next)
     (define-key map [remap diff-goto-source] 'ffip-diff-find-file)
     map)
-  "Mode map based on `diff-mode-map'")
+  "Mode map based on `diff-mode-map'.")
 
 (define-derived-mode ffip-diff-mode diff-mode "ffip"
   "Show diff/patch."
@@ -924,7 +901,7 @@ Keyword to search new file is selected text or user input."
   (use-local-map ffip-diff-mode-map))
 
 (defun ffip-show-content-in-diff-mode (content)
-  "Insert content into *ffip-diff* buffer."
+  "Insert CONTENT into *ffip-diff* buffer."
   (cond
    ((and content (not (string= content "")))
     (let (rlt-buf)
@@ -942,11 +919,12 @@ Keyword to search new file is selected text or user input."
     (message "Output is empty!"))))
 
 (defun ffip-diff-execute-backend (backend)
+  "Execute BACKEND."
   (if backend
       (cond
        ;; shell command
        ((stringp backend)
-        (ffip-show-content-in-diff-mode (shell-command-to-string backend)))
+        (ffip-show-content-in-diff-mode (ffip-shell-command-to-string backend)))
        ;; command
        ((functionp backend)
         (ffip-show-content-in-diff-mode (funcall backend)))
@@ -955,6 +933,7 @@ Keyword to search new file is selected text or user input."
         (ffip-show-content-in-diff-mode (funcall `(lambda () ,backend)))))))
 
 (defun ffip-backend-description (backend)
+  "Get BACKEND description."
   (let* (rlt)
     (cond
      ;; shell command
@@ -992,7 +971,7 @@ NUM is zero based whose default value is zero."
 ;;;###autoload
 (defun ffip-show-diff-by-description (&optional num)
   "Show the diff output by excuting selected `ffip-diff-backends.
- NUM is the backend index of `ffip-diff-backends'.
+NUM is the backend index of `ffip-diff-backends'.
 If NUM is not nil, the corresponding backend is executed directly."
   (interactive "P")
   (cond
@@ -1019,9 +998,10 @@ If NUM is not nil, the corresponding backend is executed directly."
 
 ;;;###autoload
 (defun ffip-diff-apply-hunk (&optional reverse)
-  "Apply current hunk in `diff-mode'. Try to locate the file to patch.
-It's similar to `diff-apply-hunk' except it find file by `ffip-project-root'.
-Please read documenation of `diff-apply-hunk' to get more details."
+  "Apply current hunk in `diff-mode'.  Try to locate the file to patch.
+Similar to `diff-apply-hunk' but smarter.
+Please read documenation of `diff-apply-hunk' to get more details.
+If REVERSE is t, appied patch is reverted."
   (interactive "P")
   (setq ffip-read-file-name-hijacked-p t)
   (defadvice read-file-name (around ffip-read-file-name-hack activate)
@@ -1046,7 +1026,6 @@ Please read documenation of `diff-apply-hunk' to get more details."
   (put 'ffip-diff-backends 'safe-local-variable 'listp)
   (put 'ffip-patterns 'safe-local-variable 'listp)
   (put 'ffip-prune-patterns 'safe-local-variable 'listp)
-  (put 'ffip-filename-rules 'safe-local-variable 'listp)
   (put 'ffip-match-path-instead-of-filename 'safe-local-variable 'booleanp)
   (put 'ffip-project-file 'safe-local-variable 'stringp)
   (put 'ffip-strip-file-name-regex 'safe-local-variable 'stringp)
