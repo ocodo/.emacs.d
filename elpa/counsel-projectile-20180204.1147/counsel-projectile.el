@@ -1,10 +1,10 @@
-;;; counsel-projectile.el --- Ivy integration for Projectile
+;;; counsel-projectile.el --- Ivy integration for Projectile -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2017 Eric Danan
+;; Copyright (C) 2016-2018 Eric Danan
 
 ;; Author: Eric Danan
 ;; URL: https://github.com/ericdanan/counsel-projectile
-;; Package-Version: 20180105.632
+;; Package-Version: 20180204.1147
 ;; Keywords: project, convenience
 ;; Version: 0.2.0
 ;; Package-Requires: ((counsel "0.10.0") (projectile "0.14.0"))
@@ -45,7 +45,7 @@
 
 (require 'counsel)
 (require 'projectile)
-                      
+
 ;;;; global
 
 (defgroup counsel-projectile nil
@@ -65,7 +65,7 @@ function, and a name for each action)."
   (eval
    `(defcustom ,(intern (format "%s-action" command))
       ',action
-      ,(format "Action(s) for `%s'.  
+      ,(format "Action(s) for `%s'.
 
 This variable holds either a single action function (function of
 one variable, the selected candidate) or an action list
@@ -75,7 +75,7 @@ consisting of:
   action, etc),
 - the available actions, each of which consists of:
   - a key (string) to call the action,
-  - an action function of one variable, 
+  - an action function of one variable,
   - a name (string) for the action.
 
 In both cases, extra actions can be added with `ivy-set-actions'.
@@ -106,24 +106,23 @@ the default action in the list and the remaining elements are the
 actions (a key, a function, and a name for each action)."
   (let (index)
     (if (integerp action-item)
-	(when (and (> action-item 0)
-		   (< action-item (length action-list)))
-	  (setq index action-item))
+        (when (< 0 action-item (length action-list))
+          (setq index action-item))
       (setq index (cl-position-if
-		   (cond
-		    ((functionp action-item)
-		     (lambda (action)
-		       (equal action-item
-			      (cadr action))))
-		    ((stringp action-item)
-		     (lambda (action)
-		       (member action-item
-			       (list (car action) (caddr action))))))
-		   (cdr action-list)))
+                   (cond
+                    ((functionp action-item)
+                     (lambda (action)
+                       (equal action-item
+                              (cadr action))))
+                    ((stringp action-item)
+                     (lambda (action)
+                       (member action-item
+                               (list (car action) (caddr action))))))
+                   (cdr action-list)))
       (when index
-	(setq index (1+ index))))
+        (setq index (1+ index))))
     (or index
-	(error "Action not found: %s" action-item))))
+        (error "Action not found: %s" action-item))))
 
 (defun counsel-projectile-modify-action (action-var modifications)
   "Make MODIFICATIONS to ACTION-VAR.
@@ -179,72 +178,101 @@ following formats:
 
 If anything goes wrong, throw an error and do not modify ACTION-VAR."
   (let ((action-list (symbol-value action-var))
-	mod)
+        mod)
     ;; Make sure ACTION-VAR actually holds a list and not a single
     ;; action function
     (unless (listp action-list)
       (error "%s's value is not a list" action-var))
     (while (setq mod (pop modifications))
       (pcase mod
-	(`(remove ,action-item)
-	 (setq action-list
-	       (remove (nth (counsel-projectile--action-index action-item action-list)
-			    action-list)
-		       action-list)))
-	(`(add ,action ,target-item)
-	 (let ((index (counsel-projectile--action-index target-item action-list)))
-	   ;; copied from `helm-append-at-nth'
-	   (setq action-list (cl-loop for a in action-list
-				      for count from 1
-				      collect a
-				      when (= count index)
-				      collect action))))
-	(`(add ,action)
-	 (setq action-list (append action-list (list action))))
-	(`(move ,action-item ,target-item)
-	 (push `(add ,(nth (counsel-projectile--action-index action-item action-list)
-			   action-list)
-		     ,target-item)
-	       modifications)
-	 (push `(remove ,action-item)
-	       modifications))
-	(`(move ,action-item)
-	 (push `(add ,(nth (counsel-projectile--action-index action-item action-list)
-			   action-list))
-	       modifications)
-	 (push `(remove ,action-item)
-	       modifications))
-	(`(setkey ,action-item ,key)
-	 (let ((index (counsel-projectile--action-index action-item action-list)))
-	   (setq action-list (cl-loop for a in action-list
-				      for count from 0
-				      if (= count index)
-				      collect (cons key (cdr a))
-				      else
-				      collect a))))
-	(`(setfun ,action-item ,fun)
-	 (let ((index (counsel-projectile--action-index action-item action-list)))
-	   (setq action-list (cl-loop for a in action-list
-				      for count from 0
-				      if (= count index)
-				      collect (list (car a) fun (caddr a))
-				      else
-				      collect a))))
-	(`(setname ,action-item ,name)
-	 (let ((index (counsel-projectile--action-index action-item action-list)))
-	   (setq action-list (cl-loop for a in action-list
-				      for count from 0
-				      if (= count index)
-				      collect (list (car a) (cadr a) name)
-				      else
-				      collect a))))
-	(`(default ,action-item)
-	 (setq action-list
-	       (cons (counsel-projectile--action-index action-item action-list)
-		     (cdr action-list))))))
+        (`(remove ,action-item)
+         (setq action-list
+               (remove (nth (counsel-projectile--action-index action-item action-list)
+                            action-list)
+                       action-list)))
+        (`(add ,action ,target-item)
+         (let ((index (counsel-projectile--action-index target-item action-list)))
+           ;; copied from `helm-append-at-nth'
+           (setq action-list (cl-loop for a in action-list
+                                      for count from 1
+                                      collect a
+                                      when (= count index)
+                                      collect action))))
+        (`(add ,action)
+         (setq action-list (append action-list (list action))))
+        (`(move ,action-item ,target-item)
+         (push `(add ,(nth (counsel-projectile--action-index action-item action-list)
+                           action-list)
+                     ,target-item)
+               modifications)
+         (push `(remove ,action-item)
+               modifications))
+        (`(move ,action-item)
+         (push `(add ,(nth (counsel-projectile--action-index action-item action-list)
+                           action-list))
+               modifications)
+         (push `(remove ,action-item)
+               modifications))
+        (`(setkey ,action-item ,key)
+         (let ((index (counsel-projectile--action-index action-item action-list)))
+           (setq action-list (cl-loop for a in action-list
+                                      for count from 0
+                                      if (= count index)
+                                      collect (cons key (cdr a))
+                                      else
+                                      collect a))))
+        (`(setfun ,action-item ,fun)
+         (let ((index (counsel-projectile--action-index action-item action-list)))
+           (setq action-list (cl-loop for a in action-list
+                                      for count from 0
+                                      if (= count index)
+                                      collect (list (car a) fun (caddr a))
+                                      else
+                                      collect a))))
+        (`(setname ,action-item ,name)
+         (let ((index (counsel-projectile--action-index action-item action-list)))
+           (setq action-list (cl-loop for a in action-list
+                                      for count from 0
+                                      if (= count index)
+                                      collect (list (car a) (cadr a) name)
+                                      else
+                                      collect a))))
+        (`(default ,action-item)
+         (setq action-list
+               (cons (counsel-projectile--action-index action-item action-list)
+                     (cdr action-list))))))
     (set action-var action-list)))
 
 ;;;; counsel-projectile-find-file
+
+(defcustom counsel-projectile-find-file-matcher 'counsel--find-file-matcher
+  "Function returning candidates matching minibuffer input in
+`counsel-projectile-find-file', also used to match files in
+`counsel-projectile'.
+
+Several choices are proposed:
+
+- Ivy generic matcher (`ivy--re-filter'). This is the matcher
+  used by default in all ivy commands.
+
+- Counsel matcher (`counsel--find-file-matcher').  This is the
+  matcher used in `counsel-find-file', allowing to ignore some
+  files based on `counsel-find-file-ignore-regexp'.
+
+- Counsel-projectile basename
+  matcher (`counsel-projectile-basename-matcher').  This one only
+  displays files whose basename matches minibuffer input, or if
+  there is none all files whose name (relative to the project
+  root) matches. It also uses the counsel matcher to ignore some
+  files.
+
+It is also possible to use a custom matcher.  It must be a function taking two argument, the regexp and the candidates (see e.g. `counsel--find-file-matcher')."
+  :type '(choice
+          (const :tag "Ivy generic matcher" ivy--re-filter)
+          (const :tag "Counsel matcher" counsel--find-file-matcher)
+          (const :tag "Counsel-projectile basename matcher" counsel-projectile-find-file-matcher-basename)
+          (function :tag "Custom function"))
+  :group 'counsel-projectile)
 
 (counsel-projectile--defcustom-action
  'counsel-projectile-find-file
@@ -262,6 +290,41 @@ If anything goes wrong, throw an error and do not modify ACTION-VAR."
    ("p" (lambda (_) (counsel-projectile-switch-project))
     "switch project"))
  'counsel-projectile)
+
+(defun counsel-projectile-find-file-matcher-basename (regexp candidates)
+  "Return the list of CANDIDATES whose basename matches REGEXP,
+or if there is none the list of all CANDIDATES matching REGEXP.
+Also uses `counsel--find-file-matcher' to ignore candidates based
+on `counsel-find-file-ignore-regexp'."
+  (let ((cands (ivy--re-filter regexp candidates)))
+    (or (and (not (string= ivy-text ""))
+             ;; We first filter `cands' to retain only matches in file
+             ;; basename. This is almost copied from `ivy--re-filter'
+             ;; because we can't quite use it directly.
+             (let ((re-list (if (stringp regexp)
+                                (list (cons regexp t))
+                              regexp))
+                   (res cands))
+               (dolist (re re-list)
+                 (setq res
+                       (ignore-errors
+                         (funcall
+                          (if (cdr re)
+                              #'cl-remove-if-not
+                            #'cl-remove-if)
+                          (let ((re-str (car re)))
+                            (lambda (x)
+                              (string-match re-str
+                                            (file-name-nondirectory x))))
+                          res))))
+               ;; We then apply `counsel--find-file-matcher' to `res'
+               ;; so we can honor `ivy-use-ignore', but we don't need
+               ;; to filter again.
+               (counsel--find-file-matcher nil res)))
+        ;; We apply `counsel--find-file-matcher' to `cands' so we can
+        ;; honor `ivy-use-ignore', but we don't need to filter
+        ;; again.
+        (counsel--find-file-matcher nil cands))))     
 
 (defun counsel-projectile-find-file-action (file)
   "Find FILE and run `projectile-find-file-hook'."
@@ -305,10 +368,14 @@ With a prefix ARG, invalidate the cache first."
   (projectile-maybe-invalidate-cache arg)
   (ivy-read (projectile-prepend-project-name "Find file: ")
             (projectile-current-project-files)
-            :matcher #'counsel--find-file-matcher
+            :matcher counsel-projectile-find-file-matcher
             :require-match t
+            :sort t
             :action counsel-projectile-find-file-action
             :caller 'counsel-projectile-find-file))
+
+(unless (assq #'counsel-projectile-find-file ivy-sort-functions-alist)
+  (push (list #'counsel-projectile-find-file) ivy-sort-functions-alist))
 
 (ivy-set-display-transformer
  'counsel-projectile-find-file
@@ -343,8 +410,8 @@ With a prefix ARG, invalidate the cache first."
 (defun counsel-projectile-find-dir-action-other-window (dir)
   "Visit DIR with dired in another window and run
 `projectile-find-dir-hook'."
- (dired-other-window (projectile-expand-root dir))
- (run-hooks 'projectile-find-dir-hook))
+  (dired-other-window (projectile-expand-root dir))
+  (run-hooks 'projectile-find-dir-hook))
 
 ;;;###autoload
 (defun counsel-projectile-find-dir (&optional arg)
@@ -356,8 +423,12 @@ With a prefix ARG, invalidate the cache first."
   (ivy-read (projectile-prepend-project-name "Find dir: ")
             (counsel-projectile--project-directories)
             :require-match t
+            :sort t
             :action counsel-projectile-find-dir-action
             :caller 'counsel-projectile-find-dir))
+
+(unless (assq #'counsel-projectile-find-dir ivy-sort-functions-alist)
+  (push (list #'counsel-projectile-find-dir) ivy-sort-functions-alist))
 
 ;;;; counsel-projectile-switch-to-buffer
 
@@ -414,8 +485,12 @@ names as in `ivy--buffer-list', and remove current buffer if
             (counsel-projectile--project-buffers)
             :matcher #'ivy--switch-buffer-matcher
             :require-match t
+            :sort t
             :action counsel-projectile-switch-to-buffer-action
             :caller 'counsel-projectile-switch-to-buffer))
+
+(unless (assq #'counsel-projectile-switch-to-buffer ivy-sort-functions-alist)
+  (push (list #'counsel-projectile-switch-to-buffer) ivy-sort-functions-alist))
 
 (ivy-set-display-transformer
  'counsel-projectile-switch-to-buffer
@@ -456,7 +531,7 @@ construct the command.")
                   (setq ivy--old-re
                         (ivy--regex string)))))
       (counsel--async-command (format counsel-projectile-grep-command
-				      (shell-quote-argument regex)))
+                                      (shell-quote-argument regex)))
       nil)))
 
 (defun counsel-projectile-grep-transformer (str)
@@ -506,7 +581,7 @@ called with a prefix argument."
                 (format "%s: " (projectile-prepend-project-name (ivy-state-prompt ivy-last)))))))
         (counsel-git-grep (or current-prefix-arg options-or-cmd)
                           counsel-projectile-grep-initial-input))
-    (counsel-require-program (car (split-string counsel-projectile-grep-base-command)))	
+    (counsel-require-program (car (split-string counsel-projectile-grep-base-command)))
     (let* ((ignored-files (mapconcat (lambda (i)
                                        (concat "--exclude="
                                                (shell-quote-argument i)
@@ -640,6 +715,9 @@ is called with a prefix argument."
 
 ;;;; counsel-projectile-org-capture
 
+(defvar org-capture-templates)
+(defvar org-capture-templates-contexts)
+
 (defcustom counsel-projectile-org-capture-templates
   '(("t" "Task" entry (file+headline "${root}/notes.org" "Tasks")
      "* TODO %?\n  %u\n  %a"))
@@ -670,10 +748,10 @@ displayed as category). The second one points to outline path
 all projects)."
   :type ;; copied from `org-capture-templates'
   (let ((file-variants '(choice :tag "Filename       "
-				(file :tag "Literal")
-				(function :tag "Function")
-				(variable :tag "Variable")
-				(sexp :tag "Form"))))
+                                (file :tag "Literal")
+                                (function :tag "Function")
+                                (variable :tag "Variable")
+                                (sexp :tag "Form"))))
     `(repeat
       (choice :value ("" "" entry (file "~/org/notes.org") "")
               (list :tag "Multikey description"
@@ -780,28 +858,28 @@ The capture templates are read from the variables
   (interactive)
   (require 'org-capture)
   (let* ((root (projectile-project-root))
-	 (name (projectile-project-name))
-	 (org-capture-templates
-	  (cl-loop
-	   for template in counsel-projectile-org-capture-templates
-	   collect (cl-loop
-		    for item in template
-		    if (= (cl-position item template) 3) ;; template's target
-		    collect (cl-loop
-			     for x in item
-			     if (stringp x)
-			     collect (replace-regexp-in-string
-				      "\\${[^}]+}"
-				      (lambda (s)
-					(pcase s
-					  ("${root}" root)
-					  ("${name}" name)))
-				      x)
-			     else
-			     collect x)
-		    else
-		    collect item)))
-	 (org-capture-templates-contexts counsel-projectile-org-capture-templates-contexts)
+         (name (projectile-project-name))
+         (org-capture-templates
+          (cl-loop
+           for template in counsel-projectile-org-capture-templates
+           collect (cl-loop
+                    for item in template
+                    if (= (cl-position item template) 3) ;; template's target
+                    collect (cl-loop
+                             for x in item
+                             if (stringp x)
+                             collect (replace-regexp-in-string
+                                      "\\${[^}]+}"
+                                      (lambda (s)
+                                        (pcase s
+                                          ("${root}" root)
+                                          ("${name}" name)))
+                                      x)
+                             else
+                             collect x)
+                    else
+                    collect item)))
+         (org-capture-templates-contexts counsel-projectile-org-capture-templates-contexts)
          (ivy--prompts-list ivy--prompts-list))
     (ivy-set-prompt 'counsel-org-capture
                     (lambda ()
@@ -1010,7 +1088,11 @@ action."
                             (abbreviate-file-name (projectile-project-root)))
             :action counsel-projectile-switch-project-action
             :require-match t
+            :sort t
             :caller 'counsel-projectile-switch-project))
+
+(unless (assq #'counsel-projectile-switch-project ivy-sort-functions-alist)
+  (push (list #'counsel-projectile-switch-project) ivy-sort-functions-alist))
 
 ;;;; counsel-projectile
 
@@ -1028,7 +1110,7 @@ action."
    ("m" counsel-projectile-action-find-file-manually
     "find file manually")
    ("p" (lambda (_) (counsel-projectile-switch-project))
-     "switch project"))
+    "switch project"))
  'counsel-projectile)
 
 (defvar counsel-projectile--buffers nil
@@ -1049,15 +1131,16 @@ action."
                file)
            (dolist (buffer counsel-projectile--buffers files)
              (when (setq file (buffer-file-name (get-buffer buffer)))
-               (setq files (delete (file-relative-name file root) files))))))))
+               (setq files (remove (file-relative-name file root) files))))))))
 
-(defun counsel-projectile--matcher (regexp candidates)
+(defun counsel-projectile--matcher (regexp _candidates)
   "Return REGEXP-matching CANDIDATES for `counsel-projectile'.
 
-Relies on `ivy--switch-buffer-matcher' and
-`counsel--find-file-matcher'."
+Relies on `ivy--switch-buffer-matcher' for buffers and the
+matcher specified in `counsel-projectile-find-file-matcher' for
+files."
   (append (ivy--switch-buffer-matcher regexp counsel-projectile--buffers)
-          (counsel--find-file-matcher regexp counsel-projectile--non-visited-files)))
+          (funcall counsel-projectile-find-file-matcher regexp counsel-projectile--non-visited-files)))
 
 (defun counsel-projectile-action (name)
   "Switch to buffer or find file named NAME."
@@ -1111,8 +1194,12 @@ If not inside a project, call `counsel-projectile-switch-project'."
               (counsel-projectile--project-buffers-and-files)
               :matcher #'counsel-projectile--matcher
               :require-match t
+              :sort t
               :action counsel-projectile-action
               :caller 'counsel-projectile)))
+
+(unless (assq #'counsel-projectile ivy-sort-functions-alist)
+  (push (list #'counsel-projectile) ivy-sort-functions-alist))
 
 (ivy-set-display-transformer
  'counsel-projectile

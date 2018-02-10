@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "counsel-projectile" "counsel-projectile.el"
-;;;;;;  (23138 48829 670489 213000))
+;;;;;;  (23166 23008 592883 647000))
 ;;; Generated autoloads from counsel-projectile.el
 
 (autoload 'counsel-projectile-find-file "counsel-projectile" "\
