@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "flycheck-rust" "flycheck-rust.el" (0 0 0 0))
+;;;### (autoloads nil "flycheck-rust" "flycheck-rust.el" (23166 23096
+;;;;;;  392777 529000))
 ;;; Generated autoloads from flycheck-rust.el
 
 (autoload 'flycheck-rust-setup "flycheck-rust" "\
@@ -13,8 +14,6 @@ If the current file is part of a Cargo project, configure
 Flycheck according to the Cargo project layout.
 
 \(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flycheck-rust" '("flycheck-rust-")))
 
 ;;;***
 
