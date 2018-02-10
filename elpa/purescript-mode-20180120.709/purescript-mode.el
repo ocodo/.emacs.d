@@ -318,7 +318,7 @@ see documentation for that variable for more details."
   (set (make-local-variable 'adaptive-fill-mode) nil)
   (set (make-local-variable 'comment-start) "-- ")
   (set (make-local-variable 'comment-padding) 0)
-  (set (make-local-variable 'comment-start-skip) "[-{]-[ \t]*")
+  (set (make-local-variable 'comment-start-skip) "--\s*|?\s*")
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-end-skip) "[ \t]*\\(-}\\|\\s>\\)")
   (set (make-local-variable 'parse-sexp-ignore-comments) nil)
