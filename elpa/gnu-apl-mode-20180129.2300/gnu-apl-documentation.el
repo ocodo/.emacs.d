@@ -209,7 +209,7 @@ buffer. Otherwise try to make it short to fit into the tooltip."
 
 (defun gnu-apl--make-clickable (string keymap)
   (let ((help-echo-string (concat "mouse-1: Show documentation for " string "\n"
-                        "mouse-3: Insert " string " in GNU APL buffer"))
+                                  "mouse-3: Insert " string " in GNU APL buffer"))
         (description
          (gnu-apl--get-full-docstring-for-symbol string
                                                  (not gnu-apl-keyboard-simplified-mouse-action-mode))))
@@ -303,11 +303,10 @@ buffer. Otherwise try to make it short to fit into the tooltip."
         (let* ((key (match-string 1))
                (found (cl-find key gnu-apl--symbols :key #'third :test #'equal))
                (found-nonspecial (cl-find key gnu-apl--symbol-doc :key #'first :test #'equal))
-               (result-string (if found (gnu-apl--make-clickable (second found) keymap) " "))
+               (result-string (if found (save-match-data (gnu-apl--make-clickable (second found) keymap)) " "))
                (nonspecial-string (if found-nonspecial (gnu-apl--make-clickable key keymap) key)))
           (replace-match (concat nonspecial-string result-string) t t)))
       (add-text-properties (point-min) (point-max) (list 'face 'gnu-apl-kbd-help-screen))
-      (goto-char (point-min))
       (gnu-apl-keymap-mode))
     buffer))
 

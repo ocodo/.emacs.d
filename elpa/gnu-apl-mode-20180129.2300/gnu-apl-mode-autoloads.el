@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "gnu-apl-mode" "gnu-apl-mode.el" (23138 48627
-;;;;;;  806260 333000))
+;;;### (autoloads nil "gnu-apl-mode" "gnu-apl-mode.el" (23166 23115
+;;;;;;  116755 87000))
 ;;; Generated autoloads from gnu-apl-mode.el
 
 (let ((loads (get 'gnu-apl 'custom-loads))) (if (member '"gnu-apl-mode" loads) nil (put 'gnu-apl 'custom-loads (cons '"gnu-apl-mode" loads))))
@@ -32,7 +32,7 @@ to ‘gnu-apl-executable’).
 ;;;;;;  "gnu-apl-interactive.el" "gnu-apl-mode-pkg.el" "gnu-apl-network.el"
 ;;;;;;  "gnu-apl-osx-workaround.el" "gnu-apl-plot.el" "gnu-apl-refdocs-bsd-license.el"
 ;;;;;;  "gnu-apl-spreadsheet.el" "gnu-apl-symbols.el" "gnu-apl-util.el")
-;;;;;;  (23138 48627 810260 338000))
+;;;;;;  (23166 23115 120755 82000))
 
 ;;;***
 

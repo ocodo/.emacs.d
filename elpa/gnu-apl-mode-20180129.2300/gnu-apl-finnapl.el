@@ -91,7 +91,7 @@ the buffer created by url-retrieve START END."
            (idiom-list
             (loop for index-start = 0 then (match-end 0)
                   for last-idiom-title = nil then (decode-coding-string (match-string 3) 'utf-8)
-                  for last-title-rows = 0 then (string-to-int (match-string 1))
+                  for last-title-rows = 0 then (string-to-number (match-string 1))
                   for last-title-number = 0 then (match-string 2)
                   for last-title-params = nil then (decode-coding-string (match-string 4) 'utf-8)
                   while (search-forward-regexp idiom-title-regexp
@@ -109,7 +109,7 @@ the buffer created by url-retrieve START END."
                   (return (nconc result (list (list (match-string 2)
                                                     last-idiom-title
                                                     (decode-coding-string (match-string 4) 'utf-8)
-                                                    (string-to-int (match-string 1))
+                                                    (string-to-number (match-string 1))
                                                     (match-end 0)
                                                     end)))))))
       (mapc #'gnu-apl--parse-finnapl-idiom idiom-list))))
