@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "olivetti" "olivetti.el" (23138 48026 165211
-;;;;;;  432000))
+;;;### (autoloads nil "olivetti" "olivetti.el" (23166 23230 204618
+;;;;;;  366000))
 ;;; Generated autoloads from olivetti.el
 
 (autoload 'turn-on-olivetti-mode "olivetti" "\
@@ -22,11 +22,6 @@ When `olivetti-hide-mode-line' is non-nil, the mode line is also
 hidden.
 
 \(fn &optional ARG)" t nil)
-
-;;;***
-
-;;;### (autoloads nil nil ("olivetti-pkg.el") (23138 48023 429204
-;;;;;;  590000))
 
 ;;;***
 

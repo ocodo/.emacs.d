@@ -4,7 +4,7 @@
 
 ;; Author: Paul Rankin <hello@paulwrankin.com>
 ;; Keywords: wp
-;; Package-Version: 20171209.644
+;; Package-Version: 20180205.2323
 ;; Version: 1.5.9
 ;; Package-Requires: ((emacs "24.4"))
 ;; URL: https://github.com/rnkn/olivetti
@@ -100,6 +100,12 @@
 ;;     M-x add-file-local-variable RET olivetti-body-width RET 66 RET
 
 ;; [file variable]: https://www.gnu.org/software/emacs/manual/html_node/emacs/File-Variables.html "File Variables"
+
+;; Tips
+;; ----
+
+;; Ethereum address 0x209C60afd8aF6c61ac4Dbe340d81D4f789DF64D3
+;; Bitcoin Cash address 19gUvL8YUzDKr5GyiHpYeF31BfQm87xM9L
 
 
 ;;; Code:
