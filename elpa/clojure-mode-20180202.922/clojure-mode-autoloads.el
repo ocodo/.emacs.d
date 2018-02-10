@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "clojure-mode" "clojure-mode.el" (23138 48858
-;;;;;;  570519 189000))
+;;;### (autoloads nil "clojure-mode" "clojure-mode.el" (23166 22991
+;;;;;;  264904 780000))
 ;;; Generated autoloads from clojure-mode.el
 
 (autoload 'clojure-mode "clojure-mode" "\
@@ -126,18 +126,9 @@ Major mode for editing ClojureC code.
 
 \(fn)" t nil)
 
-(autoload 'clojurex-mode "clojure-mode" "\
-Major mode for editing ClojureX code.
-
-\\{clojurex-mode-map}
-
-\(fn)" t nil)
-
 (add-to-list 'auto-mode-alist '("\\.\\(clj\\|dtm\\|edn\\)\\'" . clojure-mode))
 
 (add-to-list 'auto-mode-alist '("\\.cljc\\'" . clojurec-mode))
-
-(add-to-list 'auto-mode-alist '("\\.cljx\\'" . clojurex-mode))
 
 (add-to-list 'auto-mode-alist '("\\.cljs\\'" . clojurescript-mode))
 
