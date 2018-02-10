@@ -6,7 +6,7 @@
 ;;         Marshall T. Vandegrift <llasram@gmail.com>
 ;; Maintainer: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; Package-Requires: ((emacs "24.1"))
-;; Package-Version: 20170727.1531
+;; Package-Version: 20180204.2333
 ;; Keywords: data yaml
 ;; Version: 0.0.13
 
@@ -246,7 +246,8 @@ that key is pressed to begin a block literal."
    "Additional expressions to highlight in YAML mode.")
 
 (defun yaml-mode-syntax-propertize-function (beg end)
-  "Unhighlight foo#bar tokens between BEG and END."
+  "Override buffer's syntax table for special syntactic constructs."
+  ;; Unhighlight foo#bar tokens between BEG and END.
   (save-excursion
     (goto-char beg)
     (while (search-forward "#" end t)
@@ -256,7 +257,20 @@ that key is pressed to begin a block literal."
         (when (and (not (bolp))
                    (not (memq (preceding-char) '(?\s ?\t))))
           (put-text-property (point) (1+ (point))
-                             'syntax-table (string-to-syntax "_")))))))
+                             'syntax-table (string-to-syntax "_"))))))
+
+  ;; If quote is detected as a syntactic string start but appeared
+  ;; after a non-whitespace character, then mark it as syntactic word.
+  (save-excursion
+    (goto-char beg)
+    (while (search-forward "'" end t)
+      (when (nth 8 (syntax-ppss))
+        (save-excursion
+          (forward-char -1)
+          (when (and (not (bolp))
+                     (not (memq (preceding-char) '(?\s ?\t))))
+            (put-text-property (point) (1+ (point))
+                               'syntax-table (string-to-syntax "w"))))))))
 
 (defun yaml-font-lock-block-literals (bound)
   "Find lines within block literals.
