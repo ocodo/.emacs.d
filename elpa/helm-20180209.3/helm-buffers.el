@@ -211,6 +211,7 @@ Note that this variable is buffer-local.")
 
 (defvar helm-buffer-max-len-mode nil)
 (defvar helm-buffers-in-project-p nil)
+(defvar helm-source-buffers-list nil)
 
 (defun helm-buffers-list--init ()
   (require 'dired)
@@ -221,7 +222,15 @@ Note that this variable is buffer-local.")
   ;; reused in each source (issue #1907), now 'candidates attr is set
   ;; directly so that each list of candidates is local to source.
   (helm-attrset 'candidates (funcall (helm-attr 'buffer-list)))
-  (let ((result (cl-loop for b in (helm-attr 'candidates)
+  (let ((result (cl-loop with allbufs = (memq 'helm-shadow-boring-buffers
+                                              (helm-attr
+                                               'filtered-candidate-transformer
+                                               helm-source-buffers-list))
+                         for b in (if allbufs
+                                      (helm-attr 'candidates)
+                                    (helm-skip-boring-buffers
+                                     (helm-attr 'candidates)
+                                     helm-source-buffers-list))
                          maximize (length b) into len-buf
                          maximize (length (with-current-buffer b
                                             (format-mode-line mode-name)))
@@ -249,8 +258,6 @@ Note that this variable is buffer-local.")
    (nohighlight :initform t)
    (resume :initform (lambda () (setq helm-buffers-in-project-p nil)))
    (help-message :initform 'helm-buffer-help-message)))
-
-(defvar helm-source-buffers-list nil)
 
 (defvar helm-source-buffer-not-found
   (helm-build-dummy-source

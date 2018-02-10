@@ -48,19 +48,56 @@
     (find-file-at-point . helm-completing-read-sync-default-handler)
     (ffap . helm-completing-read-sync-default-handler)
     (execute-extended-command . nil))
-  "Alist of handlers to replace `completing-read', `read-file-name' in `helm-mode'.
-Each entry is a cons cell like \(emacs_command . completing-read_handler\)
+  "Completing read functions for specific Emacs commands.
+
+By default `helm-mode' use `helm-completing-read-default-handler' to
+provide helm completion in each `completing-read' or `read-file-name'
+found, but other functions can be specified here for specific
+commands. This also allow disabling helm completion for some commands
+when needed.
+ 
+Each entry is a cons cell like (EMACS_COMMAND . COMPLETING-READ_HANDLER)
 where key and value are symbols.
 
 Each key is an Emacs command that use originaly `completing-read'.
 
-Each value maybe an helm function that take same arguments as
+Each value maybe a helm function that takes same arguments as
 `completing-read' plus NAME and BUFFER, where NAME is the name of the new
-helm source and BUFFER the name of the buffer we will use.
-This function prefix name must start by \"helm\".
+helm source and BUFFER the name of the buffer we will use, but it can
+be also a function not using helm, in this case the function should
+take same args as `completing-read' and not be prefixed by \"helm-\".
 
-See `helm-completing-read-symbols' for example.
+`helm' will use the name of the command calling `completing-read' as
+NAME and BUFFER will be computed as well with NAME but prefixed with
+\"*helm-mode-\".
 
+This function prefix name must start by \"helm-\" when it uses helm,
+otherwise `helm' assumes the function is not a helm function and
+expects same args as `completing-read', this allow you to define a
+handler not using helm completion.
+
+Example:
+
+    (defun foo/test ()
+      (interactive)
+      (message \"%S\" (completing-read \"test: \" '(a b c d e))))
+
+    (defun helm-foo/test-completing-read-handler (prompt collection
+                                                  predicate require-match
+                                                  initial-input hist def
+                                                  inherit-input-method
+                                                  name buffer)
+      (helm-comp-read prompt collection :marked-candidates t
+                                        :name name
+                                        :buffer buffer))
+
+    (add-to-list 'helm-completing-read-handlers-alist
+                 '(foo/test . helm-foo/test-completing-read-handler))
+
+
+We want here to make the regular `completing-read' in `foo/test'
+returns a list of candidate(s) instead of a single candidate.
+ 
 Note that this function will be reused for ALL the `completing-read'
 of this command, so it should handle all cases, e.g
 If first `completing-read' complete against symbols and
@@ -69,16 +106,25 @@ your specialized function should handle the both.
 
 If the value of an entry is nil completion will fall back to
 emacs vanilla behavior.
-e.g If you want to disable helm completion for `describe-function':
-\(describe-function . nil\).
+Example:
+
+If you want to disable helm completion for `describe-function', use:
+
+    (describe-function . nil)
 
 Ido is also supported, you can use `ido-completing-read' and
 `ido-read-file-name' as value of an entry or just 'ido.
-e.g ido completion for `find-file':
-\(find-file . ido\)
+Example:
+Enable ido completion for `find-file':
+
+    (find-file . ido)
+
 same as
-\(find-file . ido-read-file-name\)
-Note that you don't need to enable `ido-mode' for this to work."
+
+    (find-file . ido-read-file-name)
+
+Note that you don't need to enable `ido-mode' for this to work, see
+`helm-mode' documentation."
   :group 'helm-mode
   :type '(alist :key-type symbol :value-type symbol))
 
@@ -1308,6 +1354,11 @@ Some crap emacs functions may not be supported,
 e.g `ffap-alternate-file' and maybe others
 You can add such functions to `helm-completing-read-handlers-alist'
 with a nil value.
+
+About `ido-mode':
+When you are using `helm-mode', DO NOT use `ido-mode', instead if you
+want some commands use `ido' add these commands to
+`helm-completing-read-handlers-alist' with ido as value.
 
 Note: This mode is incompatible with Emacs23."
   :group 'helm-mode

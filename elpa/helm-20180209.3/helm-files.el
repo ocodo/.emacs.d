@@ -51,6 +51,7 @@
 (declare-function helm-gid "helm-id-utils.el")
 (declare-function helm-ls-svn-ls "ext:helm-ls-svn")
 (declare-function helm-find-1 "helm-find")
+(declare-function helm-get-default-program-for-file "helm-external")
 
 (defvar recentf-list)
 (defvar helm-mm-matching-method)
@@ -188,6 +189,19 @@ this one is situated lower than `helm-ff-candidate-number-limit' num
 candidate."
   :group 'helm-files
   :type 'integer)
+
+(defcustom helm-ff-up-one-level-preselect t
+  "Always preselect previous directory when going one level up.
+
+When non nil `candidate-number-limit' source value is modified
+dynamically when going one level up if the position of previous
+candidate in its directory is > to `helm-ff-candidate-number-limit'.
+
+This can be helpful to disable this and reduce
+`helm-ff-candidate-number-limit' if you often navigate across very
+large directories."
+  :group 'helm-files
+  :type 'boolean)
 
 (defcustom helm-files-save-history-extra-sources
   '("Find" "Locate" "Recentf"
@@ -477,7 +491,7 @@ Don't set it directly, use instead `helm-ff-auto-update-initial-value'.")
 (defvar helm-find-files--toggle-bookmark nil)
 (defvar helm-ff--tramp-methods nil)
 (defvar helm-ff--directory-files-hash (make-hash-table :test 'equal))
-
+(defvar helm-ff-history-buffer-name "*helm-find-files history*")
 
 ;;; Helm-find-files
 ;;
@@ -1340,7 +1354,8 @@ Behave differently depending of `helm-selection':
   (interactive)
   (with-helm-alive-p
     (when (helm-file-completion-source-p)
-      (helm-exit-and-execute-action 'helm-find-files-switch-to-hist))))
+      (let ((helm-actions-inherit-frame-settings t))
+        (helm-exit-and-execute-action 'helm-find-files-switch-to-hist)))))
 (put 'helm-ff-run-switch-to-history 'helm-only t)
 
 (defun helm-ff-run-grep ()
@@ -1681,9 +1696,12 @@ If prefix numeric arg is given go ARG level up."
               (new-pattern (helm-reduce-file-name helm-pattern arg)))
           ;; Ensure visibility on all candidates for preselection.
           (helm-attrset 'candidate-number-limit
-                        (max (gethash new-pattern helm-ff--directory-files-hash
-                                      helm-ff-candidate-number-limit)
-                             helm-ff-candidate-number-limit))
+                        (if helm-ff-up-one-level-preselect
+                            (max (gethash new-pattern
+                                          helm-ff--directory-files-hash
+                                          helm-ff-candidate-number-limit)
+                                 helm-ff-candidate-number-limit)
+                          helm-ff-candidate-number-limit))
           (cond ((file-directory-p helm-pattern)
                  (setq helm-ff-last-expanded helm-ff-default-directory))
                 ((file-exists-p helm-pattern)
@@ -2358,6 +2376,7 @@ Note that only existing directories are saved here."
 
 (defun helm-ff-properties (candidate)
   "Show file properties of CANDIDATE in a tooltip or message."
+  (require 'helm-external) ; For `helm-get-default-program-for-file'. 
   (let* ((all                (helm-file-attributes candidate))
          (dired-line         (helm-file-attributes
                               candidate :dired t :human-size t))
@@ -3015,18 +3034,22 @@ Show the first `helm-ff-history-max-length' elements of
            helm-ff-history
            :name "Helm Find Files History"
            :must-match t
-           :fuzzy (helm-ff-fuzzy-matching-p))
+           :fuzzy (helm-ff-fuzzy-matching-p)
+           :buffer helm-ff-history-buffer-name)
         helm-ff-history))))
 
 (defun helm-find-files-1 (fname &optional preselect)
-  "Find FNAME with `helm' completion.
-
-Even if it works with an abbreviated path FNAME should be an absolute
-path path to avoid multiples calls to helm-update to resolve the
-abbreviated path.
+  "Find FNAME filename with PRESELECT filename preselected.
 
 Use it for non--interactive calls of `helm-find-files'."
   (require 'tramp)
+  ;; Resolve FNAME now outside of helm.
+  ;; [FIXME] When `helm-find-files-1' is used directly from lisp
+  ;; and FNAME is an abbreviated path, for some reasons
+  ;; `helm-update' is called many times before resolving
+  ;; the abbreviated path (Issue #1939) so be sure to pass a
+  ;; full path to helm-find-files-1.
+  (setq fname (expand-file-name (substitute-in-file-name fname)))
   (when (get-buffer helm-action-buffer)
     (kill-buffer helm-action-buffer))
   (setq helm-find-files--toggle-bookmark nil)
@@ -3044,14 +3067,6 @@ Use it for non--interactive calls of `helm-find-files'."
     (helm-ff-setup-update-hook)
     (unwind-protect
          (helm :sources 'helm-source-find-files
-               ;; When `helm-find-files-1' is used directly from lisp
-               ;; and FNAME is an abbreviated path, for some reasons
-               ;; `helm-update' is called many times before resolving
-               ;; the abbreviated (Issue #1939) so be sure to pass a
-               ;; full path to helm-find-files-1.  Also when expanding
-               ;; here, it is done twice as helm-find-files and
-               ;; friends are already passing an expanded path to
-               ;; helm-find-files-1.
                :input fname
                :case-fold-search helm-file-name-case-fold-search
                :preselect preselect
@@ -3771,6 +3786,13 @@ This is the starting point for nearly all actions you can do on files."
                                        (null hist)
                                        (not (string-match-p "[.]\\{1,2\\}\\'" it)))
                                   (helm-basename it) it))))
+    ;; Continue using the same display function as history which used
+    ;; probably itself the same display function as inner HFF call,
+    ;; i.e. if history was using frame use a frame otherwise use a window.
+    (when (and hist (buffer-live-p (get-buffer helm-ff-history-buffer-name)))
+      (helm-set-local-variable 'helm-display-function
+                               (with-current-buffer helm-ff-history-buffer-name
+                                 helm-display-function)))
     (set-text-properties 0 (length input) nil input)
     (setq current-prefix-arg nil)
     (helm-find-files-1 input (and presel (null helm-ff-no-preselect)
