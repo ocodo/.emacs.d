@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "which-key" "which-key.el" (23138 47567 299545
-;;;;;;  525000))
+;;;### (autoloads nil "which-key" "which-key.el" (23166 23393 64430
+;;;;;;  860000))
 ;;; Generated autoloads from which-key.el
 
 (defvar which-key-mode nil "\
@@ -143,11 +143,6 @@ Dispatch C-h commands by looking up key in
 prefix) if `which-key-use-C-h-commands' is non nil.
 
 \(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads nil nil ("which-key-pkg.el") (23138 47562 859522
-;;;;;;  554000))
 
 ;;;***
 

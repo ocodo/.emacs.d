@@ -5,7 +5,7 @@
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; Maintainer: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Package-Version: 20180108.1930
+;; Package-Version: 20180131.606
 ;; Version: 3.1.0
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.4"))
@@ -215,6 +215,19 @@ only the first match is used to perform replacements from
 `which-key-replacement-alist'."
   :group 'which-key
   :type 'boolean)
+
+(defcustom which-key-show-docstrings nil
+  "If non-nil, show each command's docstring next to the command
+in the which-key buffer. This will only display the docstring up
+to the first line break. If you set this variable to the symbol
+docstring-only, then the command's name with be omitted. You
+probably also want to adjust `which-key-max-description-length'
+at the same time if you use this feature."
+  :group 'which-key
+  :type '(radio
+          (const :tag "Do not show docstrings" nil)
+          (const :tag "Add docstring to command names" t)
+          (const :tag "Replace command name with docstring" docstring-only)))
 
 (defcustom which-key-highlighted-command-list '()
   "A list of strings and/or cons cells used to highlight certain
@@ -556,6 +569,11 @@ and it matches a string in `which-key-highlighted-command-list'."
 (defface which-key-special-key-face
   '((t . (:inherit which-key-key-face :inverse-video t :weight bold)))
   "Face for special keys (SPC, TAB, RET)"
+  :group 'which-key-faces)
+
+(defface which-key-docstring-face
+  '((t . (:inherit which-key-note-face)))
+  "Face for docstrings"
   :group 'which-key-faces)
 
 ;;;; Custom popup
@@ -1475,12 +1493,17 @@ no title exists."
      which-key--current-show-keymap-name)
     (t "")))
 
+(defun which-key--propertize (string &rest properties)
+  "Version of `propertize' that checks type of STRING."
+  (when (stringp string)
+    (apply #'propertize string properties)))
+
 (defun which-key--propertize-key (key)
   "Add a face to KEY.
 If KEY contains any \"special keys\" defined in
 `which-key-special-keys' then truncate and add the corresponding
 `which-key-special-key-face'."
-  (let ((key-w-face (propertize key 'face 'which-key-key-face))
+  (let ((key-w-face (which-key--propertize key 'face 'which-key-key-face))
         (regexp (concat "\\("
                         (mapconcat 'identity which-key-special-keys
                                    "\\|") "\\)"))
@@ -1490,7 +1513,7 @@ If KEY contains any \"special keys\" defined in
                (string-match regexp key))
           (let ((beg (match-beginning 0)) (end (match-end 0)))
             (concat (substring key-w-face 0 beg)
-                    (propertize (substring key-w-face beg (1+ beg))
+                    (which-key--propertize (substring key-w-face beg (1+ beg))
                                 'face 'which-key-special-key-face)
                     (substring key-w-face end
                                (which-key--string-width key-w-face))))
@@ -1498,10 +1521,12 @@ If KEY contains any \"special keys\" defined in
 
 (defsubst which-key--truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
-  (if (and which-key-max-description-length
-           (> (length desc) which-key-max-description-length))
-      (concat (substring desc 0 which-key-max-description-length) "..")
-    desc))
+  (let* ((last-face (get-text-property (1- (length desc)) 'face desc))
+         (dots (which-key--propertize ".." 'face last-face)))
+    (if (and which-key-max-description-length
+             (> (length desc) which-key-max-description-length))
+        (concat (substring desc 0 which-key-max-description-length) dots)
+      desc)))
 
 (defun which-key--highlight-face (description)
   "Return the highlight face for DESCRIPTION if it has one."
@@ -1529,34 +1554,35 @@ removing a \"group:\" prefix.
 
 ORIGINAL-DESCRIPTION is the description given by
 `describe-buffer-bindings'."
-  (let* ((desc description)
-         (desc (if (string-match-p "^group:" desc)
-                   (substring desc 6) desc))
-         (desc (if group (concat which-key-prefix-prefix desc) desc))
-         (desc (which-key--truncate-description desc)))
-    (make-text-button desc nil
-      'face (cond (hl-face hl-face)
-                  (group 'which-key-group-description-face)
-                  (local 'which-key-local-map-description-face)
-                  (t 'which-key-command-description-face))
-      'help-echo (cond
-                  ((and original-description
-                        (fboundp (intern original-description))
-                        (documentation (intern original-description))
-                        ;; tooltip-mode doesn't exist in emacs-nox
-                        (boundp 'tooltip-mode) tooltip-mode)
-                   (documentation (intern original-description)))
-                  ((and original-description
-                        (fboundp (intern original-description))
-                        (documentation (intern original-description))
-                        (let* ((doc (documentation
-                                     (intern original-description)))
-                               (str (replace-regexp-in-string "\n" " " doc))
-                               (max (floor (* (frame-width) 0.8))))
-                          (if (> (length str) max)
-                              (concat (substring str 0 max) "...")
-                            str))))))
-    desc))
+  (when description
+    (let* ((desc description)
+           (desc (if (string-match-p "^group:" desc)
+                     (substring desc 6) desc))
+           (desc (if group (concat which-key-prefix-prefix desc) desc)))
+      (make-text-button
+       desc nil
+       'face (cond (hl-face hl-face)
+                   (group 'which-key-group-description-face)
+                   (local 'which-key-local-map-description-face)
+                   (t 'which-key-command-description-face))
+       'help-echo (cond
+                   ((and original-description
+                         (fboundp (intern original-description))
+                         (documentation (intern original-description))
+                         ;; tooltip-mode doesn't exist in emacs-nox
+                         (boundp 'tooltip-mode) tooltip-mode)
+                    (documentation (intern original-description)))
+                   ((and original-description
+                         (fboundp (intern original-description))
+                         (documentation (intern original-description))
+                         (let* ((doc (documentation
+                                      (intern original-description)))
+                                (str (replace-regexp-in-string "\n" " " doc))
+                                (max (floor (* (frame-width) 0.8))))
+                           (if (> (length str) max)
+                               (concat (substring str 0 max) "...")
+                             str))))))
+      desc)))
 
 (defun which-key--extract-key (key-str)
   "Pull the last key (or key range) out of KEY-STR."
@@ -1566,12 +1592,32 @@ ORIGINAL-DESCRIPTION is the description given by
           (match-string 1 key-str)
         (car (last (split-string key-str " ")))))))
 
+(defun which-key--maybe-add-docstring (current original)
+  "Maybe concat a docstring to CURRENT and return result.
+Specifically, do this if ORIGINAL is a command with a docstring
+and `which-key-show-docstrings' is non-nil. If
+`which-key-show-docstrings' is the symbol docstring-only, just
+return the docstring."
+  (let* ((orig-sym (intern original))
+         (doc (when (commandp orig-sym)
+                (documentation orig-sym)))
+         (docstring (when doc
+                      (which-key--propertize (car (split-string doc "\n"))
+                                             'face 'which-key-docstring-face))))
+    (cond ((not (and which-key-show-docstrings docstring))
+           current)
+          ((eq which-key-show-docstrings 'docstring-only)
+           docstring)
+          (t
+           (format "%s %s" current docstring)))))
+
 (defun which-key--format-and-replace (unformatted)
   "Take a list of (key . desc) cons cells in UNFORMATTED, add
 faces and perform replacements according to the three replacement
 alists. Returns a list (key separator description)."
   (let ((sep-w-face
-         (propertize which-key-separator 'face 'which-key-separator-face))
+         (which-key--propertize which-key-separator
+                                'face 'which-key-separator-face))
         (local-map (current-local-map))
         new-list)
     (dolist (key-binding unformatted)
@@ -1585,14 +1631,19 @@ alists. Returns a list (key separator description)."
              (local (eq (which-key--safe-lookup-key local-map (kbd keys))
                         (intern orig-desc)))
              (hl-face (which-key--highlight-face orig-desc))
-             (key-binding (which-key--maybe-replace (cons keys orig-desc))))
+             (key-binding (which-key--maybe-replace (cons keys orig-desc)))
+             (final-desc (which-key--propertize-description
+                          (cdr key-binding) group local hl-face orig-desc)))
+        (when final-desc
+          (setq final-desc
+                (which-key--truncate-description
+                 (which-key--maybe-add-docstring final-desc orig-desc))))
         (when (consp key-binding)
           (push
            (list (which-key--propertize-key
                   (which-key--extract-key (car key-binding)))
                  sep-w-face
-                 (which-key--propertize-description
-                  (cdr key-binding) group local hl-face orig-desc))
+                 final-desc)
            new-list))))
     (nreverse new-list)))
 
@@ -1871,8 +1922,8 @@ is the width of the live window."
                (or which-key--using-show-operator-keymap
                    (not (and which-key-allow-evil-operators
                              (bound-and-true-p evil-this-operator)))))
-      (propertize (format "[%s paging/help]" key)
-                  'face 'which-key-note-face))))
+      (which-key--propertize (format "[%s paging/help]" key)
+                             'face 'which-key-note-face))))
 
 (eval-and-compile
   (if (fboundp 'universal-argument--description)
@@ -1907,7 +1958,7 @@ including prefix arguments."
     (if (or (eq which-key-show-prefix 'echo) dont-prop-keys)
         (concat str dash)
       (concat (which-key--propertize-key str)
-              (propertize dash 'face 'which-key-key-face)))))
+              (which-key--propertize dash 'face 'which-key-key-face)))))
 
 (defun which-key--get-popup-map ()
   "Generate transient-map for use in the top level binding display."
@@ -1931,17 +1982,17 @@ and a page count."
          (nxt-pg-hint (which-key--next-page-hint prefix-keys))
          ;; not used in left case
          (status-line
-          (concat (propertize (which-key--maybe-get-prefix-title
-                               (which-key--current-key-string))
-                              'face 'which-key-note-face)
+          (concat (which-key--propertize (which-key--maybe-get-prefix-title
+                                          (which-key--current-key-string))
+                                         'face 'which-key-note-face)
                   (when (< 1 n-pages)
-                    (propertize (format " (%s of %s)"
-                                        (1+ page-n) n-pages)
-                                'face 'which-key-note-face)))))
+                    (which-key--propertize (format " (%s of %s)"
+                                                   (1+ page-n) n-pages)
+                                           'face 'which-key-note-face)))))
     (pcase which-key-show-prefix
       (`left
-       (let* ((page-cnt (propertize (format "%s/%s" (1+ page-n) n-pages)
-                                    'face 'which-key-separator-face))
+       (let* ((page-cnt (which-key--propertize (format "%s/%s" (1+ page-n) n-pages)
+                                               'face 'which-key-separator-face))
               (first-col-width (+ 2 (max (which-key--string-width full-prefix)
                                          (which-key--string-width page-cnt))))
               (prefix (format (concat "%-" (int-to-string first-col-width) "s")
@@ -2167,13 +2218,13 @@ prefix) if `which-key-use-C-h-commands' is non nil."
     (let* ((prefix-keys (key-description which-key--current-prefix))
            (full-prefix (which-key--full-prefix prefix-keys current-prefix-arg t))
            (prompt (concat (when (string-equal prefix-keys "")
-                             (propertize
+                             (which-key--propertize
                               (concat " "
                                       (or which-key--current-show-keymap-name
                                           "Top-level bindings"))
                               'face 'which-key-note-face))
                            full-prefix
-                           (propertize
+                           (which-key--propertize
                             (substitute-command-keys
                              (concat
                               " \\<which-key-C-h-map>"
