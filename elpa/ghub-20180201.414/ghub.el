@@ -35,7 +35,7 @@
 
 ;; Ghub is intentionally limited to only provide these two essential
 ;; features — basic request functions and guided setup — to avoid being
-;; too opinionated, which would hinder wide adaption.  It is assumed that
+;; too opinionated, which would hinder wide adoption.  It is assumed that
 ;; wide adoption would make life easier for users and maintainers alike,
 ;; because then all packages that talk to the Github API could be
 ;; configured the same way.
@@ -198,7 +198,8 @@ Use HEADERS for those rare resources that require that the data
   mentions it explicitly.
 
 If UNPAGINATE is non-nil, then make multiple requests if necessary
-  to get all items at RESOURCE.
+  to get all items at RESOURCE.  For forward-compatibility avoid
+  using using a function as value.
 If NOERROR is non-nil, then do not raise an error if the request
   fails and return nil instead.
 If READER is non-nil, then it is used to read and return from the
@@ -320,8 +321,8 @@ If HOST is non-nil, then connect to that Github instance.  This
 
 DURATION specifies how many seconds to wait at most.  It defaults
 to 64 seconds.  The first attempt is made immediately, the second
-after two seconds, and each subequent attemts are made after
-waiting as long as we already waited between all preceding
+after two seconds, and each subsequent attempt is made after
+waiting as long again as we already waited between all preceding
 attempts combined.
 
 See `ghub-request' for information about the other arguments."
