@@ -7,7 +7,7 @@
 ;; Keywords: faces
 ;; URL: https://github.com/purcell/diredfl
 ;; Package-Requires: ((emacs "24"))
-;; Package-Version: 20171014.1402
+;; Package-Version: 20180209.118
 ;; Package-X-Original-Version: 0
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -332,14 +332,14 @@ In particular, inode number, number of hard links, and file size."
          '(1 diredfl-rare-priv keep))
 
    (list (concat "^\\([^\n " (char-to-string dired-del-marker) "].*$\\)")
-         1 diredfl-flag-mark-line t)     ; Flag/mark lines
+         '(1 diredfl-flag-mark-line append))                           ; Flag/mark lines
    (list (concat "^\\([^\n " (char-to-string dired-del-marker) "]\\)") ; Flags, marks (except D)
-         1 diredfl-flag-mark t)
+         '(1 diredfl-flag-mark append))
 
    (list (concat "^\\([" (char-to-string dired-del-marker) "].*$\\)") ; Deletion-flagged lines
-         1 diredfl-deletion-file-name t)
+         '(1 diredfl-deletion-file-name append))
    (list (concat "^\\([" (char-to-string dired-del-marker) "]\\)") ; Deletion flags (D)
-         1 diredfl-deletion t)
+         '(1 diredfl-deletion append))
 
    ) "2nd level of Dired highlighting.  See `font-lock-maximum-decoration'.")
 

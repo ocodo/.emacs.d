@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "diredfl" "diredfl.el" (23064 60667 120286
-;;;;;;  599000))
+;;;### (autoloads nil "diredfl" "diredfl.el" (23166 23024 760864
+;;;;;;  0))
 ;;; Generated autoloads from diredfl.el
 
 (autoload 'diredfl-mode "diredfl" "\
