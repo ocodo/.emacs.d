@@ -1,4 +1,4 @@
-(define-package "emojify" "20171018.744" "Display emojis in Emacs"
+(define-package "emojify" "20180128.607" "Display emojis in Emacs"
   '((seq "1.11")
     (ht "2.0")
     (emacs "24.3"))
