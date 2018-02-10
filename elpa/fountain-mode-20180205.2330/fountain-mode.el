@@ -4,8 +4,8 @@
 
 ;; Author: Paul Rankin <hello@paulwrankin.com>
 ;; Keywords: wp
-;; Package-Version: 20180107.2123
-;; Version: 2.4.2
+;; Package-Version: 20180205.2330
+;; Version: 2.5.0
 ;; Package-Requires: ((emacs "24.5"))
 ;; URL: https://github.com/rnkn/fountain-mode
 
@@ -134,13 +134,14 @@
 ;; Tips
 ;; ----
 
+;; Ethereum address 0x209C60afd8aF6c61ac4Dbe340d81D4f789DF64D3
 ;; Bitcoin Cash address 19gUvL8YUzDKr5GyiHpYeF31BfQm87xM9L
 
 
 ;;; Code:
 
 (defconst fountain-version
-  "2.4.2")
+  "2.5.0")
 
 (defun fountain-version ()
   "Return `fountain-mode' version."
@@ -948,6 +949,9 @@ buffers."
   (setq-local page-delimiter fountain-page-break-regexp)
   (setq-local outline-level #'fountain-outline-level)
   (setq-local require-final-newline mode-require-final-newline)
+  (setq-local completion-cycle-threshold t) ; FIXME: make user option
+  (setq-local completion-at-point-functions
+              '(fountain-completion-at-point))
   (setq-local font-lock-extra-managed-props
               '(line-prefix wrap-prefix invisible))
   (setq font-lock-multiline 'undecided)
@@ -1230,6 +1234,143 @@ Assumes that all other element matching has been done."
    (t (looking-at fountain-action-regexp) 'action)))
 
 
+;;; Auto-completion
+
+(defvar-local fountain-completion-scene-headings
+  nil
+  "List of scene headings in the current buffer.")
+
+(defvar-local fountain-completion-characters
+  nil
+  "List of characters in the current buffer.
+Each element is a cons of the character name, a string, and the
+character's priority, an integer.
+
+n.b. The priority value does not equate to the number of lines
+the character has.")
+
+(defun fountain-completion-update-scene-headings (start end)
+  "Update `fountain-completion-scene-headings' between START and END.
+
+Added to `jit-lock-functions'."
+  (goto-char end)
+  (if (fountain-match-scene-heading)
+      (forward-line 1)
+    (fountain-forward-scene 1))
+  (setq end (point))
+  (goto-char start)
+  (fountain-forward-scene 0)
+  (while (< (point) end)
+    (if (and (not (and (integerp fountain--edit-line)
+                       (= fountain--edit-line (line-number-at-pos))))
+             (fountain-match-scene-heading))
+        (let ((scene-heading (match-string-no-properties 3)))
+          (unless (member scene-heading fountain-completion-scene-headings)
+            (push scene-heading fountain-completion-scene-headings))))
+    (fountain-forward-scene 1)))
+
+(defun fountain-completion-update-characters (start end)
+  "Update `fountain-completion-characters' between START and END.
+
+Added to `jit-lock-functions'."
+  (goto-char end)
+  (if (fountain-match-scene-heading)
+      (forward-line 1)
+    (fountain-forward-scene 1))
+  (setq end (point))
+  (goto-char start)
+  (fountain-forward-scene 0)
+  (while (< (point) end)
+    (if (and (not (and (integerp fountain--edit-line)
+                       (= fountain--edit-line (line-number-at-pos))))
+             (fountain-match-character))
+        (let* ((character (match-string-no-properties 4))
+               (candidate (assoc-string character fountain-completion-characters))
+               (n (cdr candidate)))
+          (if (not n)
+              (push (cons character 1) fountain-completion-characters)
+            (setq fountain-completion-characters
+                  (delete candidate fountain-completion-characters))
+            (push (cons character (1+ n)) fountain-completion-characters))))
+    (fountain-forward-character 1))
+  (setq fountain-completion-characters
+        (sort fountain-completion-characters #'(lambda (a b)
+                                                 (< (cdr b) (cdr a))))))
+
+(defun fountain-completion-get-characters ()
+  "Return candidates for completing character.
+
+First, return second-last speaking character, followed by each
+previously speaking character within scene. After that, return
+characters from `fountain-completion-characters'."
+  (lambda (string pred action)
+    (let (candidates)
+      (save-excursion
+        (save-restriction
+          (widen)
+          (fountain-forward-character 0)
+          (while (not (or (fountain-match-scene-heading)
+                          (bobp)))
+            (if (fountain-match-character)
+                (let ((character (match-string-no-properties 4)))
+                  (unless (member character candidates)
+                    (push (list character) candidates))))
+            (fountain-forward-character -1 'scene))))
+      (setq candidates (reverse candidates))
+      (let ((contd-character (list (car candidates)))
+            (alt-character (list (car (cdr candidates))))
+            (rest-characters (cdr (cdr candidates))))
+        (setq candidates (append alt-character contd-character rest-characters)))
+      (setq candidates (append candidates
+                               fountain-completion-characters))
+      (if (eq action 'metadata)
+          (list 'metadata
+                (cons 'display-sort-function 'identity)
+                (cons 'cycle-sort-function 'identity))
+        (complete-with-action action candidates string pred)))))
+
+(defun fountain-completion-at-point ()
+  "Return completion table for entity at point.
+Trigger completion with `completion-at-point' (\\[completion-at-point]).
+
+Always delimits entity from beginning of line to point. If at a
+scene heading, return `fountain-scene-heading-candidates'. If
+previous line is blank, return result of
+`fountain-completion-get-characters'.
+
+Set `completion-in-region-mode-map' to nil to retain TAB
+keybinding.
+
+Added to `completion-at-point-functions'."
+  (let (completion-in-region-mode-map jit-lock-mode)
+    (list (line-beginning-position)
+          (point)
+          (completion-table-case-fold
+           (cond
+            ((fountain-match-scene-heading)
+             fountain-completion-scene-headings)
+            ((fountain-blank-before-p)
+             (fountain-completion-get-characters)))))))
+
+(defun fountain-completion-update ()
+  "Create new completion candidates for current buffer.
+
+Completion candidates are usually updated automatically with
+`jit-lock-mode', however this command will add completion
+candidates for the entire buffer.
+
+Add to `fountain-mode-hook' to have full completion upon load."
+  (interactive)
+  (setq fountain-completion-scene-headings nil
+        fountain-completion-characters nil)
+  (save-excursion
+    (save-restriction
+      (widen)
+      (fountain-completion-update-scene-headings (point-min) (point-max))
+      (fountain-completion-update-characters (point-min) (point-max))))
+  (message "Completion candidates updated"))
+
+
 ;;; Pages
 
 (defgroup fountain-pages ()
@@ -1337,62 +1478,71 @@ To considerably speed up this function, supply EXPORT-ELEMENTS
 with `fountain-get-export-elements'."
   (unless n (setq n 1))
   (while (< 0 n)
-  ;; Pages don't begin with blank space, so skip over any at point.
-  (skip-chars-forward "\n\r\s\t")
-  ;; If we're at a page break, move to its end and skip over whitespace.
-  (when (fountain-match-page-break)
-    (goto-char (match-end 0))
-    (skip-chars-forward "\n\r\s\t"))
-  ;; Start counting lines.
-  (let ((line-count 0))
-    ;; Begin the main loop, which only halts if we reach the end of buffer, a
-    ;; forced page break, or after the maximum lines in a page.
-    (while (and (< (point) (point-max))
-                (not (fountain-match-page-break))
-                (< line-count (cdr (assq fountain-export-page-size
-                                         fountain-pages-max-lines))))
-      (cond
-       ;; If we're at the end of a line (but not also the beginning, i.e. not a
-       ;; blank line) then move forward a line and increment line-count.
-       ((and (eolp) (not (bolp)))
-        (forward-line 1)
-        (setq line-count (1+ line-count)))
-       ;; If we're looking at blank space, skip over any and increment
-       ;; line-count.
-       ((looking-at "\n*\s*\t*\n")      ; FIXME: \r ?
-        (goto-char (match-end 0))
-        (setq line-count (1+ line-count)))
-       ;; We are at an element. Find what kind of element. If it is not included
-       ;; in export, skip over without incrementing line-count (implement with
-       ;; block bounds). Get the line width.
-       (t
-        (let ((x (point))
-              (element (fountain-get-element)))
-          (if (memq element (or export-elements
-                                (fountain-get-export-elements)))
-              (let ((line-width
-                     (cdr (symbol-value
-                           (plist-get (cdr (assq element fountain-elements))
-                                      :fill)))))
-                ;; If scene headings are double-spaced, add an extra line to
-                ;; line-count already.
-                ;; (if (and (eq element 'scene-heading)
-                ;;          (memq 'double-space fountain-export-scene-heading-format))
-                ;;     (setq line-count (1+ line-count)))
-                ;;
-                ;; Move to the line-width column
-                (move-to-column (+ (current-column) line-width))
-                (skip-chars-forward "\s\t")
-                (if (eolp) (forward-line 1))
-                (fill-move-to-break-point (line-beginning-position))
-                (setq line-count (1+ line-count)))
-            ;; Element is not exported, so skip it without incrementing
-            ;; line-count.
-            (goto-char (line-end-position))
-            (skip-chars-forward "\n\r\s\t")))))))
-  (skip-chars-forward "\n\r\s\t")
-  (fountain-goto-page-break-point)
-  (setq n (1- n))))
+    ;; Pages don't begin with blank space, so skip over any at point.
+    (skip-chars-forward "\n\r\s\t")
+    (forward-line 0)
+    ;; If we're at a page break, move to its end and skip over whitespace.
+    (when (fountain-match-page-break)
+      (goto-char (match-end 0))
+      (skip-chars-forward "\n\r\s\t")
+      (forward-line 0))
+    ;; Start counting lines.
+    (let ((line-count 0))
+      ;; Begin the main loop, which only halts if we reach the end of buffer, a
+      ;; forced page break, or after the maximum lines in a page.
+      (while (and (< line-count (cdr (assq fountain-export-page-size
+                                           fountain-pages-max-lines)))
+                  (not (or (eobp)
+                           (fountain-match-page-break))))
+        (cond
+         ;; If we're at the end of a line (but not also the beginning, i.e. not a
+         ;; blank line) then move forward a line and increment line-count.
+         ((and (eolp) (not (bolp)))
+          (forward-line 1)
+          (setq line-count (1+ line-count)))
+         ;; If we're looking at newline, skip over it and any whitespace and
+         ;; increment line-count.
+         ((looking-at "\n*\s*\t*\n")      ; FIXME: \r ?
+          (goto-char (match-end 0))
+          (setq line-count (1+ line-count)))
+         ;; We are at an element. Find what kind of element. If it is not included
+         ;; in export, skip over without incrementing line-count (implement with
+         ;; block bounds). Get the line width.
+         (t
+          (let ((element (fountain-get-element)))
+            (if (memq element (or export-elements
+                                  (fountain-get-export-elements)))
+                (progn
+                  (fountain-move-to-fill-width element)
+                  (setq line-count (1+ line-count)))
+              ;; Element is not exported, so skip it without incrementing
+              ;; line-count.
+              (end-of-line)
+              (skip-chars-forward "\n\r\s\t")
+              (goto-char (line-beginning-position))))))))
+    (skip-chars-forward "\n\r\s\t")
+    (fountain-goto-page-break-point)
+    (setq n (1- n))))
+
+(defun fountain-move-to-fill-width (element)
+  "Move point to column of ELEMENT fill limit suitable for breaking line.
+Skip over comments."
+  (let ((fill-width
+         (cdr (symbol-value
+               (plist-get (cdr (assq element fountain-elements))
+                          :fill)))))
+    (let ((i 0))
+      (while (and (< i fill-width) (not (eolp)))
+        (cond ((= (syntax-class (syntax-after (point))) 0)
+               (forward-char 1)
+               (setq i (1+ i)))
+              ((forward-comment 1))
+              (t
+               (forward-char 1)
+               (setq i (1+ i))))))
+    (skip-chars-forward "\s\t")
+    (if (eolp) (forward-line 1))
+    (fill-move-to-break-point (line-beginning-position))))
 
 (defun fountain-insert-page-break (&optional string)
   "Insert a page break at appropriate place preceding point.
@@ -1437,7 +1587,7 @@ number."
         (total 0)
         (current 0)
         (end (point-max))
-        (export-element (fountain-get-export-elements))
+        (export-elements (fountain-get-export-elements))
         found)
     (save-excursion
       (save-restriction
@@ -1447,7 +1597,7 @@ number."
             (setq end (match-beginning 0)))
         (goto-char (point-min))
         (while (< (point) end)
-          (fountain-forward-page 1 export-element)
+          (fountain-forward-page 1 export-elements)
           (setq total (1+ total))
           (if (and (not found) (<= x (point))) (setq current total found t)))
         (cons current total)))))
@@ -3868,6 +4018,19 @@ persist even when calling \\[delete-other-windows]."
 
 ;;; Editing
 
+(require 'help)
+
+(defvar-local fountain--edit-line
+  nil
+  "Line number currently being edited.
+Prevents incomplete strings added to candidates.")
+
+(defun fountain-set-edit-line ()
+  "Set `fountain--edit-line' to current line.
+
+Added to `post-command-hook'."
+  (setq fountain--edit-line (line-number-at-pos)))
+
 (defcustom fountain-auto-upcase-scene-headings
   t
   "If non-nil, automatically upcase lines matching `fountain-scene-heading-regexp'."
@@ -3882,6 +4045,22 @@ If nil, auto-upcase is deactivated.")
 (defvar-local fountain--auto-upcase-overlay
   nil
   "Overlay used for auto-upcasing current line.")
+
+(defcustom fountain-tab-command
+  'fountain-dwim
+  "Command to call when pressing the TAB key."
+  :type '(radio (function-item fountain-dwim)
+                (function-item fountain-outline-cycle)
+                (function-item fountain-toggle-auto-upcase)
+                (function-item completion-at-point))
+  :group 'fountain)
+
+(defun fountain-tab-action (&optional arg)
+  "Simply calls the value of variable `fountain-tab-command'."
+  (interactive "p")
+  (if (help-function-arglist fountain-tab-command)
+      (funcall fountain-tab-command arg)
+    (funcall fountain-tab-command)))
 
 (defun fountain-auto-upcase-make-overlay ()
   "Make the auto-upcase overlay on current line.
@@ -3905,12 +4084,27 @@ Always deactivate if optional argument DEACTIVATE is non-nil.
 Added as hook to `post-command-hook'."
   (when (or deactivate
             (and (integerp fountain--auto-upcase-line)
-                 (/= fountain--auto-upcase-line
-                     (count-lines (point-min) (line-beginning-position)))))
+                 (/= fountain--auto-upcase-line (line-number-at-pos))))
     (setq fountain--auto-upcase-line nil)
     (if (overlayp fountain--auto-upcase-overlay)
         (delete-overlay fountain--auto-upcase-overlay))
-    (message "Auto-upcasing disabled")))
+    (message "Auto-upcasing deactivated")))
+
+(defun fountain-toggle-auto-upcase ()
+  "Toggle line auto-upcasing.
+
+Upcase the current line, and continue to upcase inserted
+characters until either disabled, or point moves to a different
+line (by inserting a newline or by point motion).
+
+The auto-upcased line is highlighted with face
+`fountain-auto-upcase-highlight'"
+  (interactive)
+  (if fountain--auto-upcase-line
+      (fountain-auto-upcase-deactivate-maybe t)
+    (setq fountain--auto-upcase-line (line-number-at-pos))
+    (message "Auto-upcasing activated")
+    (fountain-auto-upcase)))
 
 (defun fountain-auto-upcase ()
   "Upcase all or part of the current line contextually.
@@ -3924,63 +4118,44 @@ Otherwise, activate auto-upcasing for the whole line.
 Added as hook to `post-self-insert-hook'."
   (cond ((and fountain-auto-upcase-scene-headings
               (fountain-match-scene-heading))
-         (setq fountain--auto-upcase-line
-               (count-lines (point-min) (line-beginning-position)))
+         (unless (and (integerp fountain--auto-upcase-line)
+                      (= fountain--auto-upcase-line (line-number-at-pos)))
+           (setq fountain--auto-upcase-line (line-number-at-pos))
+           (message "Auto-upcasing activated"))
          (fountain-auto-upcase-make-overlay)
-         (upcase-region (line-beginning-position)
-                        (or (match-end 3)
-                            (point))))
+         (upcase-region (line-beginning-position) (or (match-end 3) (point))))
         ((and (integerp fountain--auto-upcase-line)
-              (= fountain--auto-upcase-line
-                 (count-lines (point-min) (line-beginning-position))))
+              (= fountain--auto-upcase-line (line-number-at-pos)))
+         (fountain-auto-upcase-make-overlay)
          (fountain-upcase-line))))
 
 (defun fountain-dwim (&optional arg)
   "\\<fountain-mode-map>Call a command based on context (Do What I Mean).
 
 1. If point is at a scene heading or section heading, or if
-   prefixed with ARG (\\[universal-argument] \\[fountain-dwim]) call `fountain-outline-cycle'
-   and pass ARG, e.g. \\[universal-argument] \\[universal-argument] \\[fountain-dwim] is the same as
-   \\[universal-argument] \\[universal-argument] \\[fountain-outline-cycle].
+   prefixed with ARG call `fountain-outline-cycle' and pass ARG.
 
 2. If point is at an directive to an included file, call
    `fountain-include-find-file'.
 
-3. Otherwise, upcase the current line and active auto-upcasing.
-   This highlights the current line with face
-   `fountain-auto-upcase-highlight' and will continue to upcase
-   inserted characters until the command is called again
-   (\\[fountain-dwim]) or point moves to a different line (either
-   by inserting a newline or point motion). This allows a
-   flexible style of entering character names. You may press
-   \\[fountain-dwim] before, during or after typing the name to
-   get the same result."
+3. Otherwise, call `fountain-toggle-auto-upcase'."
   (interactive "p")
-  (cond ((< 1 arg)
+  (cond ((and arg (< 1 arg))
          (fountain-outline-cycle arg))
         ((or (fountain-match-section-heading)
              (fountain-match-scene-heading))
          (fountain-outline-cycle))
         ((fountain-match-include)
          (fountain-include-find-file))
-        (fountain--auto-upcase-line
-         (fountain-auto-upcase-deactivate-maybe t))
         (t
-         (setq fountain--auto-upcase-line
-               (count-lines (point-min) (line-beginning-position)))
-         (fountain-auto-upcase-make-overlay)
-         (fountain-upcase-line)
-         (message "Auto-upcasing enabled"))))
+         (fountain-toggle-auto-upcase))))
 
 (defun fountain-upcase-line (&optional arg)
   "Upcase the line.
 If prefixed with ARG, insert `.' at beginning of line to force
 a scene heading."
   (interactive "P")
-  (if arg
-      (save-excursion
-        (forward-line 0)
-        (insert ".")))
+  (if arg (save-excursion (forward-line 0) (insert ".")))
   (upcase-region (line-beginning-position) (line-end-position)))
 
 (defun fountain-upcase-line-and-newline (&optional arg)
@@ -4007,26 +4182,6 @@ a scene heading."
         (if (forward-comment 1)
             (delete-region x (point))
           (unless (eobp) (forward-char 1)))))))
-
-(defun fountain-insert-alternate-character ()
-  "Insert second-last character within the scene, and newline."
-  (interactive)
-  (let* ((n -1)
-         (character-1 (fountain-get-character n 'scene))
-         (character-2 character-1))
-    (while (and (stringp character-1)
-                (string= character-1 character-2))
-      (setq n (1- n)
-            character-2 (fountain-get-character n 'scene)))
-    (if character-2
-        (let ((x (save-excursion
-                   (skip-chars-backward "\s\n\t")
-                   (point))))
-          (delete-region x (point))
-          (newline 2)
-          (insert character-2))
-      (message "No alternate character within scene"))
-    (newline)))
 
 (defun fountain-insert-synopsis ()
   "Insert synopsis below scene heading of current scene."
@@ -4680,7 +4835,7 @@ keywords suitable for Font Lock."
 (defvar fountain-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Editing commands:
-    (define-key map (kbd "TAB") #'fountain-dwim)
+    (define-key map (kbd "TAB") #'fountain-tab-action)
     (define-key map (kbd "C-c RET") #'fountain-upcase-line-and-newline)
     (define-key map (kbd "<S-return>") #'fountain-upcase-line-and-newline)
     (define-key map (kbd "C-c C-c") #'fountain-upcase-line)
@@ -4692,6 +4847,8 @@ keywords suitable for Font Lock."
     (define-key map (kbd "C-c C-x _") #'fountain-remove-scene-numbers)
     (define-key map (kbd "C-c C-x f") #'fountain-set-font-lock-decoration)
     (define-key map (kbd "C-c C-x RET") #'fountain-insert-page-break)
+    (define-key map (kbd "M-TAB") #'completion-at-point)
+    (define-key map (kbd "C-c C-x a") #'fountain-completion-update)
     ;; FIXME: include-find-file feels like it should be C-c C-c...
     ;; (define-key map (kbd "C-c C-c") #'fountain-include-find-file)
     ;; Navigation commands:
@@ -4778,11 +4935,11 @@ keywords suitable for Font Lock."
       (customize-set-variable 'fountain-pages-show-in-mode-line nil)
       :style radio
       :selected (not fountain-pages-show-in-mode-line)]
-     ["In Mode Line with Manual Update"
+     ["Show in Mode Line with Manual Update"
       (customize-set-variable 'fountain-pages-show-in-mode-line 'force)
       :style radio
       :selected (eq fountain-pages-show-in-mode-line 'force)]
-     ["In Mode Line with Automatic Update"
+     ["Show in Mode Line with Automatic Update"
       (customize-set-variable 'fountain-pages-show-in-mode-line 'timer)
       :style radio
       :selected (eq fountain-pages-show-in-mode-line 'timer)])
@@ -4792,19 +4949,20 @@ keywords suitable for Font Lock."
     ["Insert Note" fountain-insert-note]
     ["Insert Page Break..." fountain-insert-page-break]
     ["Refresh Continued Dialog" fountain-continued-dialog-refresh]
+    ["Update Auto-Completion" fountain-completion-update]
     "---"
     ("Show/Hide"
      ["Endnotes" fountain-show-or-hide-endnotes]
-     ["Emphasis Delimiters"
+     ["Hide Emphasis Delimiters"
       (customize-set-variable 'fountain-hide-emphasis-delim
                               (not fountain-hide-emphasis-delim))
       :style toggle
-      :selected (not fountain-hide-emphasis-delim)]
-     ["Syntax Characters"
+      :selected fountain-hide-emphasis-delim]
+     ["Hide Syntax Characters"
       (customize-set-variable 'fountain-hide-syntax-chars
                               (not fountain-hide-syntax-chars))
       :style toggle
-      :selected (not fountain-hide-syntax-chars)])
+      :selected fountain-hide-syntax-chars])
     ("Syntax Highlighting"
      ["Minimum"
       (fountain-set-font-lock-decoration 1)
@@ -4871,6 +5029,19 @@ keywords suitable for Font Lock."
      ["Customize Export"
       (customize-group 'fountain-export)])
     "---"
+    ("TAB Command"
+     ["Contextual (Do What I Mean)" (customize-set-variable 'fountain-tab-command 'fountain-dwim)
+      :style radio
+      :selected (eq fountain-tab-command 'fountain-dwim)]
+     ["Cycle Scene/Section Visibility" (customize-set-variable 'fountain-tab-command 'fountain-outline-cycle)
+      :style radio
+      :selected (eq fountain-tab-command 'fountain-outline-cycle)]
+     ["Toggle Auto-Upcasing" (customize-set-variable 'fountain-tab-command 'fountain-toggle-auto-upcase)
+      :style radio
+      :selected (eq fountain-tab-command 'fountain-toggle-auto-upcase)]
+     ["Auto-Complete" (customize-set-variable 'fountain-tab-command 'completion-at-point)
+      :style radio
+      :selected (eq fountain-tab-command 'completion-at-point)])
     ["Display Elements Auto-Aligned"
      (customize-set-variable 'fountain-align-elements
                              (not fountain-align-elements))
@@ -4896,12 +5067,16 @@ keywords suitable for Font Lock."
   (interactive)
   (let (unsaved)
     (dolist (option '(fountain-align-elements
+                      fountain-auto-upcase-scene-headings
                       fountain-add-continued-dialog
+                      fountain-display-scene-numbers-in-margin
+                      fountain-pages-show-in-mode-line
                       fountain-hide-emphasis-delim
                       fountain-hide-syntax-chars
-                      fountain-display-scene-numbers-in-margin
-                      fountain-export-scene-heading-format
-                      font-lock-maximum-decoration))
+                      font-lock-maximum-decoration
+                      fountain-export-page-size
+                      fountain-export-include-title-page
+                      fountain-export-scene-heading-format))
       (if (customize-mark-to-save option)
           (setq unsaved t)))
     (if unsaved (custom-save-all))))
@@ -4928,12 +5103,13 @@ keywords suitable for Font Lock."
     (if (stringp n)
         (setq-local fountain-outline-startup-level
                     (min (string-to-number n) 6))))
-  (add-hook 'post-self-insert-hook
-            #'fountain-auto-upcase nil t)
-  (add-hook 'post-command-hook
-            #'fountain-auto-upcase-deactivate-maybe nil t)
+  (add-hook 'post-command-hook #'fountain-set-edit-line nil t)
+  (add-hook 'post-self-insert-hook #'fountain-auto-upcase nil t)
+  (add-hook 'post-command-hook #'fountain-auto-upcase-deactivate-maybe nil t)
   (if fountain-patch-emacs-bugs (fountain-patch-emacs-bugs))
-  (jit-lock-register #'fountain-redisplay-scene-numbers t)
+  (jit-lock-register #'fountain-redisplay-scene-numbers)
+  (jit-lock-register #'fountain-completion-update-scene-headings)
+  (jit-lock-register #'fountain-completion-update-characters)
   (fountain-init-mode-line)
   (fountain-restart-page-count-timer)
   (fountain-outline-hide-level fountain-outline-startup-level t))
