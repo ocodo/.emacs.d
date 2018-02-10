@@ -1,0 +1,29 @@
+Some of the user visible news were:
+
+
+Version: 1.5.2
+
+  The new command `el-search-to-register' allows to save the current
+  search (including its state) to a register and later make that
+  search current again with `jump-to-register' (C-x r j).
+
+Version: 1.5.1
+
+  The new command `el-search-ibuffer-marked-buffers' el-searches the
+  marked buffers in *Ibuffer*.
+
+Version: 1.5
+
+  The new function `el-search-install-bindings-under-prefix' can be
+  used to install repeatable versions of the el-search commands under
+  a prefix key.
+
+Version: 1.4.0.15
+
+  The new option value 'ask-multi for el-search-auto-save-buffers,
+  which is also the new default, makes el-search only prompt for
+  whether to save buffers for multi-buffer query-replace sessions.
+  For single buffer sessions, no prompt, and you can/should save
+  yourself.  I find that behavior slightly more convenient than 'ask
+  in most cases.
+

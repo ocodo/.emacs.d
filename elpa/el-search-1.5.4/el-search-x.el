@@ -268,7 +268,7 @@ Uses variable `el-search--cached-changes' for caching."
           (sexp-end (scan-sexps posn 1))
           (atomic? (thunk-delay (el-search--atomic-p
                                  (save-excursion (goto-char posn)
-                                                 (read (current-buffer)))))))
+                                                 (el-search-read (current-buffer)))))))
       (while (and changes (or (< (cdar changes) posn)
                               (and
                                ;; a string spanning multiple lines is a change even when not all
@@ -410,7 +410,7 @@ expression matching the `change' pattern will be matched."
                               (backward-up-list)
                               (el-search--match-p
                                ',(el-search--matcher (or not-pattern pattern))
-                               (save-excursion (read (current-buffer)))))
+                               (save-excursion (el-search-read (current-buffer)))))
                           (scan-error)))))))
 
 (el-search-defpattern top-level ()

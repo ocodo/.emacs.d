@@ -7,8 +7,8 @@
 ;; Created: 29 Jul 2015
 ;; Keywords: lisp
 ;; Compatibility: GNU Emacs 25
-;; Version: 1.4.0.17
-;; Package-Requires: ((emacs "25") (stream "2.2.4"))
+;; Version: 1.5.4
+;; Package-Requires: ((emacs "25") (stream "2.2.4") (cl-print "1.0"))
 
 
 ;; This file is not part of GNU Emacs.
@@ -44,22 +44,42 @@
 ;; patterns and your own multi-search commands.
 ;;
 ;;
-;; Suggested key bindings
-;; ======================
+;; Key bindings
+;; ============
 ;;
-;; After loading this file, you can eval
-;; (el-search-install-shift-bindings) to install a set of key bindings
-;; to try things out (no other setup is needed).  Here is an overview
-;; of the most important bindings that this function will establish -
-;; most are of the form Control-Shift-Letter:
+;; Loading this file doesn't install any key bindings - but you
+;; probably want some.  There are two predefined sets of key bindings.
+;; The first set installs bindings mostly of the form
+;; "Control-Shift-Letter", e.g. C-S, C-R, C-% etc.  These can be
+;; installed by calling (el-search-install-shift-bindings) - typically
+;; in your init file.  For console users (and others), the function
+;; `el-search-install-bindings-under-prefix' installs bindings of the
+;; form PREFIX LETTER.  If you e.g. call
 ;;
-;;   C-S (el-search-pattern)
+;;   (el-search-install-bindings-under-prefix [(meta ?s) ?e])
+;;
+;; you install bindings M-s e s, M-s e r, M-s e % etc.  When using
+;; this function to install key bindings, the bindings are
+;; "repeatable" where it makes sense, so that you can for example hit
+;; M-s e j s s s a % to reactive the last search, go to the next match
+;; three times, then go back to the first match in the current buffer,
+;; and finally invoke query-replace.
+;;
+;; Here is a complete list of key bindings installed when
+;; you call
+;;   (el-search-install-shift-bindings)
+;; or
+;;   (el-search-install-bindings-under-prefix [(meta ?s) ?e])
+;;
+;; respectively:
+;;
+;;   C-S, M-s e s (el-search-pattern)
 ;;     Start a search in the current buffer/go to the next match.
 ;;
-;;   C-R (el-search-pattern-backwards)
+;;   C-R, M-s e r (el-search-pattern-backwards)
 ;;     Search backwards.
 ;;
-;;   C-% (el-search-query-replace)
+;;   C-%, M-s e % (el-search-query-replace)
 ;;     Do a query-replace.
 ;;
 ;;   M-x el-search-directory
@@ -67,44 +87,47 @@
 ;;     Emacs-Lisp files in that directory.  With prefix arg,
 ;;     recursively search files in subdirectories.
 ;;
-;;   C-S in Dired (el-search-dired-marked-files)
+;;   C-S, M-s e s in Dired (el-search-dired-marked-files)
 ;;     Like above but uses the marked files and directories.
 ;;
-;;   C-O (el-search-occur)
+;;   C-S, M-s e s in Ibuffer (el-search-ibuffer-marked-buffers)
+;;     Search marked buffers in *Ibuffer*.
+;;
+;;   C-O, M-s e o (el-search-occur)
 ;;     Pop up an occur buffer for the current search.
 ;;
-;;   C-O (from a search pattern prompt)
+;;   C-O or M-RET (from a search pattern prompt)
 ;;     Execute this search command as occur.
 ;;
-;;   C-N (el-search-continue-in-next-buffer)
+;;   C-N, M-s e n (el-search-continue-in-next-buffer)
 ;;     Skip over current buffer or file.
 ;;
-;;   C-D (el-search-skip-directory)
+;;   C-D, M-s e d (el-search-skip-directory)
 ;;     Prompt for a directory name and skip all subsequent files
 ;;     located under this directory.
 ;;
-;;   C-A (el-search-from-beginning) Go back to the first match in this
-;;     buffer or (with prefix arg) completely restart the current
-;;     search from the first file or buffer.
+;;   C-A, M-s e a (el-search-from-beginning)
+;;     Go back to the first match in this buffer or (with prefix arg)
+;;     completely restart the current search from the first file or
+;;     buffer.
 ;;
-;;   C-J (el-search-jump-to-search-head)
+;;   C-J, M-s e j (el-search-jump-to-search-head)
 ;;     Resume the last search from the position of the last visited
 ;;     match, or (with prefix arg) prompt for an old search to resume.
 ;;
-;;   C-H (el-search-this-sexp)
+;;   C-H, M-s e h (el-search-this-sexp)
 ;;     Grab the symbol or sexp under point and initiate an el-search
 ;;     for other occurrences.
 ;;
+;;   M-x el-search-to-register
+;;     Save the current search to an Emacs register.  Use C-x r j
+;;     (`jump-to-register') to make that search current and jump to
+;;     the latest position.
 ;;
-;; These bindings may not work in a console (if you have a good idea
-;; for nice alternative bindings please mail me).
 ;;
 ;; The setup you'll need for your init file is trivial: just define
 ;; the key bindings you want to use (all important commands are
-;; autoloaded) and you are done.  You can either just copy
-;; (el-search-install-shift-bindings) to your init file to use the
-;; above bindings or use its definition as a template for your own key
-;; binding definitions.
+;; autoloaded) and you are done.
 ;;
 ;;
 ;; Usage
@@ -280,8 +303,8 @@
 ;; query-replace is driven by a search, call
 ;; `el-search-jump-to-search-head' (maybe with a prefix arg) to make
 ;; that search current, and invoke `el-search-query-replace' (with the
-;; default bindings, this would be C-J C-%).  This will continue the
-;; query-replace session from where you left.
+;; default bindings, this would be C-J C-% or C-x o j %).  This will
+;; continue the query-replace session from where you left.
 ;;
 ;;
 ;; Advanced usage: Replacement rules for semi-automatic code rewriting
@@ -329,7 +352,7 @@
 ;; to reading-printing.  "Some" because we can handle this problem in
 ;; most cases.
 ;;
-;; - Similarly: Comments are normally preserved (where it makes
+;; - Similar: comments are normally preserved (where it makes
 ;; sense).  But when replacing like `(foo ,a ,b) -> `(foo ,b ,a)
 ;;
 ;; in a content like
@@ -341,12 +364,9 @@
 ;;
 ;; the comment will be lost.
 ;;
-;; - Emacs bug#29857: 27.0.50; error: "Loading `nil': old-style
-;;   backquotes detected!"
 ;;
-;;
-;;  Acknowledgments
-;;  ===============
+;; Acknowledgments
+;; ===============
 ;;
 ;; Thanks to Stefan Monnier for corrections and advice.
 ;;
@@ -355,10 +375,12 @@
 ;;
 ;; - l is very slow for very long lists.  E.g. C-S-e (l "test")
 ;;
+;; - Emacs bug#30132: 27.0.50; "scan-sexps and ##": Occurrences of the
+;;   syntax "##" (a syntax for an interned symbol whose name is the
+;;   empty string) can lead to errors while searching.
+;;
 ;;
 ;; TODO:
-;;
-;; - The default keys are not available in the terminal
 ;;
 ;; - Make searching work in comments, too? (->
 ;;   `parse-sexp-ignore-comments').  Related: should the pattern
@@ -394,6 +416,7 @@
 
 (require 'cl-lib)
 (require 'pcase)    ;we want to bind `pcase--dontwarn-upats' before pcase is autoloaded
+(require 'cl-print)
 (require 'elisp-mode)
 (require 'thingatpt)
 (require 'thunk)
@@ -472,6 +495,34 @@ The default value is ask-multi."
                  (const :tag "Ask" ask)
                  (const :tag "Ask when multibuffer" ask-multi)))
 
+(defvar el-search-use-transient-map nil
+  "Whether el-search should make commands repeatable."
+  ;; I originally wanted to make commands repeatable by looking at the
+  ;; command keys.  But that got overly complicated: It interfered with
+  ;; user interaction: we must remember in a flag if the current command
+  ;; invocation was repeatable.  Obviously, we must reset that flag in
+  ;; post-command-hook.  But we must avoid resetting in
+  ;; post-command-hook when the command itself required user input, etc.
+  ;; And it can't even work when we use a button or a register to resume
+  ;; a search.  So let's simply use this flag.
+  )
+
+(defvar el-search-keep-transient-map-commands
+  '(el-search-pattern
+    el-search-pattern-backwards
+    el-search-jump-to-search-head
+    el-search-from-beginning
+    el-search-skip-directory
+    el-search-continue-in-next-buffer
+    universal-argument universal-argument-more
+    digit-argument negative-argument)
+  "List of commands that don't end repeatability of el-search commands.
+
+When `el-search-use-transient-map' is non-nil, when any
+\"repeatable\" el-search command had been invoked, executing any
+of these commands will keep the
+`el-search-prefix-key-transient-map' further in effect.")
+
 (defvar el-search-read-expression-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map read-expression-map)
@@ -479,6 +530,8 @@ The default value is ask-multi."
     (define-key map [up]   nil)
     (define-key map [down] nil)
     (define-key map [(control ?j)] #'newline)
+    (define-key map [(meta return)] #'el-search-set-occur-flag-exit-minibuffer)
+    (define-key map (kbd "M-RET")   #'el-search-set-occur-flag-exit-minibuffer)
     map)
   "Keymap for reading input with `el-search-read-expression'.")
 
@@ -598,6 +651,14 @@ nil."
   (let ((message-log-max nil))
     (apply #'message format-string args)))
 
+(defalias 'el-search-read
+  (if (boundp 'force-new-style-backquotes)
+      (lambda (&optional stream)
+        "Like `read' but bind `force-new-style-backquotes' to t."
+        (let ((force-new-style-backquotes t))
+          (read stream)))
+    #'read))
+
 (defun el-search--pp-to-string (expr)
   (let ((print-length nil)
         (print-level nil)
@@ -647,7 +708,7 @@ nil."
     (unless (or (string-match-p "\\`\\'" input)
                 (and (stringp hist-head)
                      (or (string= input hist-head)
-                         (ignore-errors (equal (read input) (read hist-head))))))
+                         (ignore-errors (equal (el-search-read input) (el-search-read hist-head))))))
       (push (if (string-match-p "\\`.+\n" input)
                 (with-temp-buffer
                   (emacs-lisp-mode)
@@ -673,9 +734,19 @@ nil."
     (if (not (string= input "")) input (car (symbol-value histvar)))))
 
 (defun el-search-read-pattern-for-interactive (&optional prompt)
+  "Read an \"el-search\" pattern from the minibuffer, prompting with PROMPT.
+
+This function is designed to be used in the interactive form of
+\"el-search\" commands that need to prompt for a pattern.  Apart
+from reading the pattern it also sets `this-command' to
+`el-search-pattern' and adds the given input to
+`el-search-pattern-history' and `el-search-query-replace-history'.
+
+PROMPT defaults to \"El-search pattern: \".  The return value is the
+`read' input pattern."
   (let* ((input (el-search--read-pattern (or prompt "El-search pattern: ")
                                          (car el-search-pattern-history)))
-         (pattern (read input)))
+         (pattern (el-search-read input)))
     ;; A very common mistake: input "foo" instead of "'foo"
     (el-search--maybe-warn-about-unquoted-symbol pattern)
     (setq this-command 'el-search-pattern) ;in case we come from isearch
@@ -689,7 +760,7 @@ nil."
 Point should be at a sexp beginning."
   (if (eql (char-after) ?@) ;bug#24542
       (save-excursion
-        (ignore (read (current-buffer)))
+        (ignore (el-search-read (current-buffer)))
         (point))
     (or (scan-sexps (point) 1) (point-max))))
 
@@ -704,7 +775,7 @@ Point should be at a sexp beginning."
   ;; EXPRESSION must equal the (read) expression at point, but with READ
   ;; non-nil, ignore the first argument and use the read expression at
   ;; point instead.
-  (when read (setq expression (save-excursion (read (current-buffer)))))
+  (when read (setq expression (save-excursion (el-search-read (current-buffer)))))
   (cond
    ((or (null expression)
         (equal [] expression)
@@ -746,7 +817,7 @@ not be inside a string or comment."
            (t (setq stop-here t)))))
       (condition-case nil
           (progn
-            (setq res (save-excursion (read (current-buffer))))
+            (setq res (save-excursion (el-search-read (current-buffer))))
             (setq not-done nil))
         (error (forward-char))))
     res))
@@ -902,7 +973,7 @@ be specified as third optional argument."
                                    (thunk-delay
                                     (el-search--flatten-tree
                                      (save-excursion
-                                       (prog1 (read (current-buffer))
+                                       (prog1 (el-search-read (current-buffer))
                                          (setq end-of-defun (point)))))))))
                 (goto-char (or end-of-defun
                                ;; The thunk hasn't been forced
@@ -967,6 +1038,12 @@ optional MESSAGE are used to construct the error message."
     (cl-callf copy-alist (el-search-object-properties copy))
     copy))
 
+(cl-defmethod cl-print-object ((object el-search-object) stream)
+  ;; We use a syntax that looks nice with with pp.el
+  (princ "#s(el-search-object " stream)
+  (prin1 (el-search--get-search-description-string object 'verbose 'dont-propertize) stream)
+  (princ ")" stream))
+
 (defun el-search--current-pattern ()
   (and el-search--current-search
        (el-search-object-pattern el-search--current-search)))
@@ -996,25 +1073,44 @@ optional MESSAGE are used to construct the error message."
     `(el-search-when-unwind (progn ,@body)
                             (setf (el-search-object-head el-search--current-search) ,head-copy))))
 
-(defun el-search--get-search-description-string (search &optional verbose)
+(defun el-search--get-search-description-string (search &optional verbose dont-propertize)
   (concat
    (or (alist-get 'description (el-search-object-properties search))
        "Search")
    (when verbose
-     (format " [%s, %s]"
-             (if (alist-get 'is-single-buffer (el-search-object-properties search))
-                 "single-buffer" "paused")
-             (if-let ((buffer (el-search-head-buffer (el-search-object-head search))))
-                 (if (buffer-live-p buffer) (buffer-name buffer) "a killed buffer")
-               "completed")))
+     (let ((search-head (el-search-object-head search)))
+       (format " [%s %s]"
+               (if (alist-get 'is-single-buffer (el-search-object-properties search))
+                   "single-buffer" "paused")
+               (if-let ((buffer (el-search-head-buffer search-head)))
+                   (concat "-> "(if (buffer-live-p buffer)
+                                    (buffer-name buffer)
+                                  (if-let ((head-file (el-search-head-file search-head)))
+                                      (file-name-nondirectory head-file)
+                                    "killed buffer")))
+                 "(completed)"))))
    " for"
    (let ((printed-pattern (el-search--pp-to-string (el-search-object-pattern search))))
      (format (if (string-match-p "\n" printed-pattern) "\n%s" " %s")
-             (propertize printed-pattern 'face 'shadow)))))
+             (if dont-propertize printed-pattern
+               (propertize printed-pattern 'face 'shadow))))))
+
+(defun el-search-edit-search-description ()
+  "Edit the description string of the current search.
+That string appears in the printed representation of the search,
+so this is mainly useful to add short notes."
+  (interactive)
+  (cl-callf (lambda (old-description) (read-string "New description: " old-description))
+      (alist-get 'description (el-search-object-properties el-search--current-search))))
 
 
 (defun el-search-kill-left-over-search-buffers (&optional not-current-buffer)
-  "Kill all buffers that were opened for searching."
+  "Kill all buffers that were opened just for searching.
+Buffers where a search had been paused or aborted (e.g. by moving
+the cursor) are not killed.
+
+With NOT-CURRENT-BUFFER non-nil, inhibit the current buffer from
+being killed."
   (interactive)
   (dolist (buffer (buffer-list))
     (when (with-current-buffer buffer el-search--temp-buffer-flag)
@@ -1128,7 +1224,7 @@ PATTERN and combining the heuristic matchers of the subpatterns."
                                 (goto-char (point-min))
                                 (let ((forms ()))
                                   (condition-case err
-                                      (while t (push (read (current-buffer)) forms))
+                                      (while t (push (el-search-read (current-buffer)) forms))
                                     (end-of-file forms)
                                     (error
                                      (message "%s in %S\nat position %d - skipping"
@@ -1386,13 +1482,89 @@ in, in order, when called with no arguments."
     (el-search-compile-pattern-in-search search)
     search))
 
+
+;;;###autoload
+(defun el-search-loop-over-bindings (function)
+  (cl-flet ((keybind (apply-partially #'funcall function)))
+
+    (keybind emacs-lisp-mode-map           ?s #'el-search-pattern)
+    (keybind emacs-lisp-mode-map           ?r #'el-search-pattern-backwards)
+    (keybind emacs-lisp-mode-map           ?% #'el-search-query-replace)
+    (keybind emacs-lisp-mode-map           ?h #'el-search-this-sexp) ;h like in "highlight" or "here"
+    (keybind global-map                    ?j #'el-search-jump-to-search-head)
+    (keybind global-map                    ?a #'el-search-from-beginning)
+    (keybind global-map                    ?d #'el-search-skip-directory)
+    (keybind global-map                    ?n #'el-search-continue-in-next-buffer)
+
+    (keybind global-map                    ?o #'el-search-occur)
+
+    (keybind el-search-read-expression-map ?s #'exit-minibuffer)
+    (keybind el-search-read-expression-map ?r #'exit-minibuffer)
+    (keybind el-search-read-expression-map ?o #'el-search-set-occur-flag-exit-minibuffer)
+
+    (keybind isearch-mode-map              ?s #'el-search-search-from-isearch)
+    (keybind isearch-mode-map              ?r #'el-search-search-backwards-from-isearch)
+    (keybind isearch-mode-map              ?% #'el-search-replace-from-isearch)
+    (keybind isearch-mode-map              ?o #'el-search-occur-from-isearch)
+
+    (keybind global-map                    ?e #'el-search-emacs-elisp-sources)
+    (keybind global-map                    ?l #'el-search-load-path)
+    (keybind global-map                    ?b #'el-search-buffers)
+
+    (defvar dired-mode-map)
+    (defvar ibuffer-mode-map)
+
+    (with-eval-after-load 'dired
+      (keybind dired-mode-map   ?s #'el-search-dired-marked-files))
+    (with-eval-after-load 'ibuffer
+      (keybind ibuffer-mode-map ?s #'el-search-ibuffer-marked-buffers))))
+
+(defvar el-search-prefix-key-transient-map
+  (let ((transient-map (make-sparse-keymap)))
+    (el-search-loop-over-bindings
+     (lambda (_map key command)
+       (when (memq command '(el-search-pattern
+                             el-search-pattern-backwards
+                             el-search-query-replace
+                             el-search-from-beginning
+                             el-search-skip-directory
+                             el-search-continue-in-next-buffer
+                             el-search-occur))
+         (define-key transient-map (vector key) command))))
+    transient-map))
+
+(defun el-search-prefix-key-maybe-set-transient-map ()
+  (when el-search-use-transient-map
+    (set-transient-map el-search-prefix-key-transient-map
+                       (lambda () (memq this-command el-search-keep-transient-map-commands)))))
+
+(defun el-search-shift-bindings-bind-function (map key command)
+  (define-key map `[(control ,@(if (<= ?a key ?z) `(shift ,key) `(,key)))] command))
+
+;;;###autoload
+(defun el-search-install-shift-bindings ()
+  (interactive)
+  (el-search-loop-over-bindings #'el-search-shift-bindings-bind-function))
+
+(defun el-search-bind-under-prefix-key-function (prefix)
+  (lambda (map key command)
+    (unless (memq map (list el-search-read-expression-map isearch-mode-map))
+      (define-key map `[,@(seq-into prefix 'list) ,key] command))))
+
+;;;###autoload
+(defun el-search-install-bindings-under-prefix (prefix-key)
+  (el-search-loop-over-bindings
+   (el-search-bind-under-prefix-key-function prefix-key))
+  (setq el-search-use-transient-map t))
+
 (defun el-search-setup-search-1 (pattern get-buffer-stream  &optional from-here setup-function)
   (setq el-search--success nil)
   (setq el-search--current-search
         (el-search-make-search pattern get-buffer-stream))
   (when setup-function (funcall setup-function el-search--current-search))
   (ring-insert el-search-history el-search--current-search)
-  (when from-here (setq el-search--temp-buffer-flag nil)))
+  (when from-here (setq el-search--temp-buffer-flag nil))
+  (el-search-prefix-key-maybe-set-transient-map))
 
 (defun el-search-setup-search (pattern get-buffer-stream &optional setup-function from-here)
   "Create and start a new el-search.
@@ -1428,40 +1600,6 @@ that contain a file named \".nosearch\" are excluded as well."
                     el-search-respect-nosearch
                     (directory-files dir-name nil "\\`\\.nosearch\\'" t))))))
    t #'el-search--elisp-file-p))
-
-;;;###autoload
-(defun el-search-install-shift-bindings ()
-  (interactive)
-
-  (define-key emacs-lisp-mode-map [(control ?S)] #'el-search-pattern)
-  (define-key emacs-lisp-mode-map [(control ?R)] #'el-search-pattern-backwards)
-  (define-key emacs-lisp-mode-map [(control ?%)] #'el-search-query-replace)
-  (define-key emacs-lisp-mode-map [(control ?H)] #'el-search-this-sexp) ;H like in "highlight" or "here"
-  (define-key global-map          [(control ?J)] #'el-search-jump-to-search-head)
-  (define-key global-map          [(control ?A)] #'el-search-from-beginning)
-  (define-key global-map          [(control ?D)] #'el-search-skip-directory)
-  (define-key global-map          [(control ?N)] #'el-search-continue-in-next-buffer)
-
-  (define-key global-map          [(control ?O)] #'el-search-occur)
-
-  (define-key el-search-read-expression-map [(control ?S)] #'exit-minibuffer)
-  (define-key el-search-read-expression-map [(control ?R)] #'exit-minibuffer)
-  (define-key el-search-read-expression-map [(control ?O)]
-    #'el-search-set-occur-flag-exit-minibuffer)
-
-  (define-key isearch-mode-map [(control ?S)] #'el-search-search-from-isearch)
-  (define-key isearch-mode-map [(control ?R)] #'el-search-search-backwards-from-isearch)
-  (define-key isearch-mode-map [(control ?%)] #'el-search-replace-from-isearch)
-  (define-key isearch-mode-map [(control ?O)] #'el-search-occur-from-isearch)
-
-  (define-key global-map [(control ?E)] #'el-search-emacs-elisp-sources)
-  (define-key global-map [(control ?L)] #'el-search-load-path)
-  (define-key global-map [(control ?B)] #'el-search-buffers)
-
-  (defvar dired-mode-map)
-
-  (with-eval-after-load 'dired
-    (define-key dired-mode-map [(control ?S)] #'el-search-dired-marked-files)))
 
 
 ;;;; Additional pattern type definitions
@@ -1743,10 +1881,7 @@ absolute name must be matched by all of them."
 (defvar-local el-search-hl-other-overlays '())
 
 (defvar el-search-keep-hl nil
-  "Non-nil indicates we should not remove any highlighting.
-
-If the non-nil value is the symbol `once', inhibit highlight
-removal only once.")
+  "Non-nil indicates we should not remove any highlighting.")
 
 (defun el-search-hl-sexp (&optional bounds)
   (let ((bounds (or bounds (list (point) (el-search--end-of-sexp)))))
@@ -1925,9 +2060,7 @@ local binding of `window-scroll-functions'."
   (pcase this-command
     ('el-search-query-replace)
     ('el-search-pattern (el-search-display-match-count))
-    (_ (if el-search-keep-hl
-           (when (eq el-search-keep-hl 'once)
-             (setq el-search-keep-hl nil))
+    (_ (unless el-search-keep-hl
          (el-search-hl-remove)
          (remove-hook 'post-command-hook 'el-search-hl-post-command-fun t)
          (setq el-search--temp-buffer-flag nil)
@@ -1957,30 +2090,33 @@ local binding of `window-scroll-functions'."
 
 (defun el-search-jump-to-search-head (&optional previous-search)
   "Switch to current search buffer and go to the last match.
-With prefix arg, prompt for a prior search to resume, and make
-that the current search."
+With argument PREVIOUS-SEARCH non-nil (the prefix argument in an
+interactive call), prompt for a prior search to resume, and make
+that the current search.  In a non-interactive call,
+PREVIOUS-SEARCH can directly specify an el-search-object to make
+current."
   (interactive "P")
   (when previous-search
     ;; FIXME: would it be better to include some context around the search
     ;; head - or to even use an overview buffer for selection?
-    (let ((entry (ring-ref
-                  el-search-history
-                  (string-to-number
-                   (let ((completion-extra-properties
-                          `(:annotation-function
-                            ,(lambda (elt)
-                               (concat
-                                " "
-                                (el-search--get-search-description-string
-                                 (ring-ref el-search-history (string-to-number elt))
-                                 t))))))
-                     (completing-read
-                      "Resume previous search: "
-                      (mapcar #'prin1-to-string
-                              (number-sequence 0 (1- (ring-length el-search-history))))))))))
-      (setq el-search--current-search entry)
-      (setq el-search--success t)
-      (el-search--set-wrap-flag nil)))
+    (setq el-search--current-search
+          (if (el-search-object-p previous-search) previous-search
+            (ring-ref
+             el-search-history
+             (let ((input
+                    (completing-read
+                     "Resume previous search: "
+                     (mapcar
+                      (lambda (n) (format "%d - %s"
+                                     n
+                                     (el-search--get-search-description-string
+                                      (ring-ref el-search-history n)
+                                      t)))
+                      (number-sequence 0 (1- (ring-length el-search-history)))))))
+               (string-match "\\`\\([0-9]+\\) - " input)
+               (string-to-number (match-string 1 input))))))
+    (setq el-search--success t)
+    (el-search--set-wrap-flag nil))
   (el-search-compile-pattern-in-search el-search--current-search)
   (if-let ((search el-search--current-search)
            (current-head (el-search-object-head search))
@@ -2036,7 +2172,8 @@ that the current search."
               (setf (el-search-object-last-match el-search--current-search)
                     (copy-marker (point)))
               (el-search-hl-sexp)
-              (el-search-hl-other-matches (el-search--current-matcher))))))
+              (el-search-hl-other-matches (el-search--current-matcher))
+              (el-search-prefix-key-maybe-set-transient-map)))))
     (el-search--message-no-log "[Search completed - restarting]")
     (sit-for 1.5)
     (el-search-reset-search el-search--current-search)
@@ -2120,7 +2257,8 @@ continued."
                           el-search--success
                           (eq (current-buffer) old-current-buffer))
                (el-search-hl-other-matches matcher))
-             (setq el-search--success t))))
+             (setq el-search--success t)))
+         (el-search-prefix-key-maybe-set-transient-map))
      (el-search-kill-left-over-search-buffers))))
 
 (defun el-search-skip-directory (directory)
@@ -2212,7 +2350,9 @@ With prefix arg, restart the current search."
   (declare (interactive-only t))
   (interactive (el-search-pattern--interactive))
   (if (eq pattern (el-search--current-pattern))
-      (el-search-compile-pattern-in-search el-search--current-search)
+      (progn
+        (el-search-compile-pattern-in-search el-search--current-search)
+        (el-search-prefix-key-maybe-set-transient-map))
     (el-search-setup-search-1
      pattern
      (let ((current-buffer (current-buffer)))
@@ -2302,7 +2442,7 @@ Use the normal search commands to seize the search."
                          (if (and symbol-at-point-text
                                   ;; That should ideally be always true but isn't
                                   (condition-case nil
-                                      (symbolp (setq symbol-at-point (read symbol-at-point-text)))
+                                      (symbolp (setq symbol-at-point (el-search-read symbol-at-point-text)))
                                     (invalid-read-syntax nil)))
                              symbol-at-point
                            (if (thing-at-point 'sexp)
@@ -2420,7 +2560,6 @@ Prompt for a new pattern and revert."
         (el-search-display-match-count))
       (el-search-hl-other-matches (el-search--current-matcher))
       (add-hook 'post-command-hook #'el-search-hl-post-command-fun t t)
-      (setq-local el-search-keep-hl 'once)
       (when do-fun (funcall do-fun)))))
 
 (defun el-search-occur--next-match (&optional backwards)
@@ -2528,7 +2667,7 @@ Prompt for a new pattern and revert."
            (let (end)
              (pcase (save-excursion
                       (goto-char start)
-                      (prog1 (read (current-buffer))
+                      (prog1 (el-search-read (current-buffer))
                         (setq end (point))))
                ((or (pred atom) `(,(pred atom))) t)
                ((guard (< (- end start) 100))    t)))))
@@ -2844,6 +2983,49 @@ related user options."
    (lambda (search) (setf (alist-get 'description (el-search-object-properties search))
                      "el-search-dired-marked-files"))))
 
+(declare-function ibuffer-get-marked-buffers 'ibuffer)
+
+;;;###autoload
+(defun el-search-ibuffer-marked-buffers (pattern buffer-names)
+  "El-search the buffers marked in *Ibuffer*."
+  (interactive
+   (list (el-search-read-pattern-for-interactive
+          "Search marked files for pattern: ")
+         ;; Return a list of buffer names here so that `repeat-complex-command'
+         ;; works ok
+         (mapcar #'buffer-name (ibuffer-get-marked-buffers))))
+  (el-search-setup-search
+   pattern
+   (lambda () (stream (delq nil (mapcar #'get-buffer buffer-names))))
+   (lambda (search) (setf (alist-get 'description (el-search-object-properties search))
+                     "el-search-ibuffer-marked-files"))))
+
+;;;; Register usage
+
+(defun el-search-to-register (register &optional el-search-object)
+  "Prompt for a register and save the EL-SEARCH-OBJECT to it.
+In an interactive call or when EL-SEARCH-OBJECT is nil, the
+current search is used."
+  (interactive (list (register-read-with-preview "Save current search to register: ")))
+  (set-register register (or el-search-object el-search--current-search)))
+
+(defun el-search-clone-to-register (register &optional el-search-object)
+  "Prompt for a register and save a clone of the EL-SEARCH-OBJECT to it.
+In an interactive call or when EL-SEARCH-OBJECT is nil, the
+current search is used.
+
+This is similar to `el-search-to-register' but what is saved is a
+clone with an individual state."
+  (interactive (list (register-read-with-preview "Save clone of current search to register: ")))
+  (set-register register (copy-el-search-object (or el-search-object el-search--current-search))))
+
+(cl-defmethod register-val-jump-to ((val el-search-object) _arg)
+  (el-search-jump-to-search-head val))
+
+(cl-defmethod register-val-describe ((val el-search-object) _verbose) ;VERBOSE is only used by C-x r v
+  (let ((print-circle nil)) ;bug#30070
+    (cl-prin1 val)))
+
 
 ;;;; Query-replace
 
@@ -2912,7 +3094,7 @@ reindent."
                           (condition-case nil
                               (progn
                                 (setq start (point)
-                                      this-sexp (read (current-buffer))
+                                      this-sexp (el-search-read (current-buffer))
                                       end   (point))
                                 t)
                             (end-of-buffer nil)))
@@ -2926,11 +3108,12 @@ reindent."
                 ;; find out whether we have a sequence of equal expressions
                 (while (and (not done)
                             (condition-case nil
-                                (progn (setq this-sexp (read (current-buffer))) t)
+                                (progn (setq this-sexp (el-search-read (current-buffer)))
+                                       t)
                               ((invalid-read-syntax end-of-buffer end-of-file) nil)))
                   (if (with-current-buffer orig-buffer
                         (condition-case nil
-                            (if (not (equal this-sexp (read (current-buffer))))
+                            (if (not (equal this-sexp (el-search-read (current-buffer))))
                                 nil
                               (setq orig-match-end (point))
                               t)
@@ -2954,7 +3137,7 @@ reindent."
             (forward-sexp (if splice (length replacement) 1))
             (let ((result (buffer-substring 1 (point))))
               (if (condition-case nil
-                      (equal replacement (read (if splice (format "(%s)" result) result)))
+                      (equal replacement (el-search-read (if splice (format "(%s)" result) result)))
                     ((debug error) nil))
                   result
                 (error "Apparent error in `el-search--format-replacement'
@@ -2998,7 +3181,7 @@ Thanks!"))))
                        (el-search--message-no-log "%s..."
                                                   (or (el-search-head-file head)
                                                       (el-search-head-buffer head)))
-                       (sit-for 1.5)))
+                       (sit-for 1.)))
 
                    (while (and (not done) (el-search--search-pattern-1 matcher t nil heuristic-matcher))
                      (setq opoint (point))
@@ -3011,7 +3194,7 @@ Thanks!"))))
                        (el-search-hl-sexp))
                      (let* ((region (list (point) (el-search--end-of-sexp)))
                             (original-text (apply #'buffer-substring-no-properties region))
-                            (expr      (read original-text))
+                            (expr      (el-search-read original-text))
                             (replaced-this nil)
                             (new-expr  (funcall get-replacement expr))
                             (get-replacement-string
@@ -3026,7 +3209,7 @@ Thanks!"))))
                                (el-search--skip-expression new-expr)
                                (condition-case nil
                                    (progn (el-search--ensure-sexp-start)
-                                          (el-search-forward pattern nil t))
+                                          (el-search--search-pattern-1 matcher 'noerror))
                                  (end-of-buffer nil))))
                             (do-replace
                              (lambda ()
@@ -3203,8 +3386,8 @@ Toggle splicing mode (\\[describe-function] el-search-query-replace for details)
   (let ((from-input (let ((el-search--initial-mb-contents
                            (or el-search--initial-mb-contents
                                (and (eq last-command 'el-search-pattern)
-                                    (if (equal (read (car el-search-pattern-history))
-                                               (read (car el-search-query-replace-history)))
+                                    (if (equal (el-search-read (car el-search-pattern-history))
+                                               (el-search-read (car el-search-query-replace-history)))
                                         (car el-search-query-replace-history)
                                       (car el-search-pattern-history))))))
                       (el-search--read-pattern "Query replace pattern: " nil
@@ -3244,8 +3427,8 @@ Toggle splicing mode (\\[describe-function] el-search-query-replace for details)
               (buffer-string))
             el-search-query-replace-history))
     (el-search--pushnew-to-history from 'el-search-pattern-history)
-    (setq read-from (read from))
-    (setq read-to   (read to))
+    (setq read-from (el-search-read from))
+    (setq read-to   (el-search-read to))
     (el-search--maybe-warn-about-unquoted-symbol read-from)
     (when (and (symbolp read-to)
                (not (el-search--contains-p (el-search--matcher `',read-to) read-from))

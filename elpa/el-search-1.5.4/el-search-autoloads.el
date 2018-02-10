@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "el-search" "el-search.el" (23138 48773 230428
-;;;;;;  845000))
+;;;### (autoloads nil "el-search" "el-search.el" (23166 23037 652848
+;;;;;;  365000))
 ;;; Generated autoloads from el-search.el
 
 (autoload 'el-search-count-matches "el-search" "\
@@ -14,10 +14,20 @@ Unlike `count-matches' matches \"inside\" other matches also count.
 
 \(fn PATTERN &optional RSTART REND INTERACTIVE)" t nil)
 
+(autoload 'el-search-loop-over-bindings "el-search" "\
+
+
+\(fn FUNCTION)" nil nil)
+
 (autoload 'el-search-install-shift-bindings "el-search" "\
 
 
 \(fn)" t nil)
+
+(autoload 'el-search-install-bindings-under-prefix "el-search" "\
+
+
+\(fn PREFIX-KEY)" nil nil)
 
 (autoload 'el-search-pattern "el-search" "\
 Start new or resume last elisp buffer search.
@@ -97,6 +107,11 @@ related user options.
 
 \(fn PATTERN FILES &optional RECURSIVELY)" t nil)
 
+(autoload 'el-search-ibuffer-marked-buffers "el-search" "\
+El-search the buffers marked in *Ibuffer*.
+
+\(fn PATTERN BUFFER-NAMES)" t nil)
+
 (autoload 'el-search-query-replace "el-search" "\
 Replace some matches of \"el-search\" pattern FROM-PATTERN.
 
@@ -162,8 +177,8 @@ Reuse already given input.
 
 ;;;***
 
-;;;### (autoloads nil nil ("el-search-pkg.el" "el-search-x.el") (23138
-;;;;;;  48773 266428 883000))
+;;;### (autoloads nil nil ("el-search-pkg.el" "el-search-x.el") (23166
+;;;;;;  23037 656848 359000))
 
 ;;;***
 

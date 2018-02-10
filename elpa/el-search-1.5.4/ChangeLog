@@ -1,3 +1,115 @@
+2018-02-05  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Work around Emacs Bug#29857
+
+	While trying to get rid of old-style backquotes, Emacs developers made 
+	something like (read "(,@a)") - i.e. reading a subexpression of a 
+	backquote expression, something that this package needs to be able to do
+	- raise an error.  A new variable `force-new-style-backquotes' has now
+	been introduced to prevent this kind of error and force everything to be
+	"interpreted as new style".
+
+	(el-search-read): New function binding `force-new-style-backquotes' to 
+	non-nil when this variable is defined. Change all callers of `read' to
+	use `el-search-read' instead.
+
+2018-01-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Add `el-search-edit-search-description'
+
+	(el-search-edit-search-description): New command to modify the 
+	description of the current search.
+
+2018-01-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Allow to save the current el-search to a register
+
+	* el-search/el-search.el (el-search-to-register)
+	(el-search-clone-to-register): New commands.
+	(register-val-jump-to, register-val-describe): Implement methods for
+	`el-search-object' values.
+
+2018-01-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Implement `cl-print-object' for el-search-objects
+
+	* el-search/el-search.el: Add (cl-print "1.0") to Package-Requires. 
+	Require cl-print.
+	(cl-print-object): Implement for `el-search-object's.
+
+2018-01-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add command `el-search-ibuffer-marked-buffers'
+
+	* el-search/el-search.el (el-search-ibuffer-marked-buffers): New 
+	command.
+	(el-search-loop-over-bindings): Add binding in `ibuffer-mode-map'. Also
+	mention the command in the key binding list in the file header.
+
+2018-01-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Bump version to 1.5
+
+2018-01-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make el-search key binding installation more flexible
+
+	Implement a function `el-search-install-bindings-under-prefix' that the
+	user can call to install repeatable versions of the el-search commands
+	under a prefix key.  Update header (list of key bindings etc.)
+	accordingly.  Also remove the el-search-keep-hl -> 'once hack, since it
+	is not compatible with this change.
+
+	* el-search/el-search.el (el-search-read-expression-map): Bind M-RET to
+	`el-search-set-occur-flag-exit-minibuffer'.
+	(el-search-use-transient-map, el-search-keep-transient-map-commands): 
+	New defvars.
+	(el-search-loop-over-bindings): New abstract key binding function 
+	generalizing `el-search-install-shift-bindings'.
+	(el-search-install-shift-bindings): Use it.
+	(el-search-install-bindings-under-prefix): New key binding function.
+	(el-search-prefix-key-transient-map)
+	(el-search-shift-bindings-bind-function)
+	(el-search-bind-under-prefix-key-function): New helper variables and 
+	functions.
+	(el-search-prefix-key-maybe-set-transient-map): New function to activate
+	the `el-search-prefix-key-transient-map'.
+	(el-search-setup-search-1, el-search-jump-to-search-head)
+	(el-search-continue-search, el-search-pattern-backwards): Call it.
+	(el-search-keep-hl, el-search-hl-post-command-fun)
+	(el-search--occur-button-action): Remove implementation of 
+	el-search-keep-hl -> 'once hack.
+
+2018-01-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Tweak el-search-jump-to-search-head
+
+	(el-search-jump-to-search-head): Don't use :annotation-function - 
+	directly add search description to the candidate instead so that the 
+	user can use completion on it.	Improve docstring.
+
+2018-01-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Tweak el-search--get-search-description-string
+
+	* el-search/el-search.el (el-search--get-search-description-string): 
+	Some minor tweaks.
+
+2018-01-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Some minor tweaks
+
+	(el-search-read-pattern-for-interactive): Add docstring.
+	(el-search-kill-left-over-search-buffers): Improve docstring.
+	(el-search-install-shift-bindings): Move defun.
+	(el-search--format-replacement): Decrease `sit-for' waiting time after 
+	messaging the current head file/buffer to 1.0 seconds.
+	(el-search--search-and-replace-pattern): Use faster
+	`el-search--search-pattern-1' instead of `el-search-forward' at one 
+	place.
+
+	And some comment changes.
+
 2018-01-08  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	Declare any search started with `el-search-this-sexp' single-buffer
