@@ -4,7 +4,7 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 2.3
-;; Package-Version: 20171213.1334
+;; Package-Version: 20180129.1434
 ;; Keywords: hash table, hash map, hash
 ;; Package-Requires: ((dash "2.12.0"))
 
@@ -83,7 +83,7 @@ TEST indicates the function used to compare the hash
 keys.  Default is `equal'.  It can be `eq', `eql', `equal' or a
 user-supplied test created via `define-hash-table-test'."
   (let ((h (ht-create test)))
-    (dolist (pair (-partition 2 plist) h)
+    (dolist (pair (nreverse (-partition 2 plist)) h)
       (let ((key (car pair))
             (value (cadr pair)))
         (ht-set! h key value)))))
