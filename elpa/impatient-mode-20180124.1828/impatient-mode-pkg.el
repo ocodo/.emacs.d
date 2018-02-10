@@ -1,4 +1,4 @@
-(define-package "impatient-mode" "20170505.1921" "Serve buffers live over HTTP"
+(define-package "impatient-mode" "20180124.1828" "Serve buffers live over HTTP"
   '((cl-lib "0.3")
     (simple-httpd "1.4.0")
     (htmlize "1.40"))

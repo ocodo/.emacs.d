@@ -1,4 +1,4 @@
-;;; impatient-mode.el --- Serve buffers live over HTTP
+;;; impatient-mode.el --- Serve buffers live over HTTP -*- lexical-binding: t; -*-
 
 ;; This is free and unencumbered software released into the public domain.
 
@@ -47,21 +47,27 @@
 (defvar impatient-mode-map (make-sparse-keymap)
   "Keymap for impatient-mode.")
 
-(make-variable-buffer-local
- (defvar imp-user-filter #'imp-htmlize-filter
-   "Per buffer html-producing function by user."))
+(defvar impatient-mode-delay nil
+  "The delay in seconds between a keypress and the buffer being
+   reloaded in the browser.  Set to nil for no delay")
 
-(make-variable-buffer-local
- (defvar imp-client-list ()
-   "List of client processes watching the current buffer."))
+(defvar-local imp--idle-timer nil
+  "A timer that goes off after impatient-mode-delay seconds of inactivity")
 
-(make-variable-buffer-local
- (defvar imp-last-state 0
-   "State sequence number."))
+(defvar-local imp-user-filter #'imp-htmlize-filter
+  "Per buffer html-producing function by user.")
 
-(make-variable-buffer-local
- (defvar imp-related-files nil
-   "Files that seem to be related to this buffer"))
+(defvar-local imp-client-list ()
+  "List of client processes watching the current buffer.")
+
+(defvar-local imp-last-state 0
+  "State sequence number.")
+
+(defvar-local imp-related-files nil
+  "Files that seem to be related to this buffer")
+
+(defvar-local imp--buffer-dirty-p nil
+  "If non-nil, buffer has been modified but not sent to clients.")
 
 (defvar imp-default-user-filters
   '((html-mode . nil)
@@ -75,8 +81,11 @@
   :lighter " imp"
   :keymap impatient-mode-map
   (if (not impatient-mode)
-      (remove-hook 'after-change-functions 'imp--on-change t)
-    (add-hook 'after-change-functions 'imp--on-change nil t)
+      (progn
+        (imp--cleanup-timer)
+        (remove-hook 'after-change-functions #'imp--on-change t))
+    (add-hook 'kill-buffer-hook #'imp--cleanup-timer nil t)
+    (add-hook 'after-change-functions #'imp--on-change nil t)
     (imp-remove-user-filter)))
 
 (defvar imp-shim-root (file-name-directory load-file-name)
@@ -137,7 +146,7 @@ buffer."
     (member mime-type '("text/css" "text/html" "text/xml"
                         "text/plain" "text/javascript"))))
 
-(defun httpd/imp/static (proc path query req)
+(defun httpd/imp/static (proc path _query req)
   "Serve up static files."
   (let* ((file (file-name-nondirectory path))
          (clean (expand-file-name file imp-shim-root)))
@@ -165,7 +174,7 @@ buffer."
   (httpd-error proc 403
                (format "Buffer %s is private or doesn't exist." buffer-name)))
 
-(defun httpd/imp/live (proc path query req)
+(defun httpd/imp/live (proc path _query req)
   "Serve up the shim that lets us watch a buffer change"
   (let* ((index (expand-file-name "index.html" imp-shim-root))
          (parts (cdr (split-string path "/")))
@@ -199,7 +208,7 @@ buffer."
           (httpd-send-file proc full-file-name req))))
      (t (imp-buffer-enabled-p buffer) (httpd-send-file proc index req)))))
 
-(defun httpd/imp (proc path &rest args)
+(defun httpd/imp (proc path &rest _)
   (cond
    ((equal path "/imp")  (httpd-redirect proc "/imp/"))
    ((equal path "/imp/") (imp-serve-buffer-list proc))
@@ -218,7 +227,7 @@ buffer."
                          :X-Imp-Count id))))
 
 (defun imp--send-state-ignore-errors (proc)
-  (condition-case error-case
+  (condition-case _
       (imp--send-state proc)
     (error nil)))
 
@@ -226,13 +235,56 @@ buffer."
   (while imp-client-list
     (imp--send-state-ignore-errors (pop imp-client-list))))
 
-(defun imp--on-change (&rest args)
-  "Hook for after-change-functions."
-  (cl-incf imp-last-state)
+(defun imp--cleanup-timer ()
+  "Destroy any timer associated with this buffer."
+  (when imp--idle-timer
+    (cancel-timer (cdr imp--idle-timer))
+    (setf imp--idle-timer nil)))
 
+(defun imp--start-idle-timer ()
+  "Start/update the idle timer as appropriate."
+  (cond
+   ;; Timer doesn't exist and shouldn't (do nothing)
+   ((and (null impatient-mode-delay) (null imp--idle-timer)))
+   ;; Timer exists when it shouldnt
+   ((and (null impatient-mode-delay) imp--idle-timer)
+    (cancel-timer (cdr imp--idle-timer))
+    (setf imp--idle-timer nil))
+   ;; Timer doesn't exist when it should
+   ((and impatient-mode-delay (null imp--idle-timer))
+    (let* ((buffer (current-buffer))
+           (timer (run-with-idle-timer
+                   impatient-mode-delay :repeat
+                   (lambda ()
+                     (with-current-buffer buffer
+                       (imp--after-timeout))))))
+      (setf imp--idle-timer (cons impatient-mode-delay timer))))
+   ;; Timer delay is incorrect
+   ((not (eql (car imp--idle-timer) impatient-mode-delay))
+    (timer-set-idle-time (cdr imp--idle-timer)
+                         impatient-mode-delay
+                         :repeat)
+    (setf (car imp--idle-timer) impatient-mode-delay))))
+
+(defun imp--on-change (&rest _)
+  "Hook for `after-change-functions'."
+  (imp--start-idle-timer)
+  (if impatient-mode-delay
+      (setf imp--buffer-dirty-p :dirty)
+    (imp--update-buffer)))
+
+(defun imp--after-timeout ()
+  "Executes after impatient-mode-delay seconds of idleness"
+  (when imp--buffer-dirty-p
+    (imp--update-buffer))
+  (imp--start-idle-timer))
+
+(defun imp--update-buffer ()
+  "Update this buffer in the browser."
+  (setf imp--buffer-dirty-p nil)
+  (cl-incf imp-last-state)
   ;; notify our clients
   (imp--notify-clients)
-
   ;; notify any clients that we're in the imp-related-files list for
   (let ((buffer-file (buffer-file-name (current-buffer))))
     (dolist (buffer (imp--buffer-list))
@@ -240,7 +292,7 @@ buffer."
         (when (member buffer-file imp-related-files)
           (imp--notify-clients))))))
 
-(defun httpd/imp/buffer (proc path query &rest args)
+(defun httpd/imp/buffer (proc path query &rest _)
   "Servlet that accepts long poll requests."
   (let* ((buffer-name (file-name-nondirectory path))
          (buffer (get-buffer buffer-name))
