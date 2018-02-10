@@ -1,4 +1,4 @@
-;;; gruvbox-dark-soft-theme.el --- A retro-groove colour theme for Emacs
+;;; gruvbox-dark-hard-theme.el --- A retro-groove colour theme for Emacs
 
 ;; Copyright (c) 2013 Lee Machin
 ;; Copyright (c) 2013-2016 Greduan
@@ -12,7 +12,7 @@
 ;;              Greduan <me@greduan.com>
 ;;
 ;; URL: http://github.com/Greduan/emacs-theme-gruvbox
-;; Version: 1.22.2
+;; Version: 1.22.3
 
 ;; Package-Requires: ((autothemer "0.2"))
 
@@ -51,8 +51,8 @@
 (require 'gruvbox)
 
 (gruvbox-deftheme
- gruvbox-dark-soft
- "A retro-groove colour theme (dark version, soft contrast)"
+ gruvbox-dark-hard
+ "A retro-groove colour theme (dark version, hard contrast)"
 
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
@@ -108,9 +108,9 @@
   (gruvbox-aquamarine4     "#83A598" "#87af87")
   (gruvbox-turquoise4      "#61ACBB" "#5fafaf")
 
-  (gruvbox-bg gruvbox-dark0_soft))
+  (gruvbox-bg gruvbox-dark0_hard))
 
- (custom-theme-set-variables 'gruvbox-dark-soft
+ (custom-theme-set-variables 'gruvbox-dark-hard
                              `(ansi-color-names-vector
                                [,gruvbox-dark1
                                 ,gruvbox-bright_red
@@ -128,10 +128,10 @@
                   (file-name-as-directory
                    (file-name-directory load-file-name))))
 
-(provide-theme 'gruvbox-dark-soft)
+(provide-theme 'gruvbox-dark-hard)
 
 ;; Local Variables:
 ;; eval: (when (fboundp 'rainbow-mode) (rainbow-mode +1))
 ;; End:
 
-;;; gruvbox-dark-soft-theme.el ends here
+;;; gruvbox-dark-hard-theme.el ends here

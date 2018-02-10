@@ -1,4 +1,4 @@
-;;; gruvbox-light-soft-theme.el --- A retro-groove colour theme for Emacs
+;;; gruvbox-light-medium-theme.el --- A retro-groove colour theme for Emacs
 
 ;; Copyright (c) 2013 Lee Machin
 ;; Copyright (c) 2013-2016 Greduan
@@ -12,7 +12,7 @@
 ;;              Greduan <me@greduan.com>
 ;;
 ;; URL: http://github.com/Greduan/emacs-theme-gruvbox
-;; Version: 1.22.2
+;; Version: 1.22.3
 
 ;; Package-Requires: ((autothemer "0.2"))
 
@@ -51,8 +51,8 @@
 (require 'gruvbox)
 
 (gruvbox-deftheme
- gruvbox-light-soft
- "A retro-groove colour theme (light version)"
+ gruvbox-light-medium
+ "A retro-groove colour theme (light version, medium contrast)"
 
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
@@ -108,17 +108,17 @@
   (gruvbox-aquamarine4     "#83A598" "#87af87")
   (gruvbox-turquoise4      "#61ACBB" "#5fafaf")
 
-  (gruvbox-bg gruvbox-dark0_soft))
+  (gruvbox-bg gruvbox-dark0))
 
- (custom-theme-set-variables 'gruvbox-light-soft
+ (custom-theme-set-variables 'gruvbox-light-medium
                              `(ansi-color-names-vector
                                [,gruvbox-dark1
-                                ,gruvbox-bright_red
-                                ,gruvbox-bright_green
-                                ,gruvbox-bright_yellow
-                                ,gruvbox-bright_blue
-                                ,gruvbox-bright_purple
-                                ,gruvbox-bright_aqua
+                                ,gruvbox-faded_red
+                                ,gruvbox-faded_green
+                                ,gruvbox-faded_yellow
+                                ,gruvbox-faded_blue
+                                ,gruvbox-faded_purple
+                                ,gruvbox-faded_aqua
                                 ,gruvbox-light1])))
 
 ;;;###autoload
@@ -128,10 +128,10 @@
                   (file-name-as-directory
                    (file-name-directory load-file-name))))
 
-(provide-theme 'gruvbox-light-soft)
+(provide-theme 'gruvbox-light-medium)
 
 ;; Local Variables:
 ;; eval: (when (fboundp 'rainbow-mode) (rainbow-mode +1))
 ;; End:
 
-;;; gruvbox-light-theme.el ends here
+;;; gruvbox-light-medium-theme.el ends here
