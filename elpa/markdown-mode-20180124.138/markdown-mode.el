@@ -7,7 +7,7 @@
 ;; Maintainer: Jason R. Blevins <jblevins@xbeta.org>
 ;; Created: May 24, 2007
 ;; Version: 2.4-dev
-;; Package-Version: 20180115.1905
+;; Package-Version: 20180124.138
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5"))
 ;; Keywords: Markdown, GitHub Flavored Markdown, itex
 ;; URL: https://jblevins.org/projects/markdown-mode/
@@ -7521,7 +7521,7 @@ update this buffer's contents."
       (if (not buffer-file-name)
           (user-error "Must be visiting a file")
         (save-buffer)
-        (let ((exit-code (call-process markdown-open-command nil 0 nil
+        (let ((exit-code (call-process markdown-open-command nil nil nil
                                        buffer-file-name)))
           ;; The exit code can be a signal description string, so don’t use ‘=’
           ;; or ‘zerop’.

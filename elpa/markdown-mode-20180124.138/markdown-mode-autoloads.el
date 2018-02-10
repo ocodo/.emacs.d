@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "markdown-mode" "markdown-mode.el" (23138 48136
-;;;;;;  681467 88000))
+;;;### (autoloads nil "markdown-mode" "markdown-mode.el" (23166 23225
+;;;;;;  184624 280000))
 ;;; Generated autoloads from markdown-mode.el
 
 (autoload 'markdown-mode "markdown-mode" "\
@@ -35,11 +35,6 @@ Major mode for viewing GitHub Flavored Markdown content.
 Toggle native previewing on save for a specific markdown file.
 
 \(fn &optional ARG)" t nil)
-
-;;;***
-
-;;;### (autoloads nil nil ("markdown-mode-pkg.el") (23138 48127 349446
-;;;;;;  980000))
 
 ;;;***
 
