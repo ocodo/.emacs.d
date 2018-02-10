@@ -8,7 +8,7 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;;         Kyle Hargraves <pd@krh.me>
 ;; URL: http://github.com/nonsequitur/inf-ruby
-;; Package-Version: 20171211.225
+;; Package-Version: 20180121.2300
 ;; Created: 8 April 1998
 ;; Keywords: languages ruby
 ;; Version: 2.5.1
@@ -567,12 +567,14 @@ Then switch to the process buffer."
     (replace-regexp-in-string "\n" "\\\\n"
       (replace-regexp-in-string "\\\\" "\\\\\\\\" str))))
 
-(defun inf-ruby-completions (expr)
+(defun inf-ruby-completions (prefix)
   "Return a list of completions for the Ruby expression starting with EXPR."
   (let* ((proc (inf-ruby-proc))
          (line (buffer-substring (save-excursion (move-beginning-of-line 1)
                                                  (point))
                                  (point)))
+         (expr (inf-ruby-completion-expr-at-point))
+         (prefix-offset (- (length expr) (length prefix)))
          (comint-filt (process-filter proc))
          (kept "") completions
          ;; Guard against running completions in parallel:
@@ -614,9 +616,18 @@ Then switch to the process buffer."
             (when (and completions (string= (concat (car completions) "\n") completion-snippet))
               (setq completions (cdr completions))))
         (set-process-filter proc comint-filt)))
-    completions))
+    (mapcar
+     (lambda (str)
+       (substring str prefix-offset))
+     completions)))
 
 (defconst inf-ruby-ruby-expr-break-chars " \t\n\"\'`><,;|&{(")
+
+(defun inf-ruby-completion-bounds-of-prefix ()
+  "Return bounds of expression at point to complete."
+  (let ((inf-ruby-ruby-expr-break-chars
+         (concat inf-ruby-ruby-expr-break-chars ".")))
+    (inf-ruby-completion-bounds-of-expr-at-point)))
 
 (defun inf-ruby-completion-bounds-of-expr-at-point ()
   "Return bounds of expression at point to complete."
@@ -635,7 +646,7 @@ Then switch to the process buffer."
 (defun inf-ruby-completion-at-point ()
   "Retrieve the list of completions and prompt the user.
 Returns the selected completion or nil."
-  (let ((bounds (inf-ruby-completion-bounds-of-expr-at-point)))
+  (let ((bounds (inf-ruby-completion-bounds-of-prefix)))
     (when bounds
       (list (car bounds) (cdr bounds)
             (when inf-ruby-at-top-level-prompt-p
