@@ -3,7 +3,7 @@
 ;;
 ;; Author: Austin Bingham <austin.bingham@gmail.com>
 ;; Version: 0.1
-;; Package-Version: 20170614.1434
+;; Package-Version: 20180207.843
 ;; URL: https://github.com/abingham/emacs-ycmd
 ;; Package-Requires: ((emacs "24") (dash "2.13.0") (flycheck "0.22") (ycmd "1.2") (let-alist "1.0.5"))
 ;;
@@ -66,7 +66,7 @@
 (defun flycheck-ycmd--result-to-error (result checker)
   "Convert ycmd parse RESULT for CHECKER into a flycheck error object."
   (let-alist result
-    (when (string-equal .location.filepath (buffer-file-name))
+    (when (string-equal (convert-standard-filename .location.filepath) (convert-standard-filename (buffer-file-name)))
       (flycheck-error-new
        :line .location.line_num
        :column .location.column_num
