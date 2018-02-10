@@ -5,7 +5,7 @@
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Maintainer: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-window
-;; Package-Version: 20180119.1226
+;; Package-Version: 20180123.1111
 ;; Version: 0.9.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: window, location
@@ -36,9 +36,9 @@
 ;;
 ;; To setup this package, just add to your .emacs:
 ;;
-;;    (global-set-key (kbd "M-p") 'ace-window)
+;;    (global-set-key (kbd "M-o") 'ace-window)
 ;;
-;; replacing "M-p"  with an appropriate shortcut.
+;; replacing "M-o"  with an appropriate shortcut.
 ;;
 ;; By default, ace-window uses numbers for window labels so the window
 ;; labeling is intuitively ordered.  But if you prefer to type keys on
