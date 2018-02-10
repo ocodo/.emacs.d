@@ -2,8 +2,8 @@
 
 ;; Author: Preetpal S. Sohal
 ;; URL: https://github.com/preetpalS/emacs-dotenv-mode
-;; Package-Version: 20171123.649
-;; Version: 0.2.1
+;; Package-Version: 20180207.1114
+;; Version: 0.2.4
 ;; Package-Requires: ((emacs "24.3"))
 ;; License: GNU General Public License Version 3
 
@@ -39,13 +39,13 @@
 
 (defvar dotenv-mode-syntax-table
   (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?' "\"'" table)  ; ?' is a string delimiter
-    (modify-syntax-entry ?\" "\"" table)  ; ?\" is a string delimiter
-    (modify-syntax-entry ?# "<" table)    ; ?# starts comments
-    (modify-syntax-entry ?\n ">" table)   ; ?\n ends comments
-    (modify-syntax-entry ?_ "_" table)    ; ?_ can be used in variable and command names
-    (modify-syntax-entry ?\\ "\\" table)  ; ?\\ is an escape sequence character
-    (modify-syntax-entry ?$ "'" table)    ; ?$ is an expression prefix; Used in highlighting $VARIABLES, ${SUBSTITUTED_VARIABLES}, and $(substituted commands) embedded in double-quoted strings
+    (modify-syntax-entry ?' "\"'" table) ; ?' is a string delimiter
+    (modify-syntax-entry ?\" "\"" table) ; ?\" is a string delimiter
+    (modify-syntax-entry ?# "<" table)   ; ?# starts comments
+    (modify-syntax-entry ?\n ">" table)  ; ?\n ends comments
+    (modify-syntax-entry ?_ "_" table)   ; ?_ can be used in variable and command names
+    (modify-syntax-entry ?\\ "\\" table) ; ?\\ is an escape sequence character
+    (modify-syntax-entry ?$ "'" table)   ; ?$ is an expression prefix; Used in highlighting $VARIABLES, ${SUBSTITUTED_VARIABLES}, and $(substituted commands) embedded in double-quoted strings
     table))
 
 ;; Adapted from code generously donated by Fuco1 (https://github.com/Fuco1; see: https://fuco1.github.io/2017-06-11-Font-locking-with-custom-matchers.html)
@@ -87,7 +87,11 @@
   (setq-local font-lock-defaults '((dotenv-mode-keywords))))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.env\\'" . dotenv-mode))
+(mapc (lambda (s) (add-to-list 'auto-mode-alist `(,s . dotenv-mode)))
+      '(
+        "\\.env\\'"
+        "\\.env\\.example\\'"
+        ))
 
 (provide 'dotenv-mode)
 
