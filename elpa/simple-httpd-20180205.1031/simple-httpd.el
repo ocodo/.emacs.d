@@ -4,8 +4,8 @@
 
 ;; Author: Christopher Wellons <wellons@nullprogram.com>
 ;; URL: https://github.com/skeeto/emacs-http-server
-;; Package-Version: 20171004.938
-;; Version: 1.4.6
+;; Package-Version: 20180205.1031
+;; Version: 1.5.0
 ;; Package-Requires: ((cl-lib "0.3"))
 
 ;;; Commentary:
@@ -96,6 +96,9 @@
 
 ;;; History:
 
+;; Version 1.5.0: improvements
+;;   * Drastically improved performance for large requests
+;;   * More HTTP status codes
 ;; Version 1.4.6: fixes
 ;;   * Added httpd-serve-directory
 ;;   * Fix some encoding issues
@@ -352,6 +355,11 @@ instance per Emacs instance."
     (delete-process "httpd")
     (httpd-log `(stop ,(current-time-string)))
     (run-hooks 'httpd-stop-hook)))
+
+;;;###autoload
+(defun httpd-running-p ()
+  "Return non-nil if the simple-httpd server is running."
+  (not (null (process-status "httpd"))))
 
 ;;;###autoload
 (defun httpd-serve-directory (directory)
