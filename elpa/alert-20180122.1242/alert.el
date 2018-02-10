@@ -6,7 +6,7 @@
 ;; Created: 24 Aug 2011
 ;; Updated: 16 Mar 2015
 ;; Version: 1.2
-;; Package-Version: 20180116.1751
+;; Package-Version: 20180122.1242
 ;; Package-Requires: ((gntp "0.1") (log4e "0.3.0"))
 ;; Keywords: notification emacs message
 ;; X-URL: https://github.com/jwiegley/alert
@@ -191,8 +191,16 @@
 (eval-when-compile
   (require 'cl))
 (require 'gntp nil t)
+(eval-when-compile
+  ;; if not available, silence the byte compiler
+  (defvar gntp-server))
+(declare-function gntp-notify "gntp")
 (require 'notifications nil t)
 (require 'log4e nil t)
+
+;; shut up the byte compiler
+(declare-function alert-gntp-notify "alert")
+(declare-function alert-notifications-notify "alert")
 
 (defgroup alert nil
   "Notification system for Emacs similar to Growl"
