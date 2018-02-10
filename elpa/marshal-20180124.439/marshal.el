@@ -4,7 +4,7 @@
 
 ;; Author: Yann Hodique <hodiquey@vmware.com>
 ;; Keywords: eieio
-;; Package-Version: 20180102.201
+;; Package-Version: 20180124.439
 ;; Version: 0.8.2
 ;; URL: https://github.com/sigma/marshal.el
 ;; Package-Requires: ((eieio "1.4") (json "1.3") (ht "2.1"))
@@ -117,12 +117,12 @@
        (null list))))
 
 ;;; load json library lazily
-(autoload 'json-encode "json")
-(autoload 'json-read-from-string "json")
+(dolist (sym '(json-encode json-read-from-string))
+  (autoload sym "json"))
 
 ;;; load ht library lazily
-(autoload 'ht-empty? "ht")
-(autoload 'ht-items "ht")
+(dolist (sym '(ht? ht-empty? ht-items ht<-alist))
+  (autoload sym "ht"))
 
 ;;; Defined drivers
 
