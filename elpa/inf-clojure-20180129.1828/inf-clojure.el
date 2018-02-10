@@ -5,7 +5,7 @@
 ;; Authors: Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Olin Shivers <shivers@cs.cmu.edu>
 ;; URL: http://github.com/clojure-emacs/inf-clojure
-;; Package-Version: 20180102.1324
+;; Package-Version: 20180129.1828
 ;; Keywords: processes, clojure
 ;; Version: 2.1.0
 ;; Package-Requires: ((emacs "24.4") (clojure-mode "5.6"))
@@ -102,6 +102,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
     (define-key map "\C-c\C-a" #'inf-clojure-show-arglists)
     (define-key map "\C-c\C-v" #'inf-clojure-show-var-documentation)
     (define-key map "\C-c\C-s" #'inf-clojure-show-var-source)
+    (define-key map (kbd "C-c C-S-a") #'inf-clojure-apropos)
     (define-key map "\C-c\M-o" #'inf-clojure-clear-repl-buffer)
     (define-key map "\C-c\C-q" #'inf-clojure-quit)
     (easy-menu-define inf-clojure-mode-menu map
@@ -114,6 +115,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
         ["Show arglists" inf-clojure-show-arglists t]
         ["Show documentation for var" inf-clojure-show-var-documentation t]
         ["Show source for var" inf-clojure-show-var-source t]
+        ["Apropos" inf-clojure-apropos t]
         "--"
         ["Clear REPL" inf-clojure-clear-repl-buffer]
         ["Restart" inf-clojure-restart]
@@ -133,7 +135,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
     (define-key map "\C-c\C-n" #'inf-clojure-eval-form-and-next)
     (define-key map "\C-c\C-z" #'inf-clojure-switch-to-repl)
     (define-key map "\C-c\C-i" #'inf-clojure-show-ns-vars)
-    (define-key map "\C-c\C-A" #'inf-clojure-apropos)
+    (define-key map (kbd "C-c C-S-a") #'inf-clojure-apropos)
     (define-key map "\C-c\C-m" #'inf-clojure-macroexpand)
     (define-key map "\C-c\C-l" #'inf-clojure-load-file)
     (define-key map "\C-c\C-a" #'inf-clojure-show-arglists)
@@ -362,11 +364,11 @@ Clojure to load that file."
   :safe #'stringp
   :package-version '(inf-clojure . "2.0.0"))
 
-(defun inf-clojure-load-form ()
-  "Return the form to query inferior Clojure for a var's documentation.
+(defun inf-clojure-load-form (proc)
+  "Return the form to query the Inf-Clojure PROC for var's documentation.
 If you are using REPL types, it will pickup the most appropriate
 `inf-clojure-var-doc-form` variant."
-  (pcase (inf-clojure--set-repl-type (inf-clojure-proc))
+  (pcase (inf-clojure--set-repl-type proc)
     (`lumo inf-clojure-load-form-lumo)
     (`planck inf-clojure-load-form-planck)
     (_ inf-clojure-load-form)))
@@ -393,7 +395,7 @@ This should usually be a combination of `inf-clojure-prompt' and
   :package-version '(inf-clojure . "2.0.0"))
 
 (defvar inf-clojure-buffer nil
-  "The current inf-clojure process buffer.
+  "The current `inf-clojure' process buffer.
 
 MULTIPLE PROCESS SUPPORT
 ===========================================================================
@@ -559,9 +561,10 @@ Fallback to `default-directory.' if not within a project."
   "Run an inferior Clojure process, input and output via buffer `*inf-clojure*'.
 If there is a process already running in `*inf-clojure*', just switch
 to that buffer.
-With argument, allows you to edit the command line (default is value
-of `inf-clojure-*-cmd').  Runs the hooks from
-`inf-clojure-mode-hook' (after the `comint-mode-hook' is run).
+With argument, allows you to edit the CMD used to launch
+it (default is value of `inf-clojure-*-cmd').  Runs the hooks
+from `inf-clojure-mode-hook' (after the `comint-mode-hook' is
+run).
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
   (interactive (list (if current-prefix-arg
                          (read-string "Run Clojure: " (inf-clojure-cmd (inf-clojure-project-type)))
@@ -573,9 +576,10 @@ of `inf-clojure-*-cmd').  Runs the hooks from
                          (list cmd)
                        (split-string cmd))))
         (message "Starting Clojure REPL via `%s'..." cmd)
-        (set-buffer (apply #'make-comint
-                           "inf-clojure" (car cmdlist) nil (cdr cmdlist)))
-        (inf-clojure-mode)))
+        (with-current-buffer (apply #'make-comint
+                                    "inf-clojure" (car cmdlist) nil (cdr cmdlist))
+          (inf-clojure-mode)
+          (hack-dir-local-variables-non-file-buffer))))
   (setq inf-clojure-buffer "*inf-clojure*")
   (if inf-clojure-repl-use-same-window
       (pop-to-buffer-same-window "*inf-clojure*")
@@ -681,19 +685,21 @@ Used by this command to determine defaults."
   :type '(repeat symbol))
 
 (defun inf-clojure-load-file (&optional switch-to-repl file-name)
-  "Load a Clojure file FILE-NAME into the inferior Clojure process.
+  "Load a Clojure file into the inferior Clojure process.
 
-The prefix argument SWITCH-TO-REPL controls whether to switch to REPL after the file is loaded or not."
+The prefix argument SWITCH-TO-REPL controls whether to switch to
+REPL after the file is loaded or not.  If the argument FILE-NAME
+is present it will be used instead of the current file."
   (interactive "P")
-  (let ((file-name (or file-name
+  (let ((proc (inf-clojure-proc))
+        (file-name (or file-name
                        (car (comint-get-source "Load Clojure file: " inf-clojure-prev-l/c-dir/file
                                                ;; nil because doesn't need an exact name
                                                inf-clojure-source-modes nil)))))
     (comint-check-source file-name) ; Check to see if buffer needs saved.
     (setq inf-clojure-prev-l/c-dir/file (cons (file-name-directory    file-name)
                                               (file-name-nondirectory file-name)))
-    (inf-clojure--send-string (inf-clojure-proc)
-                              (format (inf-clojure-load-form) file-name))
+    (inf-clojure--send-string proc (format (inf-clojure-load-form proc) file-name))
     (when switch-to-repl
       (inf-clojure-switch-to-repl t))))
 
@@ -732,12 +738,12 @@ The prefix argument SWITCH-TO-REPL controls whether to switch to REPL after the 
   :safe #'stringp
   :package-version '(inf-clojure . "2.0.0"))
 
-(defun inf-clojure-var-doc-form ()
-  "Return the form to query inferior Clojure for a var's documentation.
+(defun inf-clojure-var-doc-form (proc)
+  "Return the form to query the Inf-Clojure PROC for a var's documentation.
 If you are using REPL types, it will pickup the most approapriate
 `inf-clojure-var-doc-form` variant."
   (inf-clojure--sanitize-command
-   (pcase (inf-clojure--set-repl-type (inf-clojure-proc))
+   (pcase (inf-clojure--set-repl-type proc)
      (`lumo inf-clojure-var-doc-form-lumo)
      (`planck inf-clojure-var-doc-form-planck)
      (_ inf-clojure-var-doc-form))))
@@ -763,12 +769,12 @@ If you are using REPL types, it will pickup the most approapriate
   :safe #'stringp
   :package-version '(inf-clojure . "2.0.0"))
 
-(defun inf-clojure-var-source-form ()
-  "Return the form to query inferior Clojure for a var's source.
+(defun inf-clojure-var-source-form (proc)
+  "Return the form to query the Inf-Clojure PROC for a var's source.
 If you are using REPL types, it will pickup the most approapriate
 `inf-clojure-var-source-form` variant."
   (inf-clojure--sanitize-command
-   (pcase (inf-clojure--set-repl-type (inf-clojure-proc))
+   (pcase (inf-clojure--set-repl-type proc)
      (`lumo inf-clojure-var-source-form-lumo)
      (`planck inf-clojure-var-source-form-planck)
      (_ inf-clojure-var-source-form))))
@@ -806,12 +812,12 @@ If you are using REPL types, it will pickup the most approapriate
   :safe #'stringp
   :package-version '(inf-clojure . "2.1.0"))
 
-(defun inf-clojure-arglists-form ()
-  "Return the form to query inferior Clojure for arglists of a var.
+(defun inf-clojure-arglists-form (proc)
+  "Return the form to query the Inf-Clojure PROC for arglists of a var.
 If you are using REPL types, it will pickup the most approapriate
 `inf-clojure-arglists-form` variant."
   (inf-clojure--sanitize-command
-   (pcase (inf-clojure--set-repl-type (inf-clojure-proc))
+   (pcase (inf-clojure--set-repl-type proc)
      (`lumo inf-clojure-arglists-form-lumo)
      (`planck inf-clojure-arglists-form-planck)
      (_ inf-clojure-arglists-form))))
@@ -842,12 +848,12 @@ If you are using REPL types, it will pickup the most approapriate
   :safe #'stringp
   :package-version '(inf-clojure . "2.0.0"))
 
-(defun inf-clojure-completion-form ()
-  "Return the form to query inferior Clojure for a var's documentation.
+(defun inf-clojure-completion-form (proc)
+  "Return the form to query the Inf-Clojure PROC for completions.
 If you are using REPL types, it will pickup the most approapriate
 `inf-clojure-completion-form` variant."
   (inf-clojure--sanitize-command
-   (pcase (inf-clojure--set-repl-type (inf-clojure-proc))
+   (pcase (inf-clojure--set-repl-type proc)
      (`lumo inf-clojure-completion-form-lumo)
      (`planck inf-clojure-completion-form-planck)
      (_ inf-clojure-completion-form))))
@@ -873,12 +879,12 @@ If you are using REPL types, it will pickup the most approapriate
   :safe #'stringp
   :package-version '(inf-clojure . "2.0.0"))
 
-(defun inf-clojure-ns-vars-form ()
-  "Return the form to query inferior Clojure for public vars in a namespace.
+(defun inf-clojure-ns-vars-form (proc)
+  "Return the form to query the Inf-Clojure PROC for public vars in a namespace.
 If you are using REPL types, it will pickup the most approapriate
 `inf-clojure-ns-vars-form` variant."
   (inf-clojure--sanitize-command
-   (pcase (inf-clojure--set-repl-type (inf-clojure-proc))
+   (pcase (inf-clojure--set-repl-type proc)
      (`lumo inf-clojure-ns-vars-form-lumo)
      (`planck inf-clojure-ns-vars-form-planck)
      (_ inf-clojure-ns-vars-form))))
@@ -906,11 +912,11 @@ If you are using REPL types, it will pickup the most approapriate
   :safe #'stringp
   :package-version '(inf-clojure . "2.0.0"))
 
-(defun inf-clojure-set-ns-form ()
-  "Return the form to set the ns of the inferior Clojure process.
+(defun inf-clojure-set-ns-form (proc)
+  "Return the form to set the namespace of the Inf-Clojure PROC.
 If you are using REPL types, it will pickup the most approapriate
 `inf-clojure-set-ns-form` variant."
-  (pcase (inf-clojure--set-repl-type (inf-clojure-proc))
+  (pcase (inf-clojure--set-repl-type proc)
     (`planck inf-clojure-set-ns-form-planck)
     (`lumo inf-clojure-set-ns-form-lumo)
     (_ inf-clojure-set-ns-form)))
@@ -940,12 +946,12 @@ If you are using REPL types, it will pickup the most approapriate
   :safe #'stringp
   :package-version '(inf-clojure . "2.0.0"))
 
-(defun inf-clojure-apropos-form ()
-  "Return the form to query inferior Clojure for public vars in a namespace.
+(defun inf-clojure-apropos-form (proc)
+  "Return the form to query the Inf-Clojure PROC for a var's apropos.
 If you are using REPL types, it will pickup the most approapriate
-`inf-clojure-ns-vars-form` variant."
+`inf-clojure-apropos-form` variant."
   (inf-clojure--sanitize-command
-   (pcase (inf-clojure--set-repl-type (inf-clojure-proc))
+   (pcase (inf-clojure--set-repl-type proc)
      (`lumo inf-clojure-apropos-form-lumo)
      (`planck inf-clojure-apropos-form-planck)
      (_ inf-clojure-apropos-form))))
@@ -966,12 +972,20 @@ If you are using REPL types, it will pickup the most approapriate
   :safe #'stringp
   :package-version '(inf-clojure . "2.0.0"))
 
-(defun inf-clojure-macroexpand-form ()
-  "Return the form for macroexpansion in the inferior Clojure process.
+(defcustom inf-clojure-macroexpand-form-lumo
+  "(macroexpand '%s)"
+  "Lumo form to invoke macroexpand."
+  :type 'string
+  :safe #'stringp
+  :package-version '(inf-clojure . "2.2.0"))
+
+(defun inf-clojure-macroexpand-form (proc)
+  "Return the form for macroexpansion in the Inf-Clojure PROC.
 If you are using REPL types, it will pickup the most approapriate
 `inf-clojure-macroexpand-form` variant."
   (inf-clojure--sanitize-command
-   (pcase (inf-clojure--set-repl-type (inf-clojure-proc))
+   (pcase (inf-clojure--set-repl-type proc)
+     (`lumo inf-clojure-macroexpand-form-lumo)
      (`planck inf-clojure-macroexpand-form-planck)
      (_ inf-clojure-macroexpand-form))))
 
@@ -991,12 +1005,20 @@ If you are using REPL types, it will pickup the most approapriate
   :safe #'stringp
   :package-version '(inf-clojure . "2.0.0"))
 
-(defun inf-clojure-macroexpand-1-form ()
-  "Return the form for macroexpand-1 in the inferior Clojure process.
+(defcustom inf-clojure-macroexpand-1-form-lumo
+  "(macroexpand-1 '%s)"
+  "Lumo form to invoke macroexpand-1."
+  :type 'string
+  :safe #'stringp
+  :package-version '(inf-clojure . "2.2.0"))
+
+(defun inf-clojure-macroexpand-1-form (proc)
+  "Return the form for macroexpand-1 in the Inf-Clojure PROC.
 If you are using REPL types, it will pickup the most approapriate
 `inf-clojure-macroexpand-1-form` variant."
   (inf-clojure--sanitize-command
-   (pcase (inf-clojure--set-repl-type (inf-clojure-proc))
+   (pcase (inf-clojure--set-repl-type proc)
+     (`lumo inf-clojure-macroexpand-1-form-lumo)
      (`planck inf-clojure-macroexpand-1-form-planck)
      (_ inf-clojure-macroexpand-1-form))))
 
@@ -1005,8 +1027,11 @@ If you are using REPL types, it will pickup the most approapriate
 ;;; Ancillary functions
 ;;; ===================
 
-;;; Reads a string from the user.
 (defun inf-clojure-symprompt (prompt default)
+  "Read a string from the user.
+
+It allows to specify a PROMPT string and a DEFAULT string to
+display."
   (list (let* ((prompt (if default
                            (format "%s (default %s): " prompt default)
                          (concat prompt ": ")))
@@ -1040,20 +1065,22 @@ The value is nil if it can't find one."
 See function `inf-clojure-var-doc-form'.  When invoked with a
 prefix argument PROMPT-FOR-SYMBOL, it prompts for a symbol name."
   (interactive "P")
-  (let ((var (if prompt-for-symbol
-                 (car (inf-clojure-symprompt "Var doc" (inf-clojure-symbol-at-point)))
-               (inf-clojure-symbol-at-point))))
-    (inf-clojure--send-string (inf-clojure-proc) (format (inf-clojure-var-doc-form) var))))
+  (let ((proc (inf-clojure-proc))
+        (var (if prompt-for-symbol
+                    (car (inf-clojure-symprompt "Var doc" (inf-clojure-symbol-at-point)))
+                  (inf-clojure-symbol-at-point))))
+    (inf-clojure--send-string proc (format (inf-clojure-var-doc-form proc) var))))
 
 (defun inf-clojure-show-var-source (prompt-for-symbol)
   "Send a command to the inferior Clojure to give source for VAR.
 See variable `inf-clojure-var-source-form'.  When invoked with a
 prefix argument PROMPT-FOR-SYMBOL, it prompts for a symbol name."
   (interactive "P")
-  (let ((var (if prompt-for-symbol
+  (let ((proc (inf-clojure-proc))
+        (var (if prompt-for-symbol
                  (car (inf-clojure-symprompt "Var source" (inf-clojure-symbol-at-point)))
                (inf-clojure-symbol-at-point))))
-    (inf-clojure--send-string (inf-clojure-proc) (format (inf-clojure-var-source-form) var))))
+    (inf-clojure--send-string proc (format (inf-clojure-var-source-form proc) var))))
 
 ;;;; Response parsing
 ;;;; ================
@@ -1099,6 +1126,17 @@ are going to match those."
             (length string))
         (or (string-match prompt string) (length string))))
 
+(defun inf-clojure--get-redirect-buffer ()
+  "Get the redirection buffer, creating it if necessary.
+
+It is the buffer used for processing REPL responses, see variable
+\\[inf-clojure--redirect-buffer-name]."
+  (or (get-buffer inf-clojure--redirect-buffer-name)
+      (let ((buffer (generate-new-buffer inf-clojure--redirect-buffer-name)))
+        (with-current-buffer buffer
+          (hack-dir-local-variables-non-file-buffer)
+          buffer))))
+
 ;; Originally from:
 ;;   https://github.com/glycerine/lush2/blob/master/lush2/etc/lush.el#L287
 (defun inf-clojure--process-response (command process &optional beg-regexp end-regexp)
@@ -1109,31 +1147,29 @@ If BEG-REGEXP is nil, the result string will start from (point)
 in the results buffer.  If END-REGEXP is nil, the result string
 will end at (point-max) in the results buffer.  It cuts out the
 output from and including the `inf-clojure-prompt`."
-  (let ((work-buffer inf-clojure--redirect-buffer-name)
+  (let ((redirect-buffer-name inf-clojure--redirect-buffer-name)
         (sanitized-command (inf-clojure--sanitize-command command)))
     (when (not (string-empty-p sanitized-command))
       (inf-clojure--log-string command "----CMD->")
-      (with-current-buffer (get-buffer-create work-buffer)
-        (erase-buffer)
-        (comint-redirect-send-command-to-process sanitized-command work-buffer process nil t)
-        ;; Wait for the process to complete
-        (set-buffer (process-buffer process))
-        (while (and (null comint-redirect-completed)
-                    (accept-process-output process 1 0 t))
-          (sleep-for 0.01))
-        ;; Collect the output
-        (set-buffer work-buffer)
-        (goto-char (point-min))
-        (let* ((buffer-string (buffer-substring-no-properties (point-min) (point-max)))
-               (boundaries (inf-clojure--string-boundaries buffer-string inf-clojure-prompt beg-regexp end-regexp))
-               (beg-pos (car boundaries))
-               (end-pos (car (cdr boundaries)))
-               (prompt-pos (car (cdr (cdr boundaries))))
-               (response-string (substring buffer-string beg-pos (min end-pos prompt-pos))))
-          (inf-clojure--log-string buffer-string "<-BUF----")
-          (inf-clojure--log-string boundaries "<-BND----")
-          (inf-clojure--log-string response-string "<-RES----")
-          response-string)))))
+      (set-buffer (inf-clojure--get-redirect-buffer))
+      (erase-buffer)
+      (comint-redirect-send-command-to-process sanitized-command redirect-buffer-name process nil t)
+      ;; Wait for the process to complete
+      (set-buffer (process-buffer process))
+      (while (and (null comint-redirect-completed)
+                  (accept-process-output process 1 0 t))
+        (sleep-for 0.01))
+      ;; Collect the output
+      (set-buffer redirect-buffer-name)
+      (goto-char (point-min))
+      (let* ((buffer-string (buffer-substring-no-properties (point-min) (point-max)))
+             (boundaries (inf-clojure--string-boundaries buffer-string inf-clojure-prompt beg-regexp end-regexp))
+             (beg-pos (car boundaries))
+             (end-pos (car (cdr boundaries)))
+             (prompt-pos (car (cdr (cdr boundaries))))
+             (response-string (substring buffer-string beg-pos (min end-pos prompt-pos))))
+        (inf-clojure--log-string buffer-string "<-RES----")
+        response-string))))
 
 (defun inf-clojure--nil-string-match-p (string)
   "Return true iff STRING is not nil.
@@ -1183,10 +1219,11 @@ for evaluation, therefore FORM should not include it."
 (defun inf-clojure-arglists (fn)
   "Send a query to the inferior Clojure for the arglists for function FN.
 See variable `inf-clojure-arglists-form'."
-  (thread-first
-      (format (inf-clojure-arglists-form) fn)
-    (inf-clojure--process-response (inf-clojure-proc) "(" ")")
-    (inf-clojure--some)))
+  (when-let ((proc (inf-clojure-proc 'no-error)))
+    (thread-first
+        (format (inf-clojure-arglists-form proc) fn)
+      (inf-clojure--process-response proc "(" ")")
+      (inf-clojure--some))))
 
 (defun inf-clojure-show-arglists (prompt-for-symbol)
   "Show the arglists for function FN in the mini-buffer.
@@ -1205,10 +1242,11 @@ prefix argument PROMPT-FOR-SYMBOL, it prompts for a symbol name."
 See variable `inf-clojure-ns-vars-form'.  When invoked with a
 prefix argument PROMPT-FOR-NS, it prompts for a namespace name."
   (interactive "P")
-  (let ((ns (if prompt-for-ns
-                (car (inf-clojure-symprompt "Ns vars" (clojure-find-ns)))
-              (clojure-find-ns))))
-    (inf-clojure--send-string (inf-clojure-proc) (format (inf-clojure-ns-vars-form) ns))))
+  (let ((proc (inf-clojure-proc))
+        (ns (if prompt-for-ns
+                   (car (inf-clojure-symprompt "Ns vars" (clojure-find-ns)))
+                 (clojure-find-ns))))
+    (inf-clojure--send-string proc (format (inf-clojure-ns-vars-form proc) ns))))
 
 (defun inf-clojure-set-ns (prompt-for-ns)
   "Set the ns of the inferior Clojure process to NS.
@@ -1216,40 +1254,44 @@ See variable `inf-clojure-set-ns-form'.  It defaults to the ns of
 the current buffer.  When invoked with a prefix argument
 PROMPT-FOR-NS, it prompts for a namespace name."
   (interactive "P")
-  (let ((ns (if prompt-for-ns
+  (let ((proc (inf-clojure-proc))
+        (ns (if prompt-for-ns
                 (car (inf-clojure-symprompt "Set ns to" (clojure-find-ns)))
               (clojure-find-ns))))
     (when (or (not ns) (equal ns ""))
       (user-error "No namespace selected"))
-    (inf-clojure--send-string (inf-clojure-proc) (format (inf-clojure-set-ns-form) ns))))
+    (inf-clojure--send-string proc (format (inf-clojure-set-ns-form proc) ns))))
 
-(defun inf-clojure-apropos (var)
-  "Send a form to the inferior Clojure to give apropos for VAR.
-See variable `inf-clojure-apropos-form'."
+(defun inf-clojure-apropos (expr)
+  "Send an expression to the inferior Clojure for apropos.
+EXPR can be either a regular expression or a stringable
+thing.  See variable `inf-clojure-apropos-form'."
   (interactive (inf-clojure-symprompt "Var apropos" (inf-clojure-symbol-at-point)))
-  (inf-clojure--send-string (inf-clojure-proc) (format (inf-clojure-apropos-form) var)))
+  (let ((proc (inf-clojure-proc)))
+    (inf-clojure--send-string proc (format (inf-clojure-apropos-form proc) expr))))
 
 (defun inf-clojure-macroexpand (&optional macro-1)
-  "Send a form to the inferior Clojure to give apropos for VAR.
+  "Send a form to the inferior Clojure for macro expansion.
 See variable `inf-clojure-macroexpand-form'.
-With a prefix arg MACRO-1 uses `inf-clojure-macroexpand-1-form'."
+With a prefix arg MACRO-1 uses function `inf-clojure-macroexpand-1-form'."
   (interactive "P")
-  (let ((last-sexp (buffer-substring-no-properties (save-excursion (backward-sexp) (point)) (point))))
+  (let ((proc (inf-clojure-proc))
+        (last-sexp (buffer-substring-no-properties (save-excursion (backward-sexp) (point)) (point))))
     (inf-clojure--send-string
-     (inf-clojure-proc)
+     proc
      (format (if macro-1
-                 (inf-clojure-macroexpand-1-form)
-               (inf-clojure-macroexpand-form))
+                 (inf-clojure-macroexpand-1-form proc)
+               (inf-clojure-macroexpand-form proc))
              last-sexp))))
 
-
-(defun inf-clojure-proc ()
+(defun inf-clojure-proc (&optional no-error)
   "Return the current inferior Clojure process.
-See variable `inf-clojure-buffer'."
-  (let ((proc (get-buffer-process (if (derived-mode-p 'inf-clojure-mode)
-                                      (current-buffer)
-                                    inf-clojure-buffer))))
-    (or proc
+When NO-ERROR is non-nil, don't throw an error when no connection
+has been found.  See also variable `inf-clojure-buffer'."
+  (or (get-buffer-process (if (derived-mode-p 'inf-clojure-mode)
+                              (current-buffer)
+                            inf-clojure-buffer))
+      (unless no-error
         (error "No Clojure subprocess; see variable `inf-clojure-buffer'"))))
 
 (defun inf-clojure--list-or-nil (data)
@@ -1272,11 +1314,11 @@ every other EXPR will be discarded and nil will be returned."
 Under the hood it calls the function
 \\[inf-clojure-completions-fn] passing in the result of
 evaluating \\[inf-clojure-completion-form] at the REPL."
-  (when (not (string-blank-p expr))
-    (let ((proc (inf-clojure-proc))
-          (completion-form (format (inf-clojure-completion-form) (substring-no-properties expr))))
-      (funcall inf-clojure-completions-fn
-               (inf-clojure--process-response completion-form proc  "(" ")")))))
+  (let ((proc (inf-clojure-proc 'no-error)))
+    (when (and proc (not (string-blank-p expr)))
+      (let ((completion-form (format (inf-clojure-completion-form proc) (substring-no-properties expr))))
+        (funcall inf-clojure-completions-fn
+                 (inf-clojure--process-response completion-form proc  "(" ")"))))))
 
 (defcustom inf-clojure-completions-fn 'inf-clojure-list-completions
   "The function that parses completion results.
@@ -1303,17 +1345,38 @@ you might want to use in your customization."
   :safe #'functionp
   :package-version '(inf-clojure . "2.1.0"))
 
-(defconst inf-clojure-clojure-expr-break-chars " \t\n\"\'`><,;|&{()[]")
+(defconst inf-clojure-clojure-expr-break-chars "^[] \"'`><,;|&{()[@\\^]"
+  "Regexp are hard.
+
+This regex has been built in order to match the first of the
+listed chars.  There are a couple of quirks to consider:
+
+- the ] is always a special in elisp regex so you have to put it
+  directly AFTER [ if you want to match it as literal.
+- The ^ needs to be escaped with \\^.
+
+Tests and `re-builder' are your friends.")
+
+(defun inf-clojure--kw-to-symbol (kw)
+  "Convert the keyword KW to a symbol.
+
+This guy was taken from CIDER, thanks folks."
+  (when kw
+    (replace-regexp-in-string "\\`:+" "" kw)))
 
 (defun inf-clojure-completion-bounds-of-expr-at-point ()
   "Return bounds of expression at point to complete."
   (when (not (memq (char-syntax (following-char)) '(?w ?_)))
     (save-excursion
-      (let ((end (point)))
-        (skip-chars-backward (concat "^" inf-clojure-clojure-expr-break-chars))
-        (let ((first-char (substring-no-properties (thing-at-point 'symbol) 0 1)))
-          (when (string-match-p "[^0-9]" first-char)
-            (cons (point) end)))))))
+      (let* ((end (point))
+             (skipped-back (skip-chars-backward inf-clojure-clojure-expr-break-chars))
+             (start (+ end skipped-back))
+             (chars (or (thing-at-point 'symbol)
+                        (inf-clojure--kw-to-symbol (buffer-substring start end)))))
+        (when (> (length chars) 0)
+          (let ((first-char (substring-no-properties chars 0 1)))
+            (when (string-match-p "[^0-9]" first-char)
+              (cons (point) end))))))))
 
 (defun inf-clojure-completion-expr-at-point ()
   "Return expression at point to complete."
@@ -1419,9 +1482,9 @@ Return the number of nested sexp the point was over or after."
   (message "inf-clojure (version %s)" inf-clojure-version))
 
 (defun inf-clojure-select-target-repl ()
-  "Find or select an inf-clojure buffer to operate on.
+  "Find or select an ‘inf-clojure’ buffer to operate on.
 
-Useful for commands that can invoked outside of an inf-clojure buffer
+Useful for commands that can invoked outside of an ‘inf-clojure’ buffer
 \\(e.g. from a Clojure buffer\\)."
   ;; if we're in a inf-clojure buffer we simply return in
   (if (eq major-mode 'inf-clojure-mode)
@@ -1462,7 +1525,7 @@ to suppress the usage of the target buffer discovery logic."
     (rename-buffer target-buffer-name)))
 
 (defun inf-clojure--response-match-p (form match-p proc)
-  "Return MATCH-P on the result of sending FORM to PROC.
+  "Send FORM and apply MATCH-P on the result of sending it to PROC.
 Note that this function will add a \n to the end of the string
 for evaluation, therefore FORM should not include it."
   (funcall match-p (inf-clojure--process-response form proc nil)))

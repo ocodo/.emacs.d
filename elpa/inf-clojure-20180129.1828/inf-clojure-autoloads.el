@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "inf-clojure" "inf-clojure.el" (23138 48343
-;;;;;;  577856 79000))
+;;;### (autoloads nil "inf-clojure" "inf-clojure.el" (23166 23171
+;;;;;;  556687 788000))
 ;;; Generated autoloads from inf-clojure.el
 
 (autoload 'inf-clojure-minor-mode "inf-clojure" "\
@@ -20,9 +20,10 @@ The following commands are available:
 Run an inferior Clojure process, input and output via buffer `*inf-clojure*'.
 If there is a process already running in `*inf-clojure*', just switch
 to that buffer.
-With argument, allows you to edit the command line (default is value
-of `inf-clojure-*-cmd').  Runs the hooks from
-`inf-clojure-mode-hook' (after the `comint-mode-hook' is run).
+With argument, allows you to edit the CMD used to launch
+it (default is value of `inf-clojure-*-cmd').  Runs the hooks
+from `inf-clojure-mode-hook' (after the `comint-mode-hook' is
+run).
 \(Type \\[describe-mode] in the process buffer for a list of commands.)
 
 \(fn CMD)" t nil)
@@ -32,11 +33,6 @@ Connect to a running socket-repl via `inf-clojure'.
 HOST is the host the process is running on, PORT is where it's listening.
 
 \(fn HOST PORT)" t nil)
-
-;;;***
-
-;;;### (autoloads nil nil ("inf-clojure-pkg.el") (23138 48338 937848
-;;;;;;  396000))
 
 ;;;***
 
