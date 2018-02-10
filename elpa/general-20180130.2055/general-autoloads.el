@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "general" "general.el" (23138 48668 510309
-;;;;;;  588000))
+;;;### (autoloads nil "general" "general.el" (23166 23102 956769
+;;;;;;  655000))
 ;;; Generated autoloads from general.el
 
 (autoload 'general-define-key "general" "\
@@ -101,15 +101,6 @@ keywords that are used for each corresponding custom DEFINER.
 
 \(fn &rest MAPS &key DEFINER (STATES general-default-states) (KEYMAPS general-default-keymaps) (PREFIX general-default-prefix) (NON-NORMAL-PREFIX general-default-non-normal-prefix) (GLOBAL-PREFIX general-default-global-prefix) INFIX PREFIX-COMMAND PREFIX-MAP PREFIX-NAME PREDICATE PACKAGE PROPERTIES REPEAT JUMP MAJOR-MODES (WK-MATCH-KEYS t) (WK-MATCH-BINDING t) (WK-FULL-KEYS t) LISPY-PLIST WORF-PLIST &allow-other-keys)" nil nil)
 
-(autoload 'general-create-definer "general" "\
-A helper macro to create key definitions functions.
-This allows the creation of key definition functions that
-will use a certain keymap, evil state, and/or prefix key by default.
-NAME will be the function name and ARGS are the keyword arguments that
-are intended to be the defaults.
-
-\(fn NAME &rest ARGS)" nil t)
-
 (autoload 'general-emacs-define-key "general" "\
 A wrapper for `general-define-key' that is similar to `define-key'.
 It has a positional argument for KEYMAPS (that will not be overridden by a later
@@ -145,6 +136,16 @@ correspond to keybindings.
 
 (function-put 'general-def 'lisp-indent-function 'defun)
 
+(autoload 'general-create-definer "general" "\
+A helper macro to create wrappers for `general-def'.
+This can be used to create key definers that will use a certain keymap, evil
+state, prefix key, etc. by default. NAME is the wrapper name and DEFAULTS are
+the default arguments.
+
+\(fn NAME &rest DEFAULTS)" nil t)
+
+(function-put 'general-create-definer 'lisp-indent-function 'defun)
+
 (autoload 'general-defs "general" "\
 A wrapper that splits into multiple `general-def's.
 Each consecutive grouping of positional argument followed by keyword/argument
@@ -162,31 +163,63 @@ Any local keybindings will be shown first followed by global keybindings.
 
 \(fn)" t nil)
 
-(autoload 'general-simulate-keys "general" "\
-Create a function to simulate KEYS in STATE and KEYMAP.
-STATE should only be specified by evil users and can be a quoted evil state or
-t (in which case emacs state will be used). When neither STATE or KEYMAP are
-specified, the keys will be simulated in the current context. Normally the
-generated function will look up KEYS in the correct context to try to match a
-command or keymap. To prevent this lookup, NO-LOOKUP can be specified as
-non-nil. See the docstring for `general--simulate-keys' for some insight as to
-why you might want to use this.
+(autoload 'general-key "general" "\
+Act as KEY's definition in the current context.
+This uses an extended menu item's capability of dynamically computing a
+definition. It is recommended over `general-simulate-key' wherever possible. KEY
+should be a string given in `kbd' notation and should correspond to a single
+definition (as opposed to a sequence of commands). When STATE is specified, look
+up KEY with STATE as the current evil state. When specified, DOCSTRING will be
+the menu item's name/description. ACCEPT-DEFAULT, NO-REMAP, and POSITION are
+passed to `key-binding'.
 
+\(fn KEY &key STATE DOCSTRING ACCEPT-DEFAULT NO-REMAP POSITION)" nil t)
+
+(autoload 'general-simulate-keys "general" "\
+Deprecated. Please use `general-simulate-key' instead.
+
+\(fn KEYS &optional STATE KEYMAP (LOOKUP t) DOCSTRING NAME)" nil t)
+
+(autoload 'general-simulate-key "general" "\
+Create and return a command that simulates KEYS in STATE and KEYMAP.
 KEYS should be a string given in `kbd' notation. It can also be a list of a
-single command followed by a string of the keys to simulate after calling that
-command. If DOCSTRING is given, it will replace the automatically generated
-docstring. If NAME is given, it will replace the automatically generated
-function name. NAME should not be quoted.
+single command followed by a string of the key(s) to simulate after calling that
+command. STATE should only be specified by evil users and should be a quoted
+evil state. KEYMAP should not be quoted. Both STATE and KEYMAP aliases are
+supported (but they have to be set when the macro is expanded). When neither
+STATE or KEYMAP are specified, the key(s) will be simulated in the current
+context.
+
+If NAME is specified, it will replace the automatically generated function name.
+NAME should not be quoted. If DOCSTRING is specified, it will replace the
+automatically generated docstring.
+
+Normally the generated function will look up KEY in the correct context to try
+to match a command. To prevent this lookup, LOOKUP can be specified as nil.
+Generally, you will want to keep LOOKUP non-nil because this will allow checking
+the evil repeat property of matched commands to determine whether or not they
+should be recorded. See the docstring for `general--simulate-keys' for more
+information about LOOKUP.
+
+When a WHICH-KEY description is specified, it will replace the command name in
+the which-key popup.
+
+When a command name is specified and that command has been remapped (i.e. [remap
+command] is currently bound), the remapped version will be used instead of the
+original command unless REMAP is specified as nil (it is true by default).
 
 The advantages of this over a keyboard macro are as follows:
+- Prefix arguments are supported
 - The user can control the context in which the keys are simulated
-- The user can simulate both a command and keys
-- The user can simulate a partial key sequence (e.g. for a keymap)
+- The user can simulate both a named command and keys
+- The user can simulate an incomplete key sequence (e.g. for a keymap)
 
-\(fn KEYS &optional STATE KEYMAP NO-LOOKUP DOCSTRING NAME)" nil t)
+\(fn KEYS &key STATE KEYMAP NAME DOCSTRING (LOOKUP t) WHICH-KEY (REMAP t))" nil t)
+
+(function-put 'general-simulate-key 'lisp-indent-function 'defun)
 
 (autoload 'general-key-dispatch "general" "\
-Create a function that will run FALLBACK-COMMAND or a command from MAPS.
+Create and return a command that runs FALLBACK-COMMAND or a command in MAPS.
 MAPS consists of <key> <command> pairs. If a key in MAPS is matched, the
 corresponding command will be run. Otherwise FALLBACK-COMMAND will be run with
 the unmatched keys. So, for example, if \"ab\" was pressed, and \"ab\" is not
@@ -199,20 +232,32 @@ FALLBACK-COMMAND will also be run in the case that the user does not press the
 next key within the TIMEOUT (e.g. 0.5).
 
 NAME and DOCSTRING are optional keyword arguments. They can be used to replace
-the automatically generated name and docstring for the created function and are
-potentially useful if you want to create multiple, different commands using the
-same FALLBACK-COMMAND (e.g. `self-insert-command').
+the automatically generated name and docstring for the created function. By
+default, `cl-gensym' is used to prevent name clashes (e.g. allows the user to
+create multiple different commands using `self-insert-command' as the
+FALLBACK-COMMAND without explicitly specifying NAME to manually prevent
+clashes).
 
 When INHERIT-KEYMAP is specified, all the keybindings from that keymap will be
 inherited in MAPS.
 
-WHICH-KEY can also be specified, in which case the description WHICH-KEY will
-replace the command name in the which-key popup. Note that this requires a
-version of which-key from after 2016-11-21.
+When a WHICH-KEY description is specified, it will replace the command name in
+the which-key popup.
 
-\(fn FALLBACK-COMMAND &rest MAPS &key TIMEOUT INHERIT-KEYMAP NAME DOCSTRING WHICH-KEY &allow-other-keys)" nil t)
+When command to be executed has been remapped (i.e. [remap command] is currently
+bound), the remapped version will be used instead of the original command unless
+REMAP is specified as nil (it is true by default).
+
+\(fn FALLBACK-COMMAND &rest MAPS &key TIMEOUT INHERIT-KEYMAP NAME DOCSTRING WHICH-KEY (REMAP t) &allow-other-keys)" nil t)
 
 (function-put 'general-key-dispatch 'lisp-indent-function '1)
+
+(autoload 'general-predicate-dispatch "general" "\
+
+
+\(fn FALLBACK-DEF &rest DEFS &key DOCSTRING &allow-other-keys)" nil t)
+
+(function-put 'general-predicate-dispatch 'lisp-indent-function '1)
 
 (autoload 'general-translate-key "general" "\
 Translate keys in the keymap(s) corresponding to STATES and KEYMAPS.
@@ -221,15 +266,14 @@ should be a symbol corresponding to the keymap to make the translations in or a
 list of keymap names. Keymap and state aliases are supported (as well as 'local
 and 'global for KEYMAPS). MAPS corresponds to a list of translations (key
 replacement pairs). For example, specifying \"a\" \"b\" will bind \"a\" to
-\"b\"'s definition in the keymap. When `general-implicit-kbd' is non-nil, `kbd'
-will be used on the keys and their replacements. If DESTRUCTIVE is non-nil, the
-keymap will be destructively altered without a backup being created. If
-DESTRUCTIVE is nil, a backup of the keymap will be stored on the initial
-invocation, and future invocations will always look up keys in the backup
-keymap. On the other hand, if DESTRUCTIVE is non-nil, calling this function
-multiple times with \"a\" \"b\" \"b\" \"a\", for example, would continue to swap
-and unswap the definitions of these keys. This means that when DESTRUCTIVE is
-non-nil, all related swaps/cycles should be done in the same invocation.
+\"b\"'s definition in the keymap. If DESTRUCTIVE is non-nil, the keymap will be
+destructively altered without creating a backup. If DESTRUCTIVE is nil, a backup
+of the keymap will be stored on the initial invocation, and future invocations
+will always look up keys in the backup keymap. On the other hand, if DESTRUCTIVE
+is non-nil, calling this function multiple times with \"a\" \"b\" \"b\" \"a\",
+for example, would continue to swap and unswap the definitions of these keys.
+This means that when DESTRUCTIVE is non-nil, all related swaps/cycles should be
+done in the same invocation.
 
 \(fn STATES KEYMAPS &rest MAPS &key DESTRUCTIVE &allow-other-keys)" nil nil)
 
@@ -279,34 +323,13 @@ SYMBOLS and FUNCTIONS can be single items or lists.
 
 \(fn SYMBOLS FUNCTIONS)" nil nil)
 
-(autoload 'general-create-vim-definer "general" "\
-A helper function to create vim-like wrappers over `general-define-key'.
-The function created will be called NAME and will have the keymaps default to
-KEYMAPS or the states default to STATES (both should be quoted). If
-DEFAULT-TO-STATES is non-nil, :states STATES will be used. Otherwise :keymaps
-KEYMAPS will be used. This can be overriden later by setting the global
-`general-vim-definer-default' option.
-
-\(fn NAME KEYMAPS &optional STATES DEFAULT-TO-STATES)" nil t)
-
-(autoload 'general-create-dual-vim-definer "general" "\
-Like `general-create-vim-definer', create a \"vim definer\" called NAME.
-Only the short names in the STATES list need to be specified, but this will only
-work for valid evil states.
-
-\(fn NAME STATES &optional DEFAULT-TO-STATES)" nil t)
-
 (autoload 'general-evil-setup "general" "\
 Set up some basic equivalents for vim mapping functions.
 This creates global key definition functions for the evil states.
 Specifying SHORT-NAMES as non-nil will create non-prefixed function
 aliases such as `nmap' for `general-nmap'.
 
-\(fn &optional SHORT-NAMES DEFAULT-TO-STATES)" nil t)
-
-;;;***
-
-;;;### (autoloads nil nil ("general-pkg.el") (23138 48666 50306 655000))
+\(fn &optional SHORT-NAMES _)" nil nil)
 
 ;;;***
 
