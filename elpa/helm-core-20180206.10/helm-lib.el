@@ -33,6 +33,8 @@
 (declare-function helm-attrset "helm.el")
 (declare-function org-open-at-point "org.el")
 (declare-function org-content "org.el")
+(declare-function org-mark-ring-goto "org.el")
+(declare-function org-mark-ring-push "org.el")
 (defvar helm-current-position)
 (defvar wdired-old-marks)
 (defvar helm-persistent-action-display-window)
@@ -99,7 +101,14 @@ much more convenient to use a simple boolean value here."
 
 This list is build by default on `completion-ignored-extensions'.
 The directory names should end with \"/?\" e.g. \"\\.git/?\" and the
-file names should end with \"$\" e.g. \"\\.o$\"."
+file names should end with \"$\" e.g. \"\\.o$\".
+
+These regexps may be used to match the entire path, not just the file
+name, so for example to ignore files with a prefix \".bak.\", use
+\"\\.bak\\..*$\" as the regexp.
+
+NOTE: When modifying this, be sure to use customize interface or the
+customize functions e.g. `customize-set-variable' and NOT `setq'."
   :group 'helm-files
   :type  '(repeat (choice regexp))
   :set 'helm-ff--setup-boring-regex)
@@ -487,6 +496,7 @@ text to be displayed in BUFNAME."
              (when helm-help-full-frame (delete-other-windows))
              (delete-region (point-min) (point-max))
              (org-mode)
+             (org-mark-ring-push) ; Put mark at bob
              (save-excursion
                (funcall insert-content-fn))
              (buffer-disable-undo)
@@ -553,6 +563,8 @@ text to be displayed in BUFNAME."
         (?\C-  (helm-help-toggle-mark))
         (?\t   (org-cycle))
         (?\C-m (ignore-errors (call-interactively #'org-open-at-point)))
+        (?\C-& (ignore-errors (call-interactively #'org-mark-ring-goto)))
+        (?\C-% (call-interactively #'org-mark-ring-push))
         (?\M-\t (pcase (helm-iter-next iter-org-state)
                   ((pred numberp) (org-content))
                   ((and state) (org-cycle state))))

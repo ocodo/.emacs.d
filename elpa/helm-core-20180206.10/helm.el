@@ -199,7 +199,6 @@ vectors, so don't use strings to define them."
     (define-key map (kbd "M-o")        'helm-previous-source)
     (define-key map (kbd "C-l")        'helm-recenter-top-bottom-other-window)
     (define-key map (kbd "M-C-l")      'helm-reposition-window-other-window)
-    (define-key map (kbd "C-c &")      'helm-restore-last-frame-position)
     (define-key map (kbd "C-M-v")      'helm-scroll-other-window)
     (define-key map (kbd "M-<next>")   'helm-scroll-other-window)
     (define-key map (kbd "C-M-y")      'helm-scroll-other-window-down)
@@ -715,7 +714,7 @@ so it have only effect when `helm-always-two-windows' is non-nil."
   :type 'float
   :group 'helm)
 
-(defcustom helm-display-buffer-width 60
+(defcustom helm-display-buffer-width 72
   "Frame width when displaying helm-buffer in own frame."
   :group 'helm
   :type 'integer)
@@ -739,12 +738,8 @@ regression)."
   :group 'helm
   :type '(repeat symbol))
 
-(defcustom helm-actions-inherit-frame-settings nil
-  "Actions inherit frame settings of initial command when non nil.
-
-The actions running from commands that are in
-`helm-commands-using-frame' that are themselves running helm will have
-a frame to display their `helm-buffer' when non nil."
+(defcustom helm-actions-inherit-frame-settings t
+  "Actions inherit helm frame settings of initial command when non nil."
   :group 'helm
   :type 'boolean)
 
@@ -1043,6 +1038,9 @@ The hard-coded documentation bindings are:
 | M->       |                  | End of buffer       |
 | M-<       |                  | Beginning of buffer |
 | C-<SPACE> |                  | Toggle mark         |
+| RET       |                  | Follow org link     |
+| C-%       |                  | Push org mark       |
+| C-&       |                  | Goto org mark-ring  |
 | TAB       |                  | Org cycle           |
 | M-<TAB>   |                  | Toggle visibility   |
 | M-w       |                  | Copy region         |
@@ -1369,7 +1367,9 @@ at end of session.")
 (defvar helm--cycle-resume-iterator nil)
 (defvar helm--buffer-in-new-frame-p nil)
 (defvar helm-initial-frame nil
-  "The selected frame before starting helm.")
+  "[INTERNAL] The selected frame before starting helm.
+Helm use this internally to know in which frame it started, don't
+modify this yourself.")
 (defvar helm-popup-frame nil
   "The frame where helm is displayed.
 
@@ -1377,7 +1377,17 @@ This is only used when helm is using
 `helm-display-buffer-in-own-frame' as `helm-display-function' and
 `helm-display-buffer-reuse-frame' is non nil.")
 (defvar helm--nested nil)
-(defvar helm--last-frame-position nil)
+(defconst helm--frame-default-attributes
+  '(width height tool-bar-lines left top
+    title undecorated vertical-scroll-bars
+    visible fullscreen menu-bar-lines undecorated)
+  "Frame parameters to save in `helm--last-frame-parameters'.")
+(defvar helm--last-frame-parameters nil
+  "Frame parameters to save for later resuming.
+Local to `helm-buffer'.")
+(defvar helm--executing-helm-action nil
+  "Non nil when action is triggering a new helm-session.
+This happen when action is executed from `helm-exit-and-execute-action'")
 
 ;; Utility: logging
 (defun helm-log (format-string &rest args)
@@ -1520,6 +1530,13 @@ Messages are logged to a file named with todays date and time in this directory.
          (progn ,@body)
        (error "Running helm command outside of context"))))
 
+(defmacro with-helm-in-frame (&rest body)
+  "Execute helm function in BODY displaying `helm-buffer' in separate frame."
+  (declare (debug t) (indent 0))
+  `(progn
+     (helm-set-local-variable
+      'helm-display-function 'helm-display-buffer-in-own-frame)
+     ,@body))
 
 ;;; helm-attributes
 ;;
@@ -1834,7 +1851,22 @@ on action functions invoked as action from the action menu,
 i.e functions called with RET."
   (setq helm-saved-action action)
   (setq helm-saved-selection (or (helm-get-selection) ""))
+  (setq helm--executing-helm-action t)
+  ;; Ensure action use same display function as initial helm-buffer when
+  ;; helm-actions-inherit-frame-settings is non nil.
+  (when (and helm-actions-inherit-frame-settings
+             helm--buffer-in-new-frame-p)
+    (helm-set-local-variable 'helm-display-function
+                             (with-helm-buffer helm-display-function)
+                             'helm--last-frame-parameters
+                             (with-helm-buffer
+                               (helm--get-frame-parameters))))
   (helm-exit-minibuffer))
+
+(defun helm--get-frame-parameters (&optional frame)
+  (cl-loop with params = (frame-parameters frame)
+           for p in helm--frame-default-attributes
+           when (assq p params) collect it))
 
 (defalias 'helm-run-after-quit 'helm-run-after-exit)
 (make-obsolete 'helm-run-after-quit 'helm-run-after-exit "1.7.7")
@@ -1883,6 +1915,22 @@ IOW Don't use VALUE of previous VAR to set the VALUE of next VAR.
             (append (cl-loop for i on args by #'cddr
                              collect (cons (car i) (cadr i)))
                     helm--local-variables))))
+
+(defun helm--set-local-variables-internal ()
+  (cl-loop for (var . val) in helm--local-variables
+           ;; If `helm-set-local-variable' is called twice or more
+           ;; on same variable use the last value entered which is
+           ;; the first on stack e.g.
+           ;; (helm-set-local-variable 'helm-foo 1)
+           ;; (helm-set-local-variable 'helm-foo 2)
+           ;; helm--local-variables => 
+           ;; '((helm-foo . 2) (helm-foo. 1))
+           ;; (helm-foo . 2) is retained and (helm-foo . 1)
+           ;; ignored.
+           unless (memq var computed)
+           do (set (make-local-variable var) val)
+           collect var into computed
+           finally (setq helm--local-variables nil)))
 
 
 ;; API helper
@@ -2248,7 +2296,7 @@ ANY-KEYMAP ANY-DEFAULT ANY-HISTORY See `helm'."
                    (helm-buffer (or any-buffer helm-buffer)))
                (helm-initialize
                 any-resume any-input any-default any-sources)
-               (helm-display-buffer helm-buffer)
+               (helm-display-buffer helm-buffer any-resume)
                (select-window (helm-window))
                ;; We are now in helm-buffer.
                (unless helm-allow-mouse
@@ -2614,7 +2662,7 @@ value found and current command is not in `helm-commands-using-frame'."
            #'helm-display-buffer-in-own-frame)
       (default-value 'helm-display-function)))
 
-(defun helm-display-buffer (buffer)
+(defun helm-display-buffer (buffer &optional resume)
   "Display BUFFER.
 
 The function used to display `helm-buffer' by calling
@@ -2635,7 +2683,9 @@ The function used to display `helm-buffer' by calling
                     (if helm-actions-inherit-frame-settings
                         (helm-this-command) this-command)))))
     (prog1
-        (funcall disp-fn buffer)
+        (funcall disp-fn buffer (or (helm-resume-p resume)
+                                    (and helm-actions-inherit-frame-settings
+                                         helm--executing-helm-action)))
       (with-helm-buffer (setq-local helm-display-function disp-fn))
       (setq helm-onewindow-p (one-window-p t))
       ;; Don't allow other-window and friends switching out of minibuffer.
@@ -2651,7 +2701,7 @@ Arg ENABLE is the value of `no-other-window' window property."
        (set-window-parameter w 'no-other-window enabled)))
    0))
 
-(defun helm-default-display-buffer (buffer)
+(defun helm-default-display-buffer (buffer &optional _resume)
   "Default function to display `helm-buffer' BUFFER.
 
 It is the default value of `helm-display-function'
@@ -2674,8 +2724,8 @@ value of `helm-full-frame' or `helm-split-window-default-side'."
                        (window-width  . ,helm-display-buffer-default-width))))
       (helm-log-run-hook 'helm-window-configuration-hook))))
 
-(defun helm-display-buffer-in-own-frame (buffer)
-  "Display `helm-buffer' in a separate frame.
+(defun helm-display-buffer-in-own-frame (buffer &optional resume)
+  "Display helm buffer BUFFER in a separate frame.
 
 Function suitable for `helm-display-function',
 `helm-completion-in-region-display-function'
@@ -2698,35 +2748,38 @@ Note that this feature is available only with emacs-25+."
            (prmt-size (length helm--prompt))
            (line-height (frame-char-height))
            (default-frame-alist
-            `((width . ,helm-display-buffer-width)
-              (height . ,helm-display-buffer-height)
-              (tool-bar-lines . 0)
-              (left . ,(- (car pos)
-                          (* (frame-char-width)
-                             (if (< (- (point) (point-at-bol)) prmt-size)
-                                 (- (point) (point-at-bol))
-                               prmt-size))))
-              ;; Try to put frame at the best possible place.
-              ;; Frame should be below point if enough
-              ;; place, otherwise above point and
-              ;; current line should not be hidden
-              ;; by helm frame.
-              (top . ,(if (> (cdr pos) half-screen-size)
-                          ;; Above point
-                          (- (cdr pos)
-                             ;; add 2 lines to make sure there is always a gap
-                             (* (+ helm-display-buffer-height 2) line-height)
-                             ;; account for title bar height too
-                             (cddr (assq 'title-bar-size frame-info)))
-                        ;; Below point
-                        (+ (cdr pos) line-height)))
-              (title . "Helm")
-              (undecorated . ,helm-use-undecorated-frame-option)
-              (vertical-scroll-bars . nil)
-              (menu-bar-lines . 0)
-              (fullscreen . nil)
-              (visible . ,(null helm-display-buffer-reuse-frame))
-              (minibuffer . t)))
+            (if resume
+                (buffer-local-value 'helm--last-frame-parameters
+                                    (get-buffer buffer))
+              `((width . ,helm-display-buffer-width)
+                (height . ,helm-display-buffer-height)
+                (tool-bar-lines . 0)
+                (left . ,(- (car pos)
+                            (* (frame-char-width)
+                               (if (< (- (point) (point-at-bol)) prmt-size)
+                                   (- (point) (point-at-bol))
+                                 prmt-size))))
+                ;; Try to put frame at the best possible place.
+                ;; Frame should be below point if enough
+                ;; place, otherwise above point and
+                ;; current line should not be hidden
+                ;; by helm frame.
+                (top . ,(if (> (cdr pos) half-screen-size)
+                            ;; Above point
+                            (- (cdr pos)
+                               ;; add 2 lines to make sure there is always a gap
+                               (* (+ helm-display-buffer-height 2) line-height)
+                               ;; account for title bar height too
+                               (cddr (assq 'title-bar-size frame-info)))
+                          ;; Below point
+                          (+ (cdr pos) line-height)))
+                (title . "Helm")
+                (undecorated . ,helm-use-undecorated-frame-option)
+                (vertical-scroll-bars . nil)
+                (menu-bar-lines . 0)
+                (fullscreen . nil)
+                (visible . ,(null helm-display-buffer-reuse-frame))
+                (minibuffer . t))))
            display-buffer-alist)
       ;; Add the hook inconditionally, if
       ;; helm-echo-input-in-header-line is nil helm-hide-minibuffer-maybe
@@ -2735,7 +2788,16 @@ Note that this feature is available only with emacs-25+."
       (with-helm-buffer
         (setq-local helm-echo-input-in-header-line
                     (not (> (cdr pos) half-screen-size))))
-      (helm-display-buffer-popup-frame buffer default-frame-alist))
+      (helm-display-buffer-popup-frame buffer default-frame-alist)
+      ;; When frame size have been modified manually by user restore
+      ;; it to default value unless resuming or not using
+      ;; `helm-display-buffer-reuse-frame'.
+      ;; This have to be done AFTER raising the frame otherwise
+      ;; minibuffer visibility is lost until next session.
+      (unless (or resume (not helm-display-buffer-reuse-frame))
+        (set-frame-size helm-popup-frame
+                        (cdr (assq 'width default-frame-alist))
+                        (cdr (assq 'height default-frame-alist)))))
     (helm-log-run-hook 'helm-window-configuration-hook)))
 
 (defun helm-display-buffer-popup-frame (buffer frame-alist)
@@ -2748,7 +2810,7 @@ Note that this feature is available only with emacs-25+."
         (select-frame helm-popup-frame)
         (set-frame-position helm-popup-frame x y)
         (switch-to-buffer buffer)
-        (raise-frame helm-popup-frame))
+        (select-frame-set-input-focus helm-popup-frame t))
     ;; If user have changed `helm-display-buffer-reuse-frame' to nil
     ;; maybe kill the frame.
     (when (and helm-popup-frame
@@ -2757,15 +2819,14 @@ Note that this feature is available only with emacs-25+."
     (display-buffer
      buffer '(display-buffer-pop-up-frame . nil))))
 
-(defun helm-restore-last-frame-position ()
-  "Restore last helm frame position."
-  (interactive)
-  (with-helm-alive-p
-    (with-helm-window
-      (set-frame-position (selected-frame)
-                          (car helm--last-frame-position)
-                          (cdr helm--last-frame-position)))))
-(put 'helm-restore-last-frame-position 'helm-only t)
+;; Ensure to quit helm when user delete helm frame manually.
+;; If user deletes another frame keep session running.
+(defun helm--delete-frame-function (frame)
+  (when (and helm-alive-p
+             ;; FRAME is handling helm-buffer
+             (get-buffer-window helm-buffer frame))
+    (helm-keyboard-quit)))
+(add-hook 'delete-frame-functions 'helm--delete-frame-function)
 
 ;;; Initialize
 ;;
@@ -2941,9 +3002,7 @@ Unuseful when used outside helm, don't use it.")
       (helm-initialize-persistent-action)
       (helm-log "helm-display-function = %S" helm-display-function)
       (helm-log "helm--local-variables = %S" helm--local-variables)
-      (cl-loop for (var . val) in helm--local-variables
-               do (set (make-local-variable var) val)
-               finally (setq helm--local-variables nil))
+      (helm--set-local-variables-internal)
       (setq truncate-lines helm-truncate-lines) ; already local.
       (setq cursor-type nil))
     (helm-initialize-overlays helm-buffer)
@@ -3178,7 +3237,9 @@ WARNING: Do not use this mode yourself, it is internal to helm."
     ;; Be sure we call this from helm-buffer.
     (helm-funcall-foreach 'cleanup)
     (when (and helm--buffer-in-new-frame-p (null helm--nested))
-      (setq helm--last-frame-position (frame-position))
+      (with-helm-buffer
+        (setq-local helm--last-frame-parameters
+                    (helm--get-frame-parameters)))
       (if helm-display-buffer-reuse-frame
           (make-frame-invisible) (delete-frame))))
   (helm-kill-async-processes)
@@ -4322,8 +4383,10 @@ function."
   ;; Position can be change when `helm-current-buffer'
   ;; is split, so jump to this position before executing action.
   (helm-current-position 'restore)
-  (prog1 (helm-execute-selection-action-1)
-    (helm-log-run-hook 'helm-after-action-hook)))
+  (unwind-protect
+       (prog1 (helm-execute-selection-action-1)
+         (helm-log-run-hook 'helm-after-action-hook))
+    (setq helm--executing-helm-action nil)))
 
 (defun helm-execute-selection-action-1 (&optional
                                         selection action
