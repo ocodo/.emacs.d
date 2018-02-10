@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "lusty-explorer" "lusty-explorer.el" (23138
-;;;;;;  48203 601604 244000))
+;;;### (autoloads nil "lusty-explorer" "lusty-explorer.el" (23166
+;;;;;;  23198 704655 592000))
 ;;; Generated autoloads from lusty-explorer.el
 
 (autoload 'lusty-file-explorer "lusty-explorer" "\
