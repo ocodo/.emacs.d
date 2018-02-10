@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2010, 2011, 2012 Victor Ren
 
-;; Time-stamp: <2017-09-16 21:05:28 Victor Ren>
+;; Time-stamp: <2018-02-07 18:08:39 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous refactoring
 ;; Version: 0.9.9.9
@@ -167,8 +167,8 @@ use this variable:
 '$%@*' will be included in the occurrences in perl mode.")
 
 (defcustom iedit-mode-line
-  `(" Iedit:" (:eval (format ,(propertize "%d" 'face 'font-lock-warning-face)
-                             (iedit-counter))))
+  `(" Iedit:" (:eval (format ,(propertize "%d/%d" 'face 'font-lock-warning-face)
+                             iedit-occurrence-index (iedit-counter))))
   "Mode-line format for Iedit.
 This should be set before Iedit is loaded."
   :group 'iedit)
@@ -406,11 +406,13 @@ Keymap used within overlays:
         ;; (message "No matches found for %s" (iedit-regexp-quote occurrence))
         (iedit-done)))))
 
+(unless (boundp 'isearch-regexp-function)
+  (defvaralias 'isearch-regexp-function 'isearch-word))
 (defun iedit-mode-from-isearch (regexp)
   "Start Iedit mode using last search string as the regexp."
   (interactive
    (let ((regexp (cond
-                  ((functionp isearch-regexp-function)
+		  ((functionp isearch-regexp-function)
                    (funcall isearch-regexp-function isearch-string))
                   (isearch-regexp-function (word-search-regexp isearch-string))
                   (isearch-regexp isearch-string)
@@ -519,10 +521,10 @@ Return the tag if succeeded, nil if failed."
                (cl-end (progn (skip-chars-forward "[:alnum:]-_.:") (point)))
                (match
                 (if endp
-                    (when (sgml-skip-tag-backward 1) (forward-char 1) t)
+                    (with-no-warnings (when (sgml-skip-tag-backward 1) (forward-char 1) t))
                   (with-syntax-table sgml-tag-syntax-table
                     (up-list -1)
-                    (when (sgml-skip-tag-forward 1)
+                    (with-no-warnings (when (sgml-skip-tag-forward 1))
                       (backward-sexp 1)
                       (forward-char 2)
                       t)))))
