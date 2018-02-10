@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/swiper
-;; Package-Version: 20180114.1336
+;; Package-Version: 20180209.1310
 ;; Version: 0.10.0
 ;; Package-Requires: ((emacs "24.3") (swiper "0.9.0"))
 ;; Keywords: completion, matching
@@ -695,8 +695,8 @@ input corresponding to the chosen variable."
 ;;** `counsel-M-x'
 (ivy-set-actions
  'counsel-M-x
- '(("d" counsel--find-symbol "definition")
-   ("h" (lambda (x) (describe-function (intern x))) "help")))
+ `(("d" counsel--find-symbol "definition")
+   ("h" ,(lambda (x) (describe-function (intern x))) "help")))
 
 (ivy-set-display-transformer
  'counsel-M-x
@@ -775,8 +775,10 @@ By default `counsel-bookmark' opens a dired buffer for directories."
  'counsel-bookmark
  `(("d" bookmark-delete "delete")
    ("e" bookmark-rename "edit")
-   ("x" ,(counsel--apply-bookmark-fn 'counsel-find-file-extern) "open externally")
-   ("r" ,(counsel--apply-bookmark-fn 'counsel-find-file-as-root) "open as root")))
+   ("x" ,(counsel--apply-bookmark-fn #'counsel-find-file-extern)
+    "open externally")
+   ("r" ,(counsel--apply-bookmark-fn #'counsel-find-file-as-root)
+    "open as root")))
 
 (defun counsel-M-x-transformer (cmd)
   "Return CMD appended with the corresponding binding in the current window."
@@ -1153,20 +1155,15 @@ Typical value: '(recenter)."
                                   (cl-subseq dir-list (- (length dir-list) 3))))
                  directory))))))
 
-(defcustom counsel-git-grep-skip-counting-lines nil
-  "If non-nil, don't count lines before grepping ina git repository."
-  :type 'boolean
-  :group 'ivy)
-
 (defun counsel-git-grep-function (string &optional _pred &rest _unused)
   "Grep in the current git repository for STRING."
-  (if (and (or counsel-git-grep-skip-counting-lines (> counsel--git-grep-count 20000))
+  (if (and (> counsel--git-grep-count 20000)
            (< (length string) 3))
       (counsel-more-chars 3)
     (let* ((default-directory (ivy-state-directory ivy-last))
            (cmd (format counsel-git-grep-cmd
                         (setq ivy--old-re (ivy--regex string t)))))
-      (if (and (not counsel-git-grep-skip-counting-lines) (<= counsel--git-grep-count 20000))
+      (if (<= counsel--git-grep-count 20000)
           (split-string (shell-command-to-string cmd) "\n" t)
         (counsel--gg-candidates (ivy--regex string))
         nil))))
@@ -1280,15 +1277,17 @@ INITIAL-INPUT can be given as the initial minibuffer input."
           (default-directory (if proj
                                  (car proj)
                                (counsel-locate-git-root))))
-      (unless (or proj counsel-git-grep-skip-counting-lines)
-        (setq counsel--git-grep-count
-              (if (eq system-type 'windows-nt)
-                  0
-                (counsel--gg-count "" t))))
+      (setq counsel--git-grep-count
+            (if (eq system-type 'windows-nt)
+                0
+              (read (shell-command-to-string "du -s"))))
       (ivy-read "git grep" collection-function
                 :initial-input initial-input
                 :matcher #'counsel-git-grep-matcher
-                :dynamic-collection (or proj counsel-git-grep-skip-counting-lines (> counsel--git-grep-count 20000))
+                :dynamic-collection (or proj
+                                        (>
+                                         counsel--git-grep-count
+                                         20000))
                 :keymap counsel-git-grep-map
                 :action #'counsel-git-grep-action
                 :unwind unwind-function
@@ -1747,7 +1746,7 @@ When INITIAL-INPUT is non-nil, use it in the minibuffer during completion."
 
 (ivy-set-occur 'counsel-find-file 'counsel-find-file-occur)
 
-(defvar counsel-find-file-occur-cmd "ls -a | grep -i -E '%s' | tr '\\n' '\\0' | xargs -0 ls -d --group-directories-first"
+(defvar counsel-find-file-occur-cmd "ls -a | grep -i -E '%s' | xargs -d '\\n' ls -d --group-directories-first"
   "Format string for `counsel-find-file-occur'.")
 
 (defvar counsel-find-file-occur-use-find nil
@@ -1755,7 +1754,7 @@ When INITIAL-INPUT is non-nil, use it in the minibuffer during completion."
 
 (defun counsel--expand-ls (cmd)
   "Expand CMD that ends in \"ls\" with switches."
-  (concat cmd " " counsel-dired-listing-switches " | sed -e 's/^/  /'"))
+  (concat cmd " " counsel-dired-listing-switches " | sed -e \"s/^/  /\""))
 
 (defun counsel--occur-cmd-find ()
   (let* ((regex (counsel-unquote-regex-parens ivy--old-re))
@@ -2036,9 +2035,8 @@ INITIAL-INPUT can be given as the initial minibuffer input."
      (format counsel-fzf-cmd
              (if (string-equal str "")
                  "\"\""
-               (progn
-                 (setq ivy--old-re (ivy--regex-fuzzy str))
-                 str)))))
+               (setq ivy--old-re (ivy--regex-fuzzy str))
+               str))))
   nil)
 
 ;;;###autoload
@@ -2896,7 +2894,7 @@ version.  Argument values are based on the
                                (point))
                           (outline-next-heading)))
       (while start-pos
-        (let ((name (apply #'org-get-heading heading-args))
+        (let ((name (or (apply #'org-get-heading heading-args) ""))
               level)
           (search-forward " ")
           (setq level
@@ -2985,6 +2983,8 @@ include attachments of other Org buffers."
 
 ;;** `counsel-org-capture'
 (defvar org-capture-templates)
+(declare-function org-capture-goto-last-stored "org-capture")
+(declare-function org-capture-goto-target "org-capture")
 
 ;;;###autoload
 (defun counsel-org-capture ()
@@ -3007,17 +3007,17 @@ include attachments of other Org buffers."
 
 (ivy-set-actions
  'counsel-org-capture
- '(("t" (lambda (x)
-          (org-capture-goto-target (car (split-string x))))
+ `(("t" ,(lambda (x)
+           (org-capture-goto-target (car (split-string x))))
     "go to target")
-   ("l" (lambda (_x)
-          (org-capture-goto-last-stored))
+   ("l" ,(lambda (_x)
+           (org-capture-goto-last-stored))
     "go to last stored")
-   ("p" (lambda (x)
-          (org-capture 0 (car (split-string x))))
+   ("p" ,(lambda (x)
+           (org-capture 0 (car (split-string x))))
     "insert template at point")
-   ("c" (lambda (_x)
-          (customize-variable 'org-capture-templates))
+   ("c" ,(lambda (_x)
+           (customize-variable 'org-capture-templates))
     "customize org-capture-templates")))
 
 ;;** `counsel-mark-ring'
@@ -3082,7 +3082,7 @@ Additional Actions:
   (let ((cands (mapcar #'counsel-package-make-package-cell
                        package-archive-contents)))
     (ivy-read "Packages (install +pkg or delete -pkg): "
-              (cl-sort cands #'counsel--package-sort)
+              (sort cands #'counsel--package-sort)
               :action #'counsel-package-action
               :initial-input "^+ "
               :require-match t
@@ -3125,14 +3125,15 @@ Additional Actions:
 A is the left hand side, B the right hand side."
   (let* ((a (car a))
          (b (car b))
-         (a-inst (equal (substring a 0 1) "+"))
-         (b-inst (equal (substring b 0 1) "+")))
+         (a-inst (= (string-to-char a) ?+))
+         (b-inst (= (string-to-char b) ?+)))
     (or (and a-inst (not b-inst))
         (and (eq a-inst b-inst) (string-lessp a b)))))
 
-(ivy-set-actions 'counsel-package
-                 '(("d" counsel-package-action-describe "describe package")
-                   ("h" counsel-package-action-homepage "open package homepage")))
+(ivy-set-actions
+ 'counsel-package
+ '(("d" counsel-package-action-describe "describe package")
+   ("h" counsel-package-action-homepage "open package homepage")))
 
 ;;** `counsel-tmm'
 (defvar tmm-km-list nil)
@@ -3223,10 +3224,11 @@ A is the left hand side, B the right hand side."
    counsel-yank-pop-separator))
 
 (defun counsel--yank-pop-position (s)
-  "Return position of S in `kill-ring' relative to last yank.
-S must exist in `kill-ring'."
+  "Return position of S in `kill-ring' relative to last yank."
   (or (cl-position s kill-ring-yank-pointer :test #'equal-including-properties)
-      (+ (cl-position s kill-ring :test #'equal-including-properties)
+      (cl-position s kill-ring-yank-pointer :test #'equal)
+      (+ (or (cl-position s kill-ring :test #'equal-including-properties)
+             (cl-position s kill-ring :test #'equal))
          (- (length kill-ring-yank-pointer)
             (length kill-ring)))))
 
@@ -3268,7 +3270,7 @@ unique under `equal-including-properties'."
     (setq ivy-completion-end (point))))
 
 (defun counsel-yank-pop-action-remove (s)
-  "Remove all occurences of S from the kill ring."
+  "Remove all occurrences of S from the kill ring."
   (dolist (sym '(kill-ring kill-ring-yank-pointer))
     (set sym (cl-delete s (symbol-value sym)
                         :test #'equal-including-properties)))
@@ -3945,6 +3947,35 @@ Any desktop entries that fail to parse are recorded in
             :action #'counsel-linux-app-action-default
             :caller 'counsel-linux-app))
 
+;;** `counsel-wmctrl'
+(defun counsel-wmctrl-action (x)
+  "Select the desktop window that corresponds to X."
+  (shell-command
+   (format "wmctrl -i -a \"%s\"" (cdr x))))
+
+(defvar counsel-wmctrl-ignore '("XdndCollectionWindowImp"
+                                "unity-launcher" "unity-panel" "unity-dash"
+                                "Hud" "Desktop")
+  "List of window titles to ignore for `counsel-wmctrl'.")
+
+(defun counsel-wmctrl ()
+  "Select a desktop window using wmctrl."
+  (interactive)
+  (let* ((cands1 (split-string (shell-command-to-string "wmctrl -l") "\n" t))
+         (cands2
+          (mapcar (lambda (s)
+                    (when (string-match
+                           "\\`\\([0-9a-fx]+\\)  \\([0-9]+\\) \\([^ ]+\\) \\(.+\\)\\'"
+                           s)
+                      (let ((title (match-string 4 s))
+                            (id (match-string 1 s)))
+                        (unless (member title counsel-wmctrl-ignore)
+                          (cons title id)))))
+                  cands1)))
+    (ivy-read "window: " cands2
+              :action #'counsel-wmctrl-action
+              :caller 'counsel-wmctrl)))
+
 ;;** `counsel-company'
 (defvar company-candidates)
 (defvar company-point)
@@ -3968,300 +3999,130 @@ Any desktop entries that fail to parse are recorded in
               :action #'ivy-completion-in-region-action)))
 
 ;;;** `counsel-colors'
-(defun counsel-colors--best-contrast-color (color)
-  "Choose the best-contrast foreground color for a background color COLOR.
+(defun counsel-colors-action-insert-hex (color)
+  "Insert the hexadecimal RGB value of COLOR."
+  (insert (get-text-property 0 'hex color)))
 
-Use the relative luminance formula to improve the perceived contrast.
-If the relative luminance is beyond a given threshold, in this case a
-midpoint, then the chosen color is black, otherwise is white.  This
-helps to improve the contrast and readability of a text regardless of
-the background color."
-  (let ((rgb (color-name-to-rgb color)))
-    (if rgb
-        (if (>
-             (+ (* (nth 0 rgb) 0.299)
-                (* (nth 1 rgb) 0.587)
-                (* (nth 2 rgb) 0.114))
-             0.5)
-            "#000000"
-          "#FFFFFF")
-      color)))
-
-(defun counsel-colors--update-highlight (cand)
-  "Update the highlight face for the current candidate CAND.
-
-This is necessary because the default `ivy-current-match' face
-background mask most of the colors and you can not see the current
-candidate color when is selected, which is counter-intuitive and not
-user friendly.  The default Emacs command `list-colors-display' have
-the same problem."
-  (when (> (length cand) 0)
-    (let ((color (substring-no-properties cand 26 33)))
-      (face-remap-add-relative
-       'ivy-current-match
-       :background color
-       ;; Another alternatives like use the attribute
-       ;; `distant-foreground' or the function `color-complement-hex'
-       ;; do not work well here because they use the absolute
-       ;; luminance difference between the colors, when the human eye
-       ;; does not perceive all the colors with the same brightness.
-       :foreground (counsel-colors--best-contrast-color color)))))
-
-(defun counsel-colors-action-insert-name (x)
-  "Insert the X color name."
-  (let ((color (car (split-string (substring x 0 25)))))
-    (insert color)))
-
-(defun counsel-colors-action-insert-hex (x)
-  "Insert the X color hexadecimal rgb value."
-  (let ((rgb (substring x 26 33)))
-    (insert rgb)))
-
-(defun counsel-colors-action-kill-name (x)
-  "Kill the X color name."
-  (let ((color (car (split-string (substring x 0 25)))))
-    (kill-new color)))
-
-(defun counsel-colors-action-kill-hex (x)
-  "Kill the X color hexadecimal rgb value."
-  (let ((rgb (substring x 26 33)))
-    (kill-new rgb)))
+(defun counsel-colors-action-kill-hex (color)
+  "Kill the hexadecimal RGB value of COLOR."
+  (kill-new (get-text-property 0 'hex color)))
 
 ;;** `counsel-colors-emacs'
-(ivy-set-actions
- 'counsel-colors-emacs
- '(("n" counsel-colors-action-insert-name "insert color name")
-   ("h" counsel-colors-action-insert-hex "insert color hexadecimal value")
-   ("N" counsel-colors-action-kill-name "kill color name")
-   ("H" counsel-colors-action-kill-hex "kill color hexadecimal value")))
-
-(defvar counsel-colors-emacs-history nil
+(defvar counsel-colors-emacs-history ()
   "History for `counsel-colors-emacs'.")
 
-(defun counsel-colors--name-to-hex (color)
-  "Return hexadecimal rgb value of a color from his name COLOR."
-  (apply 'color-rgb-to-hex (color-name-to-rgb color)))
+(defun counsel-colors--name-to-hex (name)
+  "Return hexadecimal RGB value of color with NAME."
+  (apply #'color-rgb-to-hex (color-name-to-rgb name)))
+
+(defvar shr-color-visible-luminance-min)
+(declare-function shr-color-visible "shr-color")
+
+(defun counsel-colors--formatter (formatter)
+  "Turn FORMATTER into format function for `counsel-colors-*'.
+Return closure suitable for `ivy-format-function'."
+  (require 'shr-color)
+  (lambda (colors)
+    (ivy--format-function-generic
+     (lambda (color)
+       (let* ((hex (get-text-property 0 'hex color))
+              (shr-color-visible-luminance-min 100)
+              (fg (cadr (shr-color-visible hex "black" t))))
+         (propertize (funcall formatter color)
+                     'face (list :foreground fg :background hex))))
+     formatter colors "\n")))
 
 ;;;###autoload
 (defun counsel-colors-emacs ()
   "Show a list of all supported colors for a particular frame.
 
-You can insert or kill the name or the hexadecimal rgb value of the
-selected candidate."
+You can insert or kill the name or hexadecimal RGB value of the
+selected color."
   (interactive)
-  (let ((minibuffer-allow-text-properties t))
-    (ivy-read "%d Emacs color: "
-              (mapcar (lambda (x)
-                        (concat
-                         (propertize
-                          (format "%-25s" (car x))
-                          'result (car x))
-                         (propertize
-                          (format "%8s  "
-                                  (counsel-colors--name-to-hex (car x)))
-                          'face (list :foreground (car x)))
-                         (propertize
-                          (format "%10s" " ")
-                          'face (list :background (car x)))
-                         (propertize
-                          (format "  %-s" (mapconcat #'identity (cdr x) ", "))
-                          'face (list :foreground (car x)))))
-                      (list-colors-duplicates))
+  (let* ((colors (mapcar (lambda (cell)
+                           (let ((name (car cell)))
+                             (propertize name
+                                         'hex (counsel-colors--name-to-hex name)
+                                         'dups (cdr cell))))
+                         (list-colors-duplicates)))
+         (fmt (format "%%-%ds %%s %%s%%s"
+                      (apply #'max 0 (mapcar #'string-width colors))))
+         (blank (make-string 10 ?\s))
+         (ivy-format-function
+          (counsel-colors--formatter
+           (lambda (color)
+             (let ((fg (list :foreground color)))
+               (format fmt color
+                       (propertize (get-text-property 0 'hex color) 'face fg)
+                       (propertize blank 'face (list :background color))
+                       (propertize (mapconcat (lambda (dup)
+                                                (concat " " dup))
+                                              (get-text-property 0 'dups color)
+                                              ",")
+                                   'face fg)))))))
+    (ivy-read "Emacs color: " colors
               :require-match t
-              :update-fn (lambda ()
-                           (counsel-colors--update-highlight (ivy-state-current ivy-last)))
-              :action #'counsel-colors-action-insert-name
               :history 'counsel-colors-emacs-history
-              :caller 'counsel-colors-emacs
-              :sort nil)))
-
-;;** `counsel-colors-web'
-(defvar counsel-colors--web-colors-alist
-  '(("aliceblue"            .  "#f0f8ff")
-    ("antiquewhite"         .  "#faebd7")
-    ("aqua"                 .  "#00ffff")
-    ("aquamarine"           .  "#7fffd4")
-    ("azure"                .  "#f0ffff")
-    ("beige"                .  "#f5f5dc")
-    ("bisque"               .  "#ffe4c4")
-    ("black"                .  "#000000")
-    ("blanchedalmond"       .  "#ffebcd")
-    ("blue"                 .  "#0000ff")
-    ("blueviolet"           .  "#8a2be2")
-    ("brown"                .  "#a52a2a")
-    ("burlywood"            .  "#deb887")
-    ("cadetblue"            .  "#5f9ea0")
-    ("chartreuse"           .  "#7fff00")
-    ("chocolate"            .  "#d2691e")
-    ("coral"                .  "#ff7f50")
-    ("cornflowerblue"       .  "#6495ed")
-    ("cornsilk"             .  "#fff8dc")
-    ("crimson"              .  "#dc143c")
-    ("cyan"                 .  "#00ffff")
-    ("darkblue"             .  "#00008b")
-    ("darkcyan"             .  "#008b8b")
-    ("darkgoldenrod"        .  "#b8860b")
-    ("darkgray"             .  "#a9a9a9")
-    ("darkgreen"            .  "#006400")
-    ("darkkhaki"            .  "#bdb76b")
-    ("darkmagenta"          .  "#8b008b")
-    ("darkolivegreen"       .  "#556b2f")
-    ("darkorange"           .  "#ff8c00")
-    ("darkorchid"           .  "#9932cc")
-    ("darkred"              .  "#8b0000")
-    ("darksalmon"           .  "#e9967a")
-    ("darkseagreen"         .  "#8fbc8f")
-    ("darkslateblue"        .  "#483d8b")
-    ("darkslategray"        .  "#2f4f4f")
-    ("darkturquoise"        .  "#00ced1")
-    ("darkviolet"           .  "#9400d3")
-    ("deeppink"             .  "#ff1493")
-    ("deepskyblue"          .  "#00bfff")
-    ("dimgray"              .  "#696969")
-    ("dodgerblue"           .  "#1e90ff")
-    ("firebrick"            .  "#b22222")
-    ("floralwhite"          .  "#fffaf0")
-    ("forestgreen"          .  "#228b22")
-    ("fuchsia"              .  "#ff00ff")
-    ("gainsboro"            .  "#dcdcdc")
-    ("ghostwhite"           .  "#f8f8ff")
-    ("goldenrod"            .  "#daa520")
-    ("gold"                 .  "#ffd700")
-    ("gray"                 .  "#808080")
-    ("green"                .  "#008000")
-    ("greenyellow"          .  "#adff2f")
-    ("honeydew"             .  "#f0fff0")
-    ("hotpink"              .  "#ff69b4")
-    ("indianred"            .  "#cd5c5c")
-    ("indigo"               .  "#4b0082")
-    ("ivory"                .  "#fffff0")
-    ("khaki"                .  "#f0e68c")
-    ("lavenderblush"        .  "#fff0f5")
-    ("lavender"             .  "#e6e6fa")
-    ("lawngreen"            .  "#7cfc00")
-    ("lemonchiffon"         .  "#fffacd")
-    ("lightblue"            .  "#add8e6")
-    ("lightcoral"           .  "#f08080")
-    ("lightcyan"            .  "#e0ffff")
-    ("lightgoldenrodyellow" .  "#fafad2")
-    ("lightgreen"           .  "#90ee90")
-    ("lightgrey"            .  "#d3d3d3")
-    ("lightpink"            .  "#ffb6c1")
-    ("lightsalmon"          .  "#ffa07a")
-    ("lightseagreen"        .  "#20b2aa")
-    ("lightskyblue"         .  "#87cefa")
-    ("lightslategray"       .  "#778899")
-    ("lightsteelblue"       .  "#b0c4de")
-    ("lightyellow"          .  "#ffffe0")
-    ("lime"                 .  "#00ff00")
-    ("limegreen"            .  "#32cd32")
-    ("linen"                .  "#faf0e6")
-    ("magenta"              .  "#ff00ff")
-    ("maroon"               .  "#800000")
-    ("mediumaquamarine"     .  "#66cdaa")
-    ("mediumblue"           .  "#0000cd")
-    ("mediumorchid"         .  "#ba55d3")
-    ("mediumpurple"         .  "#9370d8")
-    ("mediumseagreen"       .  "#3cb371")
-    ("mediumslateblue"      .  "#7b68ee")
-    ("mediumspringgreen"    .  "#00fa9a")
-    ("mediumturquoise"      .  "#48d1cc")
-    ("mediumvioletred"      .  "#c71585")
-    ("midnightblue"         .  "#191970")
-    ("mintcream"            .  "#f5fffa")
-    ("mistyrose"            .  "#ffe4e1")
-    ("moccasin"             .  "#ffe4b5")
-    ("navajowhite"          .  "#ffdead")
-    ("navy"                 .  "#000080")
-    ("oldlace"              .  "#fdf5e6")
-    ("olive"                .  "#808000")
-    ("olivedrab"            .  "#6b8e23")
-    ("orange"               .  "#ffa500")
-    ("orangered"            .  "#ff4500")
-    ("orchid"               .  "#da70d6")
-    ("palegoldenrod"        .  "#eee8aa")
-    ("palegreen"            .  "#98fb98")
-    ("paleturquoise"        .  "#afeeee")
-    ("palevioletred"        .  "#d87093")
-    ("papayawhip"           .  "#ffefd5")
-    ("peachpuff"            .  "#ffdab9")
-    ("peru"                 .  "#cd853f")
-    ("pink"                 .  "#ffc0cb")
-    ("plum"                 .  "#dda0dd")
-    ("powderblue"           .  "#b0e0e6")
-    ("purple"               .  "#800080")
-    ("rebeccapurple"        .  "#663399")
-    ("red"                  .  "#ff0000")
-    ("rosybrown"            .  "#bc8f8f")
-    ("royalblue"            .  "#4169e1")
-    ("saddlebrown"          .  "#8b4513")
-    ("salmon"               .  "#fa8072")
-    ("sandybrown"           .  "#f4a460")
-    ("seagreen"             .  "#2e8b57")
-    ("seashell"             .  "#fff5ee")
-    ("sienna"               .  "#a0522d")
-    ("silver"               .  "#c0c0c0")
-    ("skyblue"              .  "#87ceeb")
-    ("slateblue"            .  "#6a5acd")
-    ("slategray"            .  "#708090")
-    ("snow"                 .  "#fffafa")
-    ("springgreen"          .  "#00ff7f")
-    ("steelblue"            .  "#4682b4")
-    ("tan"                  .  "#d2b48c")
-    ("teal"                 .  "#008080")
-    ("thistle"              .  "#d8bfd8")
-    ("tomato"               .  "#ff6347")
-    ("turquoise"            .  "#40e0d0")
-    ("violet"               .  "#ee82ee")
-    ("wheat"                .  "#f5deb3")
-    ("white"                .  "#ffffff")
-    ("whitesmoke"           .  "#f5f5f5")
-    ("yellow"               .  "#ffff00")
-    ("yellowgreen"          .  "#9acd32"))
-  "These are the colors defined by the W3C consortium to use in CSS sheets.
-
-All of these colors are compatible with any common browser.  The
-colors gray, green, maroon and purple have alternative values as
-defined by the X11 standard, here they follow the W3C one.")
+              :action #'insert
+              :caller 'counsel-colors-emacs)))
 
 (ivy-set-actions
- 'counsel-colors-web
- '(("n" counsel-colors-action-insert-name "insert name")
-   ("h" counsel-colors-action-insert-hex "insert hex")
-   ("N" counsel-colors-action-kill-name "kill rgb")
-   ("H" counsel-colors-action-kill-hex "kill hex")))
+ 'counsel-colors-emacs
+ '(("h" counsel-colors-action-insert-hex "insert hexadecimal value")
+   ("H" counsel-colors-action-kill-hex "kill hexadecimal value")))
 
-(defvar counsel-colors-web-history nil
+;;** `counsel-colors-web'
+(defvar shr-color-html-colors-alist)
+
+(defun counsel-colors--web-alist ()
+  "Return list of CSS colours for `counsel-colors-web'."
+  (require 'shr-color)
+  (let* ((alist (copy-alist shr-color-html-colors-alist))
+         (mp  (assoc "MediumPurple"  alist))
+         (pvr (assoc "PaleVioletRed" alist))
+         (rp  (assoc "RebeccaPurple" alist)))
+    ;; Backport GNU Emacs bug#30377
+    (when mp (setcdr mp "#9370db"))
+    (when pvr (setcdr pvr "#db7093"))
+    (unless rp (push (cons "rebeccapurple" "#663399") alist))
+    (sort (mapcar (lambda (cell)
+                    (propertize (downcase (car cell))
+                                'hex (downcase (cdr cell))))
+                  alist)
+          #'string-lessp)))
+
+(defvar counsel-colors-web-history ()
   "History for `counsel-colors-web'.")
 
 ;;;###autoload
 (defun counsel-colors-web ()
   "Show a list of all W3C web colors for use in CSS.
 
-You can insert or kill the name or the hexadecimal rgb value of the
-selected candidate."
+You can insert or kill the name or hexadecimal RGB value of the
+selected color."
   (interactive)
-  (let ((minibuffer-allow-text-properties t))
-    (ivy-read "%d Web color: "
-              (mapcar (lambda (x)
-                        (concat
-                         (propertize
-                          (format "%-25s" (car x)))
-                         (propertize
-                          (format "%8s  " (cdr x))
-                          'face (list :foreground (car x)))
-                         (propertize
-                          (format "%10s" " ")
-                          'face (list :background (cdr x)))))
-                      counsel-colors--web-colors-alist)
+  (let* ((colors (counsel-colors--web-alist))
+         (blank (make-string 10 ?\s))
+         (fmt (format "%%-%ds %%s %%s"
+                      (apply #'max 0 (mapcar #'string-width colors))))
+         (ivy-format-function
+          (counsel-colors--formatter
+           (lambda (color)
+             (let ((hex (get-text-property 0 'hex color)))
+               (format fmt color
+                       (propertize hex 'face (list :foreground hex))
+                       (propertize blank 'face (list :background hex))))))))
+    (ivy-read "Web color: " colors
               :require-match t
-              :action #'counsel-colors-action-insert-name
-              :update-fn (lambda ()
-                           (counsel-colors--update-highlight (ivy-state-current ivy-last)))
               :history 'counsel-colors-web-history
-              :caller 'counsel-colors-web
-              :sort t)))
+              :sort t
+              :action #'insert
+              :caller 'counsel-colors-web)))
 
+(ivy-set-actions
+ 'counsel-colors-web
+ '(("h" counsel-colors-action-insert-hex "insert hexadecimal value")
+   ("H" counsel-colors-action-kill-hex "kill hexadecimal value")))
 
 ;;** `counsel-faces'
 (defun counsel-faces-action-describe (x)
@@ -4329,11 +4190,11 @@ candidate."
 ;;** `counsel-command-history'
 (defun counsel-command-history-action-eval (cmd)
   "Eval the command CMD."
-    (eval (read cmd)))
+  (eval (read cmd)))
 
 (defun counsel-command-history-action-edit-and-eval (cmd)
   "Edit and eval the command CMD."
-    (edit-and-eval-command "Eval: " (read cmd)))
+  (edit-and-eval-command "Eval: " (read cmd)))
 
 (ivy-set-actions
  'counsel-command-history
@@ -4463,7 +4324,7 @@ a symbol and how to search for them."
             (counsel-symbol-list)
             :history 'counsel-apropos-history
             :action (lambda (pattern)
-                      (when (= (length pattern) 0)
+                      (when (string-equal pattern "")
                         (user-error "Please specify a pattern"))
                       ;; If the user selected a candidate form the list, we use
                       ;; a pattern which matches only the selected symbol.

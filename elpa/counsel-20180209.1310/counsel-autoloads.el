@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "counsel" "counsel.el" (23138 48832 970492
-;;;;;;  662000))
+;;;### (autoloads nil "counsel" "counsel.el" (23166 23006 296886
+;;;;;;  441000))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -339,16 +339,16 @@ Complete using `company-candidates'.
 (autoload 'counsel-colors-emacs "counsel" "\
 Show a list of all supported colors for a particular frame.
 
-You can insert or kill the name or the hexadecimal rgb value of the
-selected candidate.
+You can insert or kill the name or hexadecimal RGB value of the
+selected color.
 
 \(fn)" t nil)
 
 (autoload 'counsel-colors-web "counsel" "\
 Show a list of all W3C web colors for use in CSS.
 
-You can insert or kill the name or the hexadecimal rgb value of the
-selected candidate.
+You can insert or kill the name or hexadecimal RGB value of the
+selected color.
 
 \(fn)" t nil)
 
