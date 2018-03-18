@@ -985,6 +985,22 @@ URL must point to a plaintext elisp package."
         separated
       (format "%s.%s" separated (second parts)))))
 
+(defun customize-minibuffer-face ()
+  "Customize minibuffer face."
+  (interactive)
+  (dolist (buffer
+           '(" *Minibuf-0*"
+             " *Minibuf-1*"
+             " *Echo Area 0*"
+             " *Echo Area 1*"))
+    (when (get-buffer buffer)
+      (with-current-buffer buffer
+        (setq-local face-remapping-alist
+                    '((default (
+                                :height 0.75
+                                        :family "Optima"
+                                        :foreground "#aaFFfF"))))))))
+
 ;; Key bindings
 (bind-keys
  ("<mode-line> <S-mouse-1>" . buffer-file-name-to-kill-ring)
