@@ -1001,6 +1001,12 @@ URL must point to a plaintext elisp package."
                                         :family "Optima"
                                         :foreground "#aaFFfF"))))))))
 
+(defun dired-find-file-other-window-and-back ()
+  "In Dired, visit this file or directory in another window and remain in first window."
+  (interactive)
+  (find-file-other-window (dired-get-file-for-visit))
+  (switch-window))
+
 ;; Key bindings
 (bind-keys
  ("<mode-line> <S-mouse-1>" . buffer-file-name-to-kill-ring)
