@@ -1007,6 +1007,56 @@ URL must point to a plaintext elisp package."
   (find-file-other-window (dired-get-file-for-visit))
   (switch-window))
 
+(defun format-bin (val width)
+  "Convert VAL of WIDTH to a binary string."
+  (let (result)
+    (while (> width 0)
+      (if (equal (mod val 2) 1)
+          (setq result (concat "1" result))
+        (setq result (concat "0" result)))
+      (setq val (/ val 2))
+      (setq width (1- width)))
+    result))
+
+(defun increment-number-binary (&optional arg)
+  "Increment the number forward from point by ARG."
+  (interactive "p*")
+  (save-excursion
+    (save-match-data
+      (let (inc-by field-width answer)
+        (setq inc-by (if arg arg 1))
+        (skip-chars-backward "01")
+        (when (re-search-forward "[0-1]+" nil t)
+          (setq field-width (- (match-end 0) (match-beginning 0)))
+          (setq answer (+ (string-to-number (match-string 0) 2) inc-by))
+          (when (< answer 0)
+            (setq answer (+ (expt 2 field-width) answer)))
+          (replace-match (format-bin answer field-width)))))))
+
+(defun change-number-at-point (func)
+  "Change the number at point using FUNC."
+  (let ((number (number-at-point))
+        (point (point)))
+    (when number
+      (progn
+        (forward-word)
+        (search-backward (number-to-string number))
+        (replace-match (number-to-string (funcall func number)))
+        (goto-char point)))))
+
+(defun increment-number-at-point ()
+  "Increment number at point like vim's Ctrl a."
+  (interactive)
+  (change-number-at-point '1+))
+
+(defun decrement-number-at-point ()
+  "Decrement number at point like vim's Ctrl x."
+  (interactive)
+  (change-number-at-point '1-))
+
+(global-set-key (kbd "C-c a") 'increment-number-at-point)
+(global-set-key (kbd "C-c x") 'decrement-number-at-point)
+
 ;; Key bindings
 (bind-keys
  ("<mode-line> <S-mouse-1>" . buffer-file-name-to-kill-ring)
