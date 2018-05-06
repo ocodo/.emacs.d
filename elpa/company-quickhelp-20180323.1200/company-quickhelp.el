@@ -4,7 +4,7 @@
 
 ;; Author: Lars Andersen <expez@expez.com>
 ;; URL: https://www.github.com/expez/company-quickhelp
-;; Package-Version: 20170429.1052
+;; Package-Version: 20180323.1200
 ;; Keywords: company popup documentation quickhelp
 ;; Version: 2.2.0
 ;; Package-Requires: ((emacs "24.3") (company "0.8.9") (pos-tip "0.4.6"))
@@ -30,7 +30,7 @@
 ;; candidate will pop up after `company-quickhelp-idle-delay' seconds.
 
 ;;; Usage:
-;;  put (company-quickhelp-mode 1) in you init.el to activate
+;;  put (company-quickhelp-mode) in your init.el to activate
 ;;  `company-quickhelp-mode'.
 
 ;; You can adjust the time it takes for the documentation to pop up by
@@ -173,44 +173,43 @@ currently active `company' completion candidate."
     (pos-tip-hide)))
 
 (defun company-quickhelp--show ()
-  (unless (company-quickhelp-pos-tip-available-p)
-    (error "company-quickhelp is not available in this emacs version or frame"))
-  (company-quickhelp--cancel-timer)
-  (while-no-input
-    (let* ((selected (nth company-selection company-candidates))
-           (doc (let ((inhibit-message t))
-                  (company-quickhelp--doc selected)))
-           (width 80)
-           (timeout 300)
-           (ovl company-pseudo-tooltip-overlay)
-           (overlay-width (* (frame-char-width)
-                             (if ovl (overlay-get ovl 'company-width) 0)))
-           (overlay-position (* (frame-char-width)
-                                (- (if ovl (overlay-get ovl 'company-column) 1) 1)))
-           (x-gtk-use-system-tooltips nil)
-           (fg-bg `(,company-quickhelp-color-foreground
-                    . ,company-quickhelp-color-background)))
-      (when (and ovl doc)
-        (with-no-warnings
-          (if company-quickhelp-use-propertized-text
-              (let* ((frame (window-frame (selected-window)))
-                     (max-width (pos-tip-x-display-width frame))
-                     (max-height (pos-tip-x-display-height frame))
-                     (w-h (pos-tip-string-width-height doc)))
-                (cond
-                 ((> (car w-h) width)
-                  (setq doc (pos-tip-fill-string doc width nil 'none nil max-height)
-                        w-h (pos-tip-string-width-height doc)))
-                 ((or (> (car w-h) max-width)
-                      (> (cdr w-h) max-height))
-                  (setq doc (pos-tip-truncate-string doc max-width max-height)
-                        w-h (pos-tip-string-width-height doc))))
-                (pos-tip-show-no-propertize doc fg-bg (overlay-start ovl) nil timeout
-                                            (pos-tip-tooltip-width (car w-h) (frame-char-width frame))
-                                            (pos-tip-tooltip-height (cdr w-h) (frame-char-height frame) frame)
-                                            nil (+ overlay-width overlay-position) 1))
-            (pos-tip-show doc fg-bg (overlay-start ovl) nil timeout width nil
-                          (+ overlay-width overlay-position) 1)))))))
+  (when (company-quickhelp-pos-tip-available-p)
+    (company-quickhelp--cancel-timer)
+    (while-no-input
+      (let* ((selected (nth company-selection company-candidates))
+             (doc (let ((inhibit-message t))
+                    (company-quickhelp--doc selected)))
+             (width 80)
+             (timeout 300)
+             (ovl company-pseudo-tooltip-overlay)
+             (overlay-width (* (frame-char-width)
+                               (if ovl (overlay-get ovl 'company-width) 0)))
+             (overlay-position (* (frame-char-width)
+                                  (- (if ovl (overlay-get ovl 'company-column) 1) 1)))
+             (x-gtk-use-system-tooltips nil)
+             (fg-bg `(,company-quickhelp-color-foreground
+                      . ,company-quickhelp-color-background)))
+        (when (and ovl doc)
+          (with-no-warnings
+            (if company-quickhelp-use-propertized-text
+                (let* ((frame (window-frame (selected-window)))
+                       (max-width (pos-tip-x-display-width frame))
+                       (max-height (pos-tip-x-display-height frame))
+                       (w-h (pos-tip-string-width-height doc)))
+                  (cond
+                   ((> (car w-h) width)
+                    (setq doc (pos-tip-fill-string doc width nil 'none nil max-height)
+                          w-h (pos-tip-string-width-height doc)))
+                   ((or (> (car w-h) max-width)
+                        (> (cdr w-h) max-height))
+                    (setq doc (pos-tip-truncate-string doc max-width max-height)
+                          w-h (pos-tip-string-width-height doc))))
+                  (pos-tip-show-no-propertize doc fg-bg (overlay-start ovl) nil timeout
+                                              (pos-tip-tooltip-width (car w-h) (frame-char-width frame))
+                                              (pos-tip-tooltip-height (cdr w-h) (frame-char-height frame) frame)
+                                              nil (+ overlay-width overlay-position) 1))
+              (pos-tip-show doc fg-bg (overlay-start ovl) nil timeout width nil
+                            (+ overlay-width overlay-position) 1))))))))
 
 (defun company-quickhelp--set-timer ()
   (when (null company-quickhelp--timer)
