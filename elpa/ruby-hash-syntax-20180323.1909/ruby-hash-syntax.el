@@ -3,7 +3,7 @@
 ;; Copyright (C) 2013-2017  Steve Purcell
 
 ;; Author: Steve Purcell <steve@sanityinc.com>
-;; Package-Version: 20171013.50
+;; Package-Version: 20180323.1909
 ;; Package-X-Original-Version: 0
 ;; URL: https://github.com/purcell/ruby-hash-syntax
 ;; Keywords: languages
@@ -39,11 +39,11 @@
     (error "The region is not active"))
   (save-excursion
     (let ((limit (copy-marker (max beg end)))
-          (hashrocket-pattern "[^:]:\\([a-zA-Z0-9_]+\\) *=> *"))
+          (hashrocket-pattern "\\([^:]\\):\\([a-zA-Z0-9_]+\\) *=> *"))
       (goto-char (min beg end))
       (cond
        ((ruby-hash-syntax--code-has-pattern hashrocket-pattern limit)
-        (ruby-hash-syntax--replace hashrocket-pattern "\\1: " limit))
+        (ruby-hash-syntax--replace hashrocket-pattern "\\1\\2: " limit))
        ((ruby-hash-syntax--code-has-pattern "\\w+:" limit)
         (ruby-hash-syntax--replace "\\([a-zA-Z0-9_]+\\):\\( *\\(?:\"\\(?:\\\"\\|[^\"]\\)*\"\\|'\\(?:\\'\\|[^']\\)*'\\|[a-zA-Z0-9_]+([^)]*)\\|[^,]+\\)\\)" ":\\1 =>\\2" limit))))))
 
