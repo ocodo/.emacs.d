@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/define-word
-;; Package-Version: 20180128.725
+;; Package-Version: 20180327.1935
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: dictionary, convenience
@@ -88,7 +88,7 @@ lets the user choose service."
          (link (format (nth 1 servicedata) (downcase word)))
          (results
           (with-current-buffer (url-retrieve-synchronously link t t)
-            (setq results (funcall parser)))))
+            (funcall parser))))
     (if results
         (funcall displayfn results)
       (message "0 definitions found")
