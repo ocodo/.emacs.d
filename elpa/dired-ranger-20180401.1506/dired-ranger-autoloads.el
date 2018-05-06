@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dired-ranger" "dired-ranger.el" (23138 48789
-;;;;;;  570446 583000))
+;;;### (autoloads nil "dired-ranger" "dired-ranger.el" (23278 48384
+;;;;;;  0 0))
 ;;; Generated autoloads from dired-ranger.el
 
 (autoload 'dired-ranger-copy "dired-ranger" "\

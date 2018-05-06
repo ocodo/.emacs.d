@@ -5,7 +5,7 @@
 ;; Author: Matúš Goljer <matus.goljer@gmail.com>
 ;; Maintainer: Matúš Goljer <matus.goljer@gmail.com>
 ;; Version: 0.0.1
-;; Package-Version: 20171229.753
+;; Package-Version: 20180401.1506
 ;; Created: 17th June 2014
 ;; Package-requires: ((dash "2.7.0") (dired-hacks-utils "0.0.1"))
 ;; Keywords: files
@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;; This package implements useful features present in the
-;; [ranger](http://ranger.nongnu.org/) file manager which are missing
+;; [ranger](http://ranger.github.io/) file manager which are missing
 ;; in dired.
 
 ;; Multi-stage copy/pasting of files
