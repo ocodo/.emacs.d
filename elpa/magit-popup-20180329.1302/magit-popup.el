@@ -64,12 +64,6 @@
 (declare-function Man-find-section 'man)
 (declare-function Man-next-section 'man)
 
-;; For the `:variable' event type.
-(declare-function magit-git-string 'magit-git)
-(declare-function magit-refresh 'magit-mode)
-(declare-function magit-get 'magit-git)
-(declare-function magit-set 'magit-git)
-
 ;; For branch actions.
 (declare-function magit-branch-set-face 'magit-git)
 
@@ -493,10 +487,13 @@ usually specified in that order):
   `SHORTNAME-arguments'.  This is usually done by calling the
   function `SHORTNAME-arguments'.
 
-  Members of VALUE may also be strings, assuming the first member
-  is also a string.  Instead of just one action section with the
-  heading \"Actions\", multiple sections are then inserted into
-  the popup buffer, using these strings as headings.
+  Members of VALUE may also be strings and functions, assuming
+  the first member is a string or function.  In that case the
+  members are split into sections and these special elements are
+  used as headings.  If such an element is a function then it is
+  called with no arguments and must return either a string, which
+  is used as the heading, or nil, in which case the section is
+  not inserted.
 
   Members of VALUE may also be nil.  This should only be used
   together with `:max-action-columns' and allows having gaps in
@@ -529,10 +526,26 @@ usually specified in that order):
   is a list whose members have the form (KEY DESC SWITCH), see
   `magit-define-popup-switch' for details.
 
+  Members of VALUE may also be strings and functions, assuming
+  the first member is a string or function.  In that case the
+  members are split into sections and these special elements are
+  used as headings.  If such an element is a function then it is
+  called with no arguments and must return either a string, which
+  is used as the heading, or nil, in which case the section is
+  not inserted.
+
 `:options'
   The popup arguments which take a value, as in \"--opt=OPTVAL\".
   VALUE is a list whose members have the form (KEY DESC OPTION
   READER), see `magit-define-popup-option' for details.
+
+  Members of VALUE may also be strings and functions, assuming
+  the first member is a string or function.  In that case the
+  members are split into sections and these special elements are
+  used as headings.  If such an element is a function then it is
+  called with no arguments and must return either a string, which
+  is used as the heading, or nil, in which case the section is
+  not inserted.
 
 `:default-arguments'
   The default arguments, a list of switches (which are then
@@ -544,6 +557,20 @@ usually specified in that order):
   Git variables which can be set from the popup.  VALUE is a list
   whose members have the form (KEY DESC COMMAND FORMATTER), see
   `magit-define-popup-variable' for details.
+
+  Members of VALUE may also be strings and functions, assuming
+  the first member is a string or function.  In that case the
+  members are split into sections and these special elements are
+  used as headings.  If such an element is a function then it is
+  called with no arguments and must return either a string, which
+  is used as the heading, or nil, in which case the section is
+  not inserted.
+
+  Members of VALUE may also be actions as described above for
+  `:actions'.
+
+  VALUE may also be a function that returns a list as describe
+  above.
 
 `:sequence-predicate'
   When this function returns non-nil, then the popup uses
@@ -877,16 +904,6 @@ TYPE is one of `:action', `:sequence-action', `:switch', or
           (t
            (user-error "%c isn't bound to any action" event)))))
 
-(defun magit-popup-set-variable
-    (variable choices &optional default other)
-  (magit-set (--if-let (magit-git-string "config" "--local" variable)
-                 (cadr (member it choices))
-               (car choices))
-             variable)
-  (magit-refresh)
-  (message "%s %s" variable
-           (magit-popup-format-variable-1 variable choices default other)))
-
 (defun magit-popup-quit ()
   "Quit the current popup command without invoking an action."
   (interactive)
@@ -1212,13 +1229,6 @@ of events shared by all popups and before point is adjusted.")
                                     (button-type-get type 'property)))))
            (maxcols (button-type-get type 'maxcols))
            (pred (magit-popup-get :sequence-predicate)))
-      (if (and pred (funcall pred))
-          (setq maxcols nil)
-        (cl-typecase maxcols
-          (keyword (setq maxcols (magit-popup-get maxcols)))
-          (symbol  (setq maxcols (symbol-value maxcols)))))
-      (when (functionp maxcols)
-        (setq maxcols (funcall maxcols heading)))
       (when items
         (if (functionp heading)
             (when (setq heading (funcall heading))
@@ -1228,6 +1238,13 @@ of events shared by all popups and before point is adjusted.")
           (insert (propertize heading 'face 'magit-popup-heading))
           (unless (string-match "\n$" heading)
             (insert "\n")))
+        (if (and pred (funcall pred))
+            (setq maxcols nil)
+          (cl-typecase maxcols
+            (keyword (setq maxcols (magit-popup-get maxcols)))
+            (symbol  (setq maxcols (symbol-value maxcols)))))
+        (when (functionp maxcols)
+          (setq maxcols (funcall maxcols heading)))
         (when heading
           (let ((colwidth
                  (+ (apply 'max (mapcar (lambda (e) (length (car e))) items))
@@ -1277,54 +1294,6 @@ of events shared by all popups and before point is adjusted.")
                                 'face 'magit-popup-key))
              (?d . ,(funcall (magit-popup-event-arg ev)))))
           'type type 'event (magit-popup-event-key ev))))
-
-(defun magit-popup-format-variable
-    (variable choices &optional default other width)
-  (concat variable
-          (if width (make-string (- width (length variable)) ?\s) " ")
-          (magit-popup-format-variable-1 variable choices default other)))
-
-(defun magit-popup-format-variable-1
-    (variable choices &optional default other)
-  "Print popup entry for git VARIABLE with possible CHOICES.
-DEFAULT is git's default choice for VARIABLE.  OTHER is a git
-variable whose value may be used as a default."
-  (let ((local  (magit-git-string "config" "--local"  variable))
-        (global (magit-git-string "config" "--global" variable)))
-    (when other
-      (setq other (--when-let (magit-get other)
-                    (concat other ":" it))))
-    (concat
-     (propertize "[" 'face 'magit-popup-disabled-argument)
-     (mapconcat
-      (lambda (choice)
-        (propertize choice 'face (if (equal choice local)
-                                     'magit-popup-option-value
-                                   'magit-popup-disabled-argument)))
-      choices
-      (propertize "|" 'face 'magit-popup-disabled-argument))
-     (when (or global other default)
-       (concat
-        (propertize "|" 'face 'magit-popup-disabled-argument)
-        (cond (global
-               (propertize (concat "global:" global)
-                           'face (cond (local
-                                        'magit-popup-disabled-argument)
-                                       ((member global choices)
-                                        'magit-popup-option-value)
-                                       (t
-                                        'font-lock-warning-face))))
-              (other
-               (propertize other
-                           'face (if local
-                                     'magit-popup-disabled-argument
-                                   'magit-popup-option-value)))
-              (default
-               (propertize (concat "default:" default)
-                           'face (if local
-                                     'magit-popup-disabled-argument
-                                   'magit-popup-option-value))))))
-     (propertize "]" 'face 'magit-popup-disabled-argument))))
 
 (defun magit-popup-format-action-button (type ev)
   (let* ((dsc (magit-popup-event-dsc ev))
@@ -1386,6 +1355,7 @@ variable whose value may be used as a default."
 
 (font-lock-add-keywords 'emacs-lisp-mode magit-popup-font-lock-keywords)
 
+;;; _
 (provide 'magit-popup)
 ;; Local Variables:
 ;; indent-tabs-mode: nil
