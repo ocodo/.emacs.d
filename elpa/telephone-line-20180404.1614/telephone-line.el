@@ -197,7 +197,7 @@ Secondary separators do not incur a background color change."
          (if xah-fly-insert-state-q
              'telephone-line-evil-insert
            'telephone-line-evil-normal))
-        ((not (boundp 'evil-state)) 'mode-line)
+        ((not (bound-and-true-p evil-mode)) 'mode-line)
         (t (intern (concat "telephone-line-evil-" (symbol-name evil-state))))))
 
 ;;TODO: Clean this up
@@ -246,18 +246,29 @@ Secondary separators do not incur a background color change."
             (if (functionp subsegment)
                 (funcall subsegment)
               (seq-let (segment-func &rest modifiers) subsegment
-                (cond
-                 ((seq-contains modifiers ':active)
-                  `(lambda (face)
-                     (if (telephone-line-selected-window-active)
-                         (funcall (,segment-func) face)
-                       nil)))
-                 ((seq-contains modifiers ':inactive)
-                  `(lambda (face)
-                     (if (not (telephone-line-selected-window-active))
-                         (funcall (,segment-func) face)
-                       nil)))
-                 (t segment-func)))))
+                (if (plist-get modifiers ':args)
+                    (setq segment-func
+                          (apply segment-func (plist-get modifiers ':args)))
+                  (setq segment-func
+                        (funcall segment-func)))
+                (if (plist-get modifiers ':active)
+                    (setq segment-func
+                          `(lambda (face)
+                            (if (telephone-line-selected-window-active)
+                                (,segment-func face)
+                              nil))))
+                (if (plist-get modifiers ':inactive)
+                    (setq segment-func
+                          `(lambda (face)
+                            (if (not (telephone-line-selected-window-active))
+                                (,segment-func face)
+                              nil))))
+                (if (and (plist-get modifiers ':truncate)
+                         (< 0 (plist-get modifiers ':truncate)))
+                    (setq segment-func
+                          `(lambda (face)
+                             (seq-take (format-mode-line (,segment-func face)) ,(plist-get modifiers ':truncate)))))
+                segment-func)))
           subsegments))
 
 ;;TODO: Clean this up
@@ -295,8 +306,11 @@ separators, as they are conditional, are evaluated on-the-fly."
       base-width)))
 
 (defcustom telephone-line-lhs
-  '((accent . (telephone-line-vc-segment))
-    (nil    . (telephone-line-minor-mode-segment
+  '((evil   . (telephone-line-evil-tag-segment))
+    (accent . (telephone-line-vc-segment
+               telephone-line-erc-modified-channels-segment
+               telephone-line-process-segment))
+    (nil    . (telephone-line-projectile-segment
                telephone-line-buffer-segment)))
   "Left hand side segment alist."
   :type '(alist :key-type segment-color :value-type subsegment-list)
@@ -315,9 +329,10 @@ separators, as they are conditional, are evaluated on-the-fly."
   :group 'telephone-line)
 
 (defcustom telephone-line-rhs
-  '((nil    . (telephone-line-misc-info-segment
-               telephone-line-major-mode-segment))
-    (accent . (telephone-line-airline-position-segment)))
+  '((nil    . (telephone-line-flycheck-segment
+               telephone-line-misc-info-segment))
+    (accent . (telephone-line-major-mode-segment))
+    (evil   . (telephone-line-airline-position-segment)))
   "Right hand side segment alist."
   :type '(alist :key-type segment-color :value-type subsegment-list)
   :group 'telephone-line)
