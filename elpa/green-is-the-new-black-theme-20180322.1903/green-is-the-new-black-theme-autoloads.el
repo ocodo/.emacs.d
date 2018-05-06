@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil nil ("green-is-the-new-black-theme.el") (23064
-;;;;;;  61456 999893 792000))
+;;;### (autoloads nil nil ("green-is-the-new-black-theme.el") (23278
+;;;;;;  48261 0 0))
 
 ;;;***
 

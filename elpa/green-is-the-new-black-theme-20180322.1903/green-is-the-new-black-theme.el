@@ -1,11 +1,11 @@
-;;; green-is-the-new-black-theme.el --- A cool and minimalist green blackened theme
+;;; green-is-the-new-black-theme.el --- A cool and minimalist green blackened theme engine
 
 ;; Author: Fred Campos <fred.tecnologia@gmail.com>
 ;; Maintainer: Fred Campos <fred.tecnologia@gmail.com>
 ;; URL: https://github.com/fredcamps/green-is-the-new-black-emacs
-;; Package-Version: 20171005.1641
+;; Package-Version: 20180322.1903
 ;; Keywords: faces, themes
-;; Version: 0.0.3
+;; Version: 0.0.6
 
 ;; Copyright (c) 2017 Fred Campos
 
@@ -29,11 +29,14 @@
 ;;; Code:
 (deftheme green-is-the-new-black
   "Cool blackned green theme")
-
-(let ((gitnb-black "#000000")
+(display-color-cells (selected-frame))
+(let ((class '((class color) (min-colors 89)))
+      (256color (eq (display-color-cells (selected-frame)) 256))
+      (gitnb-black "#000000")
+      (gitnb-heavy-grey "#1c1c1c")
       (gitnb-dark-grey "#2b2b30")
       (gitnb-grey "#898989")
-      (gitnb-heavy-green "#00ffff")
+      (gitnb-heavy-green "#005f00")
       (gitnb-dark-green "#218c23")
       (gitnb-green "#0ecc11")
       (gitnb-light-green "#8dcc78")
@@ -43,9 +46,9 @@
 
   (custom-theme-set-faces
    `green-is-the-new-black
-   `(default ((t (:background, gitnb-black :foreground, gitnb-green))))
+   `(default ((t (:background, gitnb-heavy-grey :foreground, gitnb-green))))
    `(cursor  ((t (:background, gitnb-dark-green :weight bold))))
-   `(hl-line ((t (:background, gitnb-dark-grey :weight bold))))
+   `(hl-line ((t (:background, gitnb-black :weight bold))))
    `(mode-line ((t (:box nil, :background, gitnb-black :foreground, gitnb-dark-green) )))
    `(mode-line-inactive ((t (:inherit mode-line :background, gitnb-black :foreground, gitnb-grey :box nil))))
    `(fringe ((t (:background, gitnb-dark-grey))))
@@ -58,8 +61,8 @@
    `(font-lock-constant-face ((t (:foreground, gitnb-bright-green))))
    `(font-lock-comment-face ((t (:foreground, gitnb-grey))))
    `(font-lock-string-face ((t (:foreground, gitnb-grey))))
-   `(font-lock-keyword-face ((t (:foreground, gitnb-green :inherit bold))))
-   `(font-lock-function-name-face ((t (:foreground, gitnb-bright-green))))
+   `(font-lock-keyword-face ((t (:foreground, gitnb-bright-green :inherit bold))))
+   `(font-lock-function-name-face ((t (:foreground, gitnb-yellow))))
    `(font-lock-type-face ((t (:foreground, gitnb-green :weight bold))))
    `(font-lock-doc-face ((t (:foreground, gitnb-grey))))
    `(font-lock-variable-name-face ((t (:foreground, gitnb-bright-green))))
@@ -76,24 +79,22 @@
    `(secondary-selection ((t (:background, gitnb-dark-green :foreground, gitnb-grey))))
    `(link ((t (:foreground, gitnb-bright-green :underline, gitnb-bright-green :inherit bold))))
    `(link-visited ((t (:foreground, gitnb-green :underline, gitnb-green :inherit bold))))
-   `(diff-added ((t (:background, gitnb-black :foreground, gitnb-bright-green))))
-   `(diff-changed ((t (:inherit diff-added))))
-   `(diff-added ((t (:inherit diff-added))))
-   `(diff-changed ((t (:inherit diff-added))))
-   `(diff-context ((t (:inherit diff-added))))
+   `(diff-added ((t (:background, gitnb-black :foreground, gitnb-green))))
+   `(diff-changed ((t (:background, gitnb-black :foreground, gitnb-bright-green))))
+   `(diff-removed ((t (:background, gitnb-black :foreground, gitnb-grey))))
+   `(diff-context ((t (:inherit diff-changed))))
    `(diff-file-header ((t (:inherit diff-added))))
    `(diff-function ((t (:inherit diff-added))))
    `(diff-header ((t (:inherit diff-added))))
    `(diff-hunk-header ((t (:inherit diff-added))))
    `(diff-index ((t (:inherit diff-added))))
    `(diff-indicator-added ((t (:inherit diff-added))))
-   `(diff-indicator-changed ((t (:inherit diff-added))))
-   `(diff-indicator-removed ((t (:inherit diff-added))))
-   `(diff-nonexistent ((t (:inherit diff-added))))
+   `(diff-indicator-changed ((t (:inherit diff-changed))))
+   `(diff-indicator-removed ((t (:inherit diff-removed))))
+   `(diff-nonexistent ((t (:background, gitnb-black :foreground, gitnb-yellow))))
    `(diff-refine-added ((t (:inherit diff-added))))
-   `(diff-refine-changed ((t (:inherit diff-added))))
-   `(diff-refine-removed ((t (:inherit diff-added))))
-   `(diff-removed ((t (:inherit diff-added))))
+   `(diff-refine-changed ((t (:inherit diff-changed))))
+   `(diff-refine-removed ((t (:inherit diff-removed))))
    `(tool-bar ((t (:background, gitnb-black :foreground, gitnb-dark-green))))
 
    ;; -- plugins
@@ -118,10 +119,10 @@
 
    `(ido-indicator ((t (:background, gitnb-dark-green :foreground, gitnb-black))))
 
-   `(flycheck-error ((t (:underline, gitnb-red :foreground, gitnb-red))))
-   `(flycheck-warning ((t (:underline, gitnb-yellow :foreground, gitnb-yellow))))
-   `(flycheck-info ((t (:underline, gitnb-bright-green :foreground, gitnb-bright-green))))
-
+   `(flycheck-error ((,class (:underline (:style wave :color , gitnb-red)))))
+   `(flycheck-warning ((,class (:underline (:style wave :color , gitnb-yellow)))))
+   `(flycheck-info ((,class (:underline (:style wave :color, gitnb-green )))))
+   
    `(vertical-border ((t (:foreground, gitnb-green))))
    `(info ((t (:foreground, gitnb-bright-green))))
    `(warning ((t (:foreground, gitnb-yellow))))
@@ -160,9 +161,9 @@
    `(smerge-markers ((t (:foreground, gitnb-bright-green :background, gitnb-dark-green))))
    `(smerge-mine ((t (:foreground, gitnb-bright-green :background, gitnb-dark-green))))
    `(smerge-other ((t (:foreground, gitnb-bright-green :background, gitnb-dark-green))))
-   `(smerge-refined-changed ((t (:foreground, gitnb-yellow :background, gitnb-dark-green))))
-   `(smerge-refined-removed ((t (:foreground, gitnb-red :background, gitnb-dark-green))))
-   `(smerge-refined-added ((t (:foreground, gitnb-bright-green :background, gitnb-dark-green))))
+   `(smerge-refined-changed ((t (:inherit diff-changed))))
+   `(smerge-refined-removed ((t (:inherit diff-removed))))
+   `(smerge-refined-added ((t (:inherit diff-added))))
 
    `(js2-external-variable ((t (:foreground, gitnb-yellow))))
    `(js2-private-function-call ((t (:foreground, gitnb-yellow))))
