@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "crystal-mode" "crystal-mode.el" (23138 48826
-;;;;;;  978486 390000))
+;;;### (autoloads nil "crystal-mode" "crystal-mode.el" (23278 48396
+;;;;;;  0 0))
 ;;; Generated autoloads from crystal-mode.el
 
 (autoload 'crystal-tool-format "crystal-mode" "\
