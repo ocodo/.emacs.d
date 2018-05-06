@@ -1,10 +1,10 @@
-;;; fold-this.el --- Just fold this region please
+;;; fold-this.el --- Just fold this region please -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012-2013 Magnar Sveen <magnars@gmail.com>
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 0.3.0
-;; Package-Version: 20150601.342
+;; Package-Version: 20180224.40
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or
@@ -72,16 +72,27 @@ Emacs sessions."
                  (const :tag "No Limit" nil)))
 
 ;;;###autoload
-(defun fold-this (beg end)
+(defun fold-this (beg end &optional fold-header)
   (interactive "r")
+  (setq fold-header (or fold-header "..."))
   (let ((o (make-overlay beg end nil t nil)))
     (overlay-put o 'type 'fold-this)
     (overlay-put o 'invisible t)
     (overlay-put o 'keymap fold-this-keymap)
+    (overlay-put o 'invisible t)
+    (overlay-put o 'isearch-open-invisible-temporary
+                 (lambda (o action)
+                   (if action
+                       (progn
+                         (overlay-put o 'display (propertize fold-header 'face 'fold-this-overlay))
+                         (overlay-put o 'invisible t))
+                     (progn
+                       (overlay-put o 'display nil)
+                       (overlay-put o 'invisible nil)))))
+    (overlay-put o 'isearch-open-invisible (lambda (o) (fold-this-unfold-at-point)))
     (overlay-put o 'face 'fold-this-overlay)
     (overlay-put o 'modification-hooks '(fold-this--unfold-overlay))
-    (overlay-put o 'display (propertize "." 'face 'fold-this-overlay))
-    (overlay-put o 'before-string (propertize "." 'face 'fold-this-overlay))
+    (overlay-put o 'display (propertize fold-header 'face 'fold-this-overlay))
     (overlay-put o 'evaporate t))
   (deactivate-mark))
 

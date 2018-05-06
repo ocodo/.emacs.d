@@ -1,16 +1,15 @@
 ;;; fold-this-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "fold-this" "fold-this.el" (21868 32468 963401
-;;;;;;  0))
+;;;### (autoloads nil "fold-this" "fold-this.el" (23278 48291 0 0))
 ;;; Generated autoloads from fold-this.el
 
 (autoload 'fold-this "fold-this" "\
 
 
-\(fn BEG END)" t nil)
+\(fn BEG END &optional FOLD-HEADER)" t nil)
 
 (autoload 'fold-this-all "fold-this" "\
 
