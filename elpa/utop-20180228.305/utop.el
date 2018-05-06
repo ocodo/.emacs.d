@@ -1,9 +1,9 @@
-;;; utop.el --- Universal toplevel for OCaml
+;;; utop.el --- Universal toplevel for OCaml -*- lexical-binding: t -*-
 
 ;; Copyright: (c) 2011, Jeremie Dimino <jeremie@dimino.org>
 ;; Author: Jeremie Dimino <jeremie@dimino.org>
 ;; URL: https://github.com/diml/utop
-;; Package-Version: 20170508.2343
+;; Package-Version: 20180228.305
 ;; Licence: BSD3
 ;; Version: 1.11
 ;; Package-Requires: ((emacs "24"))
@@ -19,16 +19,15 @@
 ;;; Code:
 
 (require 'easymenu)
-
-;; tabulated-list is a part of Emacs 24
-(require 'tabulated-list nil t)
+(require 'pcase)
+(require 'tabulated-list)
 
 ;; +-----------------------------------------------------------------+
 ;; | License                                                         |
 ;; +-----------------------------------------------------------------+
 
 (defconst utop-license "BSD3"
-"Copyright (c) 2011, Jeremie Dimino <jeremie@dimino.org>
+  "Copyright (c) 2011, Jeremie Dimino <jeremie@dimino.org>
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -232,6 +231,26 @@ end-pos-with-comments)." )
 Non-nil means skip to the end of the phrase after evaluation in the
 Caml toplevel")
 
+(defvar utop--complete-k (lambda (_candidates) '())
+  "continuation function to populate the candidates for the company
+backend")
+
+(defvar utop-protocol-version "0"
+  "detected version of utop protocol. 0 for unknown or version pre")
+
+(defvar utop--read-version nil
+  "whether we've tried to detect the utop version")
+
+(defvar utop--company-loaded nil)
+
+(defun utop--supports-company ()
+  (and
+   ;; version< only works on version numbers 
+   (condition-case nil
+       (version<= "1" utop-protocol-version)
+     (error t))
+   (featurep 'company)))
+
 ;; +-----------------------------------------------------------------+
 ;; | Compability with different ocaml major modes                    |
 ;; +-----------------------------------------------------------------+
@@ -239,19 +258,20 @@ Caml toplevel")
 (defun utop-compat-resolve (choices)
   "Resolve a symbol based on the current major mode. CHOICES is a
 list of 3 function symbols: (tuareg-symbol typerex-symbol caml-symbol)."
-  (cond
-   ((eq major-mode 'tuareg-mode  ) (nth 0 choices))
-   ((eq major-mode 'typerex-mode ) (nth 1 choices))
-   ((eq major-mode 'caml-mode    ) (nth 2 choices))
-   ((eq major-mode 'reason-mode  ) (nth 3 choices))
-   (t (error (format "utop doesn't support the major mode \"%s\". It
-supports caml, tuareg and typerex modes by default. For other
+  (nth
+   (pcase major-mode
+     ('tuareg-mode 0)
+     ('typerex-mode 1)
+     ('caml-mode 2)
+     ('reason-mode 3)
+     (major-mode (error (format "utop doesn't support the major mode \"%s\". It
+supports caml, tuareg, typerex and reason modes by default. For other
 modes you need to set these variables:
 
 - `utop-next-phrase-beginning'
 - `utop-discover-phrase'
-"
-                     (symbol-name major-mode))))))
+" major-mode))))
+   choices))
 
 (defun utop-compat-next-phrase-beginning ()
   (funcall
@@ -266,54 +286,6 @@ modes you need to set these variables:
                           typerex-discover-phrase
                           caml-find-phrase
                           reason-discover-phrase))))
-
-;; +-----------------------------------------------------------------+
-;; | Compability with previous emacs version                         |
-;; +-----------------------------------------------------------------+
-
-(unless (featurep 'tabulated-list)
-  ;; tabulated-list.el is part of Emacs 24
-  ;; This is a thin layer building compability with previous versions
-  (defvar tabulated-list-format nil)
-  (defvar tabulated-list-sort-key nil)
-  (defvar tabulated-list-printer nil)
-  (defvar tabulated-list-revert-hook nil)
-  (defvar tabulated-list-entries nil)
-  (define-derived-mode tabulated-list-mode special-mode "Mini-tabulated list mode"
-    "Tabulated list"
-    (make-local-variable 'tabulated-list-format)
-    (make-local-variable 'tabulated-list-sort-key)
-    (make-local-variable 'tabulated-list-printer)
-    (set (make-local-variable 'revert-buffer-function) 'tabulated-list-revert)
-
-  (defun tabulated-list-init-header ()
-    (save-excursion
-      (let ((inhibit-read-only t))
-            (mapc
-             (lambda (entry)
-               (let* ((name (nth 0 entry))
-                      (size (length name))
-                      (padding (- (nth 1 entry) size)))
-                 (insert name)
-                 (insert-char ?\s padding)
-                 )) tabulated-list-format)
-            (insert "\n"))))
-
-  (defun tabulated-list-print (dummy)
-    (save-excursion
-      (let ((inhibit-read-only t))
-        (mapc (lambda (entry)
-                (goto-char (point-max))
-                (apply tabulated-list-printer entry))
-              tabulated-list-entries))
-      t))
-
-  (defun tabulated-list-revert (ignore-auto noconfirm)
-    (let ((inhibit-read-only t))
-      (delete-region (point-min) (point-max))
-      (tabulated-list-init-header)
-      (tabulated-list-print t))))
-)
 
 ;; +-----------------------------------------------------------------+
 ;; | Utils                                                           |
@@ -357,34 +329,25 @@ it is started."
   "Change the utop state and mode-line-process."
   (setq utop-state state)
   (setq mode-line-process
-        (cond
-         ((eq state 'edit)
-          ": idle")
-         ((eq state 'comp)
-          ": completion")
-         ((eq state 'hist)
-          ": history")
-         ((eq state 'wait)
-          ": running")
-         ((eq state 'copy)
-          ": copying")
-         ((eq state 'done)
-          (let ((status (process-status utop-process)) (code (process-exit-status utop-process)))
-            (cond
-             ((and (eq status 'exit) (= code 0))
-              ": exited[0]")
-             ((eq status 'exit)
-              (let ((msg (concat ": exited[" (int-to-string code) "]")))
-                (add-text-properties 0 (length msg) '(face bold) msg)
-                msg))
-             ((eq status 'signal)
-              (let ((msg (concat ": killed[" (int-to-string code) "]")))
-                (add-text-properties 0 (length msg) '(face bold) msg)
-                msg))
-             (t
-              ": unknown"))))
-         (t
-          ": unknown"))))
+        (pcase state
+          ('edit ": idle")
+          ('comp ": completion")
+          ('hist ": history")
+          ('wait ": running")
+          ('copy ": copying")
+          ('done
+           (let ((status (process-status utop-process))
+                 (code (process-exit-status utop-process)))
+             (cond
+              ((and (eq status 'exit) (= code 0))
+               ": exited[0]")
+              ((or (eq status 'exit) (eq status 'signal))
+               (let* ((status-name (pcase status ('exit "exited") ('signal "killed")))
+                      (msg (concat ": " status-name "[" (int-to-string code) "]")))
+                 (add-text-properties 0 (length msg) '(face bold) msg)
+                 msg))
+              (t ": unknown"))))
+          (_ ": unknown"))))
 
 (defun utop-send-data (cmd)
   "Send current input to utop"
@@ -392,11 +355,9 @@ it is started."
     (setq utop-input-prompt-max utop-prompt-max)
     ;; Send all lines to utop
     (utop-send-string cmd)
-    (while lines
+    (dolist (line lines)
       ;; Send the line
-      (utop-send-string (concat "data:" (car lines) "\n"))
-      ;; Remove it and continue
-      (setq lines (cdr lines)))
+      (utop-send-string (concat "data:" line "\n")))
     (utop-send-string "end:\n")))
 
 (defun utop-last-type ()
@@ -427,7 +388,7 @@ it is started."
             (left-word 1)
             (setq iterating (not (save-excursion
                                    (search-forward-regexp "[ \t\r\n].*" start-pos t)))))))
-          end-pos)))
+      end-pos)))
 
 (defun utop-ident-at-point ()
   "Identifier at point"
@@ -435,33 +396,30 @@ it is started."
         (end-pos (utop-ident-looking nil)))
     (buffer-substring-no-properties start-pos end-pos)))
 
-; Currently not working - the communication is asynchronous so how to
-; make sure without implementing another state that the type
-; information has been already printed?
+;; Currently not working - the communication is asynchronous so how to
+;; make sure without implementing another state that the type
+;; information has been already printed?
 (defun utop-type-at-point ()
   "Find type of an identifier at point from uTop"
-  (utop-eval-string (utop-ident-at-point))
-  ;  (utop-last-type)
-  )
+  (utop-eval-string (utop-ident-at-point)))
+;;  (utop-last-type)
+
 
 ;; +-----------------------------------------------------------------+
 ;; | Edition control                                                 |
 ;; +-----------------------------------------------------------------+
 
 (defun utop-cannot-edit ()
-  (cond
-   ((eq utop-state 'wait)
-    (signal 'text-read-only '("You cannot edit the buffer while ocaml is evaluating a phrase")))
-   ((eq utop-state 'done)
-    (signal 'text-read-only '("You cannot edit the buffer when ocaml is not running")))
-   ((eq utop-state 'comp)
-    (signal 'text-read-only '("You cannot edit the buffer while waiting for completion")))
-   ((eq utop-state 'copy)
-    (signal 'text-read-only '("You cannot edit the buffer while waiting for copy of last input")))
-   ((eq utop-state 'hist)
-    (signal 'text-read-only '("You cannot edit the buffer while waiting for history")))))
+  (signal
+   'text-read-only
+   (pcase utop-state
+     ('wait "You cannot edit the buffer while ocaml is evaluating a phrase")
+     ('done "You cannot edit the buffer when ocaml is not running")
+     ('comp "You cannot edit the buffer while waiting for completion")
+     ('copy "You cannot edit the buffer while waiting for copy of last input")
+     ('hist "You cannot edit the buffer while waiting for history"))))
 
-(defun utop-before-change (start stop)
+(defun utop-before-change (_start stop)
   (unless utop-inhibit-check
     (cond
      ((not (eq utop-state 'edit))
@@ -586,72 +544,72 @@ it is started."
   ;; Extract the command and its argument
   (string-match "\\`\\([a-z-]*\\):\\(.*\\)\\'" line)
   (let ((command (match-string 1 line)) (argument (match-string 2 line)))
-    (cond
-     ;; Output on stdout
-     ((string= command "stdout")
-      (utop-insert-output argument 'utop-stdout))
-     ;; Output on stderr
-     ((string= command "stderr")
-      (utop-insert-output argument 'utop-stderr))
-     ;; Synchronisation of the phrase terminator
-     ((string= command "phrase-terminator")
-      (setq utop-phrase-terminator argument))
-     ;; A new prompt
-     ((string= command "prompt")
-      (let ((prompt (apply utop-prompt ())))
-        ;; Insert the new prompt
-        (utop-insert-prompt prompt)
-        ;; Increment the command number
-        (setq utop-command-number (+ utop-command-number 1))
-        ;; Send the initial command if any
-        (when utop-initial-command
-          (goto-char (point-max))
-          (insert utop-initial-command)
-          (setq utop-initial-command nil)
-          (utop-eval-input nil t nil utop-initial-mode)
-          (setq utop-initial-mode nil))))
-     ;; Input has been accepted
-     ((string= command "accept")
-      ;; Add a newline character at the end of the buffer
-      (goto-char (point-max))
-      (insert "\n")
-      ;; Make input frozen
-      (add-text-properties utop-prompt-max (point-max) '(face utop-frozen))
-      ;; Highlight errors
-      (let ((offsets (split-string argument "," t)))
-        (while offsets
-          (let ((a (string-to-number (car offsets)))
-                (b (string-to-number (cadr offsets))))
-            (add-text-properties (min (point-max) (+ utop-input-prompt-max a))
-                                 (min (point-max) (+ utop-input-prompt-max b))
-                                 '(face utop-error))
-            (setq offsets (cdr (cdr offsets))))))
-      ;; Make everything read-only
-      (add-text-properties (point-min) (point-max) utop-non-editable-properties)
-      ;; Advance the prompt
-      (setq utop-prompt-min (point-max))
-      (setq utop-prompt-max (point-max)))
-     ;; Continue editiong
-     ((string= command "continue")
-      ;; Add a newline character at the position where the user
-      ;; pressed enter
-      (when utop-pending-position
-        (goto-char (+ utop-prompt-max utop-pending-position))
-        (insert "\n"))
-      ;; Reset the state
-      (utop-set-state 'edit))
-     ;; Part of a history entry
-     ((string= command "history-data")
-      (cond
-       (utop-pending-entry
-        (setq utop-pending-entry (concat utop-pending-entry "\n" argument)))
-       (t
-        (setq utop-pending-entry argument))))
-     ;; End of history data
-     ((string= command "history-end")
-      (progn
-        (cond
-         ((eq utop-state 'copy)
+    (pcase command
+      ;; Output on stdout
+      ("stdout"
+       (utop-insert-output argument 'utop-stdout))
+      ;; Output on stderr
+      ("stderr"
+       (utop-insert-output argument 'utop-stderr))
+      ;; Synchronisation of the phrase terminator
+      ("phrase-terminator"
+       (setq utop-phrase-terminator argument))
+      ;; A new prompt
+      ("prompt"
+       (let ((prompt (apply utop-prompt ())))
+         ;; Insert the new prompt
+         (utop-insert-prompt prompt)
+         ;; Increment the command number
+         (setq utop-command-number (+ utop-command-number 1))
+         ;; Send the initial command if any
+         (when utop-initial-command
+           (goto-char (point-max))
+           (insert utop-initial-command)
+           (setq utop-initial-command nil)
+           (utop-eval-input nil t nil utop-initial-mode)
+           (setq utop-initial-mode nil))))
+      ;; Input has been accepted
+      ("accept"
+       ;; Add a newline character at the end of the buffer
+       (goto-char (point-max))
+       (insert "\n")
+       ;; Make input frozen
+       (add-text-properties utop-prompt-max (point-max) '(face utop-frozen))
+       ;; Highlight errors
+       (let ((offsets (split-string argument "," t)))
+         (while offsets
+           (let ((a (string-to-number (car offsets)))
+                 (b (string-to-number (cadr offsets))))
+             (add-text-properties (min (point-max) (+ utop-input-prompt-max a))
+                                  (min (point-max) (+ utop-input-prompt-max b))
+                                  '(face utop-error))
+             (setq offsets (cdr (cdr offsets))))))
+       ;; Make everything read-only
+       (add-text-properties (point-min) (point-max) utop-non-editable-properties)
+       ;; Advance the prompt
+       (setq utop-prompt-min (point-max))
+       (setq utop-prompt-max (point-max)))
+      ;; Continue editiong
+      ("continue"
+       ;; Add a newline character at the position where the user
+       ;; pressed enter
+       (when utop-pending-position
+         (goto-char (+ utop-prompt-max utop-pending-position))
+         (insert "\n"))
+       ;; Reset the state
+       (utop-set-state 'edit))
+      ;; Part of a history entry
+      ("history-data"
+       (cond
+        (utop-pending-entry
+         (setq utop-pending-entry (concat utop-pending-entry "\n" argument)))
+        (t
+         (setq utop-pending-entry argument))))
+      ;; End of history data
+      ("history-end"
+       (progn
+         (cond
+          ((eq utop-state 'copy)
            (kill-new utop-pending-entry))
           (t
            (goto-char utop-prompt-max)
@@ -659,35 +617,38 @@ it is started."
            (delete-region utop-prompt-max (point-max))
            ;; Insert entry
            (insert utop-pending-entry)))
-           ;; Resume edition
-        (utop-set-state 'edit)))
+         ;; Resume edition
+         (utop-set-state 'edit)))
       ;; We are at a bound of history
-     ((string= command "history-bound")
-      ;; Just resume edition
-      (utop-set-state 'edit))
-     ;; Complete with a word
-     ((string= command "completion-word")
-      (utop-set-state 'edit)
-      (with-current-buffer utop-complete-buffer (insert argument))
-      ;; Hide completion
-      (minibuffer-hide-completions))
-     ;; Start of completion
-     ((string= command "completion-start")
-      (setq utop-completion nil))
-     ;; A new possible completion
-     ((string= command "completion")
-      (push argument utop-completion))
-     ;; End of completion
-     ((string= command "completion-stop")
-      (utop-set-state 'edit)
-      (if (> (length utop-completion) 1)
-          (with-current-buffer utop-complete-buffer
-            (with-output-to-temp-buffer "*Completions*"
-              (display-completion-list (nreverse utop-completion))))
-        (minibuffer-hide-completions))
-      (setq utop-completion nil)))))
+      ("history-bound"
+       ;; Just resume edition
+       (utop-set-state 'edit))
+      ;; Complete with a word
+      ("completion-word"
+       (utop-set-state 'edit)
+       (with-current-buffer utop-complete-buffer (insert argument))
+       ;; Hide completion
+       (minibuffer-hide-completions))
+      ;; Start of completion
+      ("completion-start"
+       (setq utop-completion nil))
+      ;; A new possible completion
+      ("completion"
+       (push argument utop-completion))
+      ;; End of completion
+      ("completion-stop"
+       (utop-set-state 'edit)
+       (if (utop--supports-company)
+           (funcall utop--complete-k (nreverse utop-completion))
+         (progn
+           (if (> (length utop-completion) 1)
+               (with-current-buffer utop-complete-buffer
+                 (with-output-to-temp-buffer "*Completions*"
+                   (display-completion-list (nreverse utop-completion))))
+             (minibuffer-hide-completions))))
+       (setq utop-completion nil)))))
 
-(defun utop-process-output (process output)
+(defun utop-process-output (_process output)
   "Process the output of utop"
   (with-current-buffer utop-buffer-name
     (utop-perform
@@ -696,10 +657,19 @@ it is started."
      ;; Split lines. Each line contains exactly one command
      (let ((lines (split-string utop-output "\n")))
        (while (>= (length lines) 2)
-         ;; Process the first line
-         (utop-process-line (car lines))
-         ;; Remove it and continue
-         (setq lines (cdr lines)))
+         ;; process first line. if we haven't tried reading the version, we'll
+         ;; trying to do it now.
+         (let ((line (car lines)))
+           (if utop--read-version
+               (utop-process-line line)
+             (progn
+               (save-match-data
+                 (if (string-match "protocol-version:\\([0-9]+\\)" line)
+                     (setq utop-protocol-version (match-string 1 line))
+                   (utop-process-line line)))
+               (setq utop--read-version t)))
+           ;; Remove it and continue
+           (setq lines (cdr lines))))
        ;; When the list contains only one element, then this is either
        ;; the end of commands, either an unterminated one, so we save
        ;; it for later
@@ -772,12 +742,13 @@ If ADD-TO-HISTORY is t then the input will be added to history."
     ;; We are now waiting for completion
     (utop-set-state 'comp)
     ;; Send all lines to utop
-    (utop-send-string "complete:\n")
-    (while lines
+    (utop-send-string
+     (if (utop--supports-company)
+         "complete-company:\n"
+       "complete:\n"))
+    (dolist (line lines)
       ;; Send the line
-      (utop-send-string (concat "data:" (car lines) "\n"))
-      ;; Remove it and continue
-      (setq lines (cdr lines)))
+      (utop-send-string (concat "data:" line "\n")))
     (utop-send-string "end:\n")))
 
 (defun utop-complete ()
@@ -932,7 +903,7 @@ defaults to 0."
     (unless (eq utop-state 'done)
       (utop-send-string (format "exit:%d\n" (or exit-code 0))))))
 
-(defun utop-sentinel (process msg)
+(defun utop-sentinel (_process _msg)
   "Callback for process' state change."
   (let ((buffer (get-buffer utop-buffer-name)))
     ;; Do nothing if the buffer does not exist anymore
@@ -989,7 +960,7 @@ defaults to 0."
   ;; Get the list of packages
   (let* ((packages (utop-ocamlfind-list-packages))
          (max-name-length 0))
-        ;; Find the longest package name
+    ;; Find the longest package name
     (mapc
      (lambda (package)
        (setq max-name-length
@@ -1000,16 +971,15 @@ defaults to 0."
     ;; Set the header column size to the maximal length
     (setcdr (elt tabulated-list-format 0) (list max-name-length t))
     ;; Build a list, accumulating in tabulated-list-entries
-    (while packages
-      (let* ((package (car packages))
+    (dolist (package packages)
+      (let* ((package package)
              (name (car package))
              (version (cdr package)))
         (push (list package (vector name version))
-              tabulated-list-entries))
-      (setq packages (cdr packages))))
+              tabulated-list-entries))))
   (setq tabulated-list-entries (nreverse tabulated-list-entries)))
 
-(defun utop-package-printer (id cols)
+(defun utop-package-printer (_id cols)
   "Print one findlib package entry."
   (let ((width (cadr (elt tabulated-list-format 0))))
     (insert-text-button (elt cols 0)
@@ -1036,7 +1006,7 @@ defaults to 0."
     (utop-list-packages-mode)
     (utop-list-packages--refresh)
     (tabulated-list-print t)
-  (display-buffer buffer)))
+    (display-buffer buffer)))
 
 (defun utop-query-load-package-list ()
   "Load packages defined in utop-package-list buffer local variable."
@@ -1182,6 +1152,10 @@ See https://github.com/diml/utop for configuration information."))
   (make-local-variable 'utop-phrase-terminator)
   (make-local-variable 'utop-pending-position)
   (make-local-variable 'utop-pending-entry)
+  (make-local-variable 'utop-protocol-version)
+
+  (make-local-variable 'utop--complete-k)
+  (make-local-variable 'utop--read-version)
 
   ;; Set the hook to call before changing the buffer
   (add-hook 'before-change-functions 'utop-before-change nil t)
@@ -1191,6 +1165,10 @@ See https://github.com/diml/utop for configuration information."))
 
   ;; Save history before killing the buffer
   (add-hook 'kill-buffer-query-functions (lambda () (utop-save-history) t) nil t)
+
+  ;; add company completion hook:
+  (with-eval-after-load 'company
+    (add-to-list 'company-backends #'utop-company-backend))
 
   ;; Start utop
   (utop-start (utop-arguments)))
@@ -1236,7 +1214,21 @@ Special keys for utop:
         (setq utop-command cmd)
         ;; Put it in utop mode
         (with-current-buffer buf (utop-mode)))))
-  buf))
+    buf))
+
+(defun utop-company-backend (command &optional _arg &rest ignored)
+  "company backend for utop completions"
+  (interactive (list 'interactive))
+  (pcase command
+    ('interactive (company-begin-backend 'utop-company-backend))
+    ('sorted t)
+    ('prefix (company-grab-symbol))
+    ('candidates
+     (progn
+       `(:async
+         . ,(lambda (k)
+              (setq utop--complete-k k)
+              (call-interactively #'utop-complete)))))))
 
 (provide 'utop-minor-mode)
 (provide 'utop)

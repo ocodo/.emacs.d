@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "utop" "utop.el" (22873 40548 0 0))
+;;;### (autoloads nil "utop" "utop.el" (23278 47987 0 0))
 ;;; Generated autoloads from utop.el
 
 (autoload 'utop-minor-mode "utop" "\
