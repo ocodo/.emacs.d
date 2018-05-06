@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/zoutline
-;; Package-Version: 20170722.651
+;; Package-Version: 20180314.1059
 ;; Version: 0.1.0
 ;; Keywords: outline
 
@@ -42,6 +42,8 @@
 Return the amount of times moved.
 Return nil if moved 0 times."
   (interactive "p")
+  (unless (bolp)
+    (outline-back-to-heading))
   (let ((pt 0)
         (i 0)
         (outline-ok t))
@@ -108,6 +110,62 @@ Return nil if moved 0 times."
       (cl-incf i))
     (unless (= i 0)
       i)))
+
+(defun zo-add-outline-title ()
+  (save-excursion
+    (outline-previous-visible-heading 1)
+    (if (looking-at (concat outline-regexp " ?:$"))
+        (match-string-no-properties 0)
+      (let ((outline-comment
+             (progn
+               (string-match "\\(.*\\)\\(?:[\\](\\)\\|\\([\\]\\*\\+\\)" outline-regexp)
+               (match-string-no-properties 1 outline-regexp))))
+        (concat outline-comment (make-string (1+ (funcall outline-level)) ?*) " :")))))
+
+(defun zo-insert-outline-below ()
+  (interactive)
+  "Add an unnamed notebook outline at point."
+  (cond
+    ((and (bolp) (eolp)))
+    ((outline-next-visible-heading 1)
+     (insert "\n\n")
+     (backward-char 2))
+    (t
+     (goto-char (point-max))
+     (unless (bolp)
+       (insert "\n"))))
+  (let ((start (point))
+        (title (zo-add-outline-title)))
+    (skip-chars-backward "\n")
+    (delete-region (point) start)
+    (insert "\n\n" title "\n")
+    (let ((inhibit-message t))
+      (save-buffer))))
+
+(defun zo-end-of-subtree ()
+  "Goto to the end of a subtree."
+  (outline-back-to-heading t)
+  (let ((first t)
+        (level (funcall outline-level)))
+    (while (and (not (eobp))
+                (or first (> (funcall outline-level) level)))
+      (setq first nil)
+      (outline-next-heading)))
+  (point))
+
+(defun zo-bnd-subtree ()
+  "Return a cons of heading end and subtree end."
+  (save-excursion
+    (outline-back-to-heading)
+    (cons
+     (save-excursion
+       (outline-end-of-heading)
+       (point))
+     (save-excursion
+       (zo-end-of-subtree)
+       (when (bolp)
+         (backward-char))
+       (point)))))
 
 (provide 'zoutline)
 
