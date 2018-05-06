@@ -41,6 +41,13 @@
 
 (require 'bytecomp)
 (require 'cl-lib)
+(require 'tabulated-list)
+
+(if (and (eq emacs-major-version 24) (eq emacs-minor-version 3))
+    (defsubst hash-table-keys (hash-table)
+      "Return a list of keys in HASH-TABLE."
+      (cl-loop for k being the hash-keys of hash-table collect k))
+  (require 'subr-x))
 
 (eval-when-compile
   (require 'cl)
@@ -964,6 +971,43 @@ If RECURSED is non-nil, recurse into sublists."
   (interactive)
   (setq use-package-statistics (make-hash-table)))
 
+(defun use-package-statistics-status (package)
+  "Return loading configuration status of PACKAGE statistics."
+  (cond ((gethash :config package)      "Configured")
+        ((gethash :init package)        "Initialized")
+        ((gethash :preface package)     "Prefaced")
+        ((gethash :use-package package) "Declared")))
+
+(defun use-package-statistics-last-event (package)
+  "Return the date when PACKAGE's status last changed.
+The date is returned as a string."
+  (format-time-string "%Y-%m-%d %a %H:%M"
+                      (or (gethash :config package)
+                          (gethash :init package)
+                          (gethash :preface package)
+                          (gethash :use-package package))))
+
+(defun use-package-statistics-time (package)
+  "Return the time is took for PACKAGE to load."
+  (+ (float-time (gethash :config-secs package 0))
+     (float-time (gethash :init-secs package 0))
+     (float-time (gethash :preface-secs package 0))
+     (float-time (gethash :use-package-secs package 0))))
+
+(defun use-package-statistics-convert (package)
+  "Return information about PACKAGE.
+
+The information is formatted in a way suitable for
+`use-package-statistics-mode'."
+  (let ((statistics (gethash package use-package-statistics)))
+    (list
+     package
+     (vector
+      (symbol-name package)
+      (use-package-statistics-status statistics)
+      (use-package-statistics-last-event statistics)
+      (format "%.2f" (use-package-statistics-time statistics))))))
+
 (defun use-package-report ()
   "Show current statistics gathered about use-package declarations.
 In the table that's generated, the status field has the following
@@ -974,31 +1018,23 @@ meaning:
   Declared          the use-package declaration was seen"
   (interactive)
   (with-current-buffer (get-buffer-create "*use-package statistics*")
-    (delete-region (point-min) (point-max))
-    (insert "|Package|Status|Last Event|Time|\n")
-    (insert "|-\n")
-    (maphash
-     #'(lambda (key hash)
-         (insert
-          (format "|%s |%s|%s |%.2f|\n" key
-                  (cond ((gethash :config hash)      "Configured")
-                        ((gethash :init hash)        "Initialized")
-                        ((gethash :preface hash)     "Prefaced")
-                        ((gethash :use-package hash) "Declared"))
-                  (format-time-string "[%Y-%m-%d %a %H:%M]"
-                                      (or (gethash :config hash)
-                                          (gethash :init hash)
-                                          (gethash :preface hash)
-                                          (gethash :use-package hash)))
-                  (+ (float-time (gethash :config-secs hash 0))
-                     (float-time (gethash :init-secs hash 0))
-                     (float-time (gethash :preface-secs hash 0))
-                     (float-time (gethash :use-package-secs hash 0))))))
-     use-package-statistics)
-    (goto-char (point-min))
-    (orgtbl-mode)
-    (org-table-align)
+    (setq tabulated-list-entries
+          (mapcar #'use-package-statistics-convert
+                  (hash-table-keys use-package-statistics)))
+    (use-package-statistics-mode)
+    (tabulated-list-print)
     (display-buffer (current-buffer))))
+
+(define-derived-mode use-package-statistics-mode tabulated-list-mode
+  "use-package statistics"
+  "Show current statistics gathered about use-package declarations."
+  (setq tabulated-list-format
+        ;; The sum of column width is 80 caracters:
+        #[("Package" 25 t)
+          ("Status" 13 t)
+          ("Last Event" 23 t)
+          ("Time" 10 t)])
+  (tabulated-list-init-header))
 
 (defun use-package-statistics-gather (keyword name after)
   (let* ((hash (gethash name use-package-statistics
