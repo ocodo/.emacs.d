@@ -4,8 +4,8 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/rake.el
-;; Package-Version: 20170921.801
-;; Version:           0.3.3
+;; Package-Version: 20180212.208
+;; Version:           0.4.2
 ;; Keywords:          rake, ruby
 ;; Package-Requires:  ((f "0.13.0") (dash "1.5.0") (cl-lib "0.5"))
 
@@ -135,13 +135,15 @@ The saved data can be restored with `rake--deserialize-cache'."
     (with-temp-file rake-cache-file
       (insert (let (print-length) (prin1-to-string rake--cache))))))
 
+
 (defun rake--tasks-output (root)
-  (shell-command-to-string
-   (rake--choose-command-prefix root
-                                (list :zeus "zeus rake -T -A"
-                                      :spring "bundle exec spring rake -T -A"
-                                      :bundler "bundle exec rake -T -A"
-                                      :vanilla "rake -T -A"))))
+  (let ((default-directory root))
+    (shell-command-to-string
+     (rake--choose-command-prefix root
+                                  (list :zeus "zeus rake -T -A"
+                                        :spring "bundle exec spring rake -T -A"
+                                        :bundler "bundle exec rake -T -A"
+                                        :vanilla "rake -T -A")))))
 
 (defun rake--parse-tasks (output)
   "Parses the OUTPUT of rake command with list of tasks. Returns a list of tasks."
