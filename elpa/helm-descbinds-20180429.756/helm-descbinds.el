@@ -7,7 +7,7 @@
 
 ;; Author: Taiki SUGAWARA <buzz.taiki@gmail.com>
 ;; URL: https://github.com/emacs-helm/helm-descbinds
-;; Package-Version: 20160916.713
+;; Package-Version: 20180429.756
 ;; Keywords: helm, help
 ;; Version: 1.12
 ;; Package-Requires: ((helm "1.5"))
@@ -116,8 +116,11 @@ This function will be called with two arguments KEY and BINDING."
   :group 'helm-descbinds
   :global t
   (if helm-descbinds-mode
-      (advice-add 'describe-bindings :override #'helm-descbinds)
-      (advice-remove 'describe-bindings #'helm-descbinds)))
+      (progn
+        (advice-add 'describe-bindings :override #'helm-descbinds)
+        (global-unset-key (kbd "<help> C-h")))
+      (advice-remove 'describe-bindings #'helm-descbinds)
+      (global-set-key (kbd "<help> C-h") 'help-for-help)))
 
 ;;;###autoload
 (defun helm-descbinds-install ()
@@ -184,7 +187,10 @@ This function will be called with two arguments KEY and BINDING."
      ((stringp x)
       (insert x))
      ((commandp x)
-      (run-at-time 0.01 nil (lambda (command) (call-interactively command)) x)))))
+      ;; Using a timer here trigger a timer error with help-for-help
+      ;; (and perhaps others that use a timer themselves), so use
+      ;; directly `call-interactively'.
+      (call-interactively x)))))
 
 (defun helm-descbinds-action:describe (candidate)
   "An action that describe selected CANDIDATE function."
