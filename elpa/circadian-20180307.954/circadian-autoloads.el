@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "circadian" "circadian.el" (23138 48871 474532
-;;;;;;  381000))
+;;;### (autoloads nil "circadian" "circadian.el" (23278 48424 0 0))
 ;;; Generated autoloads from circadian.el
 
 (autoload 'circadian-setup "circadian" "\
