@@ -3,12 +3,16 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "easy-hugo" "easy-hugo.el" (23138 48782 270438
-;;;;;;  699000))
+;;;### (autoloads nil "easy-hugo" "easy-hugo.el" (23278 48374 0 0))
 ;;; Generated autoloads from easy-hugo.el
 
 (autoload 'easy-hugo-article "easy-hugo" "\
 Open a list of articles written in hugo with dired.
+
+\(fn)" t nil)
+
+(autoload 'easy-hugo-magit "easy-hugo" "\
+Open magit at current blog.
 
 \(fn)" t nil)
 
@@ -17,13 +21,28 @@ Generate image link.
 
 \(fn)" t nil)
 
+(autoload 'easy-hugo-figure "easy-hugo" "\
+Generate figure shortcode.
+
+\(fn)" t nil)
+
 (autoload 'easy-hugo-put-image "easy-hugo" "\
 Move image to image directory and generate image link.
 
 \(fn)" t nil)
 
+(autoload 'easy-hugo-put-figure "easy-hugo" "\
+Move image to image directory and generate figure shortcode.
+
+\(fn)" t nil)
+
 (autoload 'easy-hugo-pull-image "easy-hugo" "\
 Pull image from internet to image directory and generate image link.
+
+\(fn)" t nil)
+
+(autoload 'easy-hugo-pull-figure "easy-hugo" "\
+Pull image from internet to image directory and generate figure shortcode.
 
 \(fn)" t nil)
 
@@ -50,6 +69,11 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
 
 (autoload 'easy-hugo-preview "easy-hugo" "\
 Preview hugo at localhost.
+
+\(fn)" t nil)
+
+(autoload 'easy-hugo-current-time "easy-hugo" "\
+Generate current time in date format at the frontmatter.
 
 \(fn)" t nil)
 
@@ -105,6 +129,16 @@ Search for blog article with counsel-ag or helm-ag.
 
 (autoload 'easy-hugo-open-config "easy-hugo" "\
 Open Hugo's config file.
+
+\(fn)" t nil)
+
+(autoload 'easy-hugo-complete-tags "easy-hugo" "\
+Auto-complete tags from your posts.
+
+\(fn)" t nil)
+
+(autoload 'easy-hugo-complete-categories "easy-hugo" "\
+Auto-complete categories from your posts.
 
 \(fn)" t nil)
 

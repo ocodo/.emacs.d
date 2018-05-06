@@ -1,12 +1,12 @@
 ;;; easy-hugo.el --- Write blogs made with hugo by markdown or org-mode -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017 by Masashı Mıyaura
+;; Copyright (C) 2017-2018 by Masashı Mıyaura
 
 ;; Author: Masashı Mıyaura
 ;; URL: https://github.com/masasam/emacs-easy-hugo
-;; Package-Version: 20180103.1855
-;; Version: 2.8.21
-;; Package-Requires: ((emacs "24.4"))
+;; Package-Version: 20180416.749
+;; Version: 3.2.26
+;; Package-Requires: ((emacs "24.4") (popup "0.5.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -227,6 +227,9 @@ Because only two are supported by hugo."
 (defvar easy-hugo--sort-char-flg nil
   "Sort char flg of easy-hugo.")
 
+(defvar easy-hugo--sort-publishday-flg nil
+  "Sort publishtime flg of easy-hugo.")
+
 (defvar easy-hugo--refresh nil
   "Refresh flg of easy-hugo.")
 
@@ -365,6 +368,16 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
   (find-file (expand-file-name easy-hugo-postdir easy-hugo-basedir)))
 
 ;;;###autoload
+(defun easy-hugo-magit ()
+  "Open magit at current blog."
+  (interactive)
+  (unless easy-hugo-basedir
+    (error "Please set easy-hugo-basedir variable"))
+  (if (package-installed-p 'magit)
+      (magit-status-internal easy-hugo-basedir)
+    (error "'magit' is not installed")))
+
+;;;###autoload
 (defun easy-hugo-image ()
   "Generate image link."
   (interactive
@@ -393,6 +406,34 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
 		      " alt=\"\" width=\"100%\"/>"))))))
 
 ;;;###autoload
+(defun easy-hugo-figure ()
+  "Generate figure shortcode."
+  (interactive
+   (easy-hugo-with-env
+    (unless (file-directory-p (expand-file-name
+			       easy-hugo-image-directory
+			       (expand-file-name "static" easy-hugo-basedir)))
+      (error "%s does not exist" (expand-file-name
+				  easy-hugo-image-directory
+				  (expand-file-name "static" easy-hugo-basedir))))
+    (let ((file (read-file-name "Image file: " nil
+				(expand-file-name
+				 easy-hugo-image-directory
+				 (expand-file-name "static" easy-hugo-basedir))
+				t
+				(expand-file-name
+				 easy-hugo-image-directory
+				 (expand-file-name "static" easy-hugo-basedir)))))
+      (insert (concat (format "{{< figure src=\"%s%s\""
+			      easy-hugo-url
+			      (concat
+			       "/"
+			       easy-hugo-image-directory
+			       "/"
+			       (file-name-nondirectory file)))
+		      "  title=\"\" >}}"))))))
+
+;;;###autoload
 (defun easy-hugo-put-image ()
   "Move image to image directory and generate image link."
   (interactive
@@ -418,6 +459,33 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
 			       "/"
 			       (file-name-nondirectory file)))
 		      " alt=\"\" width=\"100%\"/>"))))))
+
+;;;###autoload
+(defun easy-hugo-put-figure ()
+  "Move image to image directory and generate figure shortcode."
+  (interactive
+   (easy-hugo-with-env
+    (unless (file-directory-p (expand-file-name
+                               easy-hugo-image-directory
+                               (expand-file-name "static" easy-hugo-basedir)))
+      (error "%s does not exist" (expand-file-name
+                                  easy-hugo-image-directory
+                                  (expand-file-name "static" easy-hugo-basedir))))
+    (let ((file (read-file-name "Image file: " nil
+                                (expand-file-name easy-hugo-default-picture-directory)
+                                t
+                                (expand-file-name easy-hugo-default-picture-directory))))
+      (copy-file file (expand-file-name
+                       (file-name-nondirectory file)
+                       (expand-file-name easy-hugo-image-directory "static")))
+      (insert (concat (format "{{< figure src=\"%s%s\""
+                              easy-hugo-url
+                              (concat
+                               "/"
+                               easy-hugo-image-directory
+                               "/"
+                               (file-name-nondirectory file)))
+                      "  title=\"\" >}}"))))))
 
 ;;;###autoload
 (defun easy-hugo-pull-image ()
@@ -453,6 +521,39 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
 		      " alt=\"\" width=\"100%\"/>"))))))
 
 ;;;###autoload
+(defun easy-hugo-pull-figure ()
+  "Pull image from internet to image directory and generate figure shortcode."
+  (interactive
+   (easy-hugo-with-env
+    (unless (file-directory-p (expand-file-name
+			       easy-hugo-image-directory
+			       (expand-file-name "static" easy-hugo-basedir)))
+      (error "%s does not exist" (expand-file-name
+				  easy-hugo-image-directory
+				  (expand-file-name "static" easy-hugo-basedir))))
+    (let ((url (read-string "URL: " (if (fboundp 'gui-get-selection)
+					(gui-get-selection))))
+	  (file (read-file-name "Save as: "
+				(expand-file-name
+				 easy-hugo-image-directory
+				 (expand-file-name "static" easy-hugo-basedir))
+				(car (last (split-string
+					    (substring-no-properties (gui-get-selection))
+					    "/")))
+				nil)))
+      (when (file-exists-p (file-truename file))
+	(error "%s already exists!" (file-truename file)))
+      (url-copy-file url file t)
+      (insert (concat (format "{{< figure src=\"%s%s\""
+                              easy-hugo-url
+                              (concat
+                               "/"
+                               easy-hugo-image-directory
+                               "/"
+                               (file-name-nondirectory file)))
+                      "  title=\"\" >}}"))))))
+
+;;;###autoload
 (defun easy-hugo-publish ()
   "Adapt local change to the server with hugo."
   (interactive)
@@ -473,12 +574,20 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
        (error "'hugo --destination public' command does not end normally")))
    (when (get-buffer "*hugo-publish*")
      (kill-buffer "*hugo-publish*"))
-   (shell-command-to-string
-    (concat "rsync -rtpl --chmod="
-	    easy-hugo-publish-chmod " --delete "
-	    easy-hugo-rsync-delete-directory " "
-	    easy-hugo-sshdomain ":"
-	    (shell-quote-argument easy-hugo-root)))
+   (let ((ret (call-process "rsync"
+			    nil
+			    "*hugo-rsync*"
+			    t
+			    "-rtpl"
+			    (concat "--chmod=" easy-hugo-publish-chmod)
+			    "--delete"
+			    easy-hugo-rsync-delete-directory
+			    (concat easy-hugo-sshdomain ":" (shell-quote-argument easy-hugo-root)))))
+     (unless (zerop ret)
+       (switch-to-buffer (get-buffer "*hugo-rsync*"))
+       (error "'rsync' command does not end normally")))
+   (when (get-buffer "*hugo-rsync*")
+     (kill-buffer "*hugo-rsync*"))
    (message "Blog published")
    (when easy-hugo-url
      (browse-url easy-hugo-url))))
@@ -529,12 +638,23 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
 	(error "'hugo --destination public' command does not end normally")))
     (when (get-buffer "*hugo-publish*")
       (kill-buffer "*hugo-publish*"))
-    (shell-command-to-string
-     (concat "rsync -rtpl --chmod="
-	     easy-hugo-publish-chmod " --delete "
-	     easy-hugo-rsync-delete-directory " "
-	     (easy-hugo-nth-eval-bloglist easy-hugo-sshdomain n) ":"
-	     (shell-quote-argument (easy-hugo-nth-eval-bloglist easy-hugo-root n))))
+    (let ((ret (call-process "rsync"
+			     nil
+			     "*hugo-rsync*"
+			     t
+			     "-rtpl"
+			     (concat "--chmod=" easy-hugo-publish-chmod)
+			     "--delete"
+			     easy-hugo-rsync-delete-directory
+			     (concat
+			      (easy-hugo-nth-eval-bloglist easy-hugo-sshdomain n)
+			      ":"
+			      (shell-quote-argument (easy-hugo-nth-eval-bloglist easy-hugo-root n))))))
+      (unless (zerop ret)
+	(switch-to-buffer (get-buffer "*hugo-rsync*"))
+	(error "'rsync' command does not end normally")))
+    (when (get-buffer "*hugo-rsync*")
+      (kill-buffer "*hugo-rsync*"))
     (message "Blog published")
     (when (easy-hugo-nth-eval-bloglist easy-hugo-url n)
       (browse-url (easy-hugo-nth-eval-bloglist easy-hugo-url n)))
@@ -680,7 +800,7 @@ If not applicable, return the default preview."
 	(nth 0
 	     (split-string
 	      (with-current-buffer
-		  (url-retrieve-synchronously (concat "http://127.0.0.1:1313/" url))
+		  (easy-hugo--url-retrieve-synchronously (concat "http://127.0.0.1:1313/" url))
 		(prog1
 		    (buffer-string)
 		  (kill-buffer)))
@@ -694,12 +814,86 @@ If not applicable, return the default preview."
 	(nth 0
 	     (split-string
 	      (with-current-buffer
-		  (url-retrieve-synchronously "http://127.0.0.1:1313/")
+		  (easy-hugo--url-retrieve-synchronously "http://127.0.0.1:1313/")
 		(prog1
 		    (buffer-string)
 		  (kill-buffer)))
 	      "\n"))
 	" ")))
+
+(defun easy-hugo--url-retrieve-synchronously (url &optional silent inhibit-cookies)
+  "Retrieve URL synchronously.
+Return the buffer containing the data, or nil if there are no data
+associated with it (the case for dired, info, or mailto URLs that need
+no further processing).  URL is either a string or a parsed URL.
+If SILENT is non-nil, don't display progress reports and similar messages.
+If INHIBIT-COOKIES is non-nil, cookies will neither be stored nor sent
+to the server."
+  (url-do-setup)
+
+  (let ((retrieval-done nil)
+        (asynch-buffer nil))
+    (setq asynch-buffer
+	  (url-retrieve url (lambda (&rest ignored)
+			      (url-debug 'retrieval "Synchronous fetching done (%S)" (current-buffer))
+			      (setq retrieval-done t
+				    asynch-buffer (current-buffer)))
+			nil silent inhibit-cookies))
+    (if (null asynch-buffer)
+        ;; We do not need to do anything, it was a mailto or something
+        ;; similar that takes processing completely outside of the URL
+        ;; package.
+        nil
+      (let ((proc (get-buffer-process asynch-buffer)))
+	;; If the access method was synchronous, `retrieval-done' should
+	;; hopefully already be set to t.  If it is nil, and `proc' is also
+	;; nil, it implies that the async process is not running in
+	;; asynch-buffer.  This happens e.g. for FTP files.  In such a case
+	;; url-file.el should probably set something like a `url-process'
+	;; buffer-local variable so we can find the exact process that we
+	;; should be waiting for.  In the mean time, we'll just wait for any
+	;; process output.
+	(while (not retrieval-done)
+	  (url-debug 'retrieval
+		     "Spinning in url-retrieve-synchronously: %S (%S)"
+		     retrieval-done asynch-buffer)
+          (if (buffer-local-value 'url-redirect-buffer asynch-buffer)
+              (setq proc (get-buffer-process
+                          (setq asynch-buffer
+                                (buffer-local-value 'url-redirect-buffer
+                                                    asynch-buffer))))
+            (if (and proc (memq (process-status proc)
+                                '(closed exit signal failed))
+                     ;; Make sure another process hasn't been started.
+                     (eq proc (or (get-buffer-process asynch-buffer) proc)))
+                ;; FIXME: It's not clear whether url-retrieve's callback is
+                ;; guaranteed to be called or not.  It seems that url-http
+                ;; decides sometimes consciously not to call it, so it's not
+                ;; clear that it's a bug, but even then we need to decide how
+                ;; url-http can then warn us that the download has completed.
+                ;; In the mean time, we use this here workaround.
+		;; XXX: The callback must always be called.  Any
+		;; exception is a bug that should be fixed, not worked
+		;; around.
+		(progn ;; Call delete-process so we run any sentinel now.
+		  (delete-process proc)
+		  (setq retrieval-done t)))
+            ;; We used to use `sit-for' here, but in some cases it wouldn't
+            ;; work because apparently pending keyboard input would always
+            ;; interrupt it before it got a chance to handle process input.
+            ;; `sleep-for' was tried but it lead to other forms of
+            ;; hanging.  --Stef
+            (unless (or (with-local-quit
+			  (accept-process-output proc))
+			(null proc))
+              ;; accept-process-output returned nil, maybe because the process
+              ;; exited (and may have been replaced with another).  If we got
+	      ;; a quit, just stop.
+	      (when quit-flag
+		(delete-process proc))
+              (setq proc (and (not quit-flag)
+			      (get-buffer-process asynch-buffer)))))))
+      asynch-buffer)))
 
 (defun easy-hugo--preview-end ()
   "Finish previewing hugo at localhost."
@@ -707,6 +901,14 @@ If not applicable, return the default preview."
     (delete-process easy-hugo--server-process))
   (when (get-buffer easy-hugo--preview-buffer)
     (kill-buffer easy-hugo--preview-buffer)))
+
+;;;###autoload
+(defun easy-hugo-current-time ()
+  "Generate current time in date format at the frontmatter."
+  (interactive)
+  (insert (concat
+	   (format-time-string "%Y-%m-%dT%T")
+	   (easy-hugo--orgtime-format (format-time-string "%z")))))
 
 (defun easy-hugo--orgtime-format (x)
   "Format orgtime as X."
@@ -966,18 +1168,18 @@ If not applicable, return the default preview."
   (if (null easy-hugo-sort-default-char)
       (progn
 	"n .. New blog post    R .. Rename file   G .. Deploy GitHub    D .. Draft list
-p .. Preview          g .. Refresh       A .. Deploy AWS S3    u .. Undraft file
+p .. Preview          g .. Refresh       A .. Deploy AWS S3    u .. Sort publishday
 v .. Open view-mode   s .. Sort time     T .. Publish timer    N .. No help-mode
 d .. Delete post      c .. Open config   W .. AWS S3 timer     I .. GCS timer
 P .. Publish server   C .. Deploy GCS    a .. Search blog ag   H .. GitHub timer
 < .. Previous blog    > .. Next blog     , .. Pre postdir      . .. Next postdir
-F .. Full help [tab]  S .. Sort char     ? .. Describe-mode    q .. Quit easy-hugo
+F .. Full help [tab]  M .. Magit status  ? .. Describe-mode    q .. Quit easy-hugo
 ")
     (progn
       "n .. New blog post    R .. Rename file   G .. Deploy GitHub    D .. Draft list
-p .. Preview          g .. Refresh       A .. Deploy AWS S3    s .. Sort char
-v .. Open view-mode   u .. Undraft file  T .. Publish timer    N .. No help-mode
-d .. Delete post      c .. Open config   S .. Sort time        I .. GCS timer
+p .. Preview          g .. Refresh       A .. Deploy AWS S3    u .. Sort publishday
+v .. Open view-mode   s .. Sort char     T .. Publish timer    N .. No help-mode
+d .. Delete post      c .. Open config   M .. Magit status     I .. GCS timer
 P .. Publish server   C .. Deploy GCS    a .. Search blog ag   H .. GitHub timer
 < .. Previous blog    > .. Next blog     , .. Pre postdir      . .. Next postdir
 F .. Full help [tab]  W .. AWS S3 timer  ? .. Describe-mode    q .. Quit easy-hugo
@@ -1000,12 +1202,21 @@ Enjoy!
   "Help of easy-hugo first time.")
 
 (defcustom easy-hugo-add-help
-  "O .. Open basedir     r .. Refresh       b .. X github timer   t .. X publish-timer
+  (if (null easy-hugo-sort-default-char)
+      (progn
+	"O .. Open basedir     r .. Refresh       b .. X github timer   t .. X publish-timer
 k .. Previous-line    j .. Next line     h .. backward-char    l .. forward-char
 m .. X s3-timer       i .. X GCS timer   f .. File open        V .. View other window
 - .. Pre postdir      + .. Next postdir  w .. Write post       o .. Open other window
-J .. Jump blog        e .. Edit file
-"
+J .. Jump blog        e .. Edit file     S .. Sort char
+")
+    (progn
+      "O .. Open basedir     r .. Refresh       b .. X github timer   t .. X publish-timer
+k .. Previous-line    j .. Next line     h .. backward-char    l .. forward-char
+m .. X s3-timer       i .. X GCS timer   f .. File open        V .. View other window
+- .. Pre postdir      + .. Next postdir  w .. Write post       o .. Open other window
+J .. Jump blog        e .. Edit file     S .. Sort time
+"))
   "Add help of easy-hugo."
   :group 'easy-hugo
   :type 'string)
@@ -1019,7 +1230,9 @@ J .. Jump blog        e .. Edit file
     (define-key map "n" 'easy-hugo-newpost)
     (define-key map "w" 'easy-hugo-newpost)
     (define-key map "a" 'easy-hugo-ag)
+    (define-key map "M" 'easy-hugo-magit)
     (define-key map "c" 'easy-hugo-open-config)
+    (define-key map "u" 'easy-hugo-sort-publishday)
     (define-key map "p" 'easy-hugo-preview)
     (define-key map "P" 'easy-hugo-publish)
     (define-key map "T" 'easy-hugo-publish-timer)
@@ -1072,7 +1285,6 @@ J .. Jump blog        e .. Edit file
     (define-key map "I" 'easy-hugo-google-cloud-storage-deploy-timer)
     (define-key map "i" 'easy-hugo-cancel-google-cloud-storage-deploy-timer)
     (define-key map "D" 'easy-hugo-list-draft)
-    (define-key map "u" 'easy-hugo-undraft)
     (define-key map "q" 'easy-hugo-quit)
     (define-key map "<" 'easy-hugo-previous-blog)
     (define-key map ">" 'easy-hugo-next-blog)
@@ -1150,12 +1362,14 @@ J .. Jump blog        e .. Edit file
   (if easy-hugo--draft-list
       (progn
 	(setq easy-hugo--sort-char-flg nil)
+	(setq easy-hugo--sort-publishday-flg nil)
 	(if (eq 1 easy-hugo--sort-time-flg)
 	    (setq easy-hugo--sort-time-flg 2)
 	  (setq easy-hugo--sort-time-flg 1))
 	(easy-hugo-draft-list))
     (progn
       (setq easy-hugo--sort-char-flg nil)
+      (setq easy-hugo--sort-publishday-flg nil)
       (if (eq 1 easy-hugo--sort-time-flg)
 	  (setq easy-hugo--sort-time-flg 2)
 	(setq easy-hugo--sort-time-flg 1))
@@ -1167,16 +1381,110 @@ J .. Jump blog        e .. Edit file
   (if easy-hugo--draft-list
       (progn
 	(setq easy-hugo--sort-time-flg nil)
+	(setq easy-hugo--sort-publishday-flg nil)
 	(if (eq 1 easy-hugo--sort-char-flg)
 	    (setq easy-hugo--sort-char-flg 2)
 	  (setq easy-hugo--sort-char-flg 1))
 	(easy-hugo-draft-list))
     (progn
       (setq easy-hugo--sort-time-flg nil)
+      (setq easy-hugo--sort-publishday-flg nil)
       (if (eq 1 easy-hugo--sort-char-flg)
 	  (setq easy-hugo--sort-char-flg 2)
 	(setq easy-hugo--sort-char-flg 1))
       (easy-hugo))))
+
+(defun easy-hugo-sort-publishday ()
+  "Sort article by publishday on easy-hugo-mode."
+  (interactive)
+  (if easy-hugo--draft-list
+      (progn
+	(setq easy-hugo--sort-time-flg nil)
+	(setq easy-hugo--sort-char-flg nil)
+	(if (eq 1 easy-hugo--sort-publishday-flg)
+	    (setq easy-hugo--sort-publishday-flg 2)
+	  (setq easy-hugo--sort-publishday-flg 1))
+	(easy-hugo-draft-list))
+    (progn
+      (setq easy-hugo--sort-time-flg nil)
+      (setq easy-hugo--sort-char-flg nil)
+      (if (eq 1 easy-hugo--sort-publishday-flg)
+	  (setq easy-hugo--sort-publishday-flg 2)
+	(setq easy-hugo--sort-publishday-flg 1))
+      (easy-hugo))))
+
+(defun easy-hugo--publishday-alist ()
+  "Return article alist with publishing date."
+  (let* ((files (easy-hugo--directory-files
+		 (expand-file-name
+		  easy-hugo-postdir
+		  easy-hugo-basedir)
+		 ""))
+	 (filelist files)
+	 (result (list)))
+    (let ((source (with-temp-buffer
+		    (while files
+		      (insert-file-contents (car files))
+		      (pop files))
+		    (buffer-string))))
+      (save-match-data
+	(let ((pos 0)
+	      matches)
+	  (while (string-match "^[D\\|d]ate[:]? [=]?+[ ]*\\(.+?\\)$" source pos)
+	    (push (match-string 1 source) matches)
+	    (setq pos (match-end 0)))
+	  (when matches
+	    (let ((timestamplist
+		   (delete "" (split-string
+			       (replace-regexp-in-string
+				"[\"\']" " "
+				(replace-regexp-in-string "[,()]" "" (format "%s" matches)))
+			       " "))))
+	      (while timestamplist
+		(push (cons (car timestamplist) (car filelist)) result)
+		(pop timestamplist)
+		(pop filelist))
+	      result)))))))
+
+(defun easy-hugo--draft-publishday-alist (filesin)
+  "Return article alist from FILESIN with publishing date."
+  (when filesin
+    (let ((files filesin)
+	  (filelist (list))
+	  (result (list)))
+      (while files
+	(push (expand-file-name (car files)
+				(expand-file-name
+				 easy-hugo-postdir
+				 easy-hugo-basedir))
+	      filelist)
+	(pop files))
+      (let ((source (with-temp-buffer
+		      (while filesin
+			(insert-file-contents (expand-file-name (car filesin)
+								(expand-file-name
+								 easy-hugo-postdir
+								 easy-hugo-basedir)))
+			(pop filesin))
+		      (buffer-string))))
+	(save-match-data
+	  (let ((pos 0)
+		matches)
+	    (while (string-match "^[D\\|d]ate[:]? [=]?+[ ]*\\(.+?\\)$" source pos)
+	      (push (match-string 1 source) matches)
+	      (setq pos (match-end 0)))
+	    (when matches
+	      (let ((timestamplist
+		     (delete "" (split-string
+				 (replace-regexp-in-string
+				  "[\"\']" " "
+				  (replace-regexp-in-string "[,()]" "" (format "%s" matches)))
+				 " "))))
+		(while timestamplist
+		  (push (cons (car timestamplist) (car filelist)) result)
+		  (pop timestamplist)
+		  (pop filelist))
+		result))))))))
 
 (defun easy-hugo-forward-char (arg)
   "Forward-char on easy-hugo-mode.
@@ -1248,24 +1556,6 @@ Optional prefix ARG says how many lines to move; default is one line."
 			 (substring (thing-at-point 'line) easy-hugo--forward-char -1)
 			 easy-hugo-postdir)))
 	   (rename-file oldname newname 1)
-	   (easy-hugo-refresh)))))))
-
-(defun easy-hugo-undraft ()
-  "Undraft file on the pointer."
-  (interactive)
-  (when (equal (buffer-name (current-buffer)) easy-hugo--buffer-name)
-    (easy-hugo-with-env
-     (when (> 0.25 (easy-hugo--version))
-       (error "'easy-hugo-undraft' requires hugo 0.25 or higher"))
-     (unless (or (string-match "^$" (thing-at-point 'line))
-		 (eq (point) (point-max))
-		 (> (+ 1 easy-hugo--forward-char) (length (thing-at-point 'line))))
-       (let ((file (expand-file-name
-		    (substring (thing-at-point 'line) easy-hugo--forward-char -1)
-		    easy-hugo-postdir)))
-	 (when (and (file-exists-p file)
-		    (not (file-directory-p file)))
-	   (shell-command-to-string (concat "hugo undraft " file))
 	   (easy-hugo-refresh)))))))
 
 (defun easy-hugo-open ()
@@ -1362,6 +1652,60 @@ Optional prefix ARG says how many lines to move; default is one line."
 	     (when (> easy-hugo--line 0)
 	       (forward-line easy-hugo--line)
 	       (forward-char easy-hugo--forward-char)))))))))
+
+;;;###autoload
+(defun easy-hugo-complete-tags ()
+  "Auto-complete tags from your posts."
+  (interactive)
+  (let ((files (easy-hugo--directory-files-recursively
+		(expand-file-name "content" easy-hugo-basedir) "" nil)))
+    (let ((source (with-temp-buffer
+		    (while files
+		      (insert-file-contents (car files))
+		      (pop files))
+		    (buffer-string))))
+      (save-match-data
+	(let ((pos 0)
+	      matches)
+	  (while (string-match "^[T\\|t]ags[:]? [=]?+.*\\[\\(.+?\\)\\]$" source pos)
+	    (push (match-string 1 source) matches)
+	    (setq pos (match-end 0)))
+	  (insert
+	   (popup-menu*
+	    (delete-dups
+	     (delete "" (split-string
+			 (replace-regexp-in-string "[\"\']" " "
+						   (replace-regexp-in-string
+						    "[,()]" ""
+						    (format "%s" matches)))
+			 " "))))))))))
+
+;;;###autoload
+(defun easy-hugo-complete-categories ()
+  "Auto-complete categories from your posts."
+  (interactive)
+  (let ((files (easy-hugo--directory-files-recursively
+		(expand-file-name "content" easy-hugo-basedir) "" nil)))
+    (let ((source (with-temp-buffer
+		    (while files
+		      (insert-file-contents (car files))
+		      (pop files))
+		    (buffer-string))))
+      (save-match-data
+	(let ((pos 0)
+	      matches)
+	  (while (string-match "^[C\\|c]ategories[:]? [=]?+.*\\[\\(.+?\\)\\]$" source pos)
+	    (push (match-string 1 source) matches)
+	    (setq pos (match-end 0)))
+	  (insert
+	   (popup-menu*
+	    (delete-dups
+	     (delete "" (split-string
+			 (replace-regexp-in-string "[\"\']" " "
+						   (replace-regexp-in-string
+						    "[,()]" ""
+						    (format "%s" matches)))
+			 " "))))))))))
 
 (defun easy-hugo-next-blog ()
   "Go to next blog."
@@ -1592,6 +1936,19 @@ Optional prefix ARG says how many lines to move; default is one line."
         (and (memq system-type '(windows-nt ms-dos))
              (= lastc ?\\)))))
 
+(defun easy-hugo--directory-files (dir regexp)
+  "Return list of all files under DIR that have file names matching REGEXP."
+  (let ((result nil)
+	(files nil)
+	(tramp-mode (and tramp-mode (file-remote-p (expand-file-name dir)))))
+    (dolist (file (sort (file-name-all-completions "" dir)
+			'string<))
+      (unless (member file '("./" "../"))
+	(if (not (easy-hugo--directory-name-p file))
+	    (when (string-match regexp file)
+	      (push (expand-file-name file dir) files)))))
+    (nconc result (nreverse files))))
+
 (defun easy-hugo--directory-files-recursively (dir regexp &optional include-directories)
   "Return list of all files under DIR that have file names matching REGEXP.
 This function works recursively.  Files are returned in \"depth first\"
@@ -1642,7 +1999,7 @@ output directories whose names match REGEXP."
 		file)
 	   (push (match-string 1 file) files))))
      (unless (file-directory-p (expand-file-name easy-hugo-postdir easy-hugo-basedir))
-       (error "%s%s doesn't exist!" easy-hugo-basedir easy-hugo-postdir))
+       (error "%s%s does not exist!" easy-hugo-basedir easy-hugo-postdir))
      (setq easy-hugo--mode-buffer (get-buffer-create easy-hugo--buffer-name))
      (switch-to-buffer easy-hugo--mode-buffer)
      (setq-local default-directory easy-hugo-basedir)
@@ -1669,7 +2026,31 @@ output directories whose names match REGEXP."
      (cond ((eq 1 easy-hugo--sort-char-flg)
 	    (setq files (reverse (sort files 'string<))))
 	   ((eq 2 easy-hugo--sort-char-flg)
-	    (setq files (sort files 'string<))))
+	    (setq files (sort files 'string<)))
+	   ((eq 1 easy-hugo--sort-publishday-flg)
+	    (let ((publist (easy-hugo--draft-publishday-alist files)))
+	      (if publist
+		  (let ((source (reverse (sort publist
+					       (lambda (a b) (string> (car a) (car b)))))))
+		    (setq files nil)
+		    (while source
+		      (push (file-relative-name (cdr (car source))
+						(expand-file-name easy-hugo-postdir easy-hugo-basedir))
+			    files)
+		      (pop source)))
+		(message "There is no file written date in front matter"))))
+	   ((eq 2 easy-hugo--sort-publishday-flg)
+	    (let ((publist (easy-hugo--draft-publishday-alist files)))
+	      (if publist
+		  (let ((source (sort publist
+				      (lambda (a b) (string> (car a) (car b))))))
+		    (setq files nil)
+		    (while source
+		      (push (file-relative-name (cdr (car source))
+						(expand-file-name easy-hugo-postdir easy-hugo-basedir))
+			    files)
+		      (pop source)))
+		(message "There is no file written date in front matter")))))
      (while files
        (push
 	(concat
@@ -1705,7 +2086,7 @@ output directories whose names match REGEXP."
   (interactive)
   (easy-hugo-with-env
    (unless (file-directory-p (expand-file-name easy-hugo-postdir easy-hugo-basedir))
-     (error "%s%s doesn't exist!" easy-hugo-basedir easy-hugo-postdir))
+     (error "%s%s does not exist!" easy-hugo-basedir easy-hugo-postdir))
    (setq easy-hugo--mode-buffer (get-buffer-create easy-hugo--buffer-name))
    (setq easy-hugo--draft-list nil)
    (switch-to-buffer easy-hugo--mode-buffer)
@@ -1741,7 +2122,31 @@ output directories whose names match REGEXP."
 	 (cond ((eq 1 easy-hugo--sort-char-flg)
 		(setq files (reverse (sort files 'string<))))
 	       ((eq 2 easy-hugo--sort-char-flg)
-		(setq files (sort files 'string<))))
+		(setq files (sort files 'string<)))
+	       ((eq 1 easy-hugo--sort-publishday-flg)
+		(let ((publist (easy-hugo--publishday-alist)))
+		  (if publist
+		      (let ((source (sort publist
+					  (lambda (a b) (string> (car a) (car b))))))
+			(setq files nil)
+			(while source
+			  (push (file-relative-name (cdr (car source))
+						    (expand-file-name easy-hugo-postdir easy-hugo-basedir))
+				files)
+			  (pop source)))
+		    (message "There is no file written date in front matter"))))
+	       ((eq 2 easy-hugo--sort-publishday-flg)
+		(let ((publist (easy-hugo--publishday-alist)))
+		  (if publist
+		      (let ((source (reverse (sort publist
+						   (lambda (a b) (string> (car a) (car b)))))))
+			(setq files nil)
+			(while source
+			  (push (file-relative-name (cdr (car source))
+						    (expand-file-name easy-hugo-postdir easy-hugo-basedir))
+				files)
+			  (pop source)))
+		    (message "There is no file written date in front matter")))))
 	 (while files
 	   (unless (or (string= (car files) ".")
 		       (string= (car files) "..")
