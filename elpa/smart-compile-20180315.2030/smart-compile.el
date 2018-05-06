@@ -1,10 +1,10 @@
 ;;; smart-compile.el --- an interface to `compile'
 
-;; Copyright (C) 1998-2017  by Seiji Zenitani
+;; Copyright (C) 1998-2018  by Seiji Zenitani
 
 ;; Author: Seiji Zenitani <zenitani@mac.com>
-;; Version: 20171105
-;; Package-Version: 20171104.2333
+;; Version: 20180316
+;; Package-Version: 20180315.2030
 ;; Keywords: tools, unix
 ;; Created: 1998-12-27
 ;; Compatibility: Emacs 21 or later

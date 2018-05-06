@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "smart-compile" "smart-compile.el" (23064 61036
-;;;;;;  209667 42000))
+;;;### (autoloads nil "smart-compile" "smart-compile.el" (23278 48044
+;;;;;;  0 0))
 ;;; Generated autoloads from smart-compile.el
 
 (autoload 'smart-compile "smart-compile" "\
