@@ -1,11 +1,11 @@
 ;;; vdiff.el --- A diff tool similar to  vimdiff -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017  Free Software Foundation, Inc.
+;; Copyright (C) 2017-2018  Free Software Foundation, Inc.
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; Maintainer: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-vdiff
-;; Package-Version: 20170525.1231
+;; Package-Version: 20180419.757
 ;; Version: 0.2.3
 ;; Keywords: diff
 ;; Package-Requires: ((emacs "24.4") (hydra "0.13.0"))
@@ -62,6 +62,7 @@
 
 (defvar vdiff-mode)
 (defvar vdiff-3way-mode)
+(defvar vdiff-debug nil)
 
 (defgroup vdiff nil
   "Diff tool that is like vimdiff"
@@ -73,18 +74,44 @@
 `vdiff-mode'."
   :type 'boolean)
 
-(defcustom vdiff-diff-program "diff"
-  "diff program to use."
-  :type 'string)
+(defcustom vdiff-diff-algorithms
+  '((diff . "diff -u")
+    (diff-minimal . "diff -u --minimal")
+    (git-diff . "git --no-pager diff --no-index --no-color")
+    (git-diff-myers . "git --no-pager diff --myers --no-index --no-color")
+    (git-diff-minimal . "git --no-pager diff --minimal --no-index --no-color")
+    (git-diff-patience . "git --no-pager diff --patience --no-index --no-color")
+    (git-diff-histogram . "git --no-pager diff --histogram --no-index --no-color")
+    (custom . "diff -u"))
+  "An alist containing choices of diff algorithms to be selected
+by setting `vdiff-diff-algorithm'. If you want to use a custom
+command, set `vidff-diff-algorithm' to `custom' and customize the
+`custom' key in this alist."
+  :type '(alist :key-type symbol :value-type string))
 
-(defcustom vdiff-diff3-program "diff3"
-  "diff3 program to use."
-  :type 'string)
+(defcustom vdiff-diff-algorithm 'diff
+  "Choice of algorithm for generating diffs. The choices are
+`diff', `diff-minimal', `git-diff',`git-diff-myers',
+`git-diff-minimal', `git-diff-patience', `git-diff-histogram' and
+`custom'. See `vdiff-diff-algorithms' for the associated
+commands."
+  :type '(choice (const :tag "diff -u" diff-u)
+                 (const :tag "git diff" git-diff)
+                 (const :tag "git diff --myers" git-diff-myers)
+                 (const :tag "git diff --minimal" git-diff-minimal)
+                 (const :tag "git diff --patience" git-diff-patience)
+                 (const :tag "git diff --histogram" git-diff-histogram)
+                 (const :tag "custom" custom)))
 
-(defcustom vdiff-diff-extra-args ""
-  "Extra arguments to pass to diff. If this is set wrong, you may
-break vdiff. It is empty by default."
-  :type 'string)
+(defcustom vdiff-diff3-command '("diff3")
+  "diff3 command to use. Specify as a list where the car is the command to use
+and the remaining elements are the arguments to the command."
+  :type '(repeat string))
+
+(make-obsolete-variable 'vdiff-diff-program 'vdiff-diff-algorithm "2018-04-17")
+(make-obsolete-variable 'vdiff-diff3-program 'vdiff-diff3-command "2018-04-17")
+(make-obsolete-variable 'vdiff-diff-extra-args "See `vdiff-diff-algorithms'." "2018-04-17")
+(make-obsolete-variable 'vdiff-diff3-extra-args 'vdiff-diff3-command "2018-04-17")
 
 (defcustom vdiff-disable-folding nil
   "If non-nil, disable folding in vdiff buffers."
@@ -244,9 +271,16 @@ because those are handled differently.")
 
 ;; * Utilities
 
+(defsubst vdiff-diff-command ()
+  (let ((cmd-cons (assoc vdiff-diff-algorithm vdiff-diff-algorithms)))
+    (if (stringp (cdr-safe cmd-cons))
+        (split-string (cdr cmd-cons) " ")
+      '("diff" "-u"))))
+
 (defun vdiff--maybe-int (str)
   "Return an int>=0 from STR."
-  (let ((num (and str (string-to-number str))))
+  (let ((num (or (and (numberp str) str)
+                 (and str (string-to-number str)))))
     (when (and (numberp num)
                (>= num 0))
       num)))
@@ -477,37 +511,53 @@ POST-REFRESH-FUNCTION is called when the process finishes."
            (tmp-b (make-temp-file "vdiff-b-"))
            (tmp-c (when vdiff-3way-mode
                     (make-temp-file "vdiff-c-")))
-           (prgm (if vdiff-3way-mode
-                     vdiff-diff3-program
-                   vdiff-diff-program))
+           (base-cmd (if vdiff-3way-mode
+                         vdiff-diff3-command
+                       (vdiff-diff-command)))
            (ses vdiff--session)
-           (cmd (mapconcat
-                 #'identity
-                 (vdiff--non-nil-list
-                  prgm
-                  (vdiff-session-whitespace-args ses)
-                  (vdiff-session-case-args ses)
-                  vdiff-diff-extra-args
-                  tmp-a tmp-b tmp-c)
-                 " "))
+           (cmd (append
+                 base-cmd
+                 (vdiff-session-whitespace-args ses)
+                 (unless (string= (car base-cmd) "git")
+                   (vdiff-session-case-args ses))
+                 (list "--" tmp-a tmp-b)
+                 (when tmp-c
+                   (list tmp-c))))
            (buffers (vdiff-session-buffers ses))
            (proc-buf (vdiff-session-process-buffer ses))
            (proc (get-buffer-process proc-buf)))
       (setq vdiff--last-command cmd)
       (with-current-buffer (car buffers)
-        (write-region nil nil tmp-a nil 'quietly))
+        (write-region nil nil tmp-a nil 'quietly)
+        ;; ensure tmp file ends in newline
+        (save-excursion
+          (goto-char (point-max))
+          (unless (looking-at-p "\n")
+            (write-region "\n" nil tmp-a t 'quietly))))
       (with-current-buffer (cadr buffers)
-        (write-region nil nil tmp-b nil 'quietly))
+        (write-region nil nil tmp-b nil 'quietly)
+        ;; ensure tmp file ends in newline
+        (save-excursion
+          (goto-char (point-max))
+          (unless (looking-at-p "\n")
+            (write-region "\n" nil tmp-b t 'quietly))))
       (when vdiff-3way-mode
         (with-current-buffer (nth 2 buffers)
-          (write-region nil nil tmp-c nil 'quietly)))
+          (write-region nil nil tmp-c nil 'quietly)
+          ;; ensure tmp file ends in newline
+          (save-excursion
+            (goto-char (point-max))
+            (unless (looking-at-p "\n")
+              (write-region "\n" nil tmp-c t 'quietly)))))
       (when proc
         (kill-process proc))
       (with-current-buffer (get-buffer-create proc-buf)
         (erase-buffer))
-      ;; (setq vdiff--last-command cmd)
       (setq proc
-            (start-process-shell-command proc-buf proc-buf cmd))
+            (make-process
+             :name "*vdiff*"
+             :buffer proc-buf
+             :command cmd))
       (when vdiff-3way-mode
         (process-put proc 'vdiff-3way t))
       (process-put proc 'vdiff-session ses)
@@ -555,6 +605,72 @@ an addition when compared to other vdiff buffers."
            res))))
     (nreverse res)))
 
+(defsubst vdiff--inc-lines (lines)
+  (forward-line)
+  (let ((a (car lines))
+        (b (cdr lines)))
+    (cond ((or (looking-at-p " ") (eobp)) (cons (1+ a) (1+ b)))
+          ((looking-at-p "+") (cons a (1+ b)))
+          ((looking-at-p "-") (cons (1+ a) b)))))
+
+(defun vdiff--parse-diff-u (buf)
+  "Parse diff -u output in BUF and return list of hunks."
+  (let ((header-regexp "^@@ -\\([0-9]+\\),[0-9]+ \\+\\([0-9]+\\),[0-9]+ @@")
+        res)
+    (with-current-buffer buf
+      (goto-char (point-min))
+      (while (re-search-forward header-regexp nil t)
+        (forward-line)
+        (let* ((start-line-a (string-to-number (match-string 1)))
+               (start-line-b (string-to-number (match-string 2)))
+               (lines (cons start-line-a start-line-b)))
+          ;; Adjust starting line in case it's not actually a line of one of the
+          ;; files
+          (when (looking-at-p "+")
+            (setcar lines (1- (car lines))))
+          (when (looking-at-p "-")
+            (setcdr lines (1- (cdr lines))))
+          (while (and (not (looking-at-p "@"))
+                      (not (eobp)))
+            (cond ((looking-at-p "+")
+                   ;; addition
+                   (let ((beg-a (car lines))
+                         (beg-b (cdr lines)))
+                     (while (looking-at-p "+")
+                       (setq lines (vdiff--inc-lines lines)))
+                     (when vdiff-debug
+                       (cl-assert (or (looking-at-p " ") (eobp))))
+                     (push
+                      (list (cons (car lines) nil)
+                            (cons beg-b (1- (cdr lines))))
+                      res)))
+                  ((looking-at-p "-")
+                   ;; subtraction or change
+                   (let ((beg-a (car lines))
+                         (beg-b (cdr lines)))
+                     (while (looking-at-p "-")
+                       (setq lines (vdiff--inc-lines lines)))
+                     (if (or (looking-at-p " ") (eobp))
+                         ;; subtraction
+                         (push
+                          (list (cons beg-a (1- (car lines)))
+                                (cons (cdr lines) nil))
+                          res)
+                       (when vdiff-debug
+                         (cl-assert (or (looking-at-p "+") (eobp))))
+                       (let ((beg-b (cdr lines)))
+                         (while (looking-at-p "+")
+                           (setq lines (vdiff--inc-lines lines)))
+                         (when vdiff-debug
+                           (cl-assert (or (looking-at-p " ") (eobp))))
+                         (push
+                          (list (cons beg-a (1- (car lines)))
+                                (cons beg-b (1- (cdr lines))))
+                          res)))))
+                  (t
+                   (setq lines (vdiff--inc-lines lines))))))))
+    (nreverse res)))
+
 (defun vdiff--parse-diff3 (buf)
   "Parse diff3 output in BUF and return list of hunks."
   (catch 'final-res
@@ -593,7 +709,7 @@ parsing the diff output and triggering the overlay updates."
   (unless vdiff--inhibit-diff-update
     (let ((parse-func (if (process-get proc 'vdiff-3way)
                           #'vdiff--parse-diff3
-                        #'vdiff--parse-diff))
+                        #'vdiff--parse-diff-u))
           (ses (process-get proc 'vdiff-session))
           (post-function (process-get proc 'vdiff-post-refresh-function))
           finished)
@@ -678,8 +794,10 @@ parsing the diff output and triggering the overlay updates."
       (write-region a-words nil tmp-file-a nil 'quietly)
       (write-region b-words nil tmp-file-b nil 'quietly)
       (with-current-buffer out-buffer (erase-buffer))
-      (let ((exit-code (call-process
-                        vdiff-diff-program nil out-buffer nil tmp-file-a tmp-file-b)))
+      (let ((exit-code (apply #'call-process
+                              (car (vdiff-diff-command))
+                              nil out-buffer nil tmp-file-a tmp-file-b
+                              (cdr (vdiff-diff-command)))))
         (delete-file tmp-file-a)
         (delete-file tmp-file-b)
         (when (= exit-code 1)
