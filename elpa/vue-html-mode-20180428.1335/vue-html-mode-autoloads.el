@@ -3,19 +3,14 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "vue-html-mode" "vue-html-mode.el" (23138 47656
-;;;;;;  975974 570000))
+;;;### (autoloads nil "vue-html-mode" "vue-html-mode.el" (23278 47983
+;;;;;;  0 0))
 ;;; Generated autoloads from vue-html-mode.el
 
 (autoload 'vue-html-mode "vue-html-mode" "\
 Major mode for Vue.js templates.
 
 \(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads nil nil ("vue-html-mode-pkg.el") (23138 47653 623959
-;;;;;;  662000))
 
 ;;;***
 
