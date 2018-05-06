@@ -8,7 +8,7 @@
 ;; Maintainer: Joe Wreschnig <joe.wreschnig@gmail.com>
 ;; URL: https://git.korewanetadesu.com/apt-sources-list.git
 ;; Package-Requires: ((emacs "24.4"))
-;; Package-Version: 20171004.1143
+;; Package-Version: 20180311.437
 ;; Package-X-Original-Version: 0
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -363,6 +363,7 @@ is not a correctly-formatted APT source."
   (setq-local comment-start-skip "#+ *")
   (font-lock-add-keywords nil apt-sources-list-font-lock-keywords))
 
+;;;###autoload
 (add-to-list
  'auto-mode-alist
  (cons (rx (or (and (any "./") "sources.list")

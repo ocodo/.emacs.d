@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "apt-sources-list" "apt-sources-list.el" (23064
-;;;;;;  60688 724089 654000))
+;;;### (autoloads nil "apt-sources-list" "apt-sources-list.el" (23278
+;;;;;;  48472 0 0))
 ;;; Generated autoloads from apt-sources-list.el
 
 (autoload 'apt-sources-list-mode "apt-sources-list" "\
@@ -29,6 +29,8 @@ The above editing commands will raise errors if the current line
 is not a correctly-formatted APT source.
 
 \(fn)" t nil)
+
+(add-to-list 'auto-mode-alist (cons (rx (or (and (any "./") "sources.list") (and "/sources.list.d/" (one-or-more anything) ".list")) string-end) #'apt-sources-list-mode))
 
 ;;;***
 
