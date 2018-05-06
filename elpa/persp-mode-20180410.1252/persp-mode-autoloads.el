@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "persp-mode" "persp-mode.el" (23138 47994 465130
-;;;;;;  416000))
+;;;### (autoloads nil "persp-mode" "persp-mode.el" (23278 48092 0
+;;;;;;  0))
 ;;; Generated autoloads from persp-mode.el
 
 (autoload 'persp-def-auto-persp "persp-mode" "\
@@ -39,11 +39,6 @@ Here is a keymap of this minor mode:
 \\{persp-mode-map}
 
 \(fn &optional ARG)" t nil)
-
-;;;***
-
-;;;### (autoloads nil nil ("persp-mode-pkg.el") (23138 47988 849115
-;;;;;;  702000))
 
 ;;;***
 
