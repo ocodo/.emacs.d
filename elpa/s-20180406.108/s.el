@@ -4,7 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 1.12.0
-;; Package-Version: 20171102.227
+;; Package-Version: 20180406.108
 ;; Keywords: strings
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -197,11 +197,18 @@ See also `s-split'."
   (declare (pure t) (side-effect-free t))
   (s-chop-suffixes '("\n" "\r") s))
 
-(defun s-truncate (len s)
-  "If S is longer than LEN, cut it down to LEN - 3 and add ... at the end."
+(defun s-truncate (len s &optional ellipsis)
+  "If S is longer than LEN, cut it down and add ELLIPSIS to the end.
+
+The resulting string, including ellipsis, will be LEN characters
+long.
+
+When not specified, ELLIPSIS defaults to ‘...’."
   (declare (pure t) (side-effect-free t))
+  (unless ellipsis
+    (setq ellipsis "..."))
   (if (> (length s) len)
-      (format "%s..." (substring s 0 (- len 3)))
+      (format "%s%s" (substring s 0 (- len (length ellipsis))) ellipsis)
     s))
 
 (defun s-word-wrap (len s)
@@ -664,14 +671,45 @@ interpolated with \"%S\"."
 (defun s-count-matches (regexp s &optional start end)
   "Count occurrences of `regexp' in `s'.
 
-`start', inclusive, and `end', exclusive, delimit the part of `s'
-to match. "
+`start', inclusive, and `end', exclusive, delimit the part of `s' to
+match.  `start' and `end' are both indexed starting at 1; the initial
+character in `s' is index 1.
+
+This function starts looking for the next match from the end of the
+previous match.  Hence, it ignores matches that overlap a previously
+found match.  To count overlapping matches, use
+`s-count-matches-all'."
   (declare (side-effect-free t))
   (save-match-data
     (with-temp-buffer
       (insert s)
       (goto-char (point-min))
       (count-matches regexp (or start 1) (or end (point-max))))))
+
+(defun s-count-matches-all (regexp s &optional start end)
+  "Count occurrences of `regexp' in `s'.
+
+`start', inclusive, and `end', exclusive, delimit the part of `s' to
+match.  `start' and `end' are both indexed starting at 1; the initial
+character in `s' is index 1.
+
+This function starts looking for the next match from the second
+character of the previous match.  Hence, it counts matches that
+overlap a previously found match.  To ignore matches that overlap a
+previously found match, use `s-count-matches'."
+  (declare (side-effect-free t))
+  (let* ((anchored-regexp (format "^%s" regexp))
+         (match-count 0)
+         (i 0)
+         (narrowed-s (substring s
+                                (when start (1- start))
+                                (when end (1- end)))))
+    (save-match-data
+      (while (< i (length narrowed-s))
+        (when (s-matches? anchored-regexp (substring narrowed-s i))
+          (setq match-count (1+ match-count)))
+        (setq i (1+ i))))
+    match-count))
 
 (defun s-wrap (s prefix &optional suffix)
   "Wrap string S with PREFIX and optionally SUFFIX.
