@@ -3,8 +3,8 @@
 ;; Copyright (C) 2012-2016 Free Software Foundation, Inc.
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
-;; Version: 2.13.0
-;; Package-Version: 20180206.2124
+;; Version: 2.14.1
+;; Package-Version: 20180413.30
 ;; Keywords: lists
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -652,7 +652,8 @@ See also: `-last-item'."
   (declare (pure t) (side-effect-free t))
   (car (cdr (cdr (cdr (cdr list))))))
 
-;; TODO: emacs23 support, when dropped remove the condition
+;; TODO: gv was introduced in 24.3, so we can remove the if statement
+;; when support for earlier versions is dropped
 (eval-when-compile
   (require 'cl)
   (if (fboundp 'gv-define-simple-setter)
@@ -666,7 +667,8 @@ See also: `-last-item'."
   (declare (pure t) (side-effect-free t))
   (car (last list)))
 
-;; TODO: emacs23 support, when dropped remove the condition
+;; TODO: gv was introduced in 24.3, so we can remove the if statement
+;; when support for earlier versions is dropped
 (eval-when-compile
   (if (fboundp 'gv-define-setter)
       (gv-define-setter -last-item (val x) `(setcar (last ,x) ,val))
