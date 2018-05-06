@@ -1,10 +1,10 @@
 ;;; helm-gitlab-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-gitlab" "helm-gitlab.el" (22338 19845
-;;;;;;  27372 42000))
+;;;### (autoloads nil "helm-gitlab" "helm-gitlab.el" (23278 48220
+;;;;;;  0 0))
 ;;; Generated autoloads from helm-gitlab.el
 
 (autoload 'helm-gitlab-projects "helm-gitlab" "\
