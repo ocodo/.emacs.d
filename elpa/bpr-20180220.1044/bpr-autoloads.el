@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "bpr" "bpr.el" (23064 61900 546657 189000))
+;;;### (autoloads nil "bpr" "bpr.el" (23278 48438 0 0))
 ;;; Generated autoloads from bpr.el
 
 (autoload 'bpr-spawn "bpr" "\
@@ -18,8 +18,8 @@ Opens the buffer of the last spawned process.
 
 ;;;***
 
-;;;### (autoloads nil nil ("bpr-pkg.el" "test-bpr.el") (23064 61900
-;;;;;;  550657 180000))
+;;;### (autoloads nil nil ("bpr-pkg.el" "test-bpr.el") (23278 48438
+;;;;;;  0 0))
 
 ;;;***
 

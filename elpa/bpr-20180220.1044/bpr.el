@@ -150,7 +150,8 @@ if not, it's called in normal way with one argument - process."
 
 (defun bpr-try-get-project-root ()
   (if (and bpr-use-projectile (fboundp 'projectile-project-root))
-      (projectile-project-root)
+      (let ((projectile-require-project-root nil))
+        (projectile-project-root))
     default-directory))
 
 (defun bpr-create-process-name (cmd)
