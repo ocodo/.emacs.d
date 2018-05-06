@@ -5,7 +5,7 @@
 ;; Authors: Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Olin Shivers <shivers@cs.cmu.edu>
 ;; URL: http://github.com/clojure-emacs/inf-clojure
-;; Package-Version: 20180129.1828
+;; Package-Version: 20180402.1403
 ;; Keywords: processes, clojure
 ;; Version: 2.1.0
 ;; Package-Requires: ((emacs "24.4") (clojure-mode "5.6"))
@@ -69,6 +69,7 @@
 (require 'ansi-color)
 (require 'cl-lib)
 (require 'subr-x)
+(require 'seq)
 
 
 (defgroup inf-clojure nil
@@ -132,6 +133,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
     (define-key map "\C-c\C-c" #'inf-clojure-eval-defun)     ; SLIME/CIDER style
     (define-key map "\C-c\C-b" #'inf-clojure-eval-buffer)
     (define-key map "\C-c\C-r" #'inf-clojure-eval-region)
+    (define-key map "\C-c\M-r" #'inf-clojure-reload)
     (define-key map "\C-c\C-n" #'inf-clojure-eval-form-and-next)
     (define-key map "\C-c\C-z" #'inf-clojure-switch-to-repl)
     (define-key map "\C-c\C-i" #'inf-clojure-show-ns-vars)
@@ -153,6 +155,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
         ["Eval buffer" inf-clojure-eval-buffer t]
         "--"
         ["Load file..." inf-clojure-load-file t]
+        ["Reload file... " inf-clojure-reload t]
         "--"
         ["Switch to REPL" inf-clojure-switch-to-repl t]
         ["Set REPL ns" inf-clojure-set-ns t]
@@ -228,7 +231,7 @@ often connecting to a remote REPL process."
   :safe #'inf-clojure--endpoint-p
   :package-version '(inf-clojure . "2.0.0"))
 
-(defcustom inf-clojure-tools-deps-cmd "clj"
+(defcustom inf-clojure-tools-deps-cmd "clojure"
   "The command used to start a Clojure REPL for tools.deps projects.
 
 Alternatively you can specify a TCP connection cons pair, instead
@@ -295,32 +298,38 @@ See http://blog.jorgenschaefer.de/2014/05/race-conditions-in-emacs-process-filte
 (defun inf-clojure--set-repl-type (proc)
   "Set the REPL type if has not already been set.
 It requires a REPL PROC for inspecting the correct type."
-  (with-current-buffer inf-clojure-buffer
-    (if (not inf-clojure-repl-type)
-        (setq inf-clojure-repl-type (inf-clojure--detect-repl-type proc))
-      inf-clojure-repl-type)))
+  (if (not inf-clojure-repl-type)
+      (let ((repl-type (inf-clojure--detect-repl-type proc)))
+        ;; set the REPL process buffer
+        (with-current-buffer inf-clojure-buffer
+          (setq-local inf-clojure-repl-type repl-type))
+        ;; set in the current buffer
+        (setq-local inf-clojure-repl-type repl-type))
+    inf-clojure-repl-type))
 
-(defun inf-clojure--single-linify (string)
+(defun inf-clojure--whole-comment-line-p (string)
+  "Return true iff STRING is a whole line semicolon comment."
+  (string-match-p "^\s*;" string))
+
+(defun inf-clojure--make-single-line (string)
   "Convert a multi-line STRING in a single-line STRING.
-It also reduces/adds redundant whitespace for readability.  Note
-that this function will transform the empty string in \" \" (it
-adds an empty space)."
-  (replace-regexp-in-string "[ \\|\n]+" " " string))
-
-(defun inf-clojure--trim-newline-right (string)
-  "Trim newlines (only) in STRING."
-  (if (string-match "\n+\\'" string)
-      (replace-match "" t t string)
-    string))
+It also reduces redundant whitespace for readability and removes
+comments."
+  (let* ((lines (seq-filter (lambda (s) (not (inf-clojure--whole-comment-line-p s)))
+                            (split-string string "[\r\n]" t))))
+    (mapconcat (lambda (s)
+                 (if (not (string-match-p ";" s))
+                     (replace-regexp-in-string "\s+" " " s)
+                   (concat s "\n")))
+               lines " ")))
 
 (defun inf-clojure--sanitize-command (command)
   "Sanitize COMMAND for sending it to a process.
 An example of things that this function does is to add a final
 newline at the end of the form.  Return an empty string if the
 sanitized command is empty."
-  (let* ((linified (inf-clojure--single-linify command))
-         (sanitized (inf-clojure--trim-newline-right linified)))
-    (if (or (string-blank-p linified) (string-blank-p sanitized))
+  (let ((sanitized (inf-clojure--make-single-line command)))
+    (if (string-blank-p sanitized)
         ""
       (concat sanitized "\n"))))
 
@@ -333,7 +342,9 @@ always be preferred over `comint-send-string`.  It delegates to
 the string for evaluation.  Refer to `comint-simple-send` for
 customizations."
   (inf-clojure--set-repl-type proc)
-  (comint-simple-send proc string))
+  (let ((sanitized (inf-clojure--sanitize-command string)))
+    (inf-clojure--log-string sanitized "----CMD->")
+    (comint-send-string proc sanitized)))
 
 (defcustom inf-clojure-load-form "(clojure.core/load-file \"%s\")"
   "Format-string for building a Clojure expression to load a file.
@@ -372,6 +383,48 @@ If you are using REPL types, it will pickup the most appropriate
     (`lumo inf-clojure-load-form-lumo)
     (`planck inf-clojure-load-form-planck)
     (_ inf-clojure-load-form)))
+
+(defcustom inf-clojure-reload-form "(require '%s :reload)"
+  "Format-string for building a Clojure expression to reload a file.
+Reload forces loading of all the identified libs even if they are
+already loaded.
+This format string should use `%s' to substitute a namespace and
+should result in a Clojure form that will be sent to the inferior
+Clojure to load that file."
+  :type 'string
+  :safe #'stringp
+  :package-version '(inf-clojure . "2.2.0"))
+
+;; :reload forces loading of all the identified libs even if they are
+  ;; already loaded
+;; :reload-all implies :reload and also forces loading of all libs that the
+;; identified libs directly or indirectly load via require or use
+
+(defun inf-clojure-reload-form (proc)
+  "Return the form to query the Inf-Clojure PROC for reloading a namespace.
+If you are using REPL types, it will pickup the most appropriate
+`inf-clojure-reload-form` variant."
+  (inf-clojure--set-repl-type proc)
+  inf-clojure-reload-form)
+
+(defcustom inf-clojure-reload-all-form "(require '%s :reload-all)"
+  "Format-string for building a Clojure expression to :reload-all a file.
+Reload-all implies :reload and also forces loading of all libs
+that the identified libs directly or indirectly load via require
+or use.
+This format string should use `%s' to substitute a namespace and
+should result in a Clojure form that will be sent to the inferior
+Clojure to load that file."
+  :type 'string
+  :safe #'stringp
+  :package-version '(inf-clojure . "2.2.0"))
+
+(defun inf-clojure-reload-all-form (proc)
+  "Return the form to query the Inf-Clojure PROC for :reload-all of a namespace.
+If you are using REPL types, it will pickup the most appropriate
+`inf-clojure-reload-all-form` variant."
+  (inf-clojure--set-repl-type proc)
+  inf-clojure-reload-all-form)
 
 (defcustom inf-clojure-prompt "^[^=> \n]+=> *"
   "Regexp to recognize prompts in the Inferior Clojure mode."
@@ -512,6 +565,7 @@ to continue it."
 
 (defun inf-clojure-preoutput-filter (str)
   "Preprocess the output STR from interactive commands."
+  (inf-clojure--log-string str "<-RES----")
   (cond
    ((string-prefix-p "inf-clojure-" (symbol-name (or this-command last-command)))
     ;; Remove subprompts and prepend a newline to the output string
@@ -702,6 +756,28 @@ is present it will be used instead of the current file."
     (inf-clojure--send-string proc (format (inf-clojure-load-form proc) file-name))
     (when switch-to-repl
       (inf-clojure-switch-to-repl t))))
+
+(defun inf-clojure-reload (arg)
+  "Send a query to the inferior Clojure for reloading the namespace.
+See variable `inf-clojure-reload-form' and
+`inf-clojure-reload-all-form'.
+
+The prefix argument ARG can change the behavior of the command:
+
+  - C-u M-x `inf-clojure-reload': prompts for a namespace name.
+  - M-- M-x `inf-clojure-reload': executes (require ... :reload-all).
+  - M-- C-u M-x `inf-clojure-reload': reloads all AND prompts."
+  (interactive "P")
+  (let* ((proc (inf-clojure-proc))
+         (reload-all-p (or (equal arg '-) (equal arg '(-4))))
+         (prompt-p (or (equal arg '(4)) (equal arg '(-4))))
+         (ns (if prompt-p
+                (car (inf-clojure-symprompt "Namespace" (clojure-find-ns)))
+              (clojure-find-ns)))
+         (form (if (not reload-all-p)
+                   (inf-clojure-reload-form proc)
+                 (inf-clojure-reload-all-form proc))))
+    (inf-clojure--send-string proc (format form ns))))
 
 (defun inf-clojure-connected-p ()
   "Return t if inferior Clojure is currently connected, nil otherwise."
@@ -1108,7 +1184,7 @@ STRING if present."
                               (concat tag "\n")
                               (concat (prin1-to-string tag) "\n")))
                           (let ((print-escape-newlines t))
-                            (prin1-to-string string)))
+                            (prin1-to-string (substring-no-properties string))))
                   nil
                   (expand-file-name inf-clojure--log-file-name
                                     (inf-clojure-project-root))
@@ -1151,25 +1227,25 @@ output from and including the `inf-clojure-prompt`."
         (sanitized-command (inf-clojure--sanitize-command command)))
     (when (not (string-empty-p sanitized-command))
       (inf-clojure--log-string command "----CMD->")
-      (set-buffer (inf-clojure--get-redirect-buffer))
-      (erase-buffer)
-      (comint-redirect-send-command-to-process sanitized-command redirect-buffer-name process nil t)
+      (with-current-buffer (inf-clojure--get-redirect-buffer)
+        (erase-buffer)
+        (comint-redirect-send-command-to-process sanitized-command redirect-buffer-name process nil t))
       ;; Wait for the process to complete
-      (set-buffer (process-buffer process))
-      (while (and (null comint-redirect-completed)
-                  (accept-process-output process 1 0 t))
-        (sleep-for 0.01))
+      (with-current-buffer (process-buffer process)
+        (while (and (null comint-redirect-completed)
+                    (accept-process-output process 1 0 t))
+          (sleep-for 0.01)))
       ;; Collect the output
-      (set-buffer redirect-buffer-name)
-      (goto-char (point-min))
-      (let* ((buffer-string (buffer-substring-no-properties (point-min) (point-max)))
-             (boundaries (inf-clojure--string-boundaries buffer-string inf-clojure-prompt beg-regexp end-regexp))
-             (beg-pos (car boundaries))
-             (end-pos (car (cdr boundaries)))
-             (prompt-pos (car (cdr (cdr boundaries))))
-             (response-string (substring buffer-string beg-pos (min end-pos prompt-pos))))
-        (inf-clojure--log-string buffer-string "<-RES----")
-        response-string))))
+      (with-current-buffer redirect-buffer-name
+        (goto-char (point-min))
+        (let* ((buffer-string (buffer-substring-no-properties (point-min) (point-max)))
+               (boundaries (inf-clojure--string-boundaries buffer-string inf-clojure-prompt beg-regexp end-regexp))
+               (beg-pos (car boundaries))
+               (end-pos (car (cdr boundaries)))
+               (prompt-pos (car (cdr (cdr boundaries))))
+               (response-string (substring buffer-string beg-pos (min end-pos prompt-pos))))
+          (inf-clojure--log-string buffer-string "<-RES----")
+          response-string)))))
 
 (defun inf-clojure--nil-string-match-p (string)
   "Return true iff STRING is not nil.
@@ -1342,7 +1418,6 @@ which is able to parse results in list form only.  You can peek
 at its implementation for getting to know some utility functions
 you might want to use in your customization."
   :type 'function
-  :safe #'functionp
   :package-version '(inf-clojure . "2.1.0"))
 
 (defconst inf-clojure-clojure-expr-break-chars "^[] \"'`><,;|&{()[@\\^]"
