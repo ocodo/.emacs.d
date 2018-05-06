@@ -1,17 +1,18 @@
 ;;; flyspell-lazy-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "flyspell-lazy" "flyspell-lazy.el" (21664 42506
-;;;;;;  767401 0))
+;;;### (autoloads nil "flyspell-lazy" "flyspell-lazy.el" (23278 48292
+;;;;;;  0 0))
 ;;; Generated autoloads from flyspell-lazy.el
 
 (let ((loads (get 'flyspell-lazy 'custom-loads))) (if (member '"flyspell-lazy" loads) nil (put 'flyspell-lazy 'custom-loads (cons '"flyspell-lazy" loads))))
 
 (defvar flyspell-lazy-mode nil "\
 Non-nil if Flyspell-Lazy mode is enabled.
-See the command `flyspell-lazy-mode' for a description of this minor mode.
+See the `flyspell-lazy-mode' command
+for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `flyspell-lazy-mode'.")
