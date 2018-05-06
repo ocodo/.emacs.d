@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "kurecolor" "kurecolor.el" (22955 53368 709555
-;;;;;;  177000))
+;;;### (autoloads nil "kurecolor" "kurecolor.el" (23278 48161 0 0))
 ;;; Generated autoloads from kurecolor.el
 
 (autoload 'kurecolor-increase-brightness-by-step "kurecolor" "\
