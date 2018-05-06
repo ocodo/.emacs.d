@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "nameless" "nameless.el" (22527 37153 0 0))
+;;;### (autoloads nil "nameless" "nameless.el" (23278 48123 0 0))
 ;;; Generated autoloads from nameless.el
 
 (autoload 'nameless-mode "nameless" "\
@@ -16,10 +16,6 @@ the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
 \(fn &optional ARG)" t nil)
 
 (define-obsolete-function-alias 'nameless-mode-from-hook 'nameless-mode "1.0.0")
-
-;;;***
-
-;;;### (autoloads nil nil ("nameless-pkg.el") (22527 37094 0 0))
 
 ;;;***
 
