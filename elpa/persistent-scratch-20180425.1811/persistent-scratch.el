@@ -2,13 +2,13 @@
 
 ;; Author: Fanael Linithien <fanael4@gmail.com>
 ;; URL: https://github.com/Fanael/persistent-scratch
-;; Package-Version: 20170110.546
-;; Package-X-Original-Version: 0.3
+;; Package-Version: 20180425.1811
+;; Package-X-Original-Version: 0.3.1
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is NOT part of GNU Emacs.
 
-;; Copyright (c) 2015-2016, Fanael Linithien
+;; Copyright (c) 2015-2018, Fanael Linithien
 ;; All rights reserved.
 ;;
 ;; Redistribution and use in source and binary forms, with or without
@@ -152,7 +152,8 @@ representing the time of the last `persistent-scratch-new-backup' call."
           (old-umask (default-file-modes)))
       (set-default-file-modes #o600)
       (unwind-protect
-          (write-region str nil tmp-file nil 0)
+          (let ((coding-system-for-write 'utf-8-unix))
+            (write-region str nil tmp-file nil 0))
         (set-default-file-modes old-umask)))
     (rename-file tmp-file actual-file t))
   (unless file
@@ -185,7 +186,8 @@ same name as a saved buffer, the contents of that buffer will be overwritten."
   (let ((save-data
          (read
           (with-temp-buffer
-            (insert-file-contents (or file persistent-scratch-save-file))
+            (let ((coding-system-for-read 'utf-8-unix))
+              (insert-file-contents (or file persistent-scratch-save-file)))
             (buffer-string)))))
     (dolist (saved-buffer save-data)
       (with-current-buffer (get-buffer-create (aref saved-buffer 0))
@@ -321,7 +323,7 @@ The exact format is undocumented, but must be kept in sync with what
          (buffer-string)
        (buffer-substring-no-properties 1 (1+ (buffer-size)))))
    (when (memq 'point persistent-scratch-what-to-save)
-     (cons (point) (mark)))
+     (cons (point) (ignore-errors (mark))))
    (when (memq 'major-mode persistent-scratch-what-to-save)
      major-mode)
    (when (and (buffer-narrowed-p)
