@@ -21,7 +21,7 @@
 ;; -------------------------------------------------------------------------------------------
 
 ;; URL: http://github.com/ananthakumaran/typescript.el
-;; Package-Version: 20180118.2305
+;; Package-Version: 20180409.422
 ;; Version: 0.1
 ;; Keywords: typescript languages
 ;; Package-Requires: ()
@@ -291,7 +291,7 @@ Match group 1 is the name of the macro.")
      "private" "protected" "public" "readonly" "return" "set" "static" "string"
      "super" "switch"  "this" "throw" "true"
      "try" "type" "typeof" "var" "void"
-     "while" ))
+     "while"))                  ; yield is handled separately
   "Regexp matching any typescript keyword.")
 
 (defconst typescript--basic-type-re
@@ -319,6 +319,7 @@ Match group 1 is the name of the macro.")
                 (list "\\_<for\\_>"
                       "\\s-+\\(each\\)\\_>" nil nil
                       (list 1 'font-lock-keyword-face))
+                (cons "\\_<yield\\(\\*\\|\\_>\\)" 'font-lock-keyword-face)
                 (cons typescript--basic-type-re font-lock-type-face)
                 (cons typescript--constant-re font-lock-constant-face)))
   "Level two font lock keywords for `typescript-mode'.")
@@ -592,6 +593,13 @@ The value must be no less than minus `typescript-indent-level'."
   :safe 'integerp
   :group 'typescript)
 
+(defcustom typescript-indent-switch-clauses t
+  "Enable indenting of switch case and default clauses to
+replicate tsserver behaviour. Indent level is taken to be
+`typescript-indent-level'."
+  :type 'boolean
+  :group 'typescript)
+
 (defcustom typescript-auto-indent-flag t
   "Whether to automatically indent when typing punctuation characters.
 If non-nil, the characters {}();,: also indent the current line
@@ -624,13 +632,72 @@ seldom use, either globally or on a per-buffer basis."
   :type 'hook
   :group 'typescript)
 
+(defcustom typescript-autoconvert-to-template-flag nil
+  "Non-nil means automatically convert plain strings to templates.
+
+When the flag is non-nil the `typescript-autoconvert-to-template'
+is called whenever a plain string delimiter is typed in the buffer."
+  :type 'boolean
+  :group 'typescript)
+
+;;; Public utilities
+
+(defun typescript-convert-to-template ()
+  "Convert the string at point to a template string."
+  (interactive)
+  (save-restriction
+    (widen)
+    (save-excursion
+      (let* ((syntax (syntax-ppss))
+             (str-terminator (nth 3 syntax))
+             (string-start (or (and str-terminator (nth 8 syntax))
+                               ;; We have to consider the case that we're on the start delimiter of a string.
+                               ;; We tentatively take (point) as string-start. If it turns out we're
+                               ;; wrong, then typescript--move-to-end-of-plain-string will fail anway,
+                               ;; and we won't use the bogus value.
+                               (progn
+                                 (forward-char)
+                                 (point)))))
+        (when (typescript--move-to-end-of-plain-string)
+          (let ((end-start (or (nth 8 (syntax-ppss)) -1)))
+            (undo-boundary)
+            (when (=  end-start string-start)
+              (delete-char 1)
+              (insert "`")))
+          (goto-char string-start)
+          (delete-char 1)
+          (insert "`"))))))
+
+(defun typescript-autoconvert-to-template ()
+  "Automatically convert a plain string to a teplate string, if needed.
+
+This function is meant to be automatically invoked when the user
+enters plain string delimiters.  It checks whether the character
+before point is the end of a string.  If it is, then it checks
+whether the string contains ${...}.  If it does, then it converts
+the string from a plain string to a template."
+  (interactive)
+  (save-restriction
+    (widen)
+    (save-excursion
+      (backward-char)
+      (when (and (memq (char-after) '(?' ?\"))
+                 (not (eq (char-before) ?\\)))
+        (let* ((string-start (nth 8 (syntax-ppss))))
+          (when (and string-start
+                     (save-excursion
+                       (re-search-backward "\\${.*?}" string-start t)))
+            (typescript-convert-to-template)))))))
+
 ;;; KeyMap
 
 (defvar typescript-mode-map
   (let ((keymap (make-sparse-keymap)))
-    (mapc (lambda (key)
-	    (define-key keymap key #'typescript-insert-and-indent))
-	  '("{" "}" "(" ")" ":" ";" ","))
+    (dolist (key '("{" "}" "(" ")" ":" ";" ","))
+      (define-key keymap key #'typescript-insert-and-indent))
+    (dolist (key '("\"" "\'"))
+      (define-key keymap key #'typescript-insert-and-autoconvert-to-template))
+    (define-key keymap (kbd "C-c '") #'typescript-convert-to-template)
     keymap)
   "Keymap for `typescript-mode'.")
 
@@ -648,6 +715,12 @@ comment."
                        (1+ (current-indentation)))))
       (indent-according-to-mode))))
 
+(defun typescript-insert-and-autoconvert-to-template (key)
+  "Run the command bount to KEY, and autoconvert to template if necessary."
+  (interactive (list (this-command-keys)))
+  (call-interactively (lookup-key (current-global-map) key))
+  (when typescript-autoconvert-to-template-flag
+    (typescript-autoconvert-to-template)))
 
 ;;; Syntax table and parsing
 
@@ -1483,6 +1556,46 @@ LIMIT defaults to point."
     (when pitem
       (goto-char (typescript--pitem-h-begin pitem )))))
 
+(defun typescript--move-to-end-of-plain-string ()
+  "If the point is in a plain string, move to the end of it.
+
+Otherwise, don't move.  A plain string is a string which is not a
+template string.  The point is considered to be \"in\" a string if
+it is on the delimiters of the string, or any point inside.
+
+Returns point if the end of the string was found, or nil if the
+end of the string was not found."
+  (let ((end-position
+         (save-excursion
+           (let* ((syntax (syntax-ppss))
+                  (str-terminator (nth 3 syntax))
+                  ;; The 8th element will also be set if we are in a comment. So we
+                  ;; check str-terminator to protect against that.
+                  (string-start (and str-terminator
+                                     (nth 8 syntax))))
+             (if (and string-start
+                      (not (eq str-terminator ?`)))
+                 ;; We may already be at the end of the string.
+                 (if (and (eq (char-after) str-terminator)
+                          (not (eq (char-before) ?\\)))
+                     (point)
+                   ;; We just search forward and then check if the hit we get has a
+                   ;; string-start equal to ours.
+                   (loop while (re-search-forward
+                                (concat "\\(?:[^\\]\\|^\\)\\(" (string str-terminator) "\\)")
+                                nil t)
+                         if (eq string-start
+                                (save-excursion (nth 8 (syntax-ppss (match-beginning 1)))))
+                         return (match-beginning 1)))
+               ;; If we are on the start delimiter then the value of syntax-ppss will look
+               ;; like we're not in a string at all, but this function considers the
+               ;; start delimiter to be "in" the string. We take care of this here.
+               (when (memq (char-after) '(?' ?\"))
+                 (forward-char)
+                 (typescript--move-to-end-of-plain-string)))))))
+    (when end-position
+      (goto-char end-position))))
+
 ;;; Font Lock
 (defun typescript--make-framework-matcher (framework &rest regexps)
   "Helper function for building `typescript--font-lock-keywords'.
@@ -2173,7 +2286,11 @@ moved on success."
                      ;; The earlier test for dotted names comes into play if the
                      ;; logic moves over one part of a dotted name at a time (which
                      ;; is what `backward-sexp` normally does).
-                     (looking-back typescript--dotted-name-re nil))
+                     (and (looking-back typescript--dotted-name-re nil)
+                          ;; We don't want the loop to walk over constructs like switch (...) or for (...), etc.
+                          (not (save-excursion
+                                 (backward-word)
+                                 (looking-at "\\_<\\(switch\\|if\\|while\\|until\\|for\\)\\_>\\(?:\\s-\\|\n\\)*(")))))
                     (condition-case nil
                         (backward-sexp)
                       (scan-error nil)))
@@ -2204,24 +2321,47 @@ moved on success."
           ((eq (char-after) ?#) 0)
           ((save-excursion (typescript--beginning-of-macro)) 4)
           ((nth 1 parse-status)
-           (let ((same-indent-p (looking-at
-                                 "[]})]\\|\\_<case\\_>\\|\\_<default\\_>"))
-                 (continued-expr-p (typescript--continued-expression-p)))
-             (goto-char (nth 1 parse-status))
+           (let ((same-indent-p (looking-at "[]})]"))
+                 (switch-keyword-p (looking-at "\\_<default\\_>\\|\\_<case\\_>[^:]"))
+                 (continued-expr-p (typescript--continued-expression-p))
+                 (list-start (nth 1 parse-status)))
+             (goto-char list-start)
              (if (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)")
                  (progn
                    (skip-syntax-backward " ")
-                   (when (or (typescript--backward-to-parameter-list)
-                             (eq (char-before) ?\)))
+                   (cond
+                    ((or (typescript--backward-to-parameter-list)
+                         (eq (char-before) ?\)))
+                     ;; Take the curly brace as marking off the body of a function.
+                     ;; In that case, we want the code that follows to see the indentation
+                     ;; that was in effect at the beginning of the function declaration, and thus
+                     ;; we want to move back over the list of function parameters.
                      (backward-list))
+                    ((looking-back "," nil)
+                     ;; If we get here, we have a comma, spaces and an opening curly brace. (And
+                     ;; (point) is just after the comma.) We don't want to move from the current position
+                     ;; so that object literals in parameter lists are properly indented.
+                     nil)
+                    (t
+                     ;; In all other cases, we don't want to move from the curly brace.
+                     (goto-char list-start)))
                    (back-to-indentation)
-                   (cond (same-indent-p
-                          (current-column))
-                         (continued-expr-p
-                          (+ (current-column) (* 2 typescript-indent-level)
-                             typescript-expr-indent-offset))
-                         (t
-                          (+ (current-column) typescript-indent-level))))
+                   (let* ((in-switch-p (unless same-indent-p
+                                         (looking-at "\\_<switch\\_>")))
+                          (same-indent-p (or same-indent-p
+                                             (and switch-keyword-p
+                                                  in-switch-p)))
+                          (indent
+                           (cond (same-indent-p
+                                  (current-column))
+                                 (continued-expr-p
+                                  (+ (current-column) (* 2 typescript-indent-level)
+                                     typescript-expr-indent-offset))
+                                 (t
+                                  (+ (current-column) typescript-indent-level)))))
+                     (if (and in-switch-p typescript-indent-switch-clauses)
+                         (+ indent typescript-indent-level)
+                       indent)))
                (unless same-indent-p
                  (forward-char)
                  (skip-chars-forward " \t"))
