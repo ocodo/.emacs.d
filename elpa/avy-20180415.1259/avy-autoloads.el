@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "avy" "avy.el" (23138 48943 570604 78000))
+;;;### (autoloads nil "avy" "avy.el" (23278 48462 0 0))
 ;;; Generated autoloads from avy.el
 
 (autoload 'avy-goto-char "avy" "\
@@ -112,11 +112,12 @@ When ARG is non-nil, do the opposite of `avy-all-windows'.
 Jump to a word or subword start.
 
 The window scope is determined by `avy-all-windows' (ARG negates it).
+BEG and END narrow the scope where candidates are searched.
 
 When PREDICATE is non-nil it's a function of zero parameters that
 should return true.
 
-\(fn &optional ARG PREDICATE)" t nil)
+\(fn &optional ARG PREDICATE BEG END)" t nil)
 
 (autoload 'avy-goto-subword-1 "avy" "\
 Jump to the currently visible CHAR at a subword start.
