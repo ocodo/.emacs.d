@@ -1,3 +1,151 @@
+2018-04-07  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search-x.el: Some more tweaks
+
+2018-04-07  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: New user option `el-search-allow-scroll'
+
+2018-04-03  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search-x.el: New user option `el-search-lazy-l'
+
+2018-03-24  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search-x.el: New pattern type `string-lines'
+
+2018-03-18  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Show progress of automatic el-search-query-replace
+
+	* el-search/el-search.el: (el-search--search-and-replace-pattern): Show
+	percentage of progress of automatic query-replace.
+
+2018-03-13  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Add `el-search-looking-at'
+
+	(el-search-make-matcher): Renamed from `el-search--matcher'.  Change all
+	occurrences, including those in el-search/el-search-x.el.
+	(el-search--looking-at-1, el-search-looking-at): New functions.
+
+2018-02-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve working of `el-search-kill-left-over-search-buffers'
+
+	We used to consult the ring elements of el-search-history to identify 
+	buffers with non-nil el-search--temp-buffer-flag which might still be 
+	relevant to the user, which was not optimal.  With this change,
+	`el-search--pending-search-p' becomes a reliable mean to do that, and we
+	can reimplement el-search-kill-left-over-search-buffers to use this 
+	function instead.
+
+	* el-search/el-search.el (el-search--next-buffer): Remove
+	`el-search-hl-post-command-fun' from the local binding of
+	`post-command-hook' in the old buffer so that
+	`el-search--pending-search-p' is guaranteed to return nil there.
+	(el-search-kill-left-over-search-buffers): Use
+	`el-search--pending-search-p' to identify temporarily opened file 
+	buffers which we should not kill.
+
+2018-02-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Small improvements to el-search--search-and-replace-pattern
+
+	* packages/el-search/el-search.el
+	(el-search--search-and-replace-pattern): In particular, unite the
+	"replace all in this buffer" and "replace all in this and all following
+	buffers" answer using a second prompt when appropriate (i.e. when in a
+	multi-buffer session).
+
+2018-02-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Bump version to 1.6; some minor tweaks
+
+2018-02-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Fix single buffer query-replace
+
+	This fix makes ad-hoc (single-buffer) el-search-query-replace start from
+	current point as expected, instead of from the beginning of the buffer.
+
+	(el-search--search-and-replace-pattern): Use the setup function of the 
+	newly created ad-hoc search to make it start from point.
+
+2018-02-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Treat inserted replacements as potential to-replace candidates
+
+	Don't skip the inserted replacement so that it can potentially be 
+	subject to query-replace once more when matching the current search 
+	pattern unless the user chooses to skip matches in replacements.
+
+	* packages/el-search/el-search.el
+	(el-search--search-and-replace-pattern): Do it.
+
+2018-02-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Fix handling of void replacements
+
+	(el-search--replace-hunk): If we effectively killed a match, also kill 
+	any left empty line or trailing whitespace.
+	(el-search--search-and-replace-pattern): Don't try to move to the 
+	beginning of a void replacement.
+
+2018-02-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Don't highlight inserted replacement
+
+	(el-search--search-and-replace-pattern): Don't highlight inserted 
+	replacement.  This was more distracting than helpful.
+
+2018-02-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Update a variable when splicing mode is toggled
+
+	* packages/el-search/el-search.el
+	(el-search--search-and-replace-pattern): Recompute
+	`replacement-contains-another-match' when user toggles splicing-mode.
+
+2018-02-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve quit/error handling in el-search-query-replace
+
+	* packages/el-search/el-search.el
+	(el-search--search-and-replace-pattern): Use catch and throw to 
+	implement user quit.  Allow hitting `q' to quit also from the "There are
+	matches in this replacement" prompt.  Optimize control flow in case of
+	an error.
+
+2018-02-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add face `el-search-highlight-in-prompt-face'
+
+	* packages/el-search/el-search.el
+	(el-search-highlight-in-prompt-face): New face.
+	(el-search--search-and-replace-pattern): When there are matches in the 
+	replacement, don't ding, use the new face to make the prompt stand out 
+	from other prompts instead.
+
+2018-02-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Some minor tweaks
+
+	There were two separate bug sections in the header - fix that. Add
+	comment to "Known Limitations" section that circular syntaxes are 
+	unmatchable.
+	(el-search-pattern-backwards): Add fixme note.
+	(el-search-load-path): Use `remq' instead of `delq' to prevent altering
+	the `load-path'. And some whitespace changes
+
+2018-02-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix el-search's to register save when no search started yet
+
+	* packages/el-search/el-search.el: (el-search-to-register)
+	(el-search-clone-to-register): Throw a `user-error' when value of
+	`el-search--current-search' is nil.
+
 2018-02-05  Michael Heerdegen  <michael_heerdegen@web.de>
 
 	* el-search/el-search.el: Work around Emacs Bug#29857

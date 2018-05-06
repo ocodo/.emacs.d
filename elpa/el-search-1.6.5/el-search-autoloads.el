@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "el-search" "el-search.el" (23166 23037 652848
-;;;;;;  365000))
+;;;### (autoloads nil "el-search" "el-search.el" (23278 48365 0 0))
 ;;; Generated autoloads from el-search.el
 
 (autoload 'el-search-count-matches "el-search" "\
@@ -13,6 +12,16 @@ Like `count-matches' but accepting an el-search PATTERN instead of a regexp.
 Unlike `count-matches' matches \"inside\" other matches also count.
 
 \(fn PATTERN &optional RSTART REND INTERACTIVE)" t nil)
+
+(autoload 'el-search-looking-at "el-search" "\
+El-search version of `looking-at'.
+Return non-nil when there is a match for PATTERN at point in the
+current buffer.
+
+With ALLOW-LEADING-WHITESPACE non-nil, the match may
+be preceded by whitespace.
+
+\(fn PATTERN &optional ALLOW-LEADING-WHITESPACE)" nil nil)
 
 (autoload 'el-search-loop-over-bindings "el-search" "\
 
@@ -177,8 +186,8 @@ Reuse already given input.
 
 ;;;***
 
-;;;### (autoloads nil nil ("el-search-pkg.el" "el-search-x.el") (23166
-;;;;;;  23037 656848 359000))
+;;;### (autoloads nil nil ("el-search-pkg.el" "el-search-x.el") (23278
+;;;;;;  48365 0 0))
 
 ;;;***
 

@@ -1,6 +1,19 @@
 Some of the user visible news were:
 
 
+Version: 1.6.5
+
+  When the new user option `el-search-allow-scroll' is enabled (the
+  default), scrolling doesn't deactivate the current el-search.
+  Unlike isearch you can scroll the current match offscreen - use
+  `el-search-jump-to-search-head' (C-J or M-s e j when using the
+  suggested key bindings) to jump back to the current match.
+
+Version: 1.6.1
+
+  New function `el-search-looking-at', the el-search version of
+  `looking-at'.
+
 Version: 1.5.2
 
   The new command `el-search-to-register' allows to save the current

@@ -40,6 +40,20 @@
 (require 'el-search)
 
 
+(el-search-defpattern string-lines (pattern)
+  "Matches any string whose line count is matched by PATTERN.
+
+Examples: (string-lines 1) matches one-line strings.
+\(string-lines (pred (>= 5))\) matches strings consisting of not
+more than 5 lines."
+  (let ((string (make-symbol "string")))
+    `(and (string)
+          ,string
+          (let ,pattern
+            (with-temp-buffer
+              (insert ,string)
+              (count-lines (point-min) (point-max)))))))
+
 ;;;; `append and `l'
 
 (defun el-search--split (matcher1 matcher2 list)
@@ -80,26 +94,39 @@ Example: the pattern
 
    (append '(1 2 3) x (app car-safe 7))
 
-matches the list (1 2 3 4 5 6 7 8 9) and binds `x' to (4 5 6)."
+matches the list (1 2 3 4 5 6 7 8 9), binding `x' to (4 5 6)."
   (if (null patterns)
       '(pred null)
     (pcase-let ((`(,pattern . ,more-patterns) patterns))
       (cond
-       ((null more-patterns)  pattern)
+       ((null more-patterns) pattern)
        ((null (cdr more-patterns))
         `(and (pred listp)
               (app ,(apply-partially #'el-search--split
-                                     (el-search--matcher pattern)
-                                     (el-search--matcher (car more-patterns)))
+                                     (el-search-make-matcher pattern)
+                                     (el-search-make-matcher (car more-patterns)))
                    `(,,pattern ,,(car more-patterns)))))
        (t `(append ,pattern (append ,@more-patterns)))))))
 
+(defcustom el-search-lazy-l t
+  "Whether to interpret symbols and strings specially in `l'.
+
+When non-nil, the default, `l' based pattern types interpret
+symbols and strings as special LPATS: a SYMBOL matches any symbol
+S matched by SYMBOL's name interpreted as a regexp, and a STRING
+matches any string matched by the STRING interpreted as a regexp.
+
+When nil, symbols and strings act as standard `pcase' patterns."
+  :group 'el-search :type 'boolean)
+
 (defun el-search--transform-nontrivial-lpat (expr)
-  (pcase expr
-    ((and (pred symbolp) (let symbol-name (symbol-name expr)))
-     `(symbol ,symbol-name))
-    ((pred stringp) `(string ,expr))
-    (_ expr)))
+  (if el-search-lazy-l
+      (pcase expr
+        ((and (pred symbolp) (let symbol-name (symbol-name expr)))
+         `(symbol ,symbol-name))
+        ((pred stringp) `(string ,expr))
+        (_ expr))
+    expr))
 
 (el-search-defpattern l (&rest lpats)
   "Alternative pattern type for matching lists.
@@ -109,7 +136,9 @@ order.
 The idea is to be able to search for pieces of code (i.e. lists)
 with very brief input by using a specialized syntax.
 
-An LPAT can take the following forms:
+An LPAT can take the following forms (the special interpretation
+of symbols and strings can be turned off by binding or
+customizing `el-search-lazy-l' to nil):
 
 SYMBOL  Matches any symbol S matched by SYMBOL's name interpreted
         as a regexp.
@@ -117,24 +146,25 @@ SYMBOL  Matches any symbol S matched by SYMBOL's name interpreted
 STRING  Matches any string matched by STRING interpreted as a
         regexp.
 _       Matches any list element.
-__      Matches any number of list elements (including zero).
+__      Matches any number (including zero) of list elements.
 ^       Matches zero elements, but only at the beginning of a list.
         Only allowed as the first of the LPATS.
 $       Matches zero elements, but only at the end of a list.
         Only allowed as the last of the LPATS.
 PAT     Anything else is interpreted as a standard pattern and
-        matches one list element matched by it.  Note: If matching
-        PAT binds any symbols, occurrences in any following PATs
-        are not turned into equivalence tests; the scope of symbol
-        bindings is limited to the PAT itself.
+        matches one list element matched by it.  Note: If
+        matching PAT binds any symbols, occurrences in any
+        following patterns are not turned into equivalence tests;
+        the scope of symbol bindings is limited to the PAT
+        itself.
 
-Example: To match defuns that contain \"hl\" in their name and
-have at least one mandatory, but also optional arguments, you
+Example: To match defuns that contain \"hl\" in the defined name
+and have at least one mandatory, but also optional arguments, you
 could use this pattern:
 
     (l ^ 'defun hl (l _ &optional))"
   ;; We don't allow PATs in `l' to create bindings because to make this
-  ;; work as expected we would need backtracking
+  ;; work as expected we would need some kind of backtracking
   (declare
    (heuristic-matcher
     (lambda (&rest lpats)
@@ -143,9 +173,6 @@ could use this pattern:
          (lambda (lpat)
            (pcase lpat
              ((or '__ '_ '_? '^ '$) t)
-             ((pred symbolp)
-              (funcall (el-search-heuristic-matcher `(symbol ,(symbol-name lpat)))
-                       file-name-or-buffer atoms-thunk))
              (_ (funcall (el-search-heuristic-matcher (el-search--transform-nontrivial-lpat lpat))
                          file-name-or-buffer atoms-thunk))))
          lpats)))))
@@ -349,6 +376,42 @@ files."
   `(guard (el-search--changed-p (point) ,(or revision "HEAD"))))
 
 
+;;;; `outermost' and `top-level'
+
+(el-search-defpattern outermost (pattern &optional not-pattern)
+    "Matches when PATTERN matches but the parent sexp does not.
+For toplevel expressions, this is equivalent to PATTERN.
+
+Optional NOT-PATTERN defaults to PATTERN; when given, match when
+PATTERN matches but the parent sexp is not matched by
+NOT-PATTERN.
+
+
+This pattern is useful to match only the outermost expression
+when subexpressions would match recursively.  For
+example, (outermost _) matches only top-level expressions.
+Another example: For the `change' pattern, any subexpression of a
+match is typically also an according change.  Wrapping the
+`change' pattern into `outermost' prevents el-search from
+descending into any found expression - only the outermost
+expression matching the `change' pattern will be matched."
+    `(and ,pattern
+          (not (guard (save-excursion
+                        (condition-case nil
+                            (progn
+                              (backward-up-list)
+                              (el-search--match-p
+                               ',(el-search-make-matcher (or not-pattern pattern))
+                               (save-excursion (el-search-read (current-buffer)))))
+                          (scan-error)))))))
+
+(el-search-defpattern top-level ()
+  "Matches any toplevel expression."
+  '(outermost _))
+
+
+;;; Sloppy pattern types for quick navigation
+
 ;;;; `keys'
 
 (defun el-search--match-key-sequence (keys expr)
@@ -383,39 +446,6 @@ matches any of these expressions:
    "keys" (list key-sequence) (lambda (x) (or (stringp x) (vectorp x))) "argument not a string or vector")
   `(pred (el-search--match-key-sequence ,key-sequence)))
 
-
-;;;; `outermost' and `top-level'
-
-(el-search-defpattern outermost (pattern &optional not-pattern)
-    "Matches when PATTERN matches but the parent sexp does not.
-For toplevel expressions, this is equivalent to PATTERN.
-
-Optional NOT-PATTERN defaults to PATTERN; when given, match when
-PATTERN matches but the parent sexp is not matched by
-NOT-PATTERN.
-
-
-This pattern is useful to match only the outermost expression
-when subexpressions would match recursively.  For
-example, (outermost _) matches only top-level expressions.
-Another example: For the `change' pattern, any subexpression of a
-match is typically also an according change.  Wrapping the
-`change' pattern into `outermost' prevents el-search from
-descending into any found expression - only the outermost
-expression matching the `change' pattern will be matched."
-    `(and ,pattern
-          (not (guard (save-excursion
-                        (condition-case nil
-                            (progn
-                              (backward-up-list)
-                              (el-search--match-p
-                               ',(el-search--matcher (or not-pattern pattern))
-                               (save-excursion (el-search-read (current-buffer)))))
-                          (scan-error)))))))
-
-(el-search-defpattern top-level ()
-  "Matches any toplevel expression."
-  '(outermost _))
 
 
 ;;; Patterns for stylistic rewriting and syntactical simplification
