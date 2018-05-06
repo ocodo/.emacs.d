@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "kotlin-mode" "kotlin-mode.el" (23064 61291
-;;;;;;  912490 420000))
+;;;### (autoloads nil "kotlin-mode" "kotlin-mode.el" (23278 48163
+;;;;;;  0 0))
 ;;; Generated autoloads from kotlin-mode.el
 
 (autoload 'kotlin-mode "kotlin-mode" "\
