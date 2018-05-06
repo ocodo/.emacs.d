@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "nim-capf" "nim-capf.el" (23064 61191 716908
-;;;;;;  411000))
+;;;### (autoloads nil "nim-capf" "nim-capf.el" (23278 48115 0 0))
 ;;; Generated autoloads from nim-capf.el
 
 (autoload 'nim-capf-nimsuggest-completion-at-point "nim-capf" "\
@@ -30,8 +29,8 @@ Setup.
 
 ;;;***
 
-;;;### (autoloads nil "nim-compile" "nim-compile.el" (23064 61191
-;;;;;;  720908 393000))
+;;;### (autoloads nil "nim-compile" "nim-compile.el" (23278 48115
+;;;;;;  0 0))
 ;;; Generated autoloads from nim-compile.el
 
 (autoload 'nim-compile "nim-compile" "\
@@ -43,8 +42,7 @@ If you put COMMAND argument, you can specify the compilation command.
 
 ;;;***
 
-;;;### (autoloads nil "nim-mode" "nim-mode.el" (23064 61191 728908
-;;;;;;  358000))
+;;;### (autoloads nil "nim-mode" "nim-mode.el" (23278 48115 0 0))
 ;;; Generated autoloads from nim-mode.el
 
 (autoload 'nim-mode "nim-mode" "\
@@ -91,8 +89,8 @@ use `nim-eldoc-off' manually if you don't like it.
 
 ;;;***
 
-;;;### (autoloads nil "nim-suggest" "nim-suggest.el" (23064 61191
-;;;;;;  728908 358000))
+;;;### (autoloads nil "nim-suggest" "nim-suggest.el" (23278 48115
+;;;;;;  0 0))
 ;;; Generated autoloads from nim-suggest.el
 
 (autoload 'nimsuggest-available-p "nim-suggest" "\
@@ -125,7 +123,7 @@ Setup xref backend for nimsuggest.
 
 ;;;### (autoloads nil nil ("nim-fill.el" "nim-helper.el" "nim-mode-pkg.el"
 ;;;;;;  "nim-rx.el" "nim-smie.el" "nim-syntax.el" "nim-util.el" "nim-vars.el")
-;;;;;;  (23064 61191 728908 358000))
+;;;;;;  (23278 48115 0 0))
 
 ;;;***
 
