@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (23166 23074 556803 783000))
+;;;;;;  (23278 48317 0 0))
 ;;; Generated autoloads from find-file-in-project.el
 
 (autoload 'ffip-git-diff-current-file "find-file-in-project" "\
@@ -123,6 +123,12 @@ You can override this by setting the variable `ffip-project-root'.
 
 \(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
 
+(autoload 'find-file-in-project-at-point "find-file-in-project" "\
+Find file whose name is guessed around point.
+If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
+
+\(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
+
 (autoload 'find-file-in-current-directory "find-file-in-project" "\
 Like `find-file-in-project'.  But search only in current directory.
 IF OPEN-ANOTHER-WINDOW is t, results are displayed in new window.
@@ -232,7 +238,7 @@ If NUM is not nil, the corresponding backend is executed directly.
 Apply current hunk in `diff-mode'.  Try to locate the file to patch.
 Similar to `diff-apply-hunk' but smarter.
 Please read documenation of `diff-apply-hunk' to get more details.
-If REVERSE is t, appied patch is reverted.
+If REVERSE is t, applied patch is reverted.
 
 \(fn &optional REVERSE)" t nil)
 
