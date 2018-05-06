@@ -1,1 +1,0 @@
-@bash %~dp0buttercup
