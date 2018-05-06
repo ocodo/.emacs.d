@@ -3,11 +3,11 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "projectile-rails" "projectile-rails.el" (23064
-;;;;;;  61083 601419 675000))
+;;;### (autoloads nil "projectile-rails" "projectile-rails.el" (23278
+;;;;;;  48079 0 0))
 ;;; Generated autoloads from projectile-rails.el
 
-(autoload 'projetile-rails-views-goto-file-at-point "projectile-rails" "\
+(autoload 'projectile-rails-views-goto-file-at-point "projectile-rails" "\
 Try to find a view file at point.
 Will try to look for a template or partial file, and assets file.
 

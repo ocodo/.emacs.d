@@ -4,7 +4,7 @@
 
 ;; Author:            Adam Sokolnicki <adam.sokolnicki@gmail.com>
 ;; URL:               https://github.com/asok/projectile-rails
-;; Package-Version: 20171117.730
+;; Package-Version: 20180427.1218
 ;; Version:           0.15.0
 ;; Keywords:          rails, projectile
 ;; Package-Requires:  ((emacs "24.3") (projectile "0.12.0") (inflections "1.1") (inf-ruby "2.2.6") (f "0.13.0") (rake "0.3.2"))
@@ -982,7 +982,7 @@ This only works when yas package is installed."
     (projectile-rails-goto-constant-at-point) t)))
 
 ;;;###autoload
-(defun projetile-rails-views-goto-file-at-point ()
+(defun projectile-rails-views-goto-file-at-point ()
   "Try to find a view file at point.
 Will try to look for a template or partial file, and assets file."
   (interactive)
@@ -1130,7 +1130,7 @@ DIRS are directories where to look for assets."
          (projectile-rails-sanitize-name (thing-at-point 'filename))))
     (projectile-rails-ff
      (loop for dir in dirs
-           for re = (s-lex-format "${dir}${name}\\..+$")
+           for re = (s-lex-format "${dir}${name}\\(\\..+\\)*$")
            for files = (projectile-dir-files (projectile-rails-expand-root dir))
            for file = (--first (string-match-p re it) files)
            until file
