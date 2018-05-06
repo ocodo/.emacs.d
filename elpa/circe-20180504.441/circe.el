@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2005 - 2015  Jorgen Schaefer
 
-;; Version: 2.6
+;; Version: 2.9
 ;; Keywords: IRC, chat
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; URL: https://github.com/jorgenschaefer/circe
@@ -31,7 +31,7 @@
 
 ;;; Code:
 
-(defvar circe-version "2.6"
+(defvar circe-version "2.9"
   "Circe version string.")
 
 (require 'circe-compat)
@@ -2792,6 +2792,13 @@ Arguments are IGNORED."
   (interactive "sWhois: ")
   (let ((whom (string-trim whom)))
     (irc-send-WHOWAS (circe-server-process) whom)))
+
+(defun circe-command-STATS (query)
+  "Request statistics from a server."
+  (interactive)
+  ;; Split string into query and server if we can
+  (let ((query (split-string query)))
+    (irc-send-STATS (circe-server-process) (car query) (cadr query))))
 
 (defun circe-command-WL (&optional split)
   "Show the people who left in a netsplit.
