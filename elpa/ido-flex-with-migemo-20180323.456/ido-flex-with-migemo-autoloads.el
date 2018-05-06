@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "ido-flex-with-migemo" "ido-flex-with-migemo.el"
-;;;;;;  (0 0 0 0))
+;;;;;;  (23278 48198 0 0))
 ;;; Generated autoloads from ido-flex-with-migemo.el
 
 (defvar ido-flex-with-migemo-mode nil "\
@@ -21,8 +21,6 @@ or call the function `ido-flex-with-migemo-mode'.")
 Toggle ido flex with migemo mode
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ido-flex-with-migemo" '("ido-flex-with-migemo--")))
 
 ;;;***
 
