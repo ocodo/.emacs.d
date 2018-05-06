@@ -5,7 +5,7 @@
 
 ;; Author: Sebastian Wiesner <swiesner@lunaryorn.com>
 ;; URL: https://github.com/flycheck/flycheck-rust
-;; Package-Version: 20171021.151
+;; Package-Version: 20180327.945
 ;; Keywords: tools, convenience
 ;; Version: 0.1-cvs
 ;; Package-Requires: ((emacs "24.1") (flycheck "28") (dash "2.13.0") (seq "2.3") (let-alist "1.0.4"))
@@ -32,7 +32,8 @@
 ;;
 ;; # Setup
 ;;
-;;     (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
+;;     (with-eval-after-load 'rust-mode
+;;       (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
 ;;
 ;; # Usage
 ;;
@@ -108,7 +109,7 @@ more information on setting your PATH with Emacs."))
                                (let ((json-array-type 'list))
                                  (json-read)))
                            .packages))
-      (seq-mapcat (lambda (pkg)
+      (seq-map (lambda (pkg)
                     (let-alist pkg .targets))
                   packages))))
 
@@ -128,7 +129,8 @@ the closest matching target, or nil if no targets could be found.
 See http://doc.crates.io/manifest.html#the-project-layout for a
 description of the conventional Cargo project layout."
   (-when-let* ((manifest (flycheck-rust-find-manifest file-name))
-               (targets (flycheck-rust-get-cargo-targets manifest)))
+               (packages (flycheck-rust-get-cargo-targets manifest))
+               (targets (-flatten-n 1 packages)))
     (let ((target
            (or
             ;; If there is a target that matches the file-name exactly, pick
@@ -151,7 +153,16 @@ description of the conventional Cargo project layout."
                                             (file-name-directory manifest)))))
             ;; If all else fails, just pick the first target
             (car targets))))
-      (let-alist target (cons (flycheck-rust-normalize-target-kind .kind) .name)))))
+      ;; If target is 'custom-build', we pick another target from the same package (see GH-62)
+      (when (string= "custom-build" (let-alist target (car .kind)))
+        (setq target (->> packages
+                          ;; find the same package as current build-script buffer
+                          (--find (--any? (equal target it) it))
+                          (--find (not (equal target it))))))
+      (when target
+        (let-alist target
+          (cons (flycheck-rust-normalize-target-kind .kind) .name))))))
+
 
 (defun flycheck-rust-normalize-target-kind (kinds)
   "Return the normalized target name from KIND.
