@@ -1,4 +1,4 @@
-This is ivy.info, produced by makeinfo version 5.2 from ivy.texi.
+This is ivy.info, produced by makeinfo version 6.1 from ivy.texi.
 
 Ivy manual, version 0.8.0
 
@@ -115,7 +115,7 @@ Example - add two actions to each command
 
 Example - define a new command with several actions
 
-* Test the above function with ‘ivy-occur’::
+* Test the above function with ivy-occur::
 
 Commands
 
@@ -129,11 +129,11 @@ File Name Completion
 
 API
 
-* Required arguments for ‘ivy-read’::
-* Optional arguments for ‘ivy-read’::
-* Example - ‘counsel-describe-function’::
-* Example - ‘counsel-locate’::
-* Example - ‘ivy-read-with-extra-properties’::
+* Required arguments for ivy-read::
+* Optional arguments for ivy-read::
+* Example - counsel-describe-function::
+* Example - counsel-locate::
+* Example - ivy-read-with-extra-properties::
 
 
 File: ivy.info,  Node: Introduction,  Next: Installation,  Prev: Top,  Up: Top
@@ -1125,10 +1125,10 @@ has its own string description for easy selection.
 
 * Menu:
 
-* Test the above function with ‘ivy-occur’::
+* Test the above function with ivy-occur::
 
 
-File: ivy.info,  Node: Test the above function with ‘ivy-occur’,  Up: Example - define a new command with several actions
+File: ivy.info,  Node: Test the above function with ivy-occur,  Up: Example - define a new command with several actions
 
 6.3.5.1 Test the above function with ‘ivy-occur’
 ................................................
@@ -1145,7 +1145,7 @@ To examine each action with each candidate in a key-efficient way, try:
    • Press ‘j’ to move to the next candidate
    • Press ‘oo’, ‘oj’, ‘ok’
    • Press ‘j’ to move to the next candidate
-   • and so on…
+   • and so on...
 
 
 File: ivy.info,  Node: Packages,  Prev: Actions,  Up: Customization
@@ -1338,14 +1338,14 @@ features such as multi-actions, non-exiting actions, ‘ivy-occur’ and
 
 * Menu:
 
-* Required arguments for ‘ivy-read’::
-* Optional arguments for ‘ivy-read’::
-* Example - ‘counsel-describe-function’::
-* Example - ‘counsel-locate’::
-* Example - ‘ivy-read-with-extra-properties’::
+* Required arguments for ivy-read::
+* Optional arguments for ivy-read::
+* Example - counsel-describe-function::
+* Example - counsel-locate::
+* Example - ivy-read-with-extra-properties::
 
 
-File: ivy.info,  Node: Required arguments for ‘ivy-read’,  Next: Optional arguments for ‘ivy-read’,  Up: API
+File: ivy.info,  Node: Required arguments for ivy-read,  Next: Optional arguments for ivy-read,  Up: API
 
 8.1 Required arguments for ‘ivy-read’
 =====================================
@@ -1367,7 +1367,7 @@ File: ivy.info,  Node: Required arguments for ‘ivy-read’,  Next: Optional ar
      If a function, then it has to be compatible with ‘all-completions’.
 
 
-File: ivy.info,  Node: Optional arguments for ‘ivy-read’,  Next: Example - ‘counsel-describe-function’,  Prev: Required arguments for ‘ivy-read’,  Up: API
+File: ivy.info,  Node: Optional arguments for ivy-read,  Next: Example - counsel-describe-function,  Prev: Required arguments for ivy-read,  Up: API
 
 8.2 Optional arguments for ‘ivy-read’
 =====================================
@@ -1473,7 +1473,7 @@ File: ivy.info,  Node: Optional arguments for ‘ivy-read’,  Next: Example - �
      ‘ivy-read’, which may be useful for further customizations.
 
 
-File: ivy.info,  Node: Example - ‘counsel-describe-function’,  Next: Example - ‘counsel-locate’,  Prev: Optional arguments for ‘ivy-read’,  Up: API
+File: ivy.info,  Node: Example - counsel-describe-function,  Next: Example - counsel-locate,  Prev: Optional arguments for ivy-read,  Up: API
 
 8.3 Example - ‘counsel-describe-function’
 =========================================
@@ -1543,7 +1543,7 @@ that they appear:
      another command called ‘counsel-describe-function’.
 
 
-File: ivy.info,  Node: Example - ‘counsel-locate’,  Next: Example - ‘ivy-read-with-extra-properties’,  Prev: Example - ‘counsel-describe-function’,  Up: API
+File: ivy.info,  Node: Example - counsel-locate,  Next: Example - ivy-read-with-extra-properties,  Prev: Example - counsel-describe-function,  Up: API
 
 8.4 Example - ‘counsel-locate’
 ==============================
@@ -1621,7 +1621,7 @@ order that they appear:
    • ‘caller’ argument identifies this command for easier customization.
 
 
-File: ivy.info,  Node: Example - ‘ivy-read-with-extra-properties’,  Prev: Example - ‘counsel-locate’,  Up: API
+File: ivy.info,  Node: Example - ivy-read-with-extra-properties,  Prev: Example - counsel-locate,  Up: API
 
 8.5 Example - ‘ivy-read-with-extra-properties’
 ==============================================
@@ -1840,52 +1840,52 @@ Keystroke Index
 
 Tag Table:
 Node: Top1355
-Node: Introduction3317
-Node: Installation5828
-Node: Installing from Emacs Package Manager6282
-Node: Installing from the Git repository7395
-Node: Getting started8215
-Node: Basic customization8522
-Node: Key bindings9117
-Node: Global key bindings9309
-Node: Minibuffer key bindings10627
-Node: Key bindings for navigation11861
-Node: Key bindings for single selection action then exit minibuffer13068
-Node: Key bindings for multiple selections and actions keep minibuffer open15715
-Node: Key bindings that alter the minibuffer input18107
-Node: Other key bindings19995
-Node: Hydra in the minibuffer20373
-Node: Saving the current completion session to a buffer22476
-Node: Completion Styles23888
-Node: ivy--regex-plus25639
-Node: ivy--regex-ignore-order27125
-Node: ivy--regex-fuzzy27493
-Node: Customization27990
-Node: Faces28176
-Node: Defcustoms30303
-Node: Actions31470
-Node: What are actions?31796
-Node: How can different actions be called?32614
-Node: How to modify the actions list?33185
-Node: Example - add two actions to each command33845
-Node: How to undo adding the two actions34804
-Node: How to add actions to a specific command35256
-Node: Example - define a new command with several actions35672
-Node: Test the above function with ‘ivy-occur’36566
-Node: Packages37414
-Node: Commands38257
-Node: File Name Completion38442
-Node: Using TRAMP40238
-Node: Buffer Name Completion41115
-Node: Counsel commands41730
-Node: API42377
-Node: Required arguments for ‘ivy-read’43005
-Node: Optional arguments for ‘ivy-read’43670
-Node: Example - ‘counsel-describe-function’46904
-Node: Example - ‘counsel-locate’50175
-Node: Example - ‘ivy-read-with-extra-properties’53959
-Node: Variable Index55179
-Node: Keystroke Index62080
+Node: Introduction3281
+Node: Installation5792
+Node: Installing from Emacs Package Manager6246
+Node: Installing from the Git repository7359
+Node: Getting started8179
+Node: Basic customization8486
+Node: Key bindings9081
+Node: Global key bindings9273
+Node: Minibuffer key bindings10591
+Node: Key bindings for navigation11825
+Node: Key bindings for single selection action then exit minibuffer13032
+Node: Key bindings for multiple selections and actions keep minibuffer open15679
+Node: Key bindings that alter the minibuffer input18071
+Node: Other key bindings19959
+Node: Hydra in the minibuffer20337
+Node: Saving the current completion session to a buffer22440
+Node: Completion Styles23852
+Node: ivy--regex-plus25603
+Node: ivy--regex-ignore-order27089
+Node: ivy--regex-fuzzy27457
+Node: Customization27954
+Node: Faces28140
+Node: Defcustoms30267
+Node: Actions31434
+Node: What are actions?31760
+Node: How can different actions be called?32578
+Node: How to modify the actions list?33149
+Node: Example - add two actions to each command33809
+Node: How to undo adding the two actions34768
+Node: How to add actions to a specific command35220
+Node: Example - define a new command with several actions35636
+Node: Test the above function with ivy-occur36524
+Node: Packages37366
+Node: Commands38209
+Node: File Name Completion38394
+Node: Using TRAMP40190
+Node: Buffer Name Completion41067
+Node: Counsel commands41682
+Node: API42329
+Node: Required arguments for ivy-read42927
+Node: Optional arguments for ivy-read43580
+Node: Example - counsel-describe-function46796
+Node: Example - counsel-locate50049
+Node: Example - ivy-read-with-extra-properties53815
+Node: Variable Index55023
+Node: Keystroke Index61924
 
 End Tag Table
 
