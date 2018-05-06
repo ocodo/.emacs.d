@@ -6,7 +6,7 @@
 ;;         Toni Reina  <areina0@gmail.com>
 ;;
 ;; URL: http://github.com/areina/helm-dash
-;; Package-Version: 20171120.446
+;; Package-Version: 20180503.218
 ;; Version: 1.3.0
 ;; Package-Requires: ((helm "1.9.2") (cl-lib "0.5"))
 ;; Keywords: docs
@@ -376,7 +376,7 @@ If doesn't exist, it asks to create it."
 
 (defun helm-dash-docset-installed-p (docset)
   "Return true if DOCSET is installed."
-  (member docset (helm-dash-installed-docsets)))
+  (member (replace-regexp-in-string "_" " " docset) (helm-dash-installed-docsets)))
 
 ;;;###autoload
 (defun helm-dash-ensure-docset-installed (docset)
