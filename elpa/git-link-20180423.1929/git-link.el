@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2013-2017 Skye Shaw and others
 ;; Author: Skye Shaw <skye.shaw@gmail.com>
-;; Version: 0.5.1
-;; Package-Version: 20170603.1026
+;; Version: 0.6.0
+;; Package-Version: 20180423.1929
 ;; Keywords: git, vc, github, bitbucket, gitlab, convenience
 ;; URL: http://github.com/sshaw/git-link
 ;; Package-Requires: ((cl-lib "0.6.1"))
@@ -36,6 +36,10 @@
 
 ;;; Change Log:
 
+;; 2018-04-23 - v0.6.0
+;; * Fix parsing of remotes with auth info (Issue #51)
+;; * Removed remote regex in favor of url-parse
+;;
 ;; 2017-06-03 - v0.5.1
 ;; * Add support for more magit modes
 ;;
@@ -107,6 +111,7 @@
 (require 'cl-lib)
 (require 'thingatpt)
 (require 'url-util)
+(require 'url-parse)
 
 (defgroup git-link nil
   "Get the GitHub/Bitbucket/GitLab URL for a buffer location"
@@ -116,7 +121,7 @@
   :group 'convenience)
 
 (eval-when-compile
-  (defvar git-timemachine-revision))    ;silence reference to free variable warning
+  (defvar git-timemachine-revision))    ;; silence reference to free variable warning
 
 (defcustom git-link-default-remote nil
   "Name of the remote to link to."
@@ -165,16 +170,6 @@ As an example, \"gitlab\" will match with both \"gitlab.com\" and
 \"gitlab.example.com\"."
   :type '(alist :key-type string :value-type (group function))
   :group 'git-link)
-
-;; Matches traditional URL and scp style:
-;; https://example.com/ruby/ruby.git
-;; git@example.org:sshaw_/customer_gender.git
-;; git@example.com:22/foo/bar.git
-;; http://orgmode@orgmode.org/org-mode.git
-;;
-;; Wont work for git remotes that aren't services.
-;; Consider using url-generic-parse-url, but that requires a URL with a scheme
-(defconst git-link-remote-regex "\\([-.[:word:]]+\\)\\(?:/\\|:[0-9]*/?\\)\\([^/]+\\(?:/[^/]+?\\)*\\)\\(?:\\.git\\)?$")
 
 (defun git-link--exec(&rest args)
   (ignore-errors (apply 'process-lines `("git" ,@(when args args)))))
@@ -263,15 +258,28 @@ Return nil,
 	(substring (file-truename filename)
 		   (1+ (length dir))))))
 
-(defun git-link--remote-host (remote-name)
-  (let ((url (git-link--remote-url remote-name)))
-    (if (and url (string-match git-link-remote-regex url))
-	(match-string 1 url))))
+(defun git-link--parse-remote (url)
+  "Parse URL and return a list as (HOST DIR).  DIR has no leading slash or `git' extension."
+  (let (host path)
+    (unless (string-match "^[a-zA-Z0-9]+://" url)
+      (setq url (concat "ssh://" url)))
 
-(defun git-link--remote-dir (remote-name)
-  (let ((url (git-link--remote-url remote-name)))
-    (if (and url (string-match git-link-remote-regex url))
-        (match-string 2 url))))
+    (setq url  (url-generic-parse-url url)
+          path (car (url-path-and-query url))
+          host (url-host url))
+
+    (when host
+
+      (when (and path (not (string= "/" path)))
+        (setq path (substring (file-name-sans-extension path) 1)))
+
+      ;; Fix-up scp style URLs
+      (when (string-match ":" host)
+        (let ((parts (split-string host ":" t)))
+          (setq host (car parts)
+                path (concat (cadr parts) "/" path))))
+
+      (list host path))))
 
 (defun git-link--using-git-timemachine ()
   (and (boundp 'git-timemachine-revision)
@@ -407,29 +415,34 @@ Defaults to \"origin\"."
   (interactive (let* ((remote (git-link--select-remote))
                       (region (when buffer-file-name (git-link--get-region))))
                  (list remote (car region) (cadr region))))
-  (let* ((remote-host (git-link--remote-host remote))
-	 (filename (git-link--relative-filename))
-	 (branch (git-link--branch))
-	 (commit (git-link--commit))
-	 (handler (git-link--handler git-link-remote-alist remote-host)))
-    (cond ((null filename)
-	   (message "Can't figure out what to link to"))
-	  ((null remote-host)
-	   (message "Remote `%s' is unknown or contains an unsupported URL" remote))
-	  ((not (functionp handler))
-	   (message "No handler for %s" remote-host))
-	  ;; TODO: null ret val
-	  ((git-link--new
-	    (funcall handler
-		     remote-host
-		     (git-link--remote-dir remote)
-		     filename
-		     (if (or (git-link--using-git-timemachine) git-link-use-commit)
-			 nil
-		       (url-hexify-string branch))
-		     commit
-		     start
-		     end))))))
+  (let (filename branch commit handler remote-info (remote-url (git-link--remote-url remote)))
+    (if (null remote-url)
+        (message "Remote `%s' not found" remote)
+
+      (setq remote-info (git-link--parse-remote remote-url)
+            filename    (git-link--relative-filename)
+            branch      (git-link--branch)
+            commit      (git-link--commit)
+            handler     (git-link--handler git-link-remote-alist (car remote-info)))
+
+      (cond ((null filename)
+             (message "Can't figure out what to link to"))
+            ((null (car remote-info))
+             (message "Remote `%s' contains an unsupported URL" remote))
+            ((not (functionp handler))
+             (message "No handler found for %s" (car remote-info)))
+            ;; TODO: null ret val
+            ((git-link--new
+              (funcall handler
+                       (car remote-info)
+                       (cadr remote-info)
+                       filename
+                       (if (or (git-link--using-git-timemachine) git-link-use-commit)
+                           nil
+                         (url-hexify-string branch))
+                       commit
+                       start
+                       end)))))))
 
 ;;;###autoload
 (defun git-link-commit (remote)
@@ -441,21 +454,26 @@ With a prefix argument prompt for the remote's name.
 Defaults to \"origin\"."
 
   (interactive (list (git-link--select-remote)))
-  (let* ((remote-host (git-link--remote-host remote))
-	 (commit (word-at-point))
-	 (handler (git-link--handler git-link-commit-remote-alist remote-host)))
-    (cond ((null remote-host)
-	   (message "Remote `%s' is unknown or contains an unsupported URL" remote))
-	  ((not (string-match-p "[a-fA-F0-9]\\{7,40\\}" (or commit "")))
-	   (message "Point is not on a commit hash"))
-	  ((not (functionp handler))
-	   (message "No handler for %s" remote-host))
-	  ;; null ret val
-	  ((git-link--new
-	    (funcall handler
-		     remote-host
-		     (git-link--remote-dir remote)
-		     (substring-no-properties commit)))))))
+  (let* (commit handler remote-info (remote-url (git-link--remote-url remote)))
+    (if (null remote-url)
+        (message "Remote `%s' not found" remote)
+
+      (setq remote-info (git-link--parse-remote remote-url)
+            commit (word-at-point)
+            handler (git-link--handler git-link-commit-remote-alist (car remote-info)))
+
+      (cond ((null (car remote-info))
+             (message "Remote `%s' contains an unsupported URL" remote))
+            ((not (string-match-p "[a-fA-F0-9]\\{7,40\\}" (or commit "")))
+             (message "Point is not on a commit hash"))
+            ((not (functionp handler))
+             (message "No handler for %s" (car remote-info)))
+            ;; null ret val
+            ((git-link--new
+              (funcall handler
+                       (car remote-info)
+                       (cadr remote-info)
+                       (substring-no-properties commit))))))))
 
 ;;;###autoload
 (defun git-link-homepage (remote)
@@ -464,10 +482,11 @@ The URL will be added to the kill ring.  If `git-link-open-in-browser'
 is non-nil also call `browse-url'."
 
   (interactive (list (git-link--select-remote)))
-  (let ((remote-host (git-link--remote-host remote)))
-    (if remote-host
+  (let* ((remote-url (git-link--remote-url remote))
+         (remote-info (when remote-url (git-link--parse-remote remote-url))))
+    (if remote-info
 	;;TODO: shouldn't assume https, need service specific handler like others
-	(git-link--new (format "https://%s/%s" (git-link--remote-host remote) (git-link--remote-dir remote)))
+	(git-link--new (format "https://%s/%s" (car remote-info) (cadr remote-info)))
       (error  "Remote `%s' is unknown or contains an unsupported URL" remote))))
 
 (provide 'git-link)
