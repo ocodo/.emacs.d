@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ox-blackfriday" "ox-blackfriday.el" (23166
-;;;;;;  23232 960615 121000))
+;;;### (autoloads nil "ox-blackfriday" "ox-blackfriday.el" (23278
+;;;;;;  48107 0 0))
 ;;; Generated autoloads from ox-blackfriday.el
 
 (autoload 'org-blackfriday-export-as-markdown "ox-blackfriday" "\
@@ -78,8 +78,7 @@ Return output file name.
 
 ;;;***
 
-;;;### (autoloads nil "ox-hugo" "ox-hugo.el" (23166 23232 964615
-;;;;;;  116000))
+;;;### (autoloads nil "ox-hugo" "ox-hugo.el" (23278 48107 0 0))
 ;;; Generated autoloads from ox-hugo.el
 
 (autoload 'org-hugo-slug "ox-hugo" "\
@@ -216,8 +215,7 @@ buffer and returned as a string in Org format.
 
 ;;;***
 
-;;;### (autoloads nil nil ("ox-hugo-pkg.el") (23166 23232 964615
-;;;;;;  116000))
+;;;### (autoloads nil nil ("ox-hugo-pkg.el") (23278 48107 0 0))
 
 ;;;***
 

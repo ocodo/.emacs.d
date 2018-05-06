@@ -81,6 +81,21 @@
 (define-obsolete-function-alias 'org-hugo-export-subtree-to-md 'org-hugo-export-wim-to-md "2017-11-30")
 (define-obsolete-function-alias 'org-hugo-export-subtree-to-md-after-save 'org-hugo-export-wim-to-md-after-save "2017-11-30")
 
+;; Using the correct function for getting inherited Org tags.
+(defmacro org-hugo--get-tags-alias ()
+  "Generate alias to point to the correct fn for getting inherited Org tags."
+  ;; Starting Org 9.2, `org-get-tags' returns all the inherited tags
+  ;; instead of returning only the local tags i.e. only the current
+  ;; headline tags.
+  ;; https://code.orgmode.org/bzg/org-mode/commit/fbe56f89f75a8979e0ba48001a822518df2c66fe
+  ;; For Org <= 9.1, `org-get-tags' returned a list of tags *only* at
+  ;; the current heading, while `org-get-tags-at' returned inherited
+  ;; tags too.
+  (if (fboundp #'org--get-local-tags)   ;If using Org 9.2+
+      `(defalias 'org-hugo--get-tags 'org-get-tags)
+    `(defalias 'org-hugo--get-tags 'org-get-tags-at)))
+(org-hugo--get-tags-alias)
+
 (defvar org-hugo--subtree-coord nil
   "Variable to store the current valid Hugo subtree coordinates.
 It holds the value returned by
@@ -109,11 +124,6 @@ within `org-hugo-export-wim-to-md' regardless.  This variable
 helps set the bundle path correctly for such cases (where
 EXPORT_HUGO_BUNDLE and EXPORT_FILE_NAME are set in the same
 subtree).")
-
-(defvar org-hugo--description nil
-  "Variable to store the current post's description.
-This variable is updated by the `org-hugo-special-block'
-function.")
 
 (defvar org-hugo-allow-export-after-save t
   "Enable flag for `org-hugo-export-wim-to-md-after-save'.
@@ -470,27 +480,55 @@ Org Verse block or Blackfriday hardLineBreak extension."
   :type 'boolean
   :safe #'booleanp)
 
-(defcustom org-hugo-prefer-hyphen-in-tags t
-  "When non-nil, replace single underscores in Org tags with hyphens.
-
-See `org-hugo--transform-org-tags' for more information.
-
-This variable affects the Hugo tags and categories set via Org tags
-using the \"@\" prefix."
-  :group 'org-export-hugo
-  :type 'boolean
-  :safe #'booleanp)
-
 (defcustom org-hugo-allow-spaces-in-tags t
   "When non-nil, replace double underscores in Org tags with spaces.
 
-See `org-hugo--transform-org-tags' for more information.
+See `org-hugo--tag-processing-fn-replace-with-spaces-maybe' for
+more information.
 
-This variable affects the Hugo tags and categories set via Org tags
-using the \"@\" prefix."
+This variable affects the Hugo tags and categories (set via Org
+tags using the \"@\" prefix)."
   :group 'org-export-hugo
   :type 'boolean
   :safe #'booleanp)
+
+(defcustom org-hugo-prefer-hyphen-in-tags t
+  "When non-nil, replace single underscores in Org tags with hyphens.
+
+See `org-hugo--tag-processing-fn-replace-with-hyphens-maybe' for
+more information.
+
+This variable affects the Hugo tags and categories (set via Org
+tags using the \"@\" prefix)."
+  :group 'org-export-hugo
+  :type 'boolean
+  :safe #'booleanp)
+
+(defcustom org-hugo-tag-processing-functions '(org-hugo--tag-processing-fn-replace-with-spaces-maybe
+                                               org-hugo--tag-processing-fn-replace-with-hyphens-maybe)
+  "List of functions that are called in order to process the Org tags.
+Each function has to accept two arguments:
+
+Arg 1: TAG-LIST which is a list of Org tags of the type
+       \(\"TAG1\" \"TAG2\" ..).
+Arg 2: INFO which is a plist holding contextual information.
+
+Each function should then return a list of strings, which would
+be processed form of TAG-LIST.
+
+All the functions are called in order, and the output of one
+function is fed as the TAG-LIST input of the next called
+function.
+
+The `org-hugo--tag-processing-fn-replace-with-spaces-maybe'
+function skips any processing and returns its input TAG-LIST as
+it is if `org-hugo-allow-spaces-in-tags' is nil.
+
+The `org-hugo--tag-processing-fn-replace-with-hyphens-maybe'
+function skips any processing and returns its input TAG-LIST as
+it is if `org-hugo-prefer-hyphen-in-tags' is nil."
+  :group 'org-export-hugo
+  :type '(repeat (function)))
 
 (defcustom org-hugo-auto-set-lastmod nil
   "When non-nil, set the lastmod field in front-matter to current time."
@@ -817,7 +855,7 @@ newer."
                    ;; videos
                    (:hugo-videos "HUGO_VIDEOS" nil nil newline)
                    ;; weight
-                   (:hugo-weight "HUGO_WEIGHT" nil nil)))
+                   (:hugo-weight "HUGO_WEIGHT" nil nil space)))
 
 
 ;;; Miscellaneous Helper Functions
@@ -893,14 +931,19 @@ is in progress.  See `org-hugo--before-export-function' and
     ;; (message "[ox-hugo ob-exp] ret: %S" ret)
     ret))
 
-(defun org-hugo--before-export-function ()
+(defun org-hugo--before-export-function (subtreep)
   "Function to be run before an ox-hugo export.
 
 This function is called in the very beginning of
 `org-hugo-export-to-md', `org-hugo-export-as-md' and
 `org-hugo-publish-to-md'.
 
+SUBTREEP is non-nil for subtree-based exports.
+
 This is an internal function."
+  (unless subtreep
+    ;; Reset the variables that are used only for subtree exports.
+    (setq org-hugo--subtree-coord nil))
   (advice-add 'org-babel-exp-code :around #'org-hugo--org-babel-exp-code))
 
 (defun org-hugo--after-export-function ()
@@ -911,8 +954,9 @@ This function is called in the very end of
 `org-hugo-publish-to-md'.
 
 This is an internal function."
-  (advice-remove 'org-babel-exp-code #'org-hugo--org-babel-exp-code)
-  (setq org-hugo--description nil))
+  (setq org-hugo--section nil)
+  (setq org-hugo--bundle nil)
+  (advice-remove 'org-babel-exp-code #'org-hugo--org-babel-exp-code))
 
 ;;;; HTMLized section number for headline
 (defun org-hugo--get-headline-number (headline info &optional toc)
@@ -952,7 +996,7 @@ contents according to the current headline."
           (unless local
             (let ((style (plist-get info :md-headline-style))
                   (loffset (string-to-number (plist-get info :hugo-level-offset)))
-                  (title "Table of Contents"))
+                  (title (org-html--translate "Table of Contents" info)))
               (org-hugo--headline-title style 1 loffset title))))
          (toc-items
           (mapconcat
@@ -1004,7 +1048,7 @@ contents according to the current headline."
               "<div></div>\n"        ;till Hugo/Blackfriday support
               toc-headline           ;wrapping Markdown in HTML div's.
               toc-items ;https://github.com/kaushalmodi/ox-hugo/issues/93
-              "\n"
+              "\n\n"
               "</div>\n"
               ;; Special comment that can be use to filter out the TOC
               ;; from .Summary in Hugo templates.
@@ -1711,7 +1755,20 @@ and rewrite link paths to make blogging more seamless."
                         (org-export-data  ;Look for caption set using #+caption
                          (org-export-get-caption (org-export-get-parent-element link))
                          info))
-                       (plist-get attr :caption))))
+                       (plist-get attr :caption)))
+             (caption (when (org-string-nw-p caption)
+                        (format "%s%s%s%s"
+                                ;; Tue Feb 13 11:32:45 EST 2018 - kmodi
+                                ;; Add the span tag once
+                                ;; https://github.com/gohugoio/hugo/issues/4406
+                                ;; gets resolved.
+                                "" ;"<span class=\\\"figure-number\\\">"
+                                (format (org-html--translate "Figure %d:" info)
+                                        (org-export-get-ordinal
+                                         useful-parent info
+                                         nil #'org-html--has-caption-p))
+                                " "     ;" </span>"
+                                caption))))
         ;; (message "[ox-hugo-link DBG] inline image? %s\npath: %s"
         ;;          inline-image path)
         ;; (message "[org-hugo-link DBG] attr: %s num of attr: %d"
@@ -1780,7 +1837,7 @@ and rewrite link paths to make blogging more seamless."
      (t
       (let* ((link-param-str "")
              (path (cond
-                    ((member type '("http" "https" "ftp"))
+                    ((member type '("http" "https" "ftp" "mailto"))
                      ;; Taken from ox-html.el -- Extract attributes
                      ;; from parent's paragraph.  HACK: Only do this
                      ;; for the first link in parent (inner image link
@@ -1865,16 +1922,31 @@ INFO is a plist used as a communication channel."
          (exportables org-hugo-external-file-extensions-allowed-for-copying)
          (bundle-dir (and (plist-get info :hugo-bundle)
                           (org-hugo--get-pub-dir info)))
+         (bundle-name (when bundle-dir
+                        (let* ((content-dir (file-truename
+                                             (file-name-as-directory (expand-file-name
+                                                                      "content"
+                                                                      (file-name-as-directory
+                                                                       (plist-get info :hugo-base-dir))))))
+                               (is-home-branch-bundle (string= bundle-dir content-dir)))
+                          (cond
+                           (is-home-branch-bundle
+                            "_home")
+                           (t ;`bundle-dir'="/foo/bar/" -> `bundle-name'="bar"
+                            (file-name-base (directory-file-name bundle-dir)))))))
          (static-dir (file-truename
                       (concat
                        (file-name-as-directory (plist-get info :hugo-base-dir))
                        "static/")))
          (dest-dir (or bundle-dir static-dir))
          ret)
+    (unless (file-directory-p static-dir)
+      (user-error "Please create the %s directory" static-dir))
     ;; (message "[ox-hugo DBG attch rewrite] Image export dir is: %s" static-dir)
     ;; (message "[ox-hugo DBG attch rewrite] path: %s" path)
     ;; (message "[ox-hugo DBG attch rewrite] path-true: %s" path-true)
     ;; (message "[ox-hugo DBG attch rewrite] bundle-dir: %s" bundle-dir)
+    ;; (message "[ox-hugo DBG attch rewrite] bundle-name: %s" bundle-name)
     ;; (message "[ox-hugo DBG attch rewrite] default-dir: %s" default-directory)
     ;; (message "[ox-hugo DBG attch rewrite] dest-dir: %s" dest-dir)
     (if (and (file-exists-p path-true)
@@ -1893,22 +1965,36 @@ INFO is a plist used as a communication channel."
                       ;; `path-true' is "/foo/static/bar/baz.png",
                       ;; return "bar/baz.png".
                       ;; (message "[ox-hugo DBG attch rewrite] path contains static")
-                      (substring path-true (match-end 0)))
-                     ((and bundle-dir
-                           (string-match default-directory path-true))
-                      ;; This is a page bundle.  `default-path' is
-                      ;; "<ORG_FILE_DIR>/", `path-true' is
-                      ;; "<ORG_FILE_DIR>/bar/baz.png", return
-                      ;; "bar/baz.png".
-                      ;; (message "[ox-hugo DBG attch rewrite BUNDLE] attch along with Org content: %s"
-                      ;;          (substring path-true (match-end 0)))
+                      ;; If path-true contains "/static/", set the
+                      ;; `dest-dir' to `static-dir' (even if this is a
+                      ;; page bundle).
+                      (setq dest-dir static-dir)
                       (substring path-true (match-end 0)))
                      (bundle-dir
-                      ;; This is a page bundle.  `default-path' is
-                      ;; "<ORG_FILE_DIR>/", `path-true' is
-                      ;; "/foo/bar/baz.png", return "baz.png".
-                      ;; (message "[ox-hugo DBG attch rewrite BUNDLE] attch neither in static nor in Org file dir")
-                      (file-name-nondirectory path))
+                      (cond
+                       ((string-match (concat "/" (regexp-quote bundle-name) "/") path-true)
+                        ;; This is a page bundle.  `bundle-name' is
+                        ;; "<BUNDLE_NAME>", `path-true' is
+                        ;; "<ORG_FILE_DIR>/bar/<BUNDLE_NAME>/zoo/baz.png",
+                        ;; return "zoo/baz.png".
+                        ;; (message "[ox-hugo DBG attch rewrite BUNDLE 1] bundle-name: %s" bundle-name)
+                        ;; (message "[ox-hugo DBG attch rewrite BUNDLE 1] attch along with Org content: %s"
+                        ;;          (substring path-true (match-end 0)))
+                        (substring path-true (match-end 0)))
+                       ((string-match (regexp-quote default-directory) path-true)
+                        ;; This is a page bundle.  `default-path' is
+                        ;; "<ORG_FILE_DIR>/", `path-true' is
+                        ;; "<ORG_FILE_DIR>/bar/baz.png", return
+                        ;; "bar/baz.png".
+                        ;; (message "[ox-hugo DBG attch rewrite BUNDLE 2] attch along with Org content: %s"
+                        ;;          (substring path-true (match-end 0)))
+                        (substring path-true (match-end 0)))
+                       (t
+                        ;; This is a page bundle.  `default-path' is
+                        ;; "<ORG_FILE_DIR>/", `path-true' is
+                        ;; "/foo/bar/baz.png", return "baz.png".
+                        ;; (message "[ox-hugo DBG attch rewrite BUNDLE 3] attch neither in static nor in Org file dir")
+                        (file-name-nondirectory path))))
                      (t
                       ;; Else, `path-true' is "/foo/bar/baz.png",
                       ;; return "ox-hugo/baz.png".  "ox-hugo" is the
@@ -1936,7 +2022,8 @@ INFO is a plist used as a communication channel."
               (when (file-newer-than-file-p path-true dest-path)
                 (message "[ox-hugo] Copied %S to %S" path-true dest-path)
                 (copy-file path-true dest-path :ok-if-already-exists))
-              (setq ret (if bundle-dir
+              (setq ret (if (and bundle-dir
+                                 (string= bundle-dir dest-dir))
                             ;; If attachments are copied to the bundle
                             ;; directory, don't prefix the path as "/"
                             ;; as those paths won't exist at the site
@@ -1957,7 +2044,7 @@ communication channel."
         (label (let ((lbl (and (org-element-property :name paragraph)
                                (org-export-get-reference paragraph info))))
                  (if lbl
-                     (format "<a id=\"%s\"></a>\n" lbl)
+                     (format "<a id=\"%s\"></a>\n\n" lbl)
                    "")))
         ret)
     (unless (org-hugo--plist-get-true-p info :hugo-preserve-filling)
@@ -1980,7 +2067,7 @@ communication channel."
     ;; other conditions as shown below).  These conditions are taken
     ;; from `org-html-paragraph'.
     (let* ((parent (org-export-get-parent paragraph))
-	   (parent-type (org-element-type parent)))
+           (parent-type (org-element-type parent)))
       ;; (message "[ox-hugo-para DBG] standalone image? %s\ncontents: %s"
       ;;          (org-html-standalone-image-p paragraph info)
       ;;          contents)
@@ -1988,10 +2075,10 @@ communication channel."
                ;; First paragraph in an item has no tag if it is alone
                ;; or followed, at most, by a sub-list.
                (and (eq parent-type 'item)
-	            (not (org-export-get-previous-element paragraph info))
-	            (let ((followers (org-export-get-next-element paragraph info 2)))
-	              (and (not (cdr followers))
-		           (memq (org-element-type (car followers)) '(nil plain-list)))))
+                    (not (org-export-get-previous-element paragraph info))
+                    (let ((followers (org-export-get-next-element paragraph info 2)))
+                      (and (not (cdr followers))
+                           (memq (org-element-type (car followers)) '(nil plain-list)))))
                ;; Standalone image.
                (org-html-standalone-image-p paragraph info))
         (setq ret (org-blackfriday--div-wrap-maybe paragraph ret))))
@@ -2045,14 +2132,20 @@ channel."
                          (let* ((src-block-num (org-export-get-ordinal
                                                 src-block info
                                                 nil #'org-html--has-caption-p))
+                                (caption-prefix (let* ((fmt-str (org-html--translate "Listing %d:" info))
+                                                       (fmt-str (or (and (string= fmt-str "Listing %d:")
+                                                                         "Code Snippet %d:")
+                                                                    fmt-str)))
+                                                  (format fmt-str src-block-num)))
                                 (caption-str
                                  (org-html-convert-special-strings ;Interpret em-dash, en-dash, etc.
                                   (org-export-data-with-backend caption 'html info))))
-		           (format (concat "\n\n<div class=\"src-block-caption\">\n"
-                                           "  <span class=\"src-block-number\">Code Snippet %d:</span>\n"
+
+                           (format (concat "\n\n<div class=\"src-block-caption\">\n"
+                                           "  <span class=\"src-block-number\">%s</span>\n"
                                            "  %s\n"
                                            "</div>")
-                                   src-block-num caption-str))))
+                                   caption-prefix caption-str))))
          content
          ret)
     ;; (message "ox-hugo src [dbg] number-lines: %S" number-lines)
@@ -2128,8 +2221,9 @@ channel."
   "Transcode a SPECIAL-BLOCK element from Org to Hugo-compatible Markdown.
 CONTENTS holds the contents of the block.
 
-This function saves the content of \"description\" special block
-to the global variable `org-hugo--description'.
+If the special block if of type \"description\", the value of
+`:description' key of the INFO plist gets overwritten by the
+contents of that block.
 
 Else if the SPECIAL-BLOCK type matches one of the shortcodes set
 in HUGO_PAIRED_SHORTCODES property, export them as Markdown or
@@ -2149,7 +2243,8 @@ INFO is a plist holding export options."
         (contents (org-trim contents)))
     (cond
      ((string= block-type "description")
-      (setq org-hugo--description contents)
+      ;; Overwrite the value of the `:description' key in `info'.
+      (plist-put info :description contents)
       nil)
      ;; https://emacs.stackexchange.com/a/28685/115
      ((cl-member block-type paired-shortcodes
@@ -2248,69 +2343,99 @@ INFO is a plist holding export options."
 
 ;;;;; Hugo Front Matter
 (defun org-hugo--quote-string (val &optional prefer-no-quotes format)
-  "Wrap VAL with appropriate quotes if it is a string.
+  "Wrap VAL with quotes as appropriate.
+
+VAL can be a string, symbol, number or nil.
 
 If VAL contains newlines, format it according to TOML or YAML
 FORMAT to preserve them.
 
 VAL is returned as-it-is under the following cases:
-- It is not a string (or nil).
+- It is a number or nil.
 - It is a string and is already wrapped with double quotes.
 - It is a string and it's value is \"true\" or \"false\".
 - It is a string representing a date.
+- It is a string representing an integer or float.
 
 If optional argument PREFER-NO-QUOTES is non-nil, return the VAL
 as-it-is if it's a string with just alphanumeric characters.
 
 Optional argument FORMAT can be \"toml\" or \"yaml\"."
   (cond
-   ((or (null val)                ;nil
-        (not (stringp val))       ;could be a number, like menu weight
-        (and (org-string-nw-p val)
-             (string= (substring val 0 1) "\"") ;First char is literally a "
-             (string= (substring val -1) "\"")) ;Last char is literally a "
-        (string= "true" val)
-        (string= "false" val)
-        ;; or if it is a date (date, publishDate, expiryDate, lastmod)
-        (string-match-p org-hugo--date-time-regexp val)
-        ;; or if it is any number (integer or float)
-        ;; https://github.com/toml-lang/toml#integer
-        ;; Integer examples: 7, +7, -7, 7_000
-        ;; https://github.com/toml-lang/toml#float
-        ;; Float examples: 7.8, +7.8, -7.8, 7e-8, -7E+8
-        (string-match-p "\\`[+-]?[[:digit:]_]+\\(\\(\\.\\|[eE][+-]?\\)[[:digit:]]+\\)*\\'" val))
+   ((null val)                          ;nil
     val)
-   ((and prefer-no-quotes
-         (string-match-p "\\`[a-zA-Z0-9]+\\'" val))
+   ((numberp val)
     val)
-   ((and (org-string-nw-p val)
-         (string-match-p "\n" val))
-    ;; The indentation of the multi-line string is needed only for the
-    ;; YAML format.  But the same is done for TOML too just for better
-    ;; presentation.
-    (setq val (replace-regexp-in-string "^" "  " val))
+   ((symbolp val)
+    (format "\"%s\"" (symbol-name val)))
+   ((stringp val)
+    (cond
+     ((org-string-nw-p val)            ;If `val' is a non-empty string
+      (cond
+       ((or (and (string= (substring val 0 1) "\"") ;First char is literally a "
+                 (string= (substring val -1) "\"")) ;Last char is literally a "
+            (and prefer-no-quotes ;If quotes are not preferred and `val' is only alpha-numeric
+                 (string-match-p "\\`[a-zA-Z0-9]+\\'" val))
+            (string= "true" val)
+            (string= "false" val)
+            ;; or if it is a date (date, publishDate, expiryDate, lastmod)
+            (string-match-p org-hugo--date-time-regexp val)
+            ;; or if it is any number (integer or float)
+            ;; https://github.com/toml-lang/toml#integer
+            ;; Integer examples: 7, +7, -7, 7_000
+            (string-match-p "\\`[+-]?[[:digit:]_]+\\'" val)
+            ;; https://github.com/toml-lang/toml#float
+            ;; Float examples (decimals): 7.8, +7.8, -7.8
+            (string-match-p "\\`[+-]?[[:digit:]_]+\\.[[:digit:]_]+\\'" val)
+            ;; Float examples (exponentials): 7e-8, -7E+8, 1.7e-05
+            (string-match-p "\\`[+-]?[[:digit:]_]+\\(\\.[[:digit:]_]+\\)*[eE][+-]?[[:digit:]_]+\\'" val)
+            ;; Special float values (infinity/NaN)
+            ;; Looks like Hugo is not supporting these.. Tue Mar 20 18:05:40 EDT 2018 - kmodi
+            ;; (let ((case-fold-search nil))
+            ;;   (string-match-p "\\`[+-]?\\(inf\\|nan\\)\\'" val))
+            )
+        val)
+       ((string-match-p "\n" val)       ;Multi-line string
+        ;; The indentation of the multi-line string is needed only for the
+        ;; YAML format.  But the same is done for TOML too just for better
+        ;; presentation.
+        (setq val (replace-regexp-in-string "^" "  " val))
 
-    (if (and (stringp format)
-             (string= format "yaml"))
-        (progn
-          ;; https://yaml-multiline.info/
-          ;;
-          ;;     |             |foo : >
-          ;;     |abc          |  abc
-          ;;     |       >>>   |
-          ;;     |def          |
-          ;;     |             |  def
-          ;;
-          ;; In Org, a single blank line is used to start a new
-          ;; paragraph. In the YAML multi-line string, that needs to
-          ;; be 2 blank lines.
-          (setq val (replace-regexp-in-string "\n[[:blank:]]*\n" "\n\n\n" val))
-          (format ">\n%s" val))
-      ;; Remove indentation/space from blank lines if any.
-      (setq val (replace-regexp-in-string "\n[[:blank:]]*\n" "\n\n" val))
-      (format "\"\"\"\n%s\n  \"\"\"" val))) ;Triple-quote
-   (t
-    (concat "\"" (replace-regexp-in-string "\"" "\\\\\""  val) "\""))))
+        (if (and (stringp format)
+                 (string= format "yaml"))
+            (progn
+              ;; https://yaml-multiline.info/
+              ;;
+              ;;     |             |foo : >
+              ;;     |abc          |  abc
+              ;;     |       >>>   |
+              ;;     |def          |
+              ;;     |             |  def
+              ;;
+              ;; In Org, a single blank line is used to start a new
+              ;; paragraph. In the YAML multi-line string, that needs to
+              ;; be 2 blank lines.
+              (setq val (replace-regexp-in-string "\n[[:blank:]]*\n" "\n\n\n" val))
+              (format ">\n%s" val))
+          ;; Escape the backslashes (only for multi-line TOML).
+          (setq val (replace-regexp-in-string "\\\\" "\\\\\\\\" val))
+
+          ;; Remove indentation/space from blank lines if any.
+          (setq val (replace-regexp-in-string "\n[[:blank:]]*\n" "\n\n" val))
+          (format "\"\"\"\n%s\n  \"\"\"" val))) ;Triple-quote
+       (t                                       ;Single-line string
+        ;; Below 2 replacements are order-dependent.. first escape the
+        ;; backslashes, then escape the quotes with backslashes.
+
+        ;; Escape the backslashes (for both TOML and YAML).
+        (setq val (replace-regexp-in-string "\\\\" "\\\\\\\\" val))
+        ;; Escape the double-quotes.
+        (setq val (replace-regexp-in-string "\"" "\\\\\""  val))
+        (concat "\"" val "\""))))
+     (t                                 ;If `val' is any empty string
+      "")))
+   (t                            ;Return empty string if anything else
+    "")))
 
 (defun org-hugo--parse-property-arguments (str)
   "Return an alist converted from a string STR of Hugo property value.
@@ -2367,7 +2492,7 @@ The \"true\" and \"false\" strings in the return value are due to
                  (value (cdr user-prop))
                  (value (if (or (equal key 'extensions)
                                 (equal key 'extensionsmask))
-                            value
+                            (org-hugo--delim-str-to-list value)
                           (org-hugo--front-matter-value-booleanize value))))
             (push (cons key value)
                   valid-blackfriday-alist)))))
@@ -2436,68 +2561,59 @@ INFO is a plist used as a communication channel."
            (title (replace-regexp-in-string "\\.\\.\\." "…" title))) ;HORIZONTAL ELLIPSIS
       title)))
 
-(defun org-hugo--transform-org-tags (tag-list info &optional no-prefer-hyphen)
-  "Transform Org TAG-LIST for use in Hugo tags and categories.
+(defun org-hugo--tag-processing-fn-replace-with-spaces-maybe (tag-list info)
+  "Replace double underscores in TAG-LIST elements with single spaces.
 
-INFO is a plist used as a communication channel.
+For example, an element \"some__tag\" would get converted to
+\"some tag\".
 
-Return the original or modified TAG-LIST.
+This replacement is enabled if `org-hugo-allow-spaces-in-tags' or
+HUGO_ALLOW_SPACES_IN_TAGS property is set to a non-nil value.
 
-1. Prefer hyphens
+TAG-LIST which is a list of Org tags of the type \(\"TAG1\"
+\"TAG2\" ..).  INFO is a plist used as a communication channel.
 
-If NO-PREFER-HYPHEN is nil, and if using hyphens in tags is
-preferred to underscores (set via
-`org-hugo-prefer-hyphen-in-tags' or HUGO_PREFER_HYPHEN_IN_TAGS
-property),
+This is one of the processing functions in
+`org-hugo-tag-processing-functions'."
+  (let ((allow-spaces (org-hugo--plist-get-true-p info :hugo-allow-spaces-in-tags)))
+    (if allow-spaces
+        (mapcar
+         (lambda (tag)
+           ;; It is safe to assume that no one would want
+           ;; leading/trailing spaces in tags/categories.. so not
+           ;; checking for "__a" or "a__" cases.
+           (replace-regexp-in-string "\\([^_]\\)__\\([^_]\\)" "\\1 \\2" tag)) ;"a__b"  -> "a b"
+         tag-list)
+      tag-list)))
 
-- Single underscores will be replaced with hyphens.
-- Triple underscores will be replaced with single underscores.
+(defun org-hugo--tag-processing-fn-replace-with-hyphens-maybe (tag-list info)
+  "Replace single underscores in TAG-LIST elements with single hyphens.
+And triple underscores will be replaced with single underscores.
 
-Below shows the example of how the Org tags would translate to
-the tag strings in Hugo front matter if hyphens were preferred:
+For example, an element \"some_tag\" would get converted to
+\"some-tag\", and \"some___tag\" to \"some_tag\".
 
-Example: :some_tag:   -> \"some-tag\"
-         :some___tag: -> \"some_tag\"
+This replacement is enabled if `org-hugo-prefer-hyphen-in-tags'
+or HUGO_PREFER_HYPHEN_IN_TAGS property is set to a non-nil value.
 
-2. Allow spaces
+TAG-LIST which is a list of Org tags of the type \(\"TAG1\"
+\"TAG2\" ..).  INFO is a plist used as a communication channel.
 
-If using spaces in tags is allowed (set via
-`org-hugo-allow-spaces-in-tags' or HUGO_ALLOW_SPACES_IN_TAGS
-property),
-
-- Double underscores will be replaced with single spaces.
-
-Below shows the example of how the Org tags would translate to
-the tag strings in Hugo front matter if spaces were allowed:
-
-Example: :some__tag:   -> \"some tag\"."
-  (let* ((prefer-hyphen (unless no-prefer-hyphen
-                          (org-hugo--plist-get-true-p info :hugo-prefer-hyphen-in-tags)))
-         (allow-spaces (org-hugo--plist-get-true-p info :hugo-allow-spaces-in-tags))
-         new-tag-list
-         ret)
-    (setq ret (cond
-               ((or prefer-hyphen
-                    allow-spaces)
-                (dolist (tag tag-list)
-                  (when allow-spaces
-                    ;; It is safe to assume that no one would want
-                    ;; leading/trailing spaces in tags/categories.. so not
-                    ;; checking for "__a" or "a__" cases.
-                    (setq tag (replace-regexp-in-string "\\([^_]\\)__\\([^_]\\)" "\\1 \\2" tag)))  ;"a__b"  -> "a b"
-                  (when prefer-hyphen
-                    (setq tag (replace-regexp-in-string "\\`_\\([^_]\\)" "-\\1" tag))          ;"_a"    -> "-a"
-                    (setq tag (replace-regexp-in-string "\\`___\\([^_]\\)" "_\\1" tag))        ;"___a"  -> "_a"
-                    (setq tag (replace-regexp-in-string "\\([^_]\\)_\\'" "\\1-" tag))          ;"a_"    -> "a-"
-                    (setq tag (replace-regexp-in-string "\\([^_]\\)___\\'" "\\1_" tag))        ;"a___"  -> "a_"
-                    (setq tag (replace-regexp-in-string "\\([^_]\\)_\\([^_]\\)" "\\1-\\2" tag))    ;"a_b"   -> "a-b"
-                    (setq tag (replace-regexp-in-string "\\([^_]\\)___\\([^_]\\)" "\\1_\\2" tag))) ;"a___b" -> "a_b"
-                  (push tag new-tag-list))
-                (nreverse new-tag-list))
-               (t
-                tag-list)))
-    (setq ret (cl-remove-if-not #'org-string-nw-p ret))
-    ret))
+This is one of the processing functions in
+`org-hugo-tag-processing-functions'."
+  (let ((prefer-hyphens (org-hugo--plist-get-true-p info :hugo-prefer-hyphen-in-tags)))
+    (if prefer-hyphens
+        (mapcar
+         (lambda (tag)
+           (setq tag (replace-regexp-in-string "\\`_\\([^_]\\)" "-\\1" tag))         ;"_a"    -> "-a"
+           (setq tag (replace-regexp-in-string "\\`___\\([^_]\\)" "_\\1" tag))       ;"___a"  -> "_a"
+           (setq tag (replace-regexp-in-string "\\([^_]\\)_\\'" "\\1-" tag))         ;"a_"    -> "a-"
+           (setq tag (replace-regexp-in-string "\\([^_]\\)___\\'" "\\1_" tag))       ;"a___"  -> "a_"
+           (setq tag (replace-regexp-in-string "\\([^_]\\)_\\([^_]\\)" "\\1-\\2" tag))   ;"a_b"   -> "a-b"
+           (setq tag (replace-regexp-in-string "\\([^_]\\)___\\([^_]\\)" "\\1_\\2" tag)) ;"a___b" -> "a_b"
+           tag)
+         tag-list)
+      tag-list)))
 
 (defun org-hugo--delim-str-to-list (str)
   "Function to transform string STR to a list of strings.
@@ -2573,8 +2689,7 @@ INFO is a plist used as a communication channel."
                              (lang (when (stringp lang)
                                      (replace-regexp-in-string "\\`\\([a-z]+_[A-Z]+\\).*\\'" "\\1" lang))))
                         lang)))
-         (description (or org-hugo--description
-                          (org-string-nw-p (plist-get info :description))))
+         (description (org-string-nw-p (plist-get info :description)))
          (aliases-raw (let ((aliases-raw-1 (org-string-nw-p (plist-get info :hugo-aliases))))
                         (when aliases-raw-1
                           (org-split-string aliases-raw-1 " "))))
@@ -2614,7 +2729,8 @@ INFO is a plist used as a communication channel."
                 ;; Else use Org tags (the ones set in headlines
                 ;; and/or inherited) if any.
                 (let* ((tags-list (cl-remove-if #'org-hugo--category-p all-t-and-c))
-                       (tags-list (org-hugo--transform-org-tags tags-list info)))
+                       (tags-list (dolist (fn org-hugo-tag-processing-functions tags-list)
+                                    (setq tags-list (funcall fn tags-list info)))))
                   ;; (message "[get fm DBG] tags: tags-list = %S" tags-list)
                   tags-list)))
          (categories (or
@@ -2626,7 +2742,8 @@ INFO is a plist used as a communication channel."
                       ;; "@" prefix (the ones set in headlines and/or
                       ;; inherited) if any.
                       (let* ((categories-list (cl-remove-if-not #'org-hugo--category-p all-t-and-c))
-                             (categories-list (org-hugo--transform-org-tags categories-list info))
+                             (categories-list (dolist (fn org-hugo-tag-processing-functions categories-list)
+                                                (setq categories-list (funcall fn categories-list info))))
                              (categories-list (mapcar (lambda (str)
                                                         ;; Remove "@" from beg of categories.
                                                         (replace-regexp-in-string "\\`@" "" str))
@@ -2634,15 +2751,45 @@ INFO is a plist used as a communication channel."
                         ;; (message "dbg: categories: categories-list = %s" categories-list)
                         categories-list)))
          (keywords (org-hugo--delim-str-to-list (plist-get info :keywords)))
-         (weight (let* ((wt (plist-get info :hugo-weight))
-                        (auto-calc (and (stringp wt)
-                                        (string= wt "auto")
-                                        org-hugo--subtree-coord)))
-                   (if auto-calc
-                       (org-hugo--calc-weight)
-                     (unless (and (stringp wt) ;Don't allow weight to be "auto" if auto-calc is nil.
-                                  (string= wt "auto"))
-                       wt))))
+         (weight-data (let ((wt-raw-list (org-hugo--parse-property-arguments (plist-get info :hugo-weight)))
+                            weight-data-1)
+                        (dolist (wt-raw wt-raw-list)
+                          (let (key value)
+                            ;; (message "weight DBG wt-raw: %S" wt-raw)
+                            ;; (message "weight DBG cdr wt-raw: %S" (cdr wt-raw))
+                            ;; (message "weight DBG org-hugo--subtree-coord: %S" org-hugo--subtree-coord)
+                            (cond
+                             ((null (cdr wt-raw)) ;`wt-raw' is not of the type (TAXONOMY . WEIGHT)
+                              (setq key 'weight)
+                              (setq value (cond
+                                           ((and org-hugo--subtree-coord
+                                                 (equal (car wt-raw) 'auto)) ;(auto)
+                                            (org-hugo--calc-weight))
+                                           ((and (equal (car wt-raw) 'auto) ;Auto weight ineffective for file-based exports
+                                                 (null org-hugo--subtree-coord))
+                                            nil)
+                                           (t
+                                            (string-to-number (symbol-name (car wt-raw)))))))
+                             (t
+                              (setq key (if (equal (car wt-raw) 'page) ;`wt-raw' is of the type (page . WEIGHT)
+                                            'weight
+                                          (intern (format "%s_weight" (symbol-name (car wt-raw))))))
+                              (setq value (cond
+                                           ((and org-hugo--subtree-coord
+                                                 (equal (cdr wt-raw) "auto")) ;(TAXONOMY . "auto") or (page . "auto")
+                                            (org-hugo--calc-weight))
+                                           ((numberp (cdr wt-raw))
+                                            (cdr wt-raw))
+                                           ((and (equal (cdr wt-raw) "auto") ;Auto weight ineffective for file-based exports
+                                                 (null org-hugo--subtree-coord))
+                                            nil)
+                                           (t
+                                            (user-error "Ox-hugo: Invalid weight %S" (cdr wt-raw)))))))
+                            ;; (message "weight DBG key: %S" key)
+                            ;; (message "weight DBG value: %S" value)
+                            (push (cons key value) weight-data-1)))
+                        ;; (message "weight DBG weight-data: %S" weight-data-1)
+                        weight-data-1))
          (menu-alist (org-hugo--parse-menu-prop-to-alist (plist-get info :hugo-menu)))
          (menu-alist-override (org-hugo--parse-menu-prop-to-alist (plist-get info :hugo-menu-override)))
          ;; If menu-alist-override is non-nil, update menu-alist with values from that.
@@ -2684,7 +2831,6 @@ INFO is a plist used as a communication channel."
                  (type . ,(plist-get info :hugo-type))
                  (url . ,(plist-get info :hugo-url))
                  (videos . ,(org-hugo--delim-str-to-list (plist-get info :hugo-videos)))
-                 (weight . ,weight)
                  (draft . ,draft)
                  (headless . ,headless)
                  (creator . ,creator)
@@ -2692,7 +2838,7 @@ INFO is a plist used as a communication channel."
                  (blackfriday . ,blackfriday)
                  (menu . ,menu-alist)
                  (resources . ,resources)))
-         (data `,(append data custom-fm-data)))
+         (data `,(append data weight-data custom-fm-data)))
     ;; (message "[get fm DBG] tags: %s" tags)
     ;; (message "dbg: todo-state: keyword=%S draft=%S" todo-keyword draft)
     ;; (message "dbg: hugo tags: %S" (plist-get info :hugo-tags))
@@ -2735,7 +2881,7 @@ are \"toml\" and \"yaml\"."
                     (t "")))
         (front-matter "")
         (indent (make-string 2 ? ))
-        (bf-string "")
+        (nested-string "")
         (menu-string "")
         (res-string ""))
     ;; (message "hugo fm format: %s" format)
@@ -2751,7 +2897,7 @@ are \"toml\" and \"yaml\"."
           ;; TOML example:
           ;;     title = "My Post"
           ;; YAML example:
-          ;;     title : "My Post"
+          ;;     title: "My Post"
 
           ;; In TOML, the menu information in the front matter is as a
           ;; table. So it needs to be always added to the end of the
@@ -2810,35 +2956,6 @@ are \"toml\" and \"yaml\"."
                                         (format "%s%s%s %s\n"
                                                 indent menu-key sign menu-value)))))))
                   (setq menu-string (concat menu-entry-str menu-value-str))))))
-           ((string= key "blackfriday")
-            (when value
-              (let ((bf-alist value)
-                    (bf-entry-str "")
-                    (bf-value-str ""))
-                (setq bf-entry-str (cond ((string= format "toml")
-                                          "[blackfriday]\n")
-                                         ((string= format "yaml")
-                                          (format "blackfriday%s\n" sign))
-                                         (t
-                                          "")))
-                (dolist (bf-pair bf-alist)
-                  (let* ((bf-key (symbol-name (car bf-pair)))
-                         (bf-value (cdr bf-pair))
-                         (bf-value (cond ((or (string= bf-key "extensions")
-                                              (string= bf-key "extensionsmask"))
-                                          ;; "abc def" -> "[\"abc\", \"def\"]"
-                                          (concat "["
-                                                  (mapconcat #'identity
-                                                             (mapcar #'org-hugo--return-valid-blackfriday-extension
-                                                                     (split-string bf-value)) ", ")
-                                                  "]"))
-                                         (t
-                                          (org-hugo--quote-string bf-value)))))
-                    ;; (message "blackfriday DBG: %S %S" bf-key bf-value)
-                    (setq bf-value-str
-                          (concat bf-value-str
-                                  (format "%s%s%s %s\n" indent bf-key sign bf-value)))))
-                (setq bf-string (concat bf-entry-str bf-value-str)))))
            ((string= key "resources")
             (when value
               (dolist (res-alist value)
@@ -2900,6 +3017,62 @@ are \"toml\" and \"yaml\"."
                   (unless res-src-present
                     (user-error "`src' must be set for the `resources'"))
                   (setq res-string (concat res-string res-entry-str res-value-str res-param-str))))))
+           (;; Front-matter with nested map values: blackfriday, custom front-matter.
+            ;; Only 1 level of nesting is supported.
+            (and (listp value) ;Example value: '((legs . 4) ("eyes" . 2) (friends . (poo boo)))
+                 (eq 0 (cl-count-if (lambda (el) ;Check if value is a list of lists (or conses)
+                                      (not (listp el)))
+                                    value)))
+            (let ((nested-parent-key key)
+                  (nested-alist value)
+                  (nested-parent-key-str "")
+                  (nested-keyval-str ""))
+              ;; (message "[nested entry DBG] = %s" nested-parent-key)
+              ;; (message "[nested alist DBG] = %S" nested-alist)
+              (setq nested-parent-key-str (cond ((string= format "toml")
+                                                 (format "[%s]\n" nested-parent-key))
+                                                ((string= format "yaml")
+                                                 (format "%s%s\n" nested-parent-key sign))
+                                                (t
+                                                 "")))
+              (dolist (nested-pair nested-alist)
+                (unless (consp nested-pair)
+                  (user-error "Ox-hugo: Custom front-matter values with nested maps need to be an alist of conses"))
+                ;; (message "[nested pair DBG] = %S" nested-pair)
+                (let* ((nested-key (car nested-pair))
+                       (nested-key (cond
+                                    ((symbolp nested-key)
+                                     (symbol-name nested-key))
+                                    (t
+                                     nested-key)))
+                       (nested-value (cdr nested-pair))
+                       (nested-value (cond
+                                      ((and nested-value
+                                            (listp nested-value))
+                                       (if (and (string= nested-parent-key "blackfriday")
+                                                (or (string= nested-key "extensions")
+                                                    (string= nested-key "extensionsmask")))
+                                           (org-hugo--get-yaml-toml-list-string
+                                            (mapcar #'org-hugo--return-valid-blackfriday-extension
+                                                    nested-value))
+                                         (org-hugo--get-yaml-toml-list-string nested-value)))
+                                      ((null nested-value)
+                                       "false")
+                                      ((equal nested-value 't)
+                                       "true")
+                                      (t
+                                       (org-hugo--quote-string nested-value)))))
+                  ;; (message "nested DBG: %S KEY %S->%S VALUE %S->%S" nested-parent-key
+                  ;;          (car nested-pair) nested-key
+                  ;;          (cdr nested-pair) nested-value)
+                  (when nested-value
+                    (setq nested-keyval-str
+                          (concat nested-keyval-str
+                                  (format "%s%s%s %s\n"
+                                          indent nested-key sign nested-value))))))
+              (when (org-string-nw-p nested-keyval-str)
+                (setq nested-string (concat nested-string nested-parent-key-str
+                                            nested-keyval-str)))))
            (t
             (setq front-matter
                   (concat front-matter
@@ -2912,7 +3085,7 @@ are \"toml\" and \"yaml\"."
                                          (org-hugo--get-yaml-toml-list-string value))
                                         (t
                                          (org-hugo--quote-string value nil format)))))))))))
-    (concat sep front-matter bf-string menu-string res-string sep)))
+    (concat sep front-matter nested-string menu-string res-string sep)))
 
 (defun org-hugo--selective-property-inheritance ()
   "Return a list of properties that should be inherited."
@@ -2935,7 +3108,9 @@ are \"toml\" and \"yaml\"."
                      "HUGO_OUTPUTS"
                      "HUGO_TAGS"
                      "HUGO_CATEGORIES"
+                     "HUGO_SERIES"
                      "HUGO_TYPE"
+                     "HUGO_LAYOUT"
                      "HUGO_WEIGHT"
                      "HUGO_RESOURCES"
                      "HUGO_FRONT_MATTER_KEY_REPLACE"
@@ -2943,6 +3118,11 @@ are \"toml\" and \"yaml\"."
                      "HUGO_WITH_LOCALE"
                      "HUGO_LOCALE"
                      "HUGO_PAIRED_SHORTCODES"
+                     "DATE" ;Useful for inheriting same date to same posts in different languages
+                     "HUGO_PUBLISHDATE"
+                     "HUGO_EXPIRYDATE"
+                     "HUGO_LASTMOD"
+                     "HUGO_SLUG" ;Useful for inheriting same slug to same posts in different languages
                      "HUGO_AUTO_SET_LASTMOD")))
     (mapcar (lambda (str)
               (concat "EXPORT_" str))
@@ -3045,10 +3225,7 @@ is non-nil.
 
 Return the buffer the export happened to."
   (interactive)
-  (org-hugo--before-export-function)
-  (unless subtreep
-    ;; Reset the variables that are used only for subtree exports.
-    (setq org-hugo--subtree-coord nil))
+  (org-hugo--before-export-function subtreep)
   ;; Allow certain `ox-hugo' properties to be inherited.
   (let ((org-use-property-inheritance (org-hugo--selective-property-inheritance)))
     (prog1
@@ -3078,7 +3255,7 @@ contents of hidden elements.
 
 Return output file's name."
   (interactive)
-  (org-hugo--before-export-function)
+  (org-hugo--before-export-function subtreep)
   ;; Allow certain `ox-hugo' properties to be inherited.  It is
   ;; important to set the `org-use-property-inheritance' before
   ;; setting the `info' var so that properties like
@@ -3097,11 +3274,8 @@ Return output file's name."
       ;; Below stuff applies only to per-file export flow.
       (let ((fname (file-name-nondirectory (buffer-file-name)))
             (title (format "%s" (or (car (plist-get info :title)) "<EMPTY TITLE>")))
-            (org-use-tag-inheritance t)
-            ;; `org-get-tags' returns a list of tags *only*
-            ;; at the current heading; `org-get-tags-at'
-            ;; returns inherited tags too.
-            (all-tags (org-get-tags-at))
+            (all-tags (let ((org-use-tag-inheritance t))
+                        (org-hugo--get-tags)))
             matched-exclude-tag)
         (when all-tags
           (dolist (exclude-tag org-export-exclude-tags)
@@ -3109,12 +3283,7 @@ Return output file's name."
               (setq matched-exclude-tag exclude-tag)
               (setq do-export nil))))
         (if do-export
-            (progn
-              ;; Reset the variables that are used only for subtree exports.
-              (setq org-hugo--subtree-coord nil)
-              (setq org-hugo--section nil)
-              (setq org-hugo--bundle nil)
-              (message "[ox-hugo] Exporting `%s' (%s)" title fname))
+            (message "[ox-hugo] Exporting `%s' (%s)" title fname)
           (message "[ox-hugo] %s was not exported as it is tagged with an exclude tag `%s'"
                    fname matched-exclude-tag))))
     (when do-export
@@ -3132,7 +3301,7 @@ Return output file's name."
 ;; publishing directory.
 
 ;; Return output file name."
-;;   (org-hugo--before-export-function)
+;;   (org-hugo--before-export-function subtreep)
 ;;   ;; Allow certain `ox-hugo' properties to be inherited.
 ;;   (let ((org-use-property-inheritance (org-hugo--selective-property-inheritance)))
 ;;     (prog1
@@ -3219,11 +3388,8 @@ approach)."
                     ;; If subtree is a valid Hugo post subtree, proceed ..
                     (setq is-commented (org-element-property :commentedp subtree))
 
-                    (let ((org-use-tag-inheritance t)
-                          ;; `org-get-tags' returns a list of tags *only*
-                          ;; at the current heading; `org-get-tags-at'
-                          ;; returns inherited tags too.
-                          (all-tags (org-get-tags-at)))
+                    (let ((all-tags (let ((org-use-tag-inheritance t))
+                                      (org-hugo--get-tags))))
                       (when all-tags
                         (dolist (exclude-tag org-export-exclude-tags)
                           (when (member exclude-tag all-tags)
@@ -3248,8 +3414,8 @@ approach)."
                               (message "[ox-hugo] %d/ Exporting `%s' .." org-hugo--subtree-count title))
                           (message "[ox-hugo] Exporting `%s' .." title))
                         ;; Get the current subtree coordinates for
-                        ;; auto-calculation of menu item weight or post
-                        ;; weight.
+                        ;; auto-calculation of menu item weight, page
+                        ;; or taxonomy weights.
                         (when (or
                                ;; Check if the menu front-matter is specified.
                                (or
@@ -3258,15 +3424,16 @@ approach)."
                                   (goto-char (point-min))
                                   (let ((case-fold-search t))
                                     (re-search-forward "^#\\+hugo_menu:.*:menu" nil :noerror))))
-                               ;; Check if the post needs auto-calculation of weight.
+                               ;; Check if auto-calculation is needed
+                               ;; for page or taxonomy weights.
                                (or
-                                (let ((post-weight (org-entry-get nil "EXPORT_HUGO_WEIGHT" :inherit)))
-                                  (and (stringp post-weight)
-                                       (string= post-weight "auto")))
+                                (let ((page-or-taxonomy-weight (org-entry-get nil "EXPORT_HUGO_WEIGHT" :inherit)))
+                                  (and (stringp page-or-taxonomy-weight)
+                                       (string-match-p "auto" page-or-taxonomy-weight)))
                                 (save-excursion
                                   (goto-char (point-min))
                                   (let ((case-fold-search t))
-                                    (re-search-forward "^#\\+hugo_weight:[[:blank:]]*auto" nil :noerror)))))
+                                    (re-search-forward "^#\\+hugo_weight:.*auto" nil :noerror)))))
                           (setq org-hugo--subtree-coord
                                 (org-hugo--get-post-subtree-coordinates subtree)))
                         ;; Get the current subtree section name if any.
@@ -3378,6 +3545,7 @@ buffer and returned as a string in Org format."
                                 ,(format "|org-hugo-delete-trailing-ws                           |%S|" org-hugo-delete-trailing-ws)
                                 ,(format "|org-hugo-prefer-hyphen-in-tags                        |%S|" org-hugo-prefer-hyphen-in-tags)
                                 ,(format "|org-hugo-allow-spaces-in-tags                         |%S|" org-hugo-allow-spaces-in-tags)
+                                ,(format "|org-hugo-tag-processing-functions                     |%S|" org-hugo-tag-processing-functions)
                                 ,(format "|org-hugo-auto-set-lastmod                             |%S|" org-hugo-auto-set-lastmod)
                                 ,(format "|org-hugo-export-with-toc                              |%S|" org-hugo-export-with-toc)
                                 ,(format "|org-hugo-export-with-section-numbers                  |%S|" org-hugo-export-with-section-numbers)

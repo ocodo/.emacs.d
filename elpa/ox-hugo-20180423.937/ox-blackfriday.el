@@ -79,7 +79,8 @@ Note that this variable is *only* for internal use.")
   ;;           (lambda (a s v b)
   ;;             (if a (org-blackfriday-export-to-markdown t s v)
   ;;               (org-open-file (org-blackfriday-export-to-markdown nil s v)))))))
-  :translate-alist '((example-block . org-blackfriday-example-block)
+  :translate-alist '((center-block . org-blackfriday-center-block)
+                     (example-block . org-blackfriday-example-block)
                      (fixed-width . org-blackfriday-fixed-width) ;Org Babel Results
                      (footnote-reference . org-blackfriday-footnote-reference)
                      (inner-template . org-blackfriday-inner-template)
@@ -87,6 +88,7 @@ Note that this variable is *only* for internal use.")
                      (item . org-blackfriday-item)
                      (latex-environment . org-blackfriday-latex-environment)
                      (latex-fragment . org-blackfriday-latex-fragment)
+                     (line-break . org-html-line-break) ;"\\" at EOL forces a line break
                      (plain-list . org-blackfriday-plain-list)
                      (plain-text . org-blackfriday-plain-text)
                      (quote-block . org-blackfriday-quote-block)
@@ -279,11 +281,33 @@ doesn't matter in equations.
 
   \"(c)\" -> \"( c)\"
   \"(r)\" -> \"( r)\"
-  \"(tm)\" -> \"( tm)\"."
+  \"(tm)\" -> \"( tm)\"
+
+https://gohugo.io/content-management/formats#solution
+https://github.com/kaushalmodi/ox-hugo/issues/138
+
+Need to escape the backslash in \"\\(\", \"\\)\", .. to make
+Blackfriday happy.  So:
+
+  \"\\(\" -> \"\\\\(\"
+  \"\\)\" -> \"\\\\)\"
+  \"\\\\=[\" -> \"\\\\\\=[\"
+  \"\\\\=]\" -> \"\\\\\\=]\"
+  \"\\|\" -> \"\\\\|\"
+
+and finally:
+
+  \"\\\\\" -> \"\\\\\\\\\\\\\"."
   (let* (;; _ -> \_, * -> \*
          (escaped-str (replace-regexp-in-string "[_*]" "\\\\\\&" str))
          ;; (c) -> ( c), (r) -> ( r), (tm) -> ( tm)
-         (escaped-str (replace-regexp-in-string "(\\(c\\|r\\|tm\\))" "( \\1)" escaped-str)))
+         (escaped-str (replace-regexp-in-string "(\\(c\\|r\\|tm\\))" "( \\1)" escaped-str))
+         ;; \( -> \\(, \) -> \\), \[ -> \\[, \] -> \\], \| -> \\|
+         (escaped-str (replace-regexp-in-string "\\(\\\\[]()[|]\\)" "\\\\\\1" escaped-str))
+         (escaped-str (replace-regexp-in-string
+                       "\\([^\\]\\)\\\\\\{2\\}[[:blank:]]*$" ;Replace "\\" at EOL with:
+                       "\\1\\\\\\\\\\\\\\\\\\\\\\\\"             ;"\\\\\\"
+                       escaped-str)))
     escaped-str))
 
 ;;;; Reset org-blackfriday--code-block-num-backticks
@@ -363,6 +387,14 @@ style tag."
 
 
 ;;; Transcode Functions
+
+;;;; Center Block
+(defun org-blackfriday-center-block (_center-block contents _info)
+  "Center-align the text in CONTENTS using CSS."
+  (let* ((class "org-center")
+         (style (format ".%s { margin-left: auto; margin-right: auto; text-align: center; }" class)))
+    (format "<style>%s</style>\n\n<div class=\"%s\">\n  <div></div>\n\n%s\n</div>" ;See footnote 1
+            style class contents)))
 
 ;;;; Example Block
 (defun org-blackfriday-example-block (example-block _contents info)
@@ -557,11 +589,6 @@ INFO is a plist holding contextual information."
      ((memq processing-type '(t mathjax))
       (let* ((latex-frag (org-element-property :value latex-fragment))
              (frag (org-html-format-latex latex-frag 'mathjax info))
-             ;; https://gohugo.io/content-management/formats#solution
-             ;; Need to escape the backslash in "\(", "\)", .. to
-             ;; make Blackfriday happy.  So \( -> \\(, \) -> \\),
-             ;; \[ -> \\[ and \] -> \\].
-             (frag (replace-regexp-in-string "\\(\\\\[]()[]\\)" "\\\\\\1" frag))
              (frag (org-blackfriday-escape-chars-in-equation frag)))
         ;; (message "[ox-bf-latex-frag DBG] frag: %s" frag)
         frag))
@@ -672,10 +699,10 @@ This function is adapted from `org-html-special-block'."
         (format "<%s%s>%s</%s>"
                 block-type attr-str contents block-type))
        (html5-block-fancy
-        (format "<%s%s>\n<%s></%s>\n\n%s\n</%s>" ;See footnote 1
+        (format "<%s%s>\n  <%s></%s>\n\n%s\n\n</%s>" ;See footnote 1
                 block-type attr-str block-type block-type contents block-type))
        (t
-        (format "<div%s>\n<div></div>\n\n%s\n</div>" ;See footnote 1
+        (format "<div%s>\n  <div></div>\n\n%s\n\n</div>" ;See footnote 1
                 attr-str contents))))))
 
 ;;;; Src Block
@@ -852,17 +879,19 @@ contextual information."
          table-num
          (caption-html (if (not caption)
                            ""
-                         (let ((caption-str
+                         (let ((caption-prefix-fmt-str (org-html--translate "Table %d:" info))
+                               (caption-str
                                 (org-html-convert-special-strings ;Interpret em-dash, en-dash, etc.
                                  (org-export-data-with-backend caption 'html info))))
                            (setq table-num (org-export-get-ordinal
                                             table info
                                             nil #'org-html--has-caption-p))
                            (format (concat "<div class=\"table-caption\">\n"
-                                           "  <span class=\"table-number\">Table %d:</span>\n"
+                                           "  <span class=\"table-number\">%s</span>\n"
                                            "  %s\n"
                                            "</div>\n\n")
-                                   table-num caption-str))))
+                                   (format caption-prefix-fmt-str table-num)
+                                   caption-str))))
          (attr (org-export-read-attribute :attr_html table))
          ;; At the moment only the `class' attribute is supported in
          ;; #+attr_html above tables.
