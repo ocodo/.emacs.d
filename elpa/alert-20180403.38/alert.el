@@ -6,7 +6,7 @@
 ;; Created: 24 Aug 2011
 ;; Updated: 16 Mar 2015
 ;; Version: 1.2
-;; Package-Version: 20180122.1242
+;; Package-Version: 20180403.38
 ;; Package-Requires: ((gntp "0.1") (log4e "0.3.0"))
 ;; Keywords: notification emacs message
 ;; X-URL: https://github.com/jwiegley/alert
@@ -734,9 +734,14 @@ strings."
                                       "normal")))
                alert-libnotify-additional-args))
              (category (plist-get info :category)))
-        (if (and (plist-get info :persistent)
-                 (not (plist-get info :never-persist)))
-            (nconc args (list "--expire-time 0")))
+        (nconc args
+               (list "--expire-time"
+                     (number-to-string
+                      (* 1000 ; notify-send takes msecs
+                         (if (and (plist-get info :persistent)
+                                  (not (plist-get info :never-persist)))
+                             0 ; 0 indicates persistence
+                           alert-fade-time)))))
         (when category
           (nconc args
                  (list "--category"
