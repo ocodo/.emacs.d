@@ -6,7 +6,7 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.4
-;; Package-Version: 20180205.956
+;; Package-Version: 20180315.1528
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.3") (s "1.11.0") (dash "2.12.0") (list-utils "0.4.4") (loop "1.2"))
 
@@ -34,6 +34,7 @@
 (require 'cl-lib) ;; cl-prettyprint, cl-incf, cl-decf
 (require 'list-utils)
 (require 'loop)
+(require 'pcase)
 (eval-when-compile
   (require 'cl-macs)) ;; cl-assert
 
@@ -59,19 +60,10 @@
 Returns nil if SYMBOL is not a custom variable or if we can't
 make useful suggestions."
   (when (custom-variable-p symbol)
-    (let ((custom-type (get symbol 'custom-type))
-          choices)
-      (when (consp custom-type)
-        ;; If custom-type takes the form '(repeat (choice (...)))
-        (-when-let ((repeat-sym (choice-sym . repeated-choices)) custom-type)
-          (when (and (eq repeat-sym 'repeat) (eq choice-sym 'choice))
-            (setq choices repeated-choices)))
-        ;; If custom-type takes the form '(set (...))
-        (-when-let ((set-sym . set-choices) custom-type)
-          (when (eq set-sym 'set)
-            (setq choices set-choices))))
-      (when choices
-        (refine--custom-values choices)))))
+    (-some--> (pcase (get symbol 'custom-type)
+                (`(repeat (choice . ,repeated-choices)) repeated-choices)
+                (`(set . ,set-choices) set-choices))
+              (refine--custom-values it))))
 
 (defun refine--possible-values (symbol)
   "Return a list of the possible values SYMBOL can have.
