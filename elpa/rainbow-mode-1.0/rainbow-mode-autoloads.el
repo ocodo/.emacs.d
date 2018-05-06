@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "rainbow-mode" "rainbow-mode.el" (22873 40486
+;;;### (autoloads nil "rainbow-mode" "rainbow-mode.el" (23278 48077
 ;;;;;;  0 0))
 ;;; Generated autoloads from rainbow-mode.el
 
