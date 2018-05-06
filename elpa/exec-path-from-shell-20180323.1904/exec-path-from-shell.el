@@ -3,9 +3,9 @@
 ;; Copyright (C) 2012-2014 Steve Purcell
 
 ;; Author: Steve Purcell <steve@sanityinc.com>
-;; Keywords: environment
+;; Keywords: unix, environment
 ;; URL: https://github.com/purcell/exec-path-from-shell
-;; Package-Version: 20170508.4
+;; Package-Version: 20180323.1904
 ;; Package-X-Original-Version: 0
 
 ;; This file is not part of GNU Emacs.
@@ -73,6 +73,9 @@
 
 ;;; Code:
 
+;; Satisfy the byte compiler
+(defvar eshell-path-env)
+
 (defgroup exec-path-from-shell nil
   "Make Emacs use shell-defined values for $PATH etc."
   :prefix "exec-path-from-shell-"
@@ -132,7 +135,7 @@ The default value denotes an interactive login shell."
     (apply 'message msg args)))
 
 (defun exec-path-from-shell--standard-shell-p (shell)
-  "Return non-nil iff the shell supports the standard ${VAR-default} syntax."
+  "Return non-nil iff SHELL supports the standard ${VAR-default} syntax."
   (not (string-match "\\(fish\\|t?csh\\)$" shell)))
 
 (defun exec-path-from-shell-printf (str &optional args)
@@ -262,7 +265,6 @@ values used in the user's shell."
 ;; Local Variables:
 ;; coding: utf-8
 ;; indent-tabs-mode: nil
-;; mangle-whitespace: t
 ;; require-final-newline: t
 ;; checkdoc-minor-mode: t
 ;; End:
