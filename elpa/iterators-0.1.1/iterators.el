@@ -1,13 +1,13 @@
 ;;; iterators.el --- Functions for working with iterators  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015 Free Software Foundation, Inc
+;; Copyright (C) 2015-2018 Free Software Foundation, Inc
 
 ;; Author: Michael Heerdegen <michael_heerdegen@web.de>
 ;; Maintainer: Michael Heerdegen <michael_heerdegen@web.de>
 ;; Created: Mar 18 2015
 ;; Keywords: extensions, elisp
 ;; Compatibility: GNU Emacs >=25
-;; Version: 0.1
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "25"))
 
 
@@ -28,15 +28,21 @@
 ;;; Commentary:
 ;;
 ;; This package extends "generator.el" with higher-level functions.
+;;
+;;
+;; TODO:
+;;
+;; - hook ilists into seq.el via `cl-defgeneric'
+
 
 ;;; Code:
 
 
-(require 'cl-lib)
+(eval-when-compile (require 'cl-lib))
 (require 'generator)
 
 
-;; Basic stuff
+;;;; Basic stuff
 
 (defmacro iterator-make (&rest body)
   "Create an anonymous iterator.
@@ -44,7 +50,7 @@ This is equivalent to (funcall (iter-lambda () BODY...))"
   `(funcall (iter-lambda () ,@body)))
 
 
-;; Special simple iterators
+;;;; Special simple iterators
 
 (defun iterator-from-elts (&rest elements)
   "Return an iterator generating the ELEMENTS."
@@ -91,8 +97,44 @@ used between the numbers and defaults to 1."
              (iter-yield (prog1 i (cl-incf i inc))))))
       (iterator-make (while t (iter-yield (prog1 i (cl-incf i))))))))
 
+(iter-defun iterator-of-directory-files-1 (directory &optional match nosort recurse follow-links)
+  "Helper for `iterator-of-directory-files'."
+  (when (file-accessible-directory-p directory)
+    (let ((files (directory-files directory t match nosort)) dirs non-dirs)
+      (dolist (file files)
+        (if (file-directory-p file)
+            (push file dirs)
+          (push file non-dirs)))
+      (dolist (file non-dirs)
+        (iter-yield file))
+      (dolist (dir dirs)
+        (unless (member (file-name-nondirectory (directory-file-name dir)) '("." ".."))
+          (iter-yield dir)
+          (when (and (or follow-links (not (file-symlink-p dir)))
+                     (if (functionp recurse) (funcall recurse dir) recurse))
+            (iter-yield-from (iterator-of-directory-files-1
+                              dir match nosort recurse follow-links))))))))
 
-;; Operations on iterators, transducers
+(defun iterator-of-directory-files (directory &optional full match nosort recurse follow-links)
+  "Return an iterator of names of files in DIRECTORY.
+Don't include files named \".\" or \"..\".  The arguments FULL,
+MATCH and NOSORT are like in `directory-files'.
+
+Optional argument RECURSE non-nil means recurse on
+subdirectories.  If RECURSE is a function, it should be a
+predicate accepting one argument, an absolute file name of a
+directory, and return non-nil when the returned iterator should
+recurse into that directory.  Any other non-nil value means
+recurse into every readable subdirectory.
+
+Even with RECURSE non-nil, don't descent into directories by
+following symlinks unless FOLLOW-LINKS is non-nil."
+  (iterator-map
+   (lambda (file) (if full file (file-relative-name file directory)))
+   (iterator-of-directory-files-1 directory match nosort recurse follow-links)))
+
+
+;;;; Operations on iterators, transducers
 
 (defun iterator-filter (predicate iterator)
   "Return an iterator filtering ITERATOR with PREDICATE.
@@ -165,7 +207,7 @@ elements s_1, s_2, ... of the iterator returned by
 
 as long as i_n exists.
 
-Example: (iterator-scan #'* 1 (iterator-number-range 1))
+Example: (iterator-scan #\\='* 1 (iterator-number-range 1))
 returns an iterator of the factorials."
   (let ((res init))
     (iterator--cons
@@ -174,7 +216,7 @@ returns an iterator of the factorials."
                    iterator))))
 
 
-;; Iteration
+;;;; Iteration
 
 (defun iterator-flush (iterator)
   "Request all elements from ITERATOR, for side effects only."
@@ -183,7 +225,7 @@ returns an iterator of the factorials."
     (iter-end-of-sequence nil)))
 
 
-;; Processing elements
+;;;; Processing elements
 
 (defun iterator-reduce (function init iterator)
   "Reduce two-argument FUNCTION across ITERATOR starting with INIT.
@@ -264,7 +306,7 @@ like `mapconcat', but for iterators."
                      (iterator-map function iterator))))
 
 
-;;; ILists - "Delayed" lists via iterators
+;;;; ILists - "Delayed" lists via iterators
 
 (defconst ilist--last-link-tag 'ilist--last-link-tag)
 
@@ -371,20 +413,65 @@ argument ilists are not modified."
 
 (defun ilist-setcar (ilist object)
   "Set the first element of ILIST to OBJECT.
-Error if ILIST is empty.  Returns OBJECT."
+Error if ILIST is empty.  Return OBJECT."
   (if (ilist-empty-p ilist)
       (signal 'empty-ilist nil)
     (setcar ilist object)))
 
 (defun ilist-setcdr (ilist newcdr)
   "Set the `ilist-cdr' of ILIST to NEWCDR.
-Error if ILIST is empty.  Returns NEWCDR."
+Error if ILIST is empty.  Return NEWCDR."
   (if (ilist-empty-p ilist)
       (signal 'empty-ilist nil)
     (setcdr ilist newcdr)))
 
 ;;;; ChangeLog:
 
+;; 2018-03-16  Michael Heerdegen  <michael_heerdegen@web.de>
+;; 
+;; 	Optimize order of iterator-of-directory-files yield elements
+;; 
+;; 	* packages/iterators/iterators.el (iterator-of-directory-files-1): Yield
+;; 	all non-directory files before descending into subdirectories.
+;; 
+;; 2018-01-05  Michael Heerdegen  <michael_heerdegen@web.de>
+;; 
+;; 	Update copyrights of some packages
+;; 
+;; 	Update copyrights of el-search, iterators, on-screen and smart-yank.
+;; 
+;; 2017-01-26  Michael Heerdegen  <michael_heerdegen@web.de>
+;; 
+;; 	Update some copyrights
+;; 
+;; 2016-07-11  Paul Eggert	 <eggert@cs.ucla.edu>
+;; 
+;; 	Fix some quoting problems in doc strings
+;; 
+;; 	Most of these are minor issues involving, e.g., quoting `like this' 
+;; 	instead of 'like this'.	 A few involve escaping ` and ' with a preceding
+;; 	\= when the characters should not be turned into curved single quotes.
+;; 
+;; 2015-12-12  Michael Heerdegen  <michael_heerdegen@web.de>
+;; 
+;; 	add TODO section
+;; 
+;; 2015-11-16  Michael Heerdegen  <michael_heerdegen@web.de>
+;; 
+;; 	New function iterator-of-directory-files
+;; 
+;; 2015-08-21  Michael Heerdegen  <michael_heerdegen@web.de>
+;; 
+;; 	iterators.el: fix comments
+;; 
+;; 2015-08-04  Michael Heerdegen  <michael_heerdegen@web.de>
+;; 
+;; 	iterators.el: fix two typos
+;; 
+;; 2015-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+;; 
+;; 	* iterators/iterators.el: Don't need cl-lib at run-time.
+;; 
 ;; 2015-03-27  Michael Heerdegen  <michael_heerdegen@web.de>
 ;; 
 ;; 	iterators.el: copyright to FSF
