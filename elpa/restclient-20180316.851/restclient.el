@@ -6,7 +6,7 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2012
 ;; Keywords: http
-;; Package-Version: 20171203.1248
+;; Package-Version: 20180316.851
 
 ;; This file is not part of GNU Emacs.
 ;; This file is public domain software. Do what you want.
@@ -21,6 +21,7 @@
 ;;
 (require 'url)
 (require 'json)
+(require 'outline)
 
 (defgroup restclient nil
   "An interactive HTTP client for Emacs."
@@ -45,6 +46,19 @@
   "Inhibit restclient from sending cookies implicitly."
   :group 'restclient
   :type 'boolean)
+
+(defcustom restclient-content-type-modes '(("text/xml" . xml-mode)
+                                           ("text/plain" . text-mode)
+                                           ("application/xml" . xml-mode)
+                                           ("application/json" . js-mode)
+                                           ("image/png" . image-mode)
+                                           ("image/jpeg" . image-mode)
+                                           ("image/jpg" . image-mode)
+                                           ("image/gif" . image-mode)
+                                           ("text/html" . html-mode))
+  "An association list mapping content types to buffer modes"
+  :group 'restclient
+  :type '(alist :key-type string :value-type symbol))
 
 (defgroup restclient-faces nil
   "Faces used in Restclient Mode"
@@ -223,15 +237,7 @@
                                                     (match-string-no-properties 1)
                                                     "/"
                                                     (match-string-no-properties 2))
-                                                   '(("text/xml" . xml-mode)
-                                                     ("text/plain" . text-mode)
-                                                     ("application/xml" . xml-mode)
-                                                     ("application/json" . js-mode)
-                                                     ("image/png" . image-mode)
-                                                     ("image/jpeg" . image-mode)
-                                                     ("image/jpg" . image-mode)
-                                                     ("image/gif" . image-mode)
-                                                     ("text/html" . html-mode))))))
+                                                   restclient-content-type-modes))))
                         (forward-line)) 0)))
       (setq end-of-headers (point))
       (while (and (looking-at restclient-empty-line-regexp)
@@ -526,6 +532,33 @@ Optional argument STAY-IN-WINDOW do not move focus to response buffer if t."
   (interactive)
   (narrow-to-region (restclient-current-min) (restclient-current-max)))
 
+(defun restclient-toggle-body-visibility ()
+  (interactive)
+  ;; If we are not on the HTTP call line, don't do anything
+  (let ((at-header (save-excursion
+                     (beginning-of-line)
+                     (looking-at restclient-method-url-regexp))))
+    (when at-header
+      (save-excursion
+        (end-of-line)
+        ;; If the overlays at this point have 'invisible set, toggling
+        ;; must make the region visible. Else it must hide the region
+        
+        ;; This part of code is from org-hide-block-toggle method of
+        ;; Org mode
+        (let ((overlays (overlays-at (point))))
+          (if (memq t (mapcar
+                       (lambda (o)
+                         (eq (overlay-get o 'invisible) 'outline))
+                       overlays))
+              (outline-flag-region (point) (restclient-current-max) nil)
+            (outline-flag-region (point) (restclient-current-max) t)))) t)))
+
+(defun restclient-toggle-body-visibility-or-indent ()
+  (interactive)
+  (unless (restclient-toggle-body-visibility)
+    (indent-for-tab-command)))
+
 (defconst restclient-mode-keywords
   (list (list restclient-method-url-regexp '(1 'restclient-method-face) '(2 'restclient-url-face))
         (list restclient-svar-regexp '(1 'restclient-variable-name-face) '(2 'restclient-variable-string-face))
@@ -555,6 +588,14 @@ Optional argument STAY-IN-WINDOW do not move focus to response buffer if t."
     map)
   "Keymap for restclient-mode.")
 
+(define-minor-mode restclient-outline-mode
+  "Minor mode to allow show/hide of request bodies by TAB."
+      :init-value nil
+      :lighter nil
+      :keymap '(("\t" . restclient-toggle-body-visibility-or-indent)
+                ("\C-c\C-a" . restclient-toggle-body-visibility-or-indent))
+      :group 'restclient)
+
 ;;;###autoload
 (define-derived-mode restclient-mode fundamental-mode "REST Client"
   "Turn on restclient mode."
@@ -562,7 +603,14 @@ Optional argument STAY-IN-WINDOW do not move focus to response buffer if t."
   (set (make-local-variable 'comment-start-skip) "# *")
   (set (make-local-variable 'comment-column) 48)
 
-  (set (make-local-variable 'font-lock-defaults) '(restclient-mode-keywords)))
+  (set (make-local-variable 'font-lock-defaults) '(restclient-mode-keywords))
+  ;; We use outline-mode's method outline-flag-region to hide/show the
+  ;; body. As a part of it, it sets 'invisibility text property to
+  ;; 'outline. To get ellipsis, we need 'outline to be in
+  ;; buffer-invisibility-spec
+  (add-to-invisibility-spec '(outline . t)))
+
+(add-hook 'restclient-mode-hook 'restclient-outline-mode)
 
 (provide 'restclient)
 

@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "restclient" "restclient.el" (23138 47903 108874
-;;;;;;  710000))
+;;;### (autoloads nil "restclient" "restclient.el" (23278 48072 0
+;;;;;;  0))
 ;;; Generated autoloads from restclient.el
 
 (autoload 'restclient-http-send-current "restclient" "\
