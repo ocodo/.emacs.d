@@ -2,7 +2,7 @@
 
 ;; Author: Nicolas Lamirault <nicolas.lamirault@gmail.com>
 ;; URL: https://github.com/nlamirault/gotest.el
-;; Package-Version: 20170823.141
+;; Package-Version: 20180319.137
 ;; Version: 0.14.0
 ;; Keywords: languages, go, tests
 
@@ -151,6 +151,7 @@ arguments in that order.")
 
 (defun go-test--finished-sentinel (process event)
   "Execute after PROCESS return and EVENT is 'finished'."
+  (compilation-sentinel process event)
   (when (equal event "finished\n")
     (message "Go Test finished.")))
 
@@ -223,9 +224,11 @@ When single prefix argument is given, prompt for arguments using HISTORY.
 When double prefix argument is given, run command in compilation buffer with
 `comint-mode' enabled.
 When triple prefix argument is given, prompt for arguments using HISTORY and
-run command in compilation buffer `comint-mode' enabled."
+run command in compilation buffer `comint-mode' enabled.
+When a numeric prefix argument is provided, it is used as the -count flag."
   (pcase current-prefix-arg
     (`nil defaults)
+    ((pred integerp) (s-concat (format "-count=%d " current-prefix-arg) defaults))
     ((or `- `(16)) (car (symbol-value history)))
     ((or `(4) `(64)) (let* ((name (nth 1 (s-split "-" (symbol-name history))))
                             (prompt (s-concat "go " name " args: ")))
