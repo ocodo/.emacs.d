@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "elmacro" "elmacro.el" (0 0 0 0))
+;;;### (autoloads nil "elmacro" "elmacro.el" (23278 48358 0 0))
 ;;; Generated autoloads from elmacro.el
 
 (autoload 'elmacro-show-last-macro "elmacro" "\
@@ -47,8 +47,6 @@ positive, and disable it otherwise. If called from Lisp, enable
 the mode if ARG is omitted or nil.
 
 \(fn &optional ARG)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "elmacro" '("elmacro-")))
 
 ;;;***
 
