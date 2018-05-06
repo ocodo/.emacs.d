@@ -1,4 +1,4 @@
-;;; docker-networks.el --- Emacs interface to docker-network
+;;; docker-networks.el --- Emacs interface to docker-network  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 
@@ -29,7 +29,7 @@
 (require 'tablist)
 
 (defun docker-networks-entries ()
-  "Returns the docker networks data for `tabulated-list-entries'."
+  "Return the docker networks data for `tabulated-list-entries'."
   (let* ((data (docker "network" "ls"))
          (lines (cdr (s-split "\n" data t))))
     (-map #'docker-network-parse lines)))
@@ -50,7 +50,7 @@
   (docker "network rm" name))
 
 (defun docker-networks-rm-selection ()
-  "Run `docker-network-rm' on the networks selection."
+  "Run \"docker network rm\" on the networks selection."
   (interactive)
   (--each (docker-utils-get-marked-items-ids)
     (docker "network rm" it))

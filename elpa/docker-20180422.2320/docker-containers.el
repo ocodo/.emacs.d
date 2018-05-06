@@ -1,4 +1,4 @@
-;;; docker-containers.el --- Emacs interface to docker-containers
+;;; docker-containers.el --- Emacs interface to docker-containers  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;;         Yuki Inoue <inouetakahiroki@gmail.com>
@@ -41,6 +41,23 @@ For more information see the variable `shell-file-name'."
   :group 'docker
   :type 'string)
 
+(defcustom docker-containers-default-sort-key '("Image" . nil)
+  "Sort key for the docker containers list.
+
+This should be a cons cell (NAME . FLIP) where
+NAME is a string matching one of the column names
+and FLIP is a boolean to specify the sort order."
+  :group 'docker
+  :type '(cons (choice (const "Id")
+                       (const "Image")
+                       (const "Command")
+                       (const "Created")
+                       (const "Status")
+                       (const "Ports")
+                       (const "Names"))
+               (choice (const :tag "Ascending" nil)
+                       (const :tag "Descending" t))))
+
 (defun docker-containers-entries ()
   "Return the docker containers data for `tabulated-list-entries'."
   (let* ((fmt "[{{json .ID}},{{json .Image}},{{json .Command}},{{json .RunningFor}},{{json .Status}},{{json .Ports}},{{json .Names}}]")
@@ -54,7 +71,7 @@ For more information see the variable `shell-file-name'."
     (condition-case err
         (setq data (json-read-from-string line))
       (json-readtable-error
-       (error "could not read following string as json:\n%s" line)))
+       (error "Could not read following string as json:\n%s" line)))
     (list (aref data 6) data)))
 
 (defun docker-read-container-name (prompt)
@@ -121,6 +138,7 @@ Remove the volumes associated with the container when VOLUMES is set."
 
 ;;;###autoload
 (defun docker-container-find-file (container file)
+  "Inside CONTAINER open FILE."
   (interactive
    (let* ((container-name (docker-read-container-name "container: "))
           (tramp-filename (read-file-name "file: " (format "/docker:%s:/" container-name))))
@@ -130,6 +148,7 @@ Remove the volumes associated with the container when VOLUMES is set."
 
 ;;;###autoload
 (defun docker-container-dired (container directory)
+  "Inside CONTAINER open DIRECTORY."
   (interactive
    (let* ((container-name (docker-read-container-name "container: "))
           (tramp-filename (read-directory-name "directory: " (format "/docker:%s:/" container-name))))
@@ -138,7 +157,21 @@ Remove the volumes associated with the container when VOLUMES is set."
   (dired (format "/docker:%s:%s" container directory)))
 
 ;;;###autoload
+(defun docker-container-eshell (container)
+  "Open `eshell' in CONTAINER."
+  (interactive (list (docker-read-container-name "container: ")))
+  (let* ((container-address (format "docker:%s:/" container))
+         (file-prefix (if (file-remote-p default-directory)
+                          (with-parsed-tramp-file-name default-directory nil
+                            (format "/%s:%s|" method host))
+                        "/"))
+         (default-directory (format "%s%s" file-prefix container-address))
+         (eshell-buffer-name (format "*eshell %s*" default-directory)))
+    (eshell)))
+
+;;;###autoload
 (defun docker-container-shell (container)
+  "Open `shell' in CONTAINER."
   (interactive (list (docker-read-container-name "container: ")))
   (let* ((shell-file-name docker-containers-shell-file-name)
          (container-address (format "docker:%s:/" container))
@@ -161,6 +194,12 @@ Remove the volumes associated with the container when VOLUMES is set."
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-shell it)))
 
+(defun docker-containers-eshell-selection ()
+  "Run `docker-container-eshell' on the containers selection."
+  (interactive)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-eshell it)))
+
 (defun docker-containers-run-command-on-selection (command arguments)
   "Run a docker COMMAND on the containers selection with ARGUMENTS."
   (interactive "sCommand: \nsArguments: ")
@@ -169,12 +208,13 @@ Remove the volumes associated with the container when VOLUMES is set."
   (tablist-revert))
 
 (defun docker-containers-run-command-on-selection-print (command arguments)
-  "Run a docker COMMAND on the containers selection with ARGUMENTS and print"
+  "Run a docker COMMAND on the containers selection with ARGUMENTS and print the result."
   (interactive "sCommand: \nsArguments: ")
   (docker-utils-run-command-on-selection-print
    (lambda (id) (docker command arguments id))))
 
-(defmacro docker-containers-create-selection-functions (&rest functions)
+(defmacro docker-containers-create-selection-functions (&rest names)
+  "Create selection functions using NAMES."
   (declare (indent defun) (doc-string 2))
   `(progn ,@(--map
              `(defun ,(intern (format "docker-containers-%s-selection" it)) ()
@@ -182,15 +222,16 @@ Remove the volumes associated with the container when VOLUMES is set."
                 (interactive)
                 (docker-containers-run-command-on-selection ,(symbol-name it)
                                                             (s-join " " ,(list (intern (format "docker-containers-%s-arguments" it))))))
-             functions)))
+             names)))
 
 ;;;###autoload
 (defun docker-containers-rename ()
+  "Rename a container."
   (interactive)
   (docker-utils-select-if-empty)
   (let ((ids (docker-utils-get-marked-items-ids)))
     (if (/= 1 (length ids))
-        (error "Multiple containers cannot be selected.")
+        (error "Multiple containers cannot be selected")
       (let ((new-name (read-string "New Name: ")))
         (docker "rename" (nth 0 ids) new-name)
         (tablist-revert)))))
@@ -198,17 +239,18 @@ Remove the volumes associated with the container when VOLUMES is set."
 (defalias 'docker-rename-entry 'docker-containers-rename)
 
 (defun docker-containers-cp-from (container-path host-path)
-  "Run `docker-cp' on the container to copy files from."
+  "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
   (interactive "sContainerPath: \nFHostFile: ")
   (docker "cp" (concat (tabulated-list-get-id) ":" container-path) host-path))
 
 (defun docker-containers-cp-to-selection (host-path container-path)
-  "Run `docker-cp' on the containers selection to copy file into."
+  "Run \"docker cp\" from HOST-PATH to CONTAINER-PATH for selected containers."
   (interactive "fHostFile: \nsContainerPath: ")
   (--each (docker-utils-get-marked-items-ids)
     (docker "cp" host-path (concat it ":" container-path))))
 
 (defun docker-containers-convert-container-info-to-command (container-info)
+  "Convert CONTAINER-INFO to a docker command."
   (-map
    (lambda (container-info)
      `("docker" "run"
@@ -223,6 +265,7 @@ Remove the volumes associated with the container when VOLUMES is set."
        )) container-info))
 
 (defun docker-containers-inspect-command-selection ()
+  "Run `docker inspect' on selection."
   (interactive)
   (-each (docker-utils-get-marked-items-ids)
     (lambda (id)
@@ -234,14 +277,28 @@ Remove the volumes associated with the container when VOLUMES is set."
          (--each commands
            (insert (combine-and-quote-strings it))))))))
 
-(defmacro docker-containers-create-selection-print-functions (&rest functions)
+(defmacro docker-containers-create-selection-print-functions (&rest names)
+  "Generate print functions from NAMES."
   `(progn ,@(--map
              `(defun ,(intern (format "docker-containers-%s-selection" it)) ()
                 ,(format "Run `docker-%s' on the containers selection." it)
                 (interactive)
                 (docker-containers-run-command-on-selection-print ,(symbol-name it)
                                                                   (s-join " " ,(list (intern (format "docker-containers-%s-arguments" it))))))
-             functions)))
+             names)))
+
+(defun docker-containers-logs-selection ()
+  "Run \"docker logs\" on the containers selection.
+If the follow flag is enabled, run them using `async-shell-command'."
+  (interactive)
+  (let* ((id-list (docker-utils-get-marked-items-ids))
+         (args (docker-containers-logs-arguments)))
+    (if (-contains? args "-f")
+        (dolist (id id-list)
+          (let* ((docker-logs-command (format "docker logs -f %s" id))
+               (docker-logs-buffer (get-buffer-create (concat "*" docker-logs-command "*"))))
+          (async-shell-command docker-logs-command docker-logs-buffer)))
+      (docker-containers-run-command-on-selection-print "logs" args))))
 
 (docker-containers-create-selection-functions
   start
@@ -252,7 +309,7 @@ Remove the volumes associated with the container when VOLUMES is set."
   rm
   kill)
 
-(docker-containers-create-selection-print-functions inspect logs diff)
+(docker-containers-create-selection-print-functions inspect diff)
 
 (docker-utils-define-popup docker-containers-diff-popup
   "Popup for showing containers diffs."
@@ -266,9 +323,10 @@ Remove the volumes associated with the container when VOLUMES is set."
   :actions  '((?f "Open file" docker-containers-find-file-selection)))
 
 (docker-utils-define-popup docker-containers-shell-popup
-  "Popup for doing M-x `shell' to containers."
+  "Popup for doing M-x `shell'/`eshell' to containers."
   'docker-containers-popups
-  :actions  '((?b "Shell" docker-containers-shell-selection)))
+  :actions  '((?b "Shell" docker-containers-shell-selection)
+              (?e "Eshell" docker-containers-eshell-selection)))
 
 (docker-utils-define-popup docker-containers-inspect-popup
   "Popup for inspecting containers."
@@ -281,6 +339,7 @@ Remove the volumes associated with the container when VOLUMES is set."
   "Popup for showing containers logs."
   'docker-containers-popups
   :man-page "docker-logs"
+  :switches '((?f "Follow" "-f"))
   :actions  '((?L "Logs" docker-containers-logs-selection)))
 
 (docker-utils-define-popup docker-containers-start-popup
@@ -368,7 +427,7 @@ Remove the volumes associated with the container when VOLUMES is set."
   "Major mode for handling a list of docker containers."
   (setq tabulated-list-format [("Id" 16 t)("Image" 15 t)("Command" 30 t)("Created" 15 t)("Status" 20 t)("Ports" 10 t)("Names" 10 t)])
   (setq tabulated-list-padding 2)
-  (setq tabulated-list-sort-key (cons "Image" nil))
+  (setq tabulated-list-sort-key docker-containers-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-containers-refresh nil t)
   (tabulated-list-init-header)
   (tablist-minor-mode))

@@ -1,4 +1,4 @@
-;;; docker-images.el --- Emacs interface to docker-images
+;;; docker-images.el --- Emacs interface to docker-images  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 
@@ -28,8 +28,23 @@
 (require 'magit-popup)
 (require 'tablist)
 
+(defcustom docker-images-default-sort-key '("Repository" . nil)
+  "Sort key for the docker images list.
+
+This should be a cons cell (NAME . FLIP) where
+NAME is a string matching one of the column names
+and FLIP is a boolean to specify the sort order."
+  :group 'docker
+  :type '(cons (choice (const "Repository")
+                       (const "Tag")
+                       (const "Id")
+                       (const "Created")
+                       (const "Size"))
+               (choice (const :tag "Ascending" nil)
+                       (const :tag "Descending" t))))
+
 (defun docker-images-entries ()
-  "Returns the docker images data for `tabulated-list-entries'."
+  "Return the docker images data for `tabulated-list-entries'."
   (let* ((fmt "{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.CreatedSince}}\\t{{.Size}}")
          (data (docker "images" (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
@@ -49,7 +64,7 @@
 
 ;;;###autoload
 (defun docker-pull (name &optional all)
-  "Pull the image named NAME."
+  "Pull the image named NAME.  If ALL is set, use \"-a\"."
   (interactive (list (docker-read-image-name "Pull image: ") current-prefix-arg))
   (docker "pull" (when all "-a ") name))
 
@@ -69,7 +84,7 @@ Do not delete untagged parents when NO-PRUNE is set."
   (docker "rmi" (when force "-f") (when no-prune "--no-prune") name))
 
 (defun docker-images-rmi-selection ()
-  "Run `docker-rmi' on the images selection."
+  "Run \"docker rmi\" on the images selection."
   (interactive)
   (let ((args (docker-images-rmi-arguments)))
     (--each (docker-utils-get-marked-items-ids)
@@ -77,7 +92,7 @@ Do not delete untagged parents when NO-PRUNE is set."
     (tablist-revert)))
 
 (defun docker-images-pull-selection ()
-  "Run `docker-pull' on the images selection."
+  "Run \"docker pull\" on the images selection."
   (interactive)
   (let ((args (docker-images-pull-arguments)))
     (--each (docker-utils-get-marked-items-ids)
@@ -85,7 +100,7 @@ Do not delete untagged parents when NO-PRUNE is set."
     (tablist-revert)))
 
 (defun docker-images-push-selection ()
-  "Run `docker-push' on the images selection."
+  "Run \"docker push\" on the images selection."
   (interactive)
   (let ((args (s-join " " (docker-images-rmi-arguments))))
     (--each (docker-utils-get-marked-items-ids)
@@ -93,7 +108,7 @@ Do not delete untagged parents when NO-PRUNE is set."
     (tablist-revert)))
 
 (defun docker-images-run-selection ()
-  "Run `docker-run' on the images selection."
+  "Run \"docker run\" on the images selection."
   (interactive)
   (let* ((popup-args (docker-images-run-arguments))
          (last-item (-last-item popup-args))
@@ -107,7 +122,7 @@ Do not delete untagged parents when NO-PRUNE is set."
     (tablist-revert)))
 
 (defun docker-images-inspect-selection ()
-  "Run `docker-inspect' on the images selection."
+  "Run \"docker inspect\" on the images selection."
   (interactive)
   (docker-utils-run-command-on-selection-print
    (lambda (id) (docker "inspect" id))
@@ -119,7 +134,7 @@ Do not delete untagged parents when NO-PRUNE is set."
   (docker-utils-select-if-empty)
   (let ((ids (docker-utils-get-marked-items-ids)))
     (if (/= 1 (length ids))
-        (error "Multiple images cannot be selected.")
+        (error "Multiple images cannot be selected")
       (let ((tag-name (read-string "Tag Name: ")))
         (docker "tag" (nth 0 ids) tag-name)
         (tablist-revert)))))
@@ -163,7 +178,7 @@ Do not delete untagged parents when NO-PRUNE is set."
               (?o "Read only" "--read-only")
               (?T "Synchronize time" "-v /etc/localtime:/etc/localtime:ro")
               (?W "Web ports" "-p 80:80 -p 443:443 -p 8080:8080")
-              (?D "With display" "-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=unix$DISPLAY"))
+              (?D "With display" "-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY"))
   :options  '((?v "volume" "-v ")
               (?m "name" "--name ")
               (?e "environment" "-e ")
@@ -202,7 +217,7 @@ Do not delete untagged parents when NO-PRUNE is set."
   "Major mode for handling a list of docker images."
   (setq tabulated-list-format [("Repository" 30 t)("Tag" 20 t)("Id" 16 t)("Created" 25 t)("Size" 10 t)])
   (setq tabulated-list-padding 2)
-  (setq tabulated-list-sort-key (cons "Repository" nil))
+  (setq tabulated-list-sort-key docker-images-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-images-refresh nil t)
   (tabulated-list-init-header)
   (tablist-minor-mode))

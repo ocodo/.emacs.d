@@ -1,4 +1,4 @@
-;;; docker-volumes.el --- Emacs interface to docker-volume
+;;; docker-volumes.el --- Emacs interface to docker-volume  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 
@@ -29,7 +29,7 @@
 (require 'tablist)
 
 (defun docker-volumes-entries ()
-  "Returns the docker volumes data for `tabulated-list-entries'."
+  "Return the docker volumes data for `tabulated-list-entries'."
   (let* ((data (docker "volume" "ls"))
          (lines (cdr (s-split "\n" data t))))
     (-map #'docker-volume-parse lines)))
@@ -50,7 +50,7 @@
   (docker "volume rm" name))
 
 (defun docker-volumes-rm-selection ()
-  "Run `docker-volume-rm' on the volumes selection."
+  "Run \"docker volume rm\" on the volumes selection."
   (interactive)
   (--each (docker-utils-get-marked-items-ids)
     (docker "volume rm" it))

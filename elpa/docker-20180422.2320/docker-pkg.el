@@ -1,4 +1,4 @@
-(define-package "docker" "20180107.925" "Emacs interface to Docker"
+(define-package "docker" "20180422.2320" "Emacs interface to Docker"
   '((emacs "24.4")
     (dash "2.12.1")
     (docker-tramp "0.1")
@@ -6,8 +6,9 @@
     (s "1.11.0")
     (tablist "0.70")
     (json-mode "1.7.0"))
-  :url "https://github.com/Silex/docker.el" :keywords
-  '("filename" "convenience"))
+  :keywords
+  '("filename" "convenience")
+  :url "https://github.com/Silex/docker.el")
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:

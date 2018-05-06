@@ -1,4 +1,4 @@
-;;; docker-process.el --- Emacs interface to Docker
+;;; docker-process.el --- Emacs interface to Docker  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 
@@ -26,6 +26,11 @@
 (require 's)
 (require 'dash)
 
+(defcustom docker-run-as-root nil
+  "Controls wether docker runs as root or not."
+  :type 'boolean
+  :group 'docker)
+
 (defcustom docker-command "docker"
   "The command for \\[docker] package."
   :type 'string
@@ -33,9 +38,10 @@
 
 (defun docker (action &rest args)
   "Execute docker ACTION passing arguments ARGS."
-  (let ((command (format "%s %s %s" docker-command action (s-join " " (-non-nil args)))))
-    (message command)
-    (shell-command-to-string command)))
+  (let ((default-directory (if (and docker-run-as-root (not (file-remote-p default-directory))) "/sudo::" default-directory)))
+    (let ((command (format "%s %s %s" docker-command action (s-join " " (-non-nil args)))))
+      (message command)
+      (shell-command-to-string command))))
 
 (provide 'docker-process)
 

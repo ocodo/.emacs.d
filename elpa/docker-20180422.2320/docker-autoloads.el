@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "docker" "docker.el" (23138 48785 186441 844000))
+;;;### (autoloads nil "docker" "docker.el" (23278 48379 0 0))
 ;;; Generated autoloads from docker.el
 
 (autoload 'docker-mode "docker" "\
@@ -36,7 +36,7 @@ See `docker-mode' for more information on Docker mode.
 ;;;***
 
 ;;;### (autoloads nil "docker-containers" "docker-containers.el"
-;;;;;;  (23138 48785 178441 835000))
+;;;;;;  (23278 48379 0 0))
 ;;; Generated autoloads from docker-containers.el
 
 (autoload 'docker-start "docker-containers" "\
@@ -90,22 +90,27 @@ Inspect the container named NAME.
 \(fn NAME)" t nil)
 
 (autoload 'docker-container-find-file "docker-containers" "\
-
+Inside CONTAINER open FILE.
 
 \(fn CONTAINER FILE)" t nil)
 
 (autoload 'docker-container-dired "docker-containers" "\
-
+Inside CONTAINER open DIRECTORY.
 
 \(fn CONTAINER DIRECTORY)" t nil)
 
-(autoload 'docker-container-shell "docker-containers" "\
+(autoload 'docker-container-eshell "docker-containers" "\
+Open `eshell' in CONTAINER.
 
+\(fn CONTAINER)" t nil)
+
+(autoload 'docker-container-shell "docker-containers" "\
+Open `shell' in CONTAINER.
 
 \(fn CONTAINER)" t nil)
 
 (autoload 'docker-containers-rename "docker-containers" "\
-
+Rename a container.
 
 \(fn)" t nil)
 
@@ -116,12 +121,12 @@ List docker containers.
 
 ;;;***
 
-;;;### (autoloads nil "docker-images" "docker-images.el" (23138 48785
-;;;;;;  182441 840000))
+;;;### (autoloads nil "docker-images" "docker-images.el" (23278 48379
+;;;;;;  0 0))
 ;;; Generated autoloads from docker-images.el
 
 (autoload 'docker-pull "docker-images" "\
-Pull the image named NAME.
+Pull the image named NAME.  If ALL is set, use \"-a\".
 
 \(fn NAME &optional ALL)" t nil)
 
@@ -150,37 +155,37 @@ List docker images.
 
 ;;;***
 
-;;;### (autoloads nil "docker-machine" "docker-machine.el" (23138
-;;;;;;  48785 178441 835000))
+;;;### (autoloads nil "docker-machine" "docker-machine.el" (23278
+;;;;;;  48379 0 0))
 ;;; Generated autoloads from docker-machine.el
 
 (autoload 'docker-machine-config "docker-machine" "\
-Print the connection config for machine.
+Print the connection config for the machine NAME.
 
 \(fn NAME)" t nil)
 
 (autoload 'docker-machine-inspect "docker-machine" "\
-Inspect information about a machine.
+Inspect information about the machine NAME.
 
 \(fn NAME)" t nil)
 
 (autoload 'docker-machine-ip "docker-machine" "\
-Get the IP address of a machine.
+Get the IP address of the machine NAME.
 
 \(fn NAME)" t nil)
 
 (autoload 'docker-machine-status "docker-machine" "\
-Get the status of a machine.
+Get the status of the machine NAME.
 
 \(fn NAME)" t nil)
 
 (autoload 'docker-machine-upgrade "docker-machine" "\
-Upgrade a machine to the latest version of Docker.
+Upgrade the machine NAME to the latest version of Docker.
 
 \(fn NAME)" t nil)
 
 (autoload 'docker-machine-kill "docker-machine" "\
-Kill a machine.
+Kill the machine NAME.
 
 \(fn NAME)" t nil)
 
@@ -190,27 +195,27 @@ Create a machine NAME using DRIVER.
 \(fn NAME DRIVER)" t nil)
 
 (autoload 'docker-machine-start "docker-machine" "\
-Start a machine.
+Start the machine NAME.
 
 \(fn NAME)" t nil)
 
 (autoload 'docker-machine-env "docker-machine" "\
-Parse and set environment variables from \"docker-machine env\" output
+Parse and set environment variables from \"docker-machine env NAME\" output.
 
 \(fn NAME)" t nil)
 
 (autoload 'docker-machine-stop "docker-machine" "\
-Stop a machine.
+Stop the machine NAME.
 
 \(fn NAME)" t nil)
 
 (autoload 'docker-machine-restart "docker-machine" "\
-Restart a machine.
+Restart the machine NAME.
 
 \(fn NAME)" t nil)
 
 (autoload 'docker-machine-rm "docker-machine" "\
-Destroy or uncommand a machine.
+Destroy or uncommand the machine NAME.  If FORCE is set, use \"--force\".
 
 \(fn NAME &optional FORCE)" t nil)
 
@@ -221,8 +226,8 @@ List docker machines.
 
 ;;;***
 
-;;;### (autoloads nil "docker-networks" "docker-networks.el" (23138
-;;;;;;  48785 186441 844000))
+;;;### (autoloads nil "docker-networks" "docker-networks.el" (23278
+;;;;;;  48379 0 0))
 ;;; Generated autoloads from docker-networks.el
 
 (autoload 'docker-network-rm "docker-networks" "\
@@ -237,8 +242,8 @@ List docker networks.
 
 ;;;***
 
-;;;### (autoloads nil "docker-volumes" "docker-volumes.el" (23138
-;;;;;;  48785 182441 840000))
+;;;### (autoloads nil "docker-volumes" "docker-volumes.el" (23278
+;;;;;;  48379 0 0))
 ;;; Generated autoloads from docker-volumes.el
 
 (autoload 'docker-volume-rm "docker-volumes" "\
@@ -254,7 +259,7 @@ List docker volumes.
 ;;;***
 
 ;;;### (autoloads nil nil ("docker-pkg.el" "docker-process.el" "docker-utils.el")
-;;;;;;  (23138 48785 182441 840000))
+;;;;;;  (23278 48379 0 0))
 
 ;;;***
 
