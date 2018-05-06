@@ -1,10 +1,11 @@
-;;; package-utils.el --- Extensions for package.el
+;;; package-utils.el --- Extensions for package.el  -*- lexical-binding: t -*-
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/package-utils
-;; Package-Version: 20170222.2352
+;; Package-Version: 20180422.2322
 ;; Keywords: package, convenience
 ;; Version: 0.5.0
+;; Package-Requires: ((restart-emacs "0.1.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -100,6 +101,24 @@ With prefix argument NO-FETCH, do not call `package-refresh-contents'."
   "Upgrade all packages that can be upgraded without calling `package-refresh-contents' first."
   (interactive)
   (package-utils-upgrade-all t))
+
+;;;###autoload
+(defun package-utils-upgrade-all-and-quit (&optional no-fetch)
+  "Upgrade all packages that can be upgraded, then quit emacs.
+
+With prefix argument NO-FETCH, do not call `package-refresh-contents'."
+  (interactive "P")
+  (package-utils-upgrade-all no-fetch)
+  (save-buffers-kill-emacs t))
+
+;;;###autoload
+(defun package-utils-upgrade-all-and-restart (&optional no-fetch)
+  "Upgrade all packages that can be upgraded, then restart emacs.
+
+With prefix argument NO-FETCH, do not call `package-refresh-contents'."
+  (interactive "P")
+  (package-utils-upgrade-all no-fetch)
+  (restart-emacs))
 
 ;;;###autoload
 (defun package-utils-upgrade-by-name (name &optional no-fetch)

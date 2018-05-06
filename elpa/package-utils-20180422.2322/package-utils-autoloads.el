@@ -3,7 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "package-utils" "package-utils.el" (0 0 0 0))
+;;;### (autoloads nil "package-utils" "package-utils.el" (23278 48102
+;;;;;;  0 0))
 ;;; Generated autoloads from package-utils.el
 
 (autoload 'package-utils-list-upgrades "package-utils" "\
@@ -25,6 +26,20 @@ Upgrade all packages that can be upgraded without calling `package-refresh-conte
 
 \(fn)" t nil)
 
+(autoload 'package-utils-upgrade-all-and-quit "package-utils" "\
+Upgrade all packages that can be upgraded, then quit emacs.
+
+With prefix argument NO-FETCH, do not call `package-refresh-contents'.
+
+\(fn &optional NO-FETCH)" t nil)
+
+(autoload 'package-utils-upgrade-all-and-restart "package-utils" "\
+Upgrade all packages that can be upgraded, then restart emacs.
+
+With prefix argument NO-FETCH, do not call `package-refresh-contents'.
+
+\(fn &optional NO-FETCH)" t nil)
+
 (autoload 'package-utils-upgrade-by-name "package-utils" "\
 Upgrade the package NAME.
 
@@ -41,8 +56,6 @@ Upgrade the package NAME, without calling `package-refresh-contents' first.
 Uninstall the package NAME.
 
 \(fn NAME)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "package-utils" '("package-utils-")))
 
 ;;;***
 
