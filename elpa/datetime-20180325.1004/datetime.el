@@ -199,11 +199,33 @@ when necessary."
                   datetime-timezone
                 (warn "Timezone `%S' (value of `datetime-timezone' variable) is not known")
                 nil))
-            (let ((system-timezone (intern (or (cadr (current-time-zone)) "?"))))
-              (if (extmap-contains-key datetime--timezone-extmap system-timezone)
-                  system-timezone
-                (error "Failed to determine system timezone; consider customizing `datetime-timezone' variable"))))
+            (datetime--determine-system-timezone))
       (or timezone 'UTC))))
+
+(defun datetime--determine-system-timezone ()
+  ;; Unfortunately, there is no simple way.  `current-time-zone' might
+  ;; look as one, but it often returns a name that is not understood
+  ;; by this library.  These heuristics are certainly incomplete.
+  (save-match-data
+    (let ((system-timezone (intern (or (pcase system-type
+                                         ((or `gnu `gnu/linux `gnu/kfreebsd)
+                                          (or ;; For Debian-based distros.
+                                             (when (file-exists-p "/etc/timezone")
+                                               (condition-case nil
+                                                   (with-temp-buffer
+                                                     (insert-file-contents-literally "/etc/timezone")
+                                                     (when (looking-at "\\S-+")
+                                                       (match-string-no-properties 0)))
+                                                 (error)))
+                                             ;; Freedesktop standard (?).
+                                             (let ((locatime (file-symlink-p "/etc/localtime")))
+                                               (when (and locatime (string-match "/usr/share/zoneinfo/\\(.+\\)" locatime))
+                                                 (match-string-no-properties 1 locatime))))))
+                                       (cadr (current-time-zone))
+                                       "?"))))
+      (if (extmap-contains-key datetime--timezone-extmap system-timezone)
+          system-timezone
+        (error "Failed to determine system timezone; consider customizing `datetime-timezone' variable")))))
 
 
 (defun datetime--parse-pattern (type pattern options)
