@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "insert-shebang" "insert-shebang.el" (22955
-;;;;;;  53390 601578 659000))
+;;;### (autoloads nil "insert-shebang" "insert-shebang.el" (23278
+;;;;;;  48193 0 0))
 ;;; Generated autoloads from insert-shebang.el
 
 (autoload 'insert-shebang "insert-shebang" "\
