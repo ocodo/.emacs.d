@@ -2,9 +2,9 @@
 
 ;; Author: Natalie Weizenbaum
 ;; URL: https://github.com/nex3/dart-mode
-;; Package-Version: 20171024.2137
-;; Version: 1.0.2
-;; Package-Requires: ((emacs "24.5") (cl-lib "0.5") (dash "2.10.0") (flycheck "0.23") (s "1.11"))
+;; Package-Version: 20180219.1614
+;; Version: 1.0.3
+;; Package-Requires: ((emacs "24.5") (cl-lib "0.5") (dash "2.10.0") (flycheck "0.23") (s "1.10"))
 ;; Keywords: language
 
 ;; Copyright (C) 2011 Google Inc.
@@ -81,9 +81,6 @@
 
 (require 'cc-mode)
 (eval-when-compile
-  (and (= emacs-major-version 24)
-       (>= emacs-minor-version 4)
-       (require 'cl))
   (require 'cc-langs)
   (require 'cc-fonts))
 
@@ -676,6 +673,8 @@ whichever comes first."
 Each list item should be a regexp matching a single identifier."
   :group 'dart-mode)
 
+(c-override-default-keywords 'dart-font-lock-keywords)
+
 (defconst dart-font-lock-keywords-1 (c-lang-const c-matchers-1 dart)
   "Minimal highlighting for Dart mode.")
 
@@ -839,7 +838,9 @@ errors for the current contents of the buffer, not whatever is saved to disk."
    "analysis.updateContent"
    `((files .
             ((,buffer-file-name . ((type . "add")
-                                   (content . ,(buffer-string)))))))))
+                                   (content . ,(save-restriction
+                                                 (widen)
+                                                 (buffer-string))))))))))
 
 (defun dart-change-analysis-overlay
     (change-begin change-end change-before-length)
@@ -940,7 +941,7 @@ The constructed request will call METHOD with optional PARAMS."
     (process-send-string (dart--analysis-server-process dart--analysis-server)
                          (concat request "\n"))))
 
-(defun* dart--analysis-server-process-filter (das string)
+(cl-defun dart--analysis-server-process-filter (das string)
   "Handle the event or method response from the dart analysis server.
 
 The server DAS has STRING added to the buffer associated with it.
@@ -949,7 +950,7 @@ the callback for that request is given the json decoded response."
   (-let [buf (dart--analysis-server-buffer das)]
     ;; The buffer may have been killed if the server was restarted
     (unless (buffer-live-p buf)
-      (return-from dart--analysis-server-process-filter))
+      (cl-return-from dart--analysis-server-process-filter))
 
     ;; We use a buffer here because emacs might call the filter before the
     ;; entire line has been written out. In this case we store the
@@ -1038,10 +1039,10 @@ SUBSCRIPTION is an opaque object provided by
 The errors contained in RESPONSE from Dart analysis server run on BUFFER are
 reported to CALLBACK."
   (dart-info (format "Reporting to flycheck: %s" response))
-  (-when-let (errors (dart--get response 'result 'errors))
-    (-let [fly-errors (--map (dart--to-flycheck-err it buffer) errors)]
-      (dart-info (format "Parsed errors: %s" fly-errors))
-      (funcall callback 'finished fly-errors))))
+  (-let [fly-errors (--map (dart--to-flycheck-err it buffer)
+                           (dart--get response 'result 'errors))]
+    (dart-info (format "Parsed errors: %s" fly-errors))
+    (funcall callback 'finished fly-errors)))
 
 (defun dart--to-flycheck-err (err buffer)
   "Create a flycheck error from a dart ERR in BUFFER."
@@ -1153,7 +1154,7 @@ minibuffer."
          (if (dart--at-end-of-function-name-p) 'font-lock-function-name-face
            'font-lock-type-face))
 
-        (case (char-after)
+        (cl-case (char-after)
           ;; Foo.bar()
           (?.
            (forward-char)
@@ -1173,7 +1174,7 @@ minibuffer."
 
 (defun dart--at-end-of-function-name-p ()
   "Returns whether the point is at the end of a function name."
-  (case (char-after)
+  (cl-case (char-after)
     (?\( t)
     (?<
      (and (looking-at (concat "\\(" dart--identifier-re "\\|[<>]\\)*"))
@@ -1402,23 +1403,23 @@ stayas in place when the parameter is overwritten.")
 (defvar dart--last-expand-subscription nil
   "The last analysis server subscription from a call to `dart-expand'.")
 
-(defun* dart-expand ()
+(cl-defun dart-expand ()
   "Expand previous word using Dart's autocompletion."
   (interactive "*")
   (unless dart-enable-analysis-server
     (call-interactively dart-expand-fallback t)
-    (return-from dart-expand))
+    (cl-return-from dart-expand))
 
   (when (and (memq last-command '(dart-expand dart-expand-parameters))
              dart--last-expand-results)
-    (incf dart--last-expand-index)
+    (cl-incf dart--last-expand-index)
     (when (>= dart--last-expand-index (length dart--last-expand-results))
       (setq dart--last-expand-index 0))
     (dart--use-expand-suggestion
      dart--last-expand-beginning
      dart--last-expand-end
      (elt dart--last-expand-results dart--last-expand-index))
-    (return-from dart-expand))
+    (cl-return-from dart-expand))
 
   (when dart--last-expand-subscription
     (dart--analysis-server-unsubscribe dart--last-expand-subscription))
@@ -1516,7 +1517,7 @@ If FIRST is non-nil, this is the first completion event for this completion."
             (insert parameters)
             (insert " → " return-type))
 
-        (case kind
+        (cl-case kind
           ("GETTER" (insert "get "))
           ("SETTER" (insert "set ")))
         (insert name)
@@ -1525,7 +1526,7 @@ If FIRST is non-nil, this is the first completion event for this completion."
         (when return-type (insert " → " return-type)))
       (buffer-string))))
 
-(defun* dart-expand-parameters ()
+(cl-defun dart-expand-parameters ()
   "Adds parameters to the currently-selected `dart-expand' completion.
 
 This will select the first parameter, if one exists."
@@ -1541,21 +1542,21 @@ This will select the first parameter, if one exists."
         ((parameter-names parameterNames)
          (argument-string defaultArgumentListString)
          (argument-ranges defaultArgumentListTextRanges))
-      (unless parameter-names (return-from dart-expand-parameters))
+      (unless parameter-names (cl-return-from dart-expand-parameters))
 
       (unless argument-string
         (insert ?\()
         (save-excursion
           (insert ?\))
           (setq dart--last-expand-end (point-marker)))
-        (return-from dart-expand-parameters))
+        (cl-return-from dart-expand-parameters))
 
       (save-excursion
         (insert ?\( argument-string ?\))
         (setq dart--last-expand-end (point-marker)))
 
       (setq dart--last-expand-parameters-ranges
-            (loop for i below (length argument-ranges) by 2
+            (cl-loop for i below (length argument-ranges) by 2
                   collect (let* ((beginning (+ (point) 1 (elt argument-ranges i)))
                                  (end (+ beginning (elt argument-ranges (+ i 1)) 1)))
                             (list (copy-marker beginning) (copy-marker end)))))
@@ -1568,7 +1569,7 @@ This will select the first parameter, if one exists."
     ;; If this is called when the point is within the text generated by the
     ;; last `dart-expand-parameters' call, move to the next parameter in the
     ;; list.
-    (incf dart--last-expand-parameters-index)
+    (cl-incf dart--last-expand-parameters-index)
     (when (>= dart--last-expand-parameters-index (length dart--last-expand-parameters-ranges))
       (setq dart--last-expand-parameters-index 0))
 
@@ -1705,7 +1706,7 @@ See `compilation-error-regexp-alist' for help on their format.")
              (cons 'dart-formatter dart--formatter-compilation-regexp))
 (add-to-list 'compilation-error-regexp-alist 'dart-formatter)
 
-(defun* dart-format ()
+(cl-defun dart-format ()
   "Format the current buffer using the Dart formatter.
 
 By default, this uses the formatter in `dart-sdk-path'. However,
@@ -1736,7 +1737,7 @@ this can be overridden by customizing
             (message "Formatting failed")
             (when error-buffer
               (dart--formatter-show-errors error-buffer file (buffer-file-name)))
-            (return-from dart-format))
+            (cl-return-from dart-format))
 
           ;; Apply the format as a diff so that only portions of the buffer that
           ;; actually change are marked as modified.
@@ -1778,7 +1779,7 @@ this can be overridden by customizing
                 (forward-line len)
                 (-let [text (buffer-substring start (point))]
                   (with-current-buffer target-buffer
-                    (decf line-offset len)
+                    (cl-decf line-offset len)
                     (goto-char (point-min))
                     (forward-line (- from len line-offset))
                     (insert text)))))
@@ -1787,7 +1788,7 @@ this can be overridden by customizing
               (with-current-buffer target-buffer
                 (goto-char (point-min))
                 (forward-line (- from line-offset 1))
-                (incf line-offset len)
+                (cl-incf line-offset len)
                 (let (kill-ring) (kill-whole-line len))))
 
              (t

@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "dart-mode" "dart-mode.el" (23064 61809 110881
-;;;;;;  292000))
+;;;### (autoloads nil "dart-mode" "dart-mode.el" (23278 48392 0 0))
 ;;; Generated autoloads from dart-mode.el
  (add-to-list 'auto-mode-alist '("\\.dart\\'" . dart-mode))
 
