@@ -1,50 +1,9 @@
-;;; kaolin-themes-lib.el --- Kaolin-themes library, provides common parts for the theme engine
+;;; kaolin-themes-lib.el --- Kaolin-themes library, provides common parts for the package  -*- lexical-binding: t; -*-
 ;;; Commentary:
-
-;; TODO: git-commit-summary
-;; TODO: (??) split colors for builtin and functions
-;; highlight-quoted-quote && highlight-quoted-symbol
-;; TODO: color7 close to color4
-
-;; TODO: (??) add travis ci
-;; TODO: (??) increase color1 constrast to make them universal for light and dark themes
-;; TODO: adjust colors for 256 terminal
-;; TODO: adjust 5-9 colors
-;; TODO: manage colors in themes
-;; TODO: make less hardcoded colors in faces wihith kaolin-lib
-
-;; TODO: color spec and color functions
-
-;; TODO: bright background option/or contrast settings
-;; TODO: (??) disable color background for terminal
-;; TODO: add var to highlight key seq' - keysym
-;; TODO: var to enable distinct for fringe and line num
-
-;; TODO: Add the following faces to lib:
-;; TODO: custom-* and buttons
-
-;; TODO: add mode-line option/flat mode-line style
-;; TODO: (??) make dark mode-line in ligth themes.
-
-;; TODO: colorful comments
-;; TODO: treemacs support
-;; TODO: (??) color cornflower blue
-;; TODO: (??) add -pkg.el
-;; TODO: (??) outline-* faces
-
-;; TODO: line-num opt: hl or mono(gray)
-
-;; TODO: add colored selection option
-;; TODO: distant foregound
-;; TODO: move git-gutter faces from a theme file to lib
-;; i.e. avoid duplication
-;; TODO: add company-tooltip-common-selection for new themes
-
-;; TODO: (??) num, link and prep color vars use the same color
 
 ;;; Color order
 ;;
-;; color0 - pure/contrast/accent >= 70 sat & > 70 val
+;; color0 - almost pure/contrast >= 70 sat & > 70 val
 ;; color1 - regular
 ;; color2 - dark
 ;; color3 - light/soft
@@ -53,8 +12,8 @@
 ;; color5 - midnight <= 50 sat & < 30 value
 ;; color6 - very dark color 20-30 sat & val; see spring-green
 ;; color7 - dark grayish sat ~20 & val 50+; adjust with gray3; see erin7
-;; color8 - light grayish; sat ~10-15 & val ~ 70+
-;; color9 - very light color hue 11 value 93; h - 8, v - 95
+;; color8 - light grayish; sat ~10-15 & val ~ 65+
+;; color9 - very light color hue 8-17 value ~90-95
 
 ;;; Color list
 ;;
@@ -112,7 +71,7 @@
     ;; Gray - #CED8D9
     (gray0 "#353b3c")
     (gray1 "#383e3f")
-    (gray2 "#414849") ; old gray
+    ;; (gray2 "#414849") ; old gray
     (gray2 "#4b5254")
     (gray3 "#545c5e")
     (gray4 "#60696b") ; old alt-gray
@@ -279,11 +238,12 @@
     ;; TODO adjust
     (ultramarine0 "#4618dc")
     (ultramarine1 "#5f3eca")
-    (ultramarine2 "#3d2394")
+    (ultramarine2 "#40249C")
     (ultramarine3 "#6d44eb")
     (ultramarine4 "#787096")
     (ultramarine5 "#16141e")
-    (ultramarine6 "#322E40")
+    ;; (ultramarine6 "#322E40")
+    (ultramarine6 "#2D2C58")
     (ultramarine7 "#6E6884")
     (ultramarine8 "#b0acc5")
     (ultramarine9 "#DBD3EE")
@@ -310,9 +270,9 @@
     (cerulean6 "#2E3340")
     (cerulean7 "#687184") ; old grayish-blue
     (cerulean8 "#8F97A7")
-    (cerulean9 "#D3DFEE")
+    (cerulean9 "#C6D5E8")
 
-    ;; Azure/Sky Blue #007FFF
+    ;; Azure #007FFF
     (azure0 "#0e70d1")
     (azure1 "#3f7dba") ; old blue
     (azure2 "#2a4661")
@@ -321,10 +281,10 @@
     (azure5 "#14191e")
     (azure6 "#2E3740")
     (azure7 "#687684")
-    (azure8 "#8f9ca7")
-    (azure9 "#D3E2ED")
+    (azure8 "#8B9AA7")
+    (azure9 "#D3E4F0")
 
-    ;; Capri/Deep Sky Blue #00BFFF
+    ;; Capri #00BFFF
     ;; TODO: adjust
     (capri0 "#1a9eee")
     (capri1 "#2683b5")
@@ -334,7 +294,7 @@
     (capri5 "#1e2528" black2) ;; old midnight-blue
     (capri6 "#2E3940")
     (capri7 "#687A84")
-    (capri8 "#a2b1b8")
+    (capri8 "#98AAB3")
     (capri9 "#D3E6EE")
 
     ;; Cyan #00FFFF
@@ -349,7 +309,7 @@
     (cyan5 "#141e1e")
     (cyan6 "#2e3f40")
     (cyan7 "#688384")
-    (cyan8 "#a7caca")
+    (cyan8 "#A2C5C5")
     (cyan9 "#D3EEEE")
 
     ;; Teal #00A89D
@@ -380,9 +340,7 @@
     (spring-green0 "#2ae186")
     (spring-green1 "#51b884")
     (spring-green2 "#39855f") ; dark
-    ;; TODO adjust
-    (spring-green3 "#6fb593") ; old light green
-    ;; (spring-green3 "#5DD49A") ; old light green
+    (spring-green3 "#65E6A7")
     (spring-green4 "#597a6c") ; faded
     (spring-green5 "#141E1A")
     (spring-green6 "#2E4038") ; old midnight
@@ -519,13 +477,16 @@
     (str-alt     spring-green4)
     (doc         str-alt)
     (type        vermilion4)
-    (const       purple4)
     (var         blue4)
+    (const       purple4)
     (num         red1)
     (bool        num)
     (prep        violet4)
     (warning     orange1)
     (err         red1)
+
+    (keysym      prep)
+    (prompt      keyword)
 
     ;; Mode-line
     (line-fg           fg4)
@@ -534,6 +495,7 @@
     (line-border       bg4)
     (line-color1       keyword)
     (line-color2       builtin)
+    ; TODO:
     (segment-active    gray3)
     (segment-inactive  gray3)
     (evil-normal       teal1)
@@ -562,8 +524,8 @@
   '(
     ;; Font-lock
     (font-lock-builtin-face           (:foreground builtin))
-    (font-lock-comment-delimiter-face (:foreground comment))
-    (font-lock-comment-face           (:foreground comment))
+    (font-lock-comment-delimiter-face (:foreground comment :italic kaolin-italic-comments))
+    (font-lock-comment-face           (:foreground comment :italic kaolin-italic-comments))
     (font-lock-constant-face          (:foreground const))
     (font-lock-doc-face               (:foreground doc))
     (font-lock-function-name-face     (:foreground functions :bold bold))
@@ -591,7 +553,7 @@
     (cursor              (:background cursor))
     (vertical-border     (:foreground win-border))
     (window-divider      (:foreground win-border))
-    (minibuffer-prompt   (:foreground keyword :bold bold))
+    (minibuffer-prompt   (:foreground prompt :bold bold))
     (bold                (:bold bold))
     (italic              (:italic italic))
     (default-italic      (:italic italic))
@@ -614,7 +576,7 @@
 
 
     ;; Interface
-    (package-name (:inherit 'link :underline nil))
+    (package-name          (:inherit 'link :underline nil))
     (button                (:inherit 'link))
     (custom-button         (:background bg3 :foreground button :box (:line-width 2 :color bg2 :style 'released-button)))
     (custom-button-mouse   (:background bg4 :foreground button-hl :box (:line-width 2 :color bg2 :style 'released-button)))
@@ -631,7 +593,7 @@
 
     ;; Highlighting
     (highlight                (:background bg2 :foreground amber3))
-    (lazy-highlight           (:background bg3 :foreground fg2))
+    (lazy-highlight           (:background bg4 :foreground hl))
     (hl-line                  (:background hl-line))
     (highlight-numbers-number (:foreground num))
     (highlight-quoted-quote   (:inherit 'font-lock-builtin-face))
@@ -658,13 +620,15 @@
     ;; Auto-dim-other-buffers
     (auto-dim-other-buffers-face  (:background dim-buffer))
 
+
     ;; Linum & nlinum
     (linum                        (:background line-num-bg :foreground line-num-fg :bold nil
                                                :italic nil :underline nil :strike-through nil))
-    (linum-highlight-face         (:inherit 'linum))
+    (linum-highlight-face          (:background line-num-bg :foreground line-num-hl :bold bold
+                                                :italic nil :underline nil :strike-through nil))
     (nlinum-current-line          (:background line-num-bg :foreground line-num-hl :bold bold
                                                :italic nil :underline nil :strike-through nil))
-    (linum-relative-current-line  (:inherit 'nlinum-current-line))
+    (linum-relative-current-line  (:inherit 'linum-highlight-face))
     (nlinum-relative-current-face (:inherit 'nlinum-current-line))
 
     ;; Native line numbers
@@ -677,7 +641,7 @@
     (which-func (:foreground orange1))
 
     ;; Which-key
-    (which-key-key-face                   (:foreground spring-green1 :bold bold))
+    (which-key-key-face                   (:foreground keysym :bold bold))
     (which-key-group-description-face     (:foreground violet4))
     (which-key-local-map-description-face (:foreground azure3))
     (which-key-command-description-face   (:foreground cyan3))
@@ -748,10 +712,10 @@
     (sml/prefix           (:foreground line-fg))
     (sml/read-only        (:foreground orange1))
 
-    ;; TODO: maybe delete or change to other package
-    ;; Fic-mode
+    ;; Highlight TODOs
     (fic-face         (:background nil :foreground todo :bold bold))
     (fic-author-face  (:background nil :foreground todo :bold bold))
+    (hl-todo          (:background nil :foreground todo :bold bold))
 
     ;; Additional completion
     (ac-completion-face    (:foreground keyword :underline underline))
@@ -761,9 +725,8 @@
 
     ;; Company
     (company-tooltip                  (:background tooltip-bg :foreground tooltip-fg :bold bold))
-    (company-tooltip-common           (:foreground hl))
-    ;; TODO:
-    (company-tooltip-common-selection (:bold bold))
+    (company-tooltip-common           (:foreground hl :underline underline))
+    (company-tooltip-common-selection (:foreground hl :underline underline))
     (company-tooltip-selection        (:background tooltip-hl-bg :foreground tooltip-hl-fg))
     (company-tooltip-annotation       (:foreground var))
     (company-scrollbar-bg             (:background bg1))
@@ -835,6 +798,8 @@
     (magit-signature-bad          (:foreground red0))
     (magit-signature-untrusted    (:foreground cyan1))
 
+    (magit-popup-key              (:foreground keysym))
+
 
     ;; Flycheck
     (flycheck-info           (:underline (:style underline-style :color done)))
@@ -850,7 +815,7 @@
 
     ;; Hydra
     (hydra-face-red      (:foreground red1))
-    ;; TODO: change to teal
+    ;; TODO: (??) change to teal
     (hydra-face-teal     (:foreground cyan3))
     (hydra-face-blue     (:foreground azure3))
     (hydra-face-pink     (:foreground pink1))
@@ -873,7 +838,6 @@
     (mu4e-view-url-number-face (:foreground type))
     (mu4e-cited-1-face         (:foreground fg2))
     (mu4e-cited-7-face         (:foreground fg3))
-
     ;; ffap
     (ffap (:foreground fg4))
 
@@ -888,7 +852,7 @@
     (js2-function-param           (:foreground const))
     (js2-error                    (:underline (:color red0 :style underline-style)))
     (js2-function-call            (:foreground functions))
-    (js2-object-property          (:foreground brown3))
+    (js2-object-property          (:foreground num))
     (js2-jsdoc-value              (:foreground str))
     (js2-private-member           (:foreground fg3))
     (js3-function-param-face      (:foreground keyword))
@@ -933,9 +897,9 @@
     ;;  (show-paren-match-face (:background bg3 :foreground nil))))
     ;;  (show-paren-match-face (:background nil :foreground orange1 :bold bold)))))
 
-    ;; TODO: make red more contrast
-    (show-paren-mismatch (:background red4 :foreground bg2))
-    (rainbow-delimiters-unmatched-face (:foreground warning))
+    (show-paren-mismatch (:background red2 :foreground bg2))
+    (rainbow-delimiters-mismatched-face (:background red2 :foreground err))
+    (rainbow-delimiters-unmatched-face (:inherit 'rainbow-delimiters-mismatched-face))
     (rainbow-delimiters-base-face    (:foreground rb1))
     (rainbow-delimiters-depth-1-face (:foreground rb1))
     (rainbow-delimiters-depth-2-face (:foreground rb2))
@@ -954,11 +918,37 @@
     (diff-changed     (:background diff-bg-mod :foreground fg1))
     (diff-removed     (:background diff-bg-rem :foreground fg1))
 
-    ;; Imenu list
-    ;; TODO:
+   ;; Ediff
+   ;; (ediff-current-diff-A (:background hl-line :foreground fg4))
+   ;; (ediff-current-diff-B (:background hl-line :foreground fg4))
+   ;; (ediff-current-diff-C (:background hl-line :foreground fg4))
+   (ediff-current-diff-Ancestor (:background diff-bg-mod :foreground fg2))
+   (ediff-current-diff-A (:background red2 :foreground fg2))
+   (ediff-current-diff-B (:background spring-green2 :foreground fg2))
+   (ediff-current-diff-C (:background cyan2 :foreground fg2))
+
+   (ediff-even-diff-Ancestor (:background bg3))
+   (ediff-even-diff-A (:background bg3))
+   (ediff-even-diff-B (:background bg3))
+   (ediff-even-diff-C (:background bg3))
+
+   (ediff-fine-diff-Ancestor (:background diff-bg-mod :bold bold :foreground white0))
+   (ediff-fine-diff-A (:background red3 :bold bold :foreground white0))
+   (ediff-fine-diff-B (:background spring-green1 :bold bold :foreground white0))
+   (ediff-fine-diff-C (:background cyan1 :bold bold :foreground white0))
+
+   (ediff-odd-diff-Ancestor (:background bg4))
+   (ediff-odd-diff-A (:background bg4))
+   (ediff-odd-diff-B (:background bg4))
+   (ediff-odd-diff-C (:background bg4))
+
+    ;; TODO Imenu list
     (imenu-list-entry-subalist-face-0 (:inherit 'font-lock-keyword-face))
     (imenu-list-entry-face-1 (:foreground tooltip-fg))
     (imenu-list-entry-face-0 (:inherit 'font-lock-type-face))
+
+    ;; TODO Treemacs
+    (treemacs-header-face (:inherit 'header-line))
 
     ;; Git gutter
     (git-gutter:unchanged (:background bg1 :foreground nil))
@@ -1027,9 +1017,11 @@
     (org-verbatim                  (:foreground azure3))
     (org-hide                      (:foreground bg1))
     (org-special-keyword           (:foreground functions))
-    (org-table                     (:foreground var :bold bold))
+    (org-table                     (:background bg2 :foreground fg3))
     (org-formula                   (:foreground type))
     (org-warning                   (:foreground warning :underline underline))
+    (org-tag                       (:foreground prep))
+    (org-checkbox                  (:inherit 'org-special-keyword))
 
     (org-document-info-keyword     (:foreground second-key))
     (org-meta-line                 (:inherit 'org-document-info-keyword))
@@ -1049,6 +1041,11 @@
     (org-scheduled-today           (:foreground functions :height 1.2 :bold bold))
     (org-sexp-date                 (:foreground fg4))
 
+    (org-level-1            (:foreground keyword :bold bold :height 1.1))
+    (org-level-2            (:foreground builtin  :bold nil))
+    (org-level-3            (:foreground num :bold nil))
+    (org-level-4            (:foreground const :bold nil))
+
     ;; Emmet
     (emmet-preview-input   (:foreground nil :background nil))
     (emmet-preview-output  (:foreground nil :background nil))
@@ -1057,6 +1054,7 @@
     (flx-highlight-face (:foreground hl :underline underline))
 
     ;; Smartparens
+    ;; TODO:
     (sp-pair-overlay-face (:foreground nil))
 
     ;; Web-mode
@@ -1132,6 +1130,12 @@
     (helm-moccur-buffer                       (:foreground functions))
     (helm-source-go-package-godoc-description (:foreground str))
     (helm-bookmark-w3m                        (:foreground type))
+
+     ;; Avy
+    (avy-lead-face-0 (:background spring-green2 :foreground fg1))
+    (avy-lead-face   (:background red2 :foreground fg1))
+    (avy-lead-face-1 (:background capri2 :foreground fg1))
+    (avy-lead-face-2 (:background magenta2 :foreground fg1))
 
     ;; Ivy & swiper
     (ivy-current-match           (:background hl-line :foreground hl :bold t))

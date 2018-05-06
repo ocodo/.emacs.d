@@ -9,7 +9,10 @@
    (white1          "#e4e4e8")
    (white2          "#c8c8d0")
    (white3          "#babac4")
-   (white4          "#adadb9"))
+   (white4          "#adadb9")
+
+   (spring-green3 "#6fb593"))
+
 
   (
    ;; Theme faces
@@ -41,24 +44,6 @@
    (org-agenda-structure          (:background bg3 :foreground fg3 :bold bold))
    (org-agenda-date               (:foreground amber3 :height 1.1))
    (org-agenda-date-today         (:foreground magenta4 :height 1.2 :bold bold))
-
-   ;; Ediff
-   ;; TODO: change
-   (ediff-current-diff-A (:background red2 :foreground red1))
-   (ediff-current-diff-B (:background spring-green2 :foreground spring-green1))
-   (ediff-current-diff-C (:background azure2 :foreground capri4))
-
-   (ediff-even-diff-A (:background bg2))
-   (ediff-even-diff-B (:background bg2))
-   (ediff-even-diff-C (:background bg2))
-
-   (ediff-fine-diff-A (:background nil :bold bold))
-   (ediff-fine-diff-B (:background nil :bold bold))
-   (ediff-fine-diff-C (:background nil :bold bold))
-
-   (ediff-odd-diff-A (:background bg3))
-   (ediff-odd-diff-B (:background bg3))
-   (ediff-odd-diff-C (:background bg3))
 
    ;; Speedbar
    ;; TODO:
@@ -102,16 +87,9 @@
    (rst-level-5   (:foreground teal1))
    (rst-level-6   (:foreground capri4))
 
-   ;; TODO: split
    ;; Vimish-fold
    (vimish-fold-overlay (:background bg2 :foreground comment))
    (vimish-fold-fringe  (:background nil :foreground spring-green4))
-
-   ;; Avy
-   (avy-lead-face   (:background red2 :foreground fg1))
-   (avy-lead-face-0 (:background spring-green4 :foreground fg1))
-   (avy-lead-face-1 (:background azure2 :foreground fg1))
-   (avy-lead-face-2 (:background magenta2 :foreground fg1))
 
    ;; Ivy & Swiper
    (ivy-modified-buffer     (:foreground violet4))
