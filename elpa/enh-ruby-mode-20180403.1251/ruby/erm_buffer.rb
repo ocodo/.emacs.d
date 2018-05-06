@@ -1,6 +1,41 @@
 require 'ripper'
 
 class ErmBuffer
+  FONT_LOCK_NAMES = {
+    rem:             0,  # remove/ignore
+    sp:              0,
+    ident:           0,
+    tstring_content: 1,  # font-lock-string-face
+    const:           2,  # font-lock-type-face
+    ivar:            3,  # font-lock-variable-name-face
+    arglist:         3,
+    cvar:            3,
+    gvar:            3,
+    embexpr_beg:     3,
+    embexpr_end:     3,
+    comment:         4,  # font-lock-comment-face
+    embdoc:          4,
+    label:           5,  # font-lock-constant-face
+    CHAR:            6,  # font-lock-string-face
+    backtick:        7,  # ruby-string-delimiter-face
+    __end__:         7,
+    embdoc_beg:      7,
+    embdoc_end:      7,
+    tstring_beg:     7,
+    tstring_end:     7,
+    words_beg:       7,
+    regexp_beg:      8,  # ruby-regexp-delimiter-face
+    regexp_end:      8,
+    tlambda:         9,  # font-lock-function-name-face
+    defname:         9,
+    kw:              10, # font-lock-keyword-face
+    block:           10,
+    heredoc_beg:     11,
+    heredoc_end:     11,
+    op:              12, # ruby-op-face
+    regexp_string:   13, # ruby-regexp-face
+  }
+
   module Adder
     def nadd sym, tok, len = tok.size, ft = false, la = nil
       case sym
@@ -11,7 +46,7 @@ class ErmBuffer
           parser.mode = nil
         end
       else
-        @statment_start = false
+        @statement_start = false
 
         parser.mode = :def if parser.mode == :predef
         @block = false     if @block == :b4args
@@ -32,7 +67,7 @@ class ErmBuffer
 
       sym
     end
-  end
+  end # module Adder
 
   class Heredoc
     include Adder
@@ -64,10 +99,23 @@ class ErmBuffer
         parser.heredoc = @prev
       end
     end
-  end
+  end # class Heredoc
 
   class Parser < ::Ripper   #:nodoc: internal use only
     include Adder
+
+    # TODO: add @prev_line and copy it when we clear @line_so_far
+    # TODO: use this to calculate hanging indent for parenless args
+
+    # Indents:
+    #
+    # l - [, (, {, %w/%i open  or | goalpost open
+    # r - ], ), }, %w/%i close or | goalpost close
+    # b - begin/def/case/if
+    # e - end / embexpr (interpolation) end / close block }
+    # d - do / {
+    # s - statement start on BACKDENT_KW else/when/rescue etc
+    # c - continue - period followed by return (or other way around?)
 
     INDENT_KW          = [:begin, :def, :case, :module, :class, :do, :for]
     BACKDENT_KW        = [:elsif, :else, :when, :rescue, :ensure]
@@ -113,7 +161,7 @@ class ErmBuffer
       @ident          = false
       @ident_stack    = []
       @block          = false
-      @statment_start = true
+      @statement_start = true
       @indent_stack   = []
       @list_count     = 0
       @cond_stack     = []
@@ -123,7 +171,7 @@ class ErmBuffer
       catch :parse_complete do
         super
 
-        realadd :rem, '', @src_size-@count if heredoc
+        realadd :rem_heredoc, '', @src_size-@count if heredoc
       end
 
       res = @res.map.with_index { |v, i|
@@ -159,6 +207,7 @@ class ErmBuffer
       start = @point_min if start < @point_min
       pos = @point_max   if pos   > @point_max
 
+      sym = :rem if sym =~ /^rem_/
       idx = FONT_LOCK_NAMES[sym]
 
       if t = @res[idx] then
@@ -171,7 +220,7 @@ class ErmBuffer
         @res[idx] = [start, pos]
       end
 
-      if sym == :sp && tok == "\n"
+      if (sym == :sp && tok == "\n") || (sym == :comment && tok.end_with?("\n"))
         @line_so_far.clear
       else
         @line_so_far << [sym, tok, len]
@@ -187,10 +236,10 @@ class ErmBuffer
         # Token can sometimes have preceding whitespace, which needs to be added
         # as a separate token to work with indents.
         if tok.length > 1
-          add :rem, tok[0..-2]
+          add :rem_end_ws, tok[0..-2]
         end
         indent :r
-        add :rem, tok[-1]
+        add :tstring_end, tok[-1]
       end
     end
 
@@ -208,7 +257,7 @@ class ErmBuffer
 
     [:backref, :float, :int].each do |event|
       define_method "on_#{event}" do |tok|
-        add :rem, tok
+        add :"rem_#{event}", tok
       end
     end
 
@@ -224,8 +273,8 @@ class ErmBuffer
 
     def on_comma tok
       @mode = nil
-      r = add :rem, tok, tok.size, false, @list_count <= 0
-      @statment_start = true
+      r = add :rem_comma, tok, tok.size, false, @list_count <= 0
+      @statement_start = true
       r
     end
 
@@ -290,7 +339,7 @@ class ErmBuffer
       end
 
       @cond_stack.pop if @cond_stack.last
-      @statment_start = true
+      @statement_start = true
 
       r
     end
@@ -325,7 +374,7 @@ class ErmBuffer
     end
 
     def on_ignored_nl tok
-      unless tok.nil?
+      if tok then
         on_nl tok
       end
     end
@@ -370,7 +419,7 @@ class ErmBuffer
 
           return r
         when *BEGINDENT_KW then
-          if @statment_start then
+          if @statement_start then
             indent :b
           elsif POSTCOND_KW.include? sym then
             last_add = :cont
@@ -380,7 +429,7 @@ class ErmBuffer
         when *INDENT_KW then
           indent :b
         when *BACKDENT_KW then
-          indent :s if @statment_start
+          indent :s if @statement_start
         end
 
         @cond_stack << true if PRE_OPTIONAL_DO_KW.include? sym
@@ -393,7 +442,10 @@ class ErmBuffer
 
     def on_lbrace tok
       @cond_stack << false
-      if @ident then
+      @ident_stack << [@ident, mode]
+
+      is_start_of_line = @line_so_far.all? {|a| a[0] == :sp }
+      if @ident && !is_start_of_line then
         @brace_stack << :block
         indent :d
         r = add :block, tok
@@ -403,7 +455,7 @@ class ErmBuffer
         @brace_stack << :brace
         @list_count += 1
         indent :l
-        add :rem, tok
+        add :rem_lbrace, tok
       end
     end
 
@@ -422,8 +474,8 @@ class ErmBuffer
       @cond_stack << false
       indent :l
       @list_count += 1
-      r = add :rem, tok
-      @statment_start = true
+      r = add :rem_lparen, tok
+      @statement_start = true
       r
     end
 
@@ -451,7 +503,7 @@ class ErmBuffer
           else
             add :op, tok, tok.size, false, :cont
           end
-        @statment_start = true
+        @statement_start = true
         r
       end
     end
@@ -464,11 +516,11 @@ class ErmBuffer
       if @ident
         line_so_far_str = @line_so_far.map {|a| a[1] }.join
         if line_so_far_str.strip == ""
-          indent :c, (line_so_far_str.length * -1)
+          indent :c, -line_so_far_str.length
         end
       end
 
-      add :rem, tok, tok.size, false, :cont
+      add :rem_period, tok, tok.size, false, :cont
     end
 
     def on_rbrace tok
@@ -486,12 +538,14 @@ class ErmBuffer
              when :brace then
                indent :r
                @list_count -= 1
-               :rem
+               :rem_brace
              else
-               :rem
+               :rem_other
              end
 
-      add type, tok
+      add(type, tok).tap do
+        @ident, @mode = @ident_stack.pop
+      end
     end
 
     def on_regexp_beg tok
@@ -507,7 +561,7 @@ class ErmBuffer
 
     def on_rparen tok
       indent :r
-      r = add :rem, tok
+      r = add :rem_rparen, tok
 
       @list_count -= 1
       @ident, @mode = @ident_stack.pop
@@ -519,7 +573,7 @@ class ErmBuffer
     def on_semicolon tok
       r = add :kw, :semicolon, 1, true
       @cond_stack.pop if @cond_stack.last
-      @statment_start = true
+      @statement_start = true
       r
     end
 
@@ -547,7 +601,7 @@ class ErmBuffer
       if @mode == :regexp
         add :regexp_string, tok
       elsif @plit_stack.last # `tstring_content` is ignored by indent in emacs.
-        add :rem, tok
+        add :rem_tstring_content, tok # TODO: figure out this context? or collapse?
       else
         add :tstring_content, tok
       end
@@ -559,7 +613,7 @@ class ErmBuffer
       if @mode == :sym then
         add :label, tok
       else
-        add :tstring_beg, tok
+        add :tstring_end, tok # TODO: fix this to be :tstring_end
       end
     end
 
@@ -573,13 +627,13 @@ class ErmBuffer
       @plit_stack << (DELIM_MAP[delimiter] || delimiter)
 
       indent :l
-      add :rem, tok
+      add :words_beg, tok
     end
 
     def on_words_sep tok
       return if maybe_plit_ending(tok)
 
-      add :rem, tok
+      add :rem_words_sep, tok
     end
 
     alias on_lbracket     on_lparen
@@ -587,40 +641,7 @@ class ErmBuffer
     alias on_qwords_beg   on_words_beg
     alias on_rbracket     on_rparen
     alias on_symbols_beg  on_words_beg
-  end
-
-  FONT_LOCK_NAMES= {
-    rem:             0,  # 'remove' TODO: make this more debuggable
-    sp:              0,
-    ident:           0,
-    tstring_content: 1,  # font-lock-string-face
-    const:           2,  # font-lock-type-face
-    ivar:            3,  # font-lock-variable-name-face
-    arglist:         3,
-    cvar:            3,
-    gvar:            3,
-    embexpr_beg:     3,
-    embexpr_end:     3,
-    comment:         4,  # font-lock-comment-face
-    embdoc:          4,
-    label:           5,  # font-lock-constant-face
-    CHAR:            6,  # font-lock-string-face
-    backtick:        7,  # ruby-string-delimiter-face
-    __end__:         7,
-    embdoc_beg:      7,
-    embdoc_end:      7,
-    tstring_beg:     7,
-    regexp_beg:      8,  # ruby-regexp-delimiter-face
-    regexp_end:      8,
-    tlambda:         9,  # font-lock-function-name-face
-    defname:         9,
-    kw:              10, # font-lock-keyword-face
-    block:           10,
-    heredoc_beg:     11,
-    heredoc_end:     11,
-    op:              12, # ruby-op-face
-    regexp_string:   13, # ruby-regexp-face
-  }
+  end # class Parser
 
   @@extra_keywords = {}
 
@@ -684,4 +705,4 @@ class ErmBuffer
   def extra_keywords
     @extra_keywords || @@extra_keywords
   end
-end
+end # class ErmBuffer

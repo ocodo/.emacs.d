@@ -128,12 +128,12 @@ the value changes.
   :type 'integer :group 'enh-ruby)
 (put 'enh-ruby-hanging-brace-indent-level 'safe-local-variable 'integerp)
 
-(defcustom enh-ruby-hanging-paren-deep-indent-level 0
+(defcustom enh-ruby-hanging-paren-deep-indent-level 0 ; TODO: enh-ruby-hanging-brace-indent-level
   "*Extra hanging deep indentation for continued ruby parenthesis."
   :type 'integer :group 'enh-ruby)
 (put 'enh-ruby-hanging-paren-deep-indent-level 'safe-local-variable 'integerp)
 
-(defcustom enh-ruby-hanging-brace-deep-indent-level 0
+(defcustom enh-ruby-hanging-brace-deep-indent-level 0 ; TODO: enh-ruby-hanging-brace-indent-level
   "*Extra hanging deep indentation for continued ruby curly braces."
   :type 'integer :group 'enh-ruby)
 (put 'enh-ruby-hanging-brace-deep-indent-level 'safe-local-variable 'integerp)
@@ -156,7 +156,7 @@ the value changes.
   :type 'boolean :group 'enh-ruby)
 
 (defcustom enh-ruby-use-ruby-mode-show-parens-config nil
-  "If not nil show-parens functionality from ruby-mode in 24.4 will be enabled"
+  "This flag has no effect anymore as ERM supports show-paren-mode directly"
   :type 'boolean :group 'enh-ruby)
 
 (defconst enh-ruby-block-end-re "\\_<end\\_>")
@@ -377,11 +377,8 @@ Warning: does not play well with electric-indent-mode.
   (add-hook 'change-major-mode-hook 'erm-major-mode-changed     nil t)
   (add-hook 'kill-buffer-hook       'erm-buffer-killed          nil t)
 
-  (when enh-ruby-use-ruby-mode-show-parens-config
-    (require 'ruby-mode)
-    (smie-setup ruby-smie-grammar #'ruby-smie-rules
-                :forward-token  #'ruby-smie--forward-token
-                :backward-token #'ruby-smie--backward-token))
+  (add-function :around (local 'show-paren-data-function)
+                #'erm--advise-show-paren-data-function)
 
   (abbrev-mode)
   (erm-reset-buffer))
@@ -832,10 +829,16 @@ modifications to the buffer."
                   (t
                    (current-column)))))
          ((eq 'r prop)
-          (let ((opening-col
-                 (save-excursion (enh-ruby-backward-sexp) (current-column))))
+          (let (opening-col opening-is-last-thing-on-line)
+            (save-excursion
+              (enh-ruby-backward-sexp)
+              (setq opening-col (current-column))
+              (forward-char 1)
+              (skip-syntax-forward " " (line-end-position))
+              (setq opening-is-last-thing-on-line (eolp)))
             (if (and enh-ruby-deep-indent-paren
-                     (not enh-ruby-bounce-deep-indent))
+                     (not enh-ruby-bounce-deep-indent)
+                     (not opening-is-last-thing-on-line))
                 opening-col
               (forward-line -1)
               (enh-ruby-skip-non-indentable)
@@ -915,7 +918,7 @@ modifications to the buffer."
       (setq col (- pos start-pos -1))
 
       (cond
-       ((eq prop 'l)
+       ((eq prop 'l)                    ; TODO: comment wtf these mean
         (let ((shallow-indent
                (if (char-equal (char-after pos) ?{)
                    (+ enh-ruby-hanging-brace-indent-level indent)
@@ -923,11 +926,20 @@ modifications to the buffer."
               (deep-indent
                (if (char-equal (char-after pos) ?{)
                    (+ enh-ruby-hanging-brace-deep-indent-level col)
-                 (+ enh-ruby-hanging-paren-deep-indent-level col))))
-
+                 (+ enh-ruby-hanging-paren-deep-indent-level col)))
+              (at-eol (save-excursion
+                        (goto-char (1+ pos))
+                        (skip-syntax-forward " " (line-end-position))
+                        (eolp))))
           (if enh-ruby-bounce-deep-indent
-              (setq pc (cons (if enh-ruby-last-bounce-deep shallow-indent deep-indent) pc))
-            (setq pc (cons (if enh-ruby-deep-indent-paren deep-indent shallow-indent) pc)))))
+              (setq pc (cons (if enh-ruby-last-bounce-deep
+                                 shallow-indent
+                               deep-indent)
+                             pc))
+            (setq pc (cons (if (and (not at-eol) enh-ruby-deep-indent-paren)
+                               deep-indent
+                             shallow-indent)
+                           pc)))))
 
        ((eq prop 'r)
         (if pc (setq pc (cdr pc)) (setq npc col)))
@@ -1423,6 +1435,43 @@ With ARG, do it that many times."
      (t
       (setq erm-full-parse-p t)
       (error "%s" (substring response 1))))))
+
+(defun erm--end-p ()
+  "Is point directly after a block closing \"end\""
+  (let ((end-pos (- (point) 3)))
+    (and (>= end-pos (point-min))
+         (string= "end" (buffer-substring end-pos (point)))
+         (eq (get-text-property end-pos 'indent) 'e))))
+
+(defun erm--advise-show-paren-data-function (orig &rest args)
+  ;; First check if we are on opening ('b or 'd). We only care about
+  ;; the word openers "if", "do" etc (normal show-paren handles "{")
+  (if (and (memq (get-text-property (point) 'indent) '(b d))
+           (looking-at "\\w"))
+      (save-excursion
+        (let ((opener-beg (point))
+              (opener-end (save-excursion (forward-word) (point)))
+              (closer-end (progn (enh-ruby-forward-sexp 1) (point))))
+          (list
+           opener-beg
+           opener-end
+           (save-excursion (skip-syntax-backward ")w") (point))
+           closer-end
+           (not (erm--end-p)))))
+    ;; Now check if we are at a closer ("end")
+    (if (erm--end-p)
+        (let ((end-pos (point)))
+          (save-excursion
+            (enh-ruby-backward-sexp 1)
+            (list
+             (- end-pos 3)
+             end-pos
+             (point)
+             (save-excursion (skip-syntax-forward "(w") (point))
+             (or (not (looking-at "\\w"))
+                 (not (memq (get-text-property (point) 'indent) '(b d)))))))
+      ;; Otherwise, delegate to normal show-paren-data-function
+      (apply orig args))))
 
 (erm-reset)
 
