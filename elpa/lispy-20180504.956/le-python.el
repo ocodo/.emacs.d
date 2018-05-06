@@ -53,8 +53,12 @@ Stripping them will produce code that's valid for an eval."
             ((and (looking-at lispy-outline)
                   (looking-at lispy-outline-header))
              (lispy--bounds-outline))
-            ((looking-at "^def")
-             (setq bnd (lispy-bounds-python-block)))
+            ((looking-at "@")
+             (setq bnd (cons (point)
+                             (save-excursion
+                               (forward-sexp)
+                               (skip-chars-forward "[ \t\n]")
+                               (cdr (lispy-bounds-python-block))))))
             ((setq bnd (lispy-bounds-python-block)))
             ((bolp)
              (lispy--bounds-c-toplevel))
@@ -259,16 +263,20 @@ it at one time."
                          (p1-output (python-shell-send-string-no-output
                                      p1 (lispy--python-proc)))
                          p2-output)
-                    (cond ((null p1-output)
-                           (lispy-message lispy-eval-error))
-                          ((null (setq p2-output (lispy--eval-python p2)))
-                           (lispy-message lispy-eval-error))
-                          (t
-                           (concat
-                            (if (string= p1-output "")
-                                ""
-                              (concat p1-output "\n"))
-                            p2-output)))))
+                    (cond
+                      ((string-match-p "SyntaxError:" p1-output)
+                       (python-shell-send-string-no-output
+                        str (lispy--python-proc)))
+                      ((null p1-output)
+                       (lispy-message lispy-eval-error))
+                      ((null (setq p2-output (lispy--eval-python p2)))
+                       (lispy-message lispy-eval-error))
+                      (t
+                       (concat
+                        (if (string= p1-output "")
+                            ""
+                          (concat p1-output "\n"))
+                        p2-output)))))
                  (t
                   (error "unexpected")))))
       (cond
@@ -399,6 +407,8 @@ it at one time."
   (let (res)
     (save-excursion
       (goto-char beg)
+      (skip-chars-forward "\n\t ")
+      (setq beg (point))
       (while (< (point) end)
         (forward-sexp)
         (while (and (< (point) end)
@@ -474,9 +484,10 @@ it at one time."
                                         nil)
                              fn-defaults)))
          fn-alist-x dbg-cmd)
-    (when method-p
-      (unless (member '("self") fn-alist)
-        (push '("self") fn-alist)))
+    (if method-p
+        (unless (member '("self") fn-alist)
+          (push '("self") fn-alist))
+      (setq fn-alist (delete '("self") fn-alist)))
     (setq fn-alist-x fn-alist)
     (dolist (arg args-normal)
       (setcdr (pop fn-alist-x) arg))
