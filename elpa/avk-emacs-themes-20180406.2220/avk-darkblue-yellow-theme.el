@@ -157,7 +157,7 @@
    `(org-todo ((t (:foreground "forest green" :weight bold :box (:line-width 1 :color "dark green" :style nil) :foreground "forest green"))))
    `(org-upcoming-deadline ((t (:foreground "hot pink"))))
    `(outline-1 ((t (:foreground "LightSteelBlue2" :inherit nil :height 1.3))))
-   `(outline-3 ((t (:foreground "seashell3"))))
+   `(outline-3 ((t (:foreground "yellow"))))
    `(outline-7 ((t (:foreground "chartreuse"))))
    `(py-XXX-tag-face ((t (:background "medium violet red" :foreground "white"))) t)
    `(py-builtins-face ((t (:foreground "medium sea green"))) t)
