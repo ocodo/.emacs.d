@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "olivetti" "olivetti.el" (23166 23230 204618
-;;;;;;  366000))
+;;;### (autoloads nil "olivetti" "olivetti.el" (23278 48113 0 0))
 ;;; Generated autoloads from olivetti.el
 
 (autoload 'turn-on-olivetti-mode "olivetti" "\
