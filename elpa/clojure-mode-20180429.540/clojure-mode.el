@@ -9,9 +9,9 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Artur Malabarba <bruce.connor.am@gmail.com>
 ;; URL: http://github.com/clojure-emacs/clojure-mode
-;; Package-Version: 20180202.922
+;; Package-Version: 20180429.540
 ;; Keywords: languages clojure clojurescript lisp
-;; Version: 5.7.0-snapshot
+;; Version: 5.7.0
 ;; Package-Requires: ((emacs "24.4"))
 
 ;; This file is not part of GNU Emacs.
@@ -80,7 +80,7 @@
   :link '(url-link :tag "Github" "https://github.com/clojure-emacs/clojure-mode")
   :link '(emacs-commentary-link :tag "Commentary" "clojure-mode"))
 
-(defconst clojure-mode-version "5.7.0-snapshot"
+(defconst clojure-mode-version "5.7.0"
   "The current version of `clojure-mode'.")
 
 (defface clojure-keyword-face
@@ -91,11 +91,6 @@
 (defface clojure-character-face
   '((t (:inherit font-lock-string-face)))
   "Face used to font-lock Clojure character literals."
-  :package-version '(clojure-mode . "3.0.0"))
-
-(defface clojure-interop-method-face
-  '((t (:inherit font-lock-preprocessor-face)))
-  "Face used to font-lock interop method names (camelCase)."
   :package-version '(clojure-mode . "3.0.0"))
 
 (defcustom clojure-indent-style :always-align
@@ -173,7 +168,7 @@ double quotes on the third column."
   :type 'integer
   :safe 'integerp)
 
-(defcustom clojure-omit-space-between-tag-and-delimiters '(?\[ ?\{)
+(defcustom clojure-omit-space-between-tag-and-delimiters '(?\[ ?\{ ?\()
   "Allowed opening delimiter characters after a reader literal tag.
 For example, \[ is allowed in :db/id[:db.part/user]."
   :type '(set (const :tag "[" ?\[)
@@ -186,7 +181,8 @@ For example, \[ is allowed in :db/id[:db.part/user]."
 
 (defcustom clojure-build-tool-files '("project.clj" "build.boot" "build.gradle" "deps.edn")
   "A list of files, which identify a Clojure project's root.
-Out-of-the box `clojure-mode' understands lein, boot and gradle."
+Out-of-the box `clojure-mode' understands lein, boot, gradle
+and tools.deps."
   :type '(repeat string)
   :package-version '(clojure-mode . "5.0.0")
   :safe (lambda (value)
@@ -248,6 +244,7 @@ Out-of-the box `clojure-mode' understands lein, boot and gradle."
 
 (defvar clojure-mode-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map prog-mode-map)
     (define-key map (kbd "C-:") #'clojure-toggle-keyword-string)
     (define-key map (kbd "C-c SPC") #'clojure-align)
     (define-key map clojure-refactor-map-prefix 'clojure-refactor-map)
@@ -436,6 +433,10 @@ ENDP and DELIM."
                nil)
               (t)))))
 
+(defconst clojure--collection-tag-regexp "#\\(::[a-zA-Z0-9._-]*\\|:?\\([a-zA-Z0-9._-]+/\\)?[a-zA-Z0-9._-]+\\)"
+    "Allowed strings that can come before a collection literal (e.g. '[]' or '{}'), as reader macro tags.
+This includes #fully.qualified/my-ns[:kw val] and #::my-ns{:kw val} as of Clojure 1.9.")
+
 (defun clojure-no-space-after-tag (endp delimiter)
   "Prevent inserting a space after a reader-literal tag?
 
@@ -444,8 +445,8 @@ listed in `clojure-omit-space-between-tag-and-delimiters', this
 function returns t.
 
 This allows you to write things like #db/id[:db.part/user]
-without inserting a space between the tag and the opening
-bracket.
+and #::my-ns{:some \"map\"} without inserting a space between
+the tag and the opening bracket.
 
 See `paredit-space-for-delimiter-predicates' for the meaning of
 ENDP and DELIMITER."
@@ -455,7 +456,7 @@ ENDP and DELIMITER."
         (save-excursion
           (let ((orig-point (point)))
             (not (and (re-search-backward
-                       "#\\([a-zA-Z0-9._-]+/\\)?[a-zA-Z0-9._-]+"
+                       clojure--collection-tag-regexp
                        (line-beginning-position)
                        t)
                       (= orig-point (match-end 0)))))))))
@@ -845,29 +846,51 @@ any number of matches of `clojure--sym-forbidden-rest-chars'."))
        0 font-lock-constant-face)
       ;; Character literals - \1, \a, \newline, \u0000
       ("\\\\\\([[:punct:]]\\|[a-z0-9]+\\>\\)" 0 'clojure-character-face)
-      ;; foo/ Foo/ @Foo/ /FooBar
-      (,(concat "\\(?:\\<:?\\|\\.\\)@?\\(" clojure--sym-regexp "\\)\\(/\\)")
-       (1 font-lock-type-face) (2 'default))
-      ;; Constant values (keywords), including as metadata e.g. ^:static
-      ("\\<^?\\(:\\(\\sw\\|\\s_\\)+\\(\\>\\|\\_>\\)\\)" 1 'clojure-keyword-face append)
-      ;; Java interop highlighting
-      ;; CONST SOME_CONST (optionally prefixed by /)
-      ("\\(?:\\<\\|/\\)\\([A-Z]+\\|\\([A-Z]+_[A-Z1-9_]+\\)\\)\\>" 1 font-lock-constant-face)
-      ;; .foo .barBaz .qux01 .-flibble .-flibbleWobble
-      ("\\<\\.-?[a-z][a-zA-Z0-9]*\\>" 0 'clojure-interop-method-face)
-      ;; Foo Bar$Baz Qux_ World_OpenUDP Foo. Babylon15.
-      ("\\(?:\\<\\|\\.\\|/\\|#?^\\)\\([A-Z][a-zA-Z0-9_]*[a-zA-Z0-9$_]+\\.?\\>\\)" 1 font-lock-type-face)
-      ;; foo.bar.baz
-      ("\\<^?\\([a-z][a-z0-9_-]+\\.\\([a-z][a-z0-9_-]*\\.?\\)+\\)" 1 font-lock-type-face)
-      ;; (ns namespace) - special handling for single segment namespaces
+
+      ;; namespace definitions: (ns foo.bar)
       (,(concat "(\\<ns\\>[ \r\n\t]*"
                 ;; Possibly metadata
                 "\\(?:\\^?{[^}]+}[ \r\n\t]*\\)*"
                 ;; namespace
-                "\\([a-z0-9-]+\\)")
-       (1 font-lock-type-face nil t))
-      ;; fooBar
-      ("\\(?:\\<\\|/\\)\\([a-z]+[A-Z]+[a-zA-Z0-9$]*\\>\\)" 1 'clojure-interop-method-face)
+                "\\(" clojure--sym-regexp "\\)")
+       (1 font-lock-type-face))
+
+      ;; TODO dedupe the code for matching of keywords, type-hints and unmatched symbols
+
+      ;; keywords: {:oneword/ve/yCom|pLex.stu-ff 0}
+      (,(concat "\\(:\\{1,2\\}\\)\\(" clojure--sym-regexp "?\\)\\(/\\)\\(" clojure--sym-regexp "\\)")
+       (1 'clojure-keyword-face)
+       (2 font-lock-type-face)
+       ;; (2 'clojure-keyword-face)
+       (3 'default)
+       (4 'clojure-keyword-face))
+      (,(concat "\\(:\\{1,2\\}\\)\\(" clojure--sym-regexp "\\)")
+       (1 'clojure-keyword-face)
+       (2 'clojure-keyword-face))
+
+      ;; type-hints: #^oneword
+      (,(concat "\\(#^\\)\\(" clojure--sym-regexp "?\\)\\(/\\)\\(" clojure--sym-regexp "\\)")
+       (1 'default)
+       (2 font-lock-type-face)
+       (3 'default)
+       (4 'default))
+      (,(concat "\\(#^\\)\\(" clojure--sym-regexp "\\)")
+       (1 'default)
+       (2 font-lock-type-face))
+
+      ;; clojure symbols not matched by the previous regexps; influences CIDER's
+      ;; dynamic syntax highlighting (CDSH). See https://git.io/vxEEA:
+      (,(concat "\\(" clojure--sym-regexp "?\\)\\(/\\)\\(" clojure--sym-regexp "\\)")
+       (1 font-lock-type-face)
+       ;; 2nd and 3th matching groups can be font-locked to `nil' or `default'.
+       ;; CDSH seems to kick in only for functions and variables referenced w/o
+       ;; writing their namespaces.
+       (2 nil)
+       (3 nil))
+      (,(concat "\\(" clojure--sym-regexp "\\)")
+       ;; this matching group must be font-locked to `nil' otherwise CDSH breaks.
+       (1 nil))
+
       ;; #_ and (comment ...) macros.
       (clojure--search-comment-macro 1 font-lock-comment-face t)
       ;; Highlight `code` marks, just like `elisp'.
@@ -2150,11 +2173,15 @@ See: https://github.com/clojure-emacs/clj-refactor.el/wiki/cljr-cycle-privacy"
   (interactive)
   (clojure--convert-collection "#{" "}"))
 
+(defun clojure--in-string-p ()
+  "Check whether the point is currently in a string."
+  (nth 3 (syntax-ppss)))
+
 (defun clojure--goto-if ()
   "Find the first surrounding if or if-not expression."
-  (when (in-string-p)
+  (when (clojure--in-string-p)
     (while (or (not (looking-at "("))
-               (in-string-p))
+               (clojure--in-string-p))
       (backward-char)))
   (while (not (looking-at "\\((if \\)\\|\\((if-not \\)"))
     (condition-case nil
@@ -2184,9 +2211,9 @@ See: https://github.com/clojure-emacs/clj-refactor.el/wiki/cljr-cycle-if"
 ;; TODO: Remove code duplication with `clojure--goto-if'.
 (defun clojure--goto-when ()
   "Find the first surrounding when or when-not expression."
-  (when (in-string-p)
+  (when (clojure--in-string-p)
     (while (or (not (looking-at "("))
-               (in-string-p))
+               (clojure--in-string-p))
       (backward-char)))
   (while (not (looking-at "\\((when \\)\\|\\((when-not \\)"))
     (condition-case nil
@@ -2237,9 +2264,9 @@ bracket.")
 
 (defun clojure--goto-let ()
   "Go to the beginning of the nearest let form."
-  (when (in-string-p)
+  (when (clojure--in-string-p)
     (while (or (not (looking-at "("))
-               (in-string-p))
+               (clojure--in-string-p))
       (backward-char)))
   (ignore-errors
     (while (not (looking-at clojure--let-regexp))
