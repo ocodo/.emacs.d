@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "general" "general.el" (23166 23102 956769
-;;;;;;  655000))
+;;;### (autoloads nil "general" "general.el" (23278 48287 0 0))
 ;;; Generated autoloads from general.el
 
 (autoload 'general-define-key "general" "\
@@ -157,6 +156,16 @@ only apply to the keybindings that directly follow.
 
 (function-put 'general-defs 'lisp-indent-function 'defun)
 
+(autoload 'general-unbind "general" "\
+A wrapper for `general-def' to unbind multiple keys simultaneously.
+Insert after all keys in ARGS before passing ARGS to `general-def.' \":with
+ #'func\" can optionally specified to use a custom function instead (e.g.
+ `ignore').
+
+\(fn &rest ARGS)" nil t)
+
+(function-put 'general-unbind 'lisp-indent-function 'defun)
+
 (autoload 'general-describe-keybindings "general" "\
 Show all keys that have been bound with general in an org buffer.
 Any local keybindings will be shown first followed by global keybindings.
@@ -292,36 +301,42 @@ with `general-translate-key') and optionally keyword arguments for
 
 (autoload 'general-auto-unbind-keys "general" "\
 Advise `define-key' to automatically unbind keys when necessary.
-This will prevent errors when a sub-sequence of a key is already bound (e.g.
-the user attempts to bind \"SPC a\" when \"SPC\" is bound).
+This will prevent errors when a sub-sequence of a key is already bound (e.g. the
+user attempts to bind \"SPC a\" when \"SPC\" is bound, resulting in a \"Key
+sequnce starts with non-prefix key\" error). When UNDO is non-nil, remove
+advice.
 
-\(fn)" nil nil)
+\(fn &optional UNDO)" nil nil)
 
 (autoload 'general-add-hook "general" "\
 A drop-in replacement for `add-hook'.
-HOOKS and FUNCTIONS can be single items or lists.
+Unlike `add-hook', HOOKS and FUNCTIONS can be single items or lists. APPEND and
+LOCAL are passed directly to `add-hook'.
 
 \(fn HOOKS FUNCTIONS &optional APPEND LOCAL)" nil nil)
 
 (autoload 'general-remove-hook "general" "\
 A drop-in replacement for `remove-hook'.
-HOOKS and FUNCTIONS can be single items or lists.
+Unlike `remove-hook', HOOKS and FUNCTIONS can be single items or lists. LOCAL is
+passed directly to `remove-hook'.
 
 \(fn HOOKS FUNCTIONS &optional LOCAL)" nil nil)
 
-(autoload 'general-add-advice "general" "\
+(autoload 'general-advice-add "general" "\
 A drop-in replacement for `advice-add'.
-SYMBOLS and FUNCTIONS can be single items or lists.
+SYMBOLS, WHERE, FUNCTIONS, and PROPS correspond to the arguments for
+`advice-add'. Unlike `advice-add', SYMBOLS and FUNCTIONS can be single items or
+lists.
 
 \(fn SYMBOLS WHERE FUNCTIONS &optional PROPS)" nil nil)
+ (autoload 'general-add-advice "general")
 
-(defalias 'general-advice-add #'general-add-advice)
-
-(autoload 'general-remove-advice "general" "\
+(autoload 'general-advice-remove "general" "\
 A drop-in replacement for `advice-remove'.
-SYMBOLS and FUNCTIONS can be single items or lists.
+Unlike `advice-remove', SYMBOLS and FUNCTIONS can be single items or lists.
 
 \(fn SYMBOLS FUNCTIONS)" nil nil)
+ (autoload 'general-remove-advice "general")
 
 (autoload 'general-evil-setup "general" "\
 Set up some basic equivalents for vim mapping functions.
