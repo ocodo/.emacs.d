@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "smartparens" "smartparens.el" (23166 23300
-;;;;;;  876535 320000))
+;;;### (autoloads nil "smartparens" "smartparens.el" (23278 48037
+;;;;;;  0 0))
 ;;; Generated autoloads from smartparens.el
 
 (autoload 'sp-cheat-sheet "smartparens" "\
@@ -184,13 +184,13 @@ Turn off `show-smartparens-mode'.
 ;;;***
 
 ;;;### (autoloads nil nil ("smartparens-clojure.el" "smartparens-config.el"
-;;;;;;  "smartparens-elixir.el" "smartparens-ess.el" "smartparens-haskell.el"
-;;;;;;  "smartparens-html.el" "smartparens-javascript.el" "smartparens-latex.el"
-;;;;;;  "smartparens-lua.el" "smartparens-markdown.el" "smartparens-ml.el"
-;;;;;;  "smartparens-org.el" "smartparens-pkg.el" "smartparens-python.el"
-;;;;;;  "smartparens-racket.el" "smartparens-ruby.el" "smartparens-rust.el"
-;;;;;;  "smartparens-scala.el" "smartparens-text.el") (23166 23300
-;;;;;;  888535 305000))
+;;;;;;  "smartparens-crystal.el" "smartparens-elixir.el" "smartparens-ess.el"
+;;;;;;  "smartparens-haskell.el" "smartparens-html.el" "smartparens-javascript.el"
+;;;;;;  "smartparens-latex.el" "smartparens-lua.el" "smartparens-markdown.el"
+;;;;;;  "smartparens-ml.el" "smartparens-org.el" "smartparens-pkg.el"
+;;;;;;  "smartparens-python.el" "smartparens-racket.el" "smartparens-ruby.el"
+;;;;;;  "smartparens-rust.el" "smartparens-scala.el" "smartparens-text.el")
+;;;;;;  (23278 48037 0 0))
 
 ;;;***
 

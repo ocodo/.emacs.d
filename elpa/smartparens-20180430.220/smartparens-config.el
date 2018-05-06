@@ -52,16 +52,23 @@ ID, ACTION, CONTEXT."
     ;; Ignore errors due to us being at the start or end of the
     ;; buffer.
     (ignore-errors
-      (or (and (looking-at "\\sw\\|\\s_")
-               (save-excursion
-                 (backward-char 2)
-                 (looking-at "\\sw\\|\\s_")))
-          (and (save-excursion
-                 (backward-char 1)
-                 (looking-at "\\sw\\|\\s_"))
-               (save-excursion
-                 (forward-char 1)
-                 (looking-at "\\sw\\|\\s_")))))))
+      (or
+       ;; foo'|bar
+       (and (looking-at "\\sw\\|\\s_")
+            ;; do not consider punctuation
+            (not (looking-at "[?.,;!]"))
+            (save-excursion
+              (backward-char 2)
+              (looking-at "\\sw\\|\\s_")))
+       ;; foo|'bar
+       (and (save-excursion
+              (backward-char 1)
+              (looking-at "\\sw\\|\\s_"))
+            (save-excursion
+              (forward-char 1)
+              (looking-at "\\sw\\|\\s_")
+              ;; do not consider punctuation
+              (not (looking-at "[?.,;!]"))))))))
 
 ;; emacs is lisp hacking enviroment, so we set up some most common
 ;; lisp modes too
@@ -101,6 +108,7 @@ ID, ACTION, CONTEXT."
 ;; macro, you MUST supply the major mode argument.
 
 (eval-after-load 'clojure-mode             '(require 'smartparens-clojure))
+(eval-after-load 'crystal-mode             '(require 'smartparens-crystal))
 (eval-after-load 'elixir-mode              '(require 'smartparens-elixir))
 (eval-after-load 'enh-ruby-mode            '(require 'smartparens-ruby))
 (eval-after-load 'ess                      '(require 'smartparens-ess))
