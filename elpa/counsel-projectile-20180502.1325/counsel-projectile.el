@@ -4,7 +4,7 @@
 
 ;; Author: Eric Danan
 ;; URL: https://github.com/ericdanan/counsel-projectile
-;; Package-Version: 20180204.1147
+;; Package-Version: 20180502.1325
 ;; Keywords: project, convenience
 ;; Version: 0.2.0
 ;; Package-Requires: ((counsel "0.10.0") (projectile "0.14.0"))
@@ -117,7 +117,7 @@ actions (a key, a function, and a name for each action)."
                     ((stringp action-item)
                      (lambda (action)
                        (member action-item
-                               (list (car action) (caddr action))))))
+                               (list (car action) (cl-caddr action))))))
                    (cdr action-list)))
       (when index
         (setq index (1+ index))))
@@ -226,7 +226,7 @@ If anything goes wrong, throw an error and do not modify ACTION-VAR."
            (setq action-list (cl-loop for a in action-list
                                       for count from 0
                                       if (= count index)
-                                      collect (list (car a) fun (caddr a))
+                                      collect (list (car a) fun (cl-caddr a))
                                       else
                                       collect a))))
         (`(setname ,action-item ,name)
@@ -446,13 +446,25 @@ candidates list of `counsel-projectile-switch-to-buffer' and
     "current window")
    ("j" switch-to-buffer-other-window
     "other window")
+   ("k" ivy--kill-buffer-action
+    "kill")
    ("m" counsel-projectile-switch-to-buffer-action-find-file-manually
     "find file manually")
    ("p" (lambda (_) (counsel-projectile-switch-project))
     "switch project"))
  'counsel-projectile)
 
-(defun counsel-projectile--project-buffers ()
+(defvar counsel-projectile-switch-to-buffer-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-k") (lambda ()
+                                      (interactive)
+                                      (ivy--kill-buffer-action (ivy-state-current ivy-last))))
+    map)
+  "Keymap for `counsel-projectile-switch-to-buffer'.")
+
+(defun counsel-projectile--project-buffers (&rest _)
+  ;; The ignored arguments are so that the function can be used as
+  ;; collection function in `counsel-projectile-switch-to-buffer'.
   "Return a list of buffers in the current project.
 
 Like `projectile-project-buffer-names', but propertize buffer
@@ -477,16 +489,27 @@ names as in `ivy--buffer-list', and remove current buffer if
                (projectile-project-root))))
     (counsel-find-file)))
 
+(defun counsel-projectile-switch-to-buffer-transformer (str)
+  "Transform candidate STR when switching project buffers.
+
+This simply applies the same transformer as in `ivy-switch-buffer', which is `ivy-switch-buffer-transformer' by default but could have been modified e.g. by the ivy-rich package."
+  (funcall (plist-get ivy--display-transformers-list 'ivy-switch-buffer)
+           str))
+
 ;;;###autoload
 (defun counsel-projectile-switch-to-buffer ()
   "Jump to a buffer in the current project."
   (interactive)
   (ivy-read (projectile-prepend-project-name "Switch to buffer: ")
-            (counsel-projectile--project-buffers)
+            ;; We use a collection function so that it is called each
+            ;; time the `ivy-state' is reset. This is needed for the
+            ;; "kill buffer" action.
+            #'counsel-projectile--project-buffers
             :matcher #'ivy--switch-buffer-matcher
             :require-match t
             :sort t
             :action counsel-projectile-switch-to-buffer-action
+            :keymap counsel-projectile-switch-to-buffer-map
             :caller 'counsel-projectile-switch-to-buffer))
 
 (unless (assq #'counsel-projectile-switch-to-buffer ivy-sort-functions-alist)
@@ -494,7 +517,7 @@ names as in `ivy--buffer-list', and remove current buffer if
 
 (ivy-set-display-transformer
  'counsel-projectile-switch-to-buffer
- 'ivy-switch-buffer-transformer)
+ 'counsel-projectile-switch-to-buffer-transformer)
 
 ;;;; counsel-projectile-grep
 
@@ -1103,6 +1126,8 @@ action."
     "current window")
    ("j" counsel-projectile-action-other-window
     "other window")
+   ("k" counsel-projectile-action-kill-buffer
+    "kill buffer")
    ("x" counsel-projectile-action-file-extern
     "open file externally")
    ("r" counsel-projectile-action-file-root
@@ -1113,6 +1138,14 @@ action."
     "switch project"))
  'counsel-projectile)
 
+(defvar counsel-projectile-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-k") (lambda ()
+                                      (interactive)
+                                      (counsel-projectile-action-kill-buffer (ivy-state-current ivy-last))))
+    map)
+  "Keymap for `counsel-projectile'.")
+
 (defvar counsel-projectile--buffers nil
   "Stores a list of project buffers.")
 
@@ -1120,7 +1153,9 @@ action."
   "Stores a list of project files that are not currently
   visited by a buffer.")
 
-(defun counsel-projectile--project-buffers-and-files ()
+(defun counsel-projectile--project-buffers-and-files (&rest _)
+  ;; The ignored arguments are so that the function can be used as
+  ;; collection function in `counsel-projectile'.
   "Return a list of buffers and files in the current project."
   (append
    (setq counsel-projectile--buffers
@@ -1154,6 +1189,12 @@ files."
       (switch-to-buffer-other-window name)
     (counsel-projectile-find-file-action-other-window name)))
 
+(defun counsel-projectile-action-kill-buffer (name)
+  "Kill buffer named NAME."
+  (if (member name counsel-projectile--buffers)
+      (ivy--kill-buffer-action name)
+    (message "This action only applies to buffers.")))
+  
 (defun counsel-projectile-action-find-file-manually (name)
   "Call `counsel-find-file' from default directory of buffer
 directory of file named NAME."
@@ -1176,7 +1217,7 @@ directory of file named NAME."
 (defun counsel-projectile-transformer (str)
   "Fontifies modified, file-visiting buffers as well as non-visited files."
   (if (member str counsel-projectile--buffers)
-      (ivy-switch-buffer-transformer str)
+      (counsel-projectile-switch-to-buffer-transformer str)
     (propertize str 'face 'ivy-virtual)))
 
 ;;;###autoload
@@ -1191,11 +1232,15 @@ If not inside a project, call `counsel-projectile-switch-project'."
       (counsel-projectile-switch-project)
     (projectile-maybe-invalidate-cache arg)
     (ivy-read (projectile-prepend-project-name "Load buffer or file: ")
-              (counsel-projectile--project-buffers-and-files)
+              ;; We use a collection function so that it is called each
+              ;; time the `ivy-state' is reset. This is needed for the
+              ;; "kill buffer" action.
+              #'counsel-projectile--project-buffers-and-files
               :matcher #'counsel-projectile--matcher
               :require-match t
               :sort t
               :action counsel-projectile-action
+              :keymap counsel-projectile-map
               :caller 'counsel-projectile)))
 
 (unless (assq #'counsel-projectile ivy-sort-functions-alist)
@@ -1211,7 +1256,7 @@ If not inside a project, call `counsel-projectile-switch-project'."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map projectile-command-map)
     (define-key map (kbd "s r") 'counsel-projectile-rg)
-    (define-key map (kbd "C-c") 'counsel-projectile-org-capture)
+    (define-key map (kbd "O") 'counsel-projectile-org-capture)
     (define-key map (kbd "SPC") 'counsel-projectile)
     map)
   "Keymap for Counesl-Projectile commands after `projectile-keymap-prefix'.")
