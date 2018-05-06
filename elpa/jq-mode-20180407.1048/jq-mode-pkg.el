@@ -1,4 +1,4 @@
-(define-package "jq-mode" "20171116.815" "Edit jq scripts."
+(define-package "jq-mode" "20180407.1048" "Edit jq scripts."
   '((emacs "25.1"))
   :url "https://github.com/ljos/jq-mode")
 ;; Local Variables:
