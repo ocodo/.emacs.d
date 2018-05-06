@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "bar-cursor" "bar-cursor.el" (22670 43788 0
+;;;### (autoloads nil "bar-cursor" "bar-cursor.el" (23278 48459 0
 ;;;;;;  0))
 ;;; Generated autoloads from bar-cursor.el
 
