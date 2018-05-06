@@ -4,7 +4,7 @@
 
 ;; Author: steckerhalter
 ;; Package-Requires: ((helm "0"))
-;; Package-Version: 20180208.120
+;; Package-Version: 20180212.240
 ;; URL: https://github.com/steckerhalter/helm-google
 ;; Keywords: helm google search browse searx
 
@@ -50,7 +50,9 @@ See `helm-google-engines' for available engines."
     ("Browse URL with EWW" . (lambda (candidate)
                                (eww-browse-url candidate)))
     ("Copy URL to clipboard" . (lambda (candidate)
-                                 (kill-new  candidate))))
+                                 (kill-new  candidate)))
+    ("Browse URL with webkit xwidget" . (lambda (candidate)
+                                          (xwidget-webkit-browse-url candidate))))
   "List of actions for helm-google sources."
   :group 'helm-google
   :type '(alist :key-type string :value-type function))

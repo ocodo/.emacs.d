@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-google" "helm-google.el" (23166 23151
-;;;;;;  156712 50000))
+;;;### (autoloads nil "helm-google" "helm-google.el" (23278 48219
+;;;;;;  0 0))
 ;;; Generated autoloads from helm-google.el
 
 (autoload 'helm-google "helm-google" "\
