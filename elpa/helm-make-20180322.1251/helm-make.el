@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/helm-make
-;; Package-Version: 20171103.1155
+;; Package-Version: 20180322.1251
 ;; Version: 0.2.0
 ;; Package-Requires: ((helm "1.5.3") (projectile "0.11.0"))
 ;; Keywords: makefile
@@ -87,6 +87,11 @@ You can reset the cache by calling `helm-make-reset-db'."
   :type 'string
   :group 'helm-make)
 
+(defcustom helm-make-niceness 0
+  "When non-zero, run make jobs at this niceness level."
+  :type 'integer
+  :group 'helm-make)
+
 (defcustom helm-make-arguments "-j%d"
   "Pass these arguments to `helm-make-executable' or
 `helm-make-ninja-executable'. If `%d' is included, it will be substituted
@@ -167,7 +172,10 @@ and if the file exists 'make otherwise.")
 ARG should be universal prefix value passed to `helm-make' or
 `helm-make-projectile', and file is the path to the Makefile or the
 ninja.build file."
-  (format (concat "%s -C %s " helm-make-arguments " %%s")
+  (format (concat "%s%s -C %s " helm-make-arguments " %%s")
+          (if (= helm-make-niceness 0)
+              ""
+            (format "nice -n %d " helm-make-niceness))
           (cond
             ((equal helm--make-build-system 'ninja)
              helm-make-ninja-executable)
