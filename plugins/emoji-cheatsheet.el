@@ -18,7 +18,8 @@
 
 ;;; Commentary:
 ;;
-;;  Quick find and insert emoji or gfm emoji code by it's keyword description
+;;  Quick find and insert emoji or gfm emoji code by it's keyword description.
+;;  It's good for anything which used the github emoji codes, .e.g BitBar
 ;;
 ;;; Code:
 
@@ -1474,7 +1475,7 @@
   (interactive)
   (let ((item (emoji-cheatsheet-item)))
     (insert (first item))))
-  
+
 (defun emoji-cheatsheet-insert-github-shortcode ()
   "Insert an emoji by searching its keywords."
   (interactive)
