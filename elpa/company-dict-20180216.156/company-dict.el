@@ -7,7 +7,7 @@
 ;; Created: June 21, 2015
 ;; Modified: May 25, 2016
 ;; Version: 1.2.7
-;; Package-Version: 20160528.53
+;; Package-Version: 20180216.156
 ;; Keywords: company dictionary ac-source-dictionary
 ;; Homepage: https://github.com/hlissner/emacs-company-dict
 ;; Package-Requires: ((emacs "24.4") (company "0.8.12") (parent-mode "2.3"))
@@ -111,6 +111,9 @@ install and enable it yourself."
 (defun company-dict--meta (data)
   (get-text-property 0 :meta data))
 
+(defun company-dict--quickhelp-string (data)
+  (get-text-property 0 :meta data))
+
 (defun company-dict--post-completion (data)
   (when (and company-dict-enable-yasnippet
              (featurep 'yasnippet)
@@ -143,6 +146,7 @@ loaded."
                         dicts))
       (annotation      (company-dict--annotation arg))
       (meta            (company-dict--meta arg))
+      (quickhelp-string (company-dict--quickhelp-string arg))
       (post-completion (company-dict--post-completion arg))
       (sorted          't)
       (no-cache        't))))
