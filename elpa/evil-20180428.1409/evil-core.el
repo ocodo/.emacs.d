@@ -480,7 +480,7 @@ The initial value is that of `make-sparse-keymap'."
     (let ((mode (car entry))
           (map  (cdr entry)))
       (unless (and (keymapp (symbol-value map))
-                   (assq map (buffer-local-variables)))
+                   (local-variable-p map))
         (set map (make-sparse-keymap))))))
 
 (defun evil-make-overriding-map (keymap &optional state copy)
@@ -497,11 +497,15 @@ higher precedence. See also `evil-make-intercept-map'."
       (define-key copy key (or state 'all))
       (define-key keymap key copy))))
 
-(defun evil-make-intercept-map (keymap &optional state)
+(defun evil-make-intercept-map (keymap &optional state aux)
   "Give KEYMAP precedence over all Evil keymaps in STATE.
-If STATE is nil, give it precedence over all states.
-See also `evil-make-overriding-map'."
-  (let ((key [intercept-state]))
+If STATE is nil, give it precedence over all states. If AUX is non-nil, make the
+auxiliary keymap corresponding to KEYMAP in STATE an intercept keymap instead of
+KEYMAP itself. See also `evil-make-overriding-map'."
+  (let ((key [intercept-state])
+        (keymap (if aux
+                    (evil-get-auxiliary-keymap keymap state t t)
+                  keymap)))
     (define-key keymap key (or state 'all))))
 
 (defmacro evil-define-keymap (keymap doc &rest body)
@@ -831,7 +835,9 @@ See also `evil-mode-for-keymap'."
   (let* ((state (or state evil-state))
          result)
     (dolist (map (current-active-maps))
-      (when (setq map (evil-intercept-keymap-p map state))
+      (when (setq map (or (evil-intercept-keymap-p map state)
+                          (evil-intercept-keymap-p
+                           (evil-get-auxiliary-keymap map state) state)))
         (push (cons (evil-mode-for-keymap map t) map) result)))
     (setq result (nreverse result))
     result))
@@ -898,14 +904,14 @@ does not already exist."
 (defun evil-auxiliary-keymap-p (map)
   "Whether MAP is an auxiliary keymap."
   (and (keymapp map)
-       (string-match "Auxiliary keymap"
-                     (or (keymap-prompt map) "")) t))
+       (string-match-p "Auxiliary keymap"
+                       (or (keymap-prompt map) "")) t))
 
 (defun evil-minor-mode-keymap-p (map)
   "Whether MAP is a minor-mode keymap."
   (and (keymapp map)
-       (string-match "Minor-mode keymap"
-                     (or (keymap-prompt map) "")) t))
+       (string-match-p "Minor-mode keymap"
+                       (or (keymap-prompt map) "")) t))
 
 (defun evil-intercept-keymap-p (map &optional state)
   "Whether MAP is an intercept keymap for STATE.

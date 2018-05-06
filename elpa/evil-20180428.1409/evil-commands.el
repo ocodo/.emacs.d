@@ -732,6 +732,7 @@ Columns are counted from zero."
   :keep-visual t
   :repeat nil
   :type exclusive
+  :jump t
   (interactive (list (read-char)))
   (let ((marker (evil-get-marker char)))
     (cond
@@ -756,6 +757,7 @@ Columns are counted from zero."
   :keep-visual t
   :repeat nil
   :type line
+  :jump t
   (interactive (list (read-char)))
   (evil-goto-mark char noerror)
   (evil-first-non-blank))
@@ -3598,7 +3600,10 @@ This is the same as :%s//~/&"
   ;; flag. This isn't supported currently but should be simple to add
   (evil-with-single-undo
     (let ((case-fold-search
-           (eq (evil-ex-regex-case pattern 'smart) 'insensitive))
+           (eq (evil-ex-regex-case pattern evil-ex-search-case) 'insensitive))
+          (command-form (evil-ex-parse command))
+          (transient-mark-mode transient-mark-mode)
+          (deactivate-mark deactivate-mark)
           match markers)
       (when (and pattern command)
         (setq isearch-string pattern)
@@ -3618,7 +3623,7 @@ This is the same as :%s//~/&"
         (unwind-protect
             (dolist (marker markers)
               (goto-char marker)
-              (evil-ex-eval command))
+              (eval command-form))
           ;; ensure that all markers are deleted afterwards,
           ;; even in the event of failure
           (dolist (marker markers)

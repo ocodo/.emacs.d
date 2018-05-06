@@ -488,13 +488,13 @@ If any character set is complemented, the result is also complemented."
   (let ((bracket "") (complement "") (hyphen "") result)
     (save-match-data
       (dolist (set sets)
-        (when (string-match "^\\^" set)
+        (when (string-match-p "^\\^" set)
           (setq set (substring set 1)
                 complement "^"))
-        (when (string-match "^]" set)
+        (when (string-match-p "^]" set)
           (setq set (substring set 1)
                 bracket "]"))
-        (when (string-match "^-" set)
+        (when (string-match-p "^-" set)
           (setq set (substring set 1)
                 hyphen "-"))
         (setq result (concat result set)))
@@ -1886,7 +1886,7 @@ closer if MOVE is non-nil."
 with regard to indentation."
   (evil-narrow-to-field
     (evil-move-beginning-of-line)
-    (insert "\n")
+    (insert (if use-hard-newlines hard-newline "\n"))
     (forward-line -1)
     (back-to-indentation)))
 
@@ -1895,7 +1895,7 @@ with regard to indentation."
 with regard to indentation."
   (evil-narrow-to-field
     (evil-move-end-of-line)
-    (insert "\n")
+    (insert (if use-hard-newlines hard-newline "\n"))
     (back-to-indentation)))
 
 ;;; Markers
@@ -2180,7 +2180,7 @@ Variables pertaining to Transient Mark mode are listed in
     (when (and (boundp var)
                (not (assq var evil-transient-vals)))
       (push (list var (symbol-value var)
-                  (and (assq var (buffer-local-variables)) t))
+                  (local-variable-p var))
             evil-transient-vals)
       (make-variable-buffer-local var)
       (put var 'permanent-local t))))
@@ -3435,7 +3435,8 @@ are included. The step is terminated with `evil-end-undo-step'."
 (defun evil-end-undo-step (&optional continue)
   "End a undo step started with `evil-start-undo-step'.
 Adds an undo boundary unless CONTINUE is specified."
-  (when (and evil-undo-list-pointer
+  (when (and (listp buffer-undo-list)
+             evil-undo-list-pointer
              (not evil-in-single-undo))
     (evil-refresh-undo-step)
     (unless (or continue (null (car-safe buffer-undo-list)))
