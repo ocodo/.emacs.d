@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "parinfer" "parinfer.el" (23166 23239 496607
-;;;;;;  408000))
+;;;### (autoloads nil "parinfer" "parinfer.el" (23278 48095 0 0))
 ;;; Generated autoloads from parinfer.el
 
 (autoload 'parinfer-mode "parinfer" "\
@@ -20,7 +19,7 @@ Available when region is active.
 ;;;***
 
 ;;;### (autoloads nil nil ("parinfer-ext.el" "parinfer-pkg.el" "parinferlib.el")
-;;;;;;  (23166 23239 496607 408000))
+;;;;;;  (23278 48095 0 0))
 
 ;;;***
 
