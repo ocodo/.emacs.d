@@ -2,7 +2,7 @@
 
 ;; Author: Fanael Linithien <fanael4@gmail.com>
 ;; URL: https://github.com/Fanael/edit-indirect
-;; Package-Version: 20170928.430
+;; Package-Version: 20180422.1107
 ;; Version: 0.1.5
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -162,6 +162,7 @@ In any case, return the edit-indirect buffer."
 
 (defvar edit-indirect-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-x C-s") #'edit-indirect-save)
     (define-key map (kbd "C-c '") #'edit-indirect-commit)
     (define-key map (kbd "C-c C-c") #'edit-indirect-commit)
     (define-key map (kbd "C-c C-k") #'edit-indirect-abort)
@@ -182,6 +183,17 @@ buffer."
   (edit-indirect--barf-if-not-indirect)
   (edit-indirect--commit)
   (edit-indirect--clean-up))
+
+(defun edit-indirect-save ()
+  "Save the modifications done in an edit-indirect buffer.
+That is, replace the original region in the parent buffer with the
+contents of the edit-indirect buffer.
+
+Can be called only when the current buffer is an edit-indirect
+buffer."
+  (interactive)
+  (edit-indirect--barf-if-not-indirect)
+  (edit-indirect--commit))
 
 (defun edit-indirect-abort ()
   "Abort indirect editing in the current buffer and kill the buffer.

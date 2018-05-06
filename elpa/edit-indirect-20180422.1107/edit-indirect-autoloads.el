@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "edit-indirect" "edit-indirect.el" (23064 61778
-;;;;;;  822958 350000))
+;;;### (autoloads nil "edit-indirect" "edit-indirect.el" (23278 48372
+;;;;;;  0 0))
 ;;; Generated autoloads from edit-indirect.el
 
 (autoload 'edit-indirect-region "edit-indirect" "\
