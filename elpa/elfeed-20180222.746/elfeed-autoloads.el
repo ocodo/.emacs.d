@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "elfeed" "elfeed.el" (23166 23041 680843 477000))
+;;;### (autoloads nil "elfeed" "elfeed.el" (23278 48360 0 0))
 ;;; Generated autoloads from elfeed.el
 
 (autoload 'elfeed-update "elfeed" "\
@@ -30,16 +30,34 @@ Export the current feed listing to OPML-formatted FILE.
 
 ;;;***
 
-;;;### (autoloads nil "elfeed-link" "elfeed-link.el" (23166 23041
-;;;;;;  684843 472000))
+;;;### (autoloads nil "elfeed-link" "elfeed-link.el" (23278 48360
+;;;;;;  0 0))
 ;;; Generated autoloads from elfeed-link.el
 
-(eval-after-load 'org '(require 'elfeed-link))
+(autoload 'elfeed-link-store-link "elfeed-link" "\
+Store a link to an elfeed search or entry buffer.
+
+When storing a link to an entry, automatically extract all the
+entry metadata.  These can be used in the capture templates as
+%:elfeed-entry-<prop>.  See `elfeed-entry--create' for the list
+of available props.
+
+\(fn)" nil nil)
+
+(autoload 'elfeed-link-open "elfeed-link" "\
+Jump to an elfeed entry or search.
+
+Depending on what FILTER-OR-ID looks like, we jump to either
+search buffer or show a concrete entry.
+
+\(fn FILTER-OR-ID)" nil nil)
+
+(eval-after-load 'org `(funcall ',(lambda nil (if (version< (org-version) "9.0") (with-no-warnings (org-add-link-type "elfeed" #'elfeed-link-open) (add-hook 'org-store-link-functions #'elfeed-link-store-link)) (with-no-warnings (org-link-set-parameters "elfeed" :follow #'elfeed-link-open :store #'elfeed-link-store-link))))))
 
 ;;;***
 
-;;;### (autoloads nil "elfeed-search" "elfeed-search.el" (23166 23041
-;;;;;;  692843 463000))
+;;;### (autoloads nil "elfeed-search" "elfeed-search.el" (23278 48360
+;;;;;;  0 0))
 ;;; Generated autoloads from elfeed-search.el
 
 (autoload 'elfeed-search-bookmark-handler "elfeed-search" "\
@@ -58,7 +76,7 @@ Restore the state of an elfeed-search buffer on desktop restore.
 
 ;;;### (autoloads nil nil ("elfeed-csv.el" "elfeed-curl.el" "elfeed-db.el"
 ;;;;;;  "elfeed-lib.el" "elfeed-log.el" "elfeed-pkg.el" "elfeed-show.el"
-;;;;;;  "xml-query.el") (23166 23041 696843 458000))
+;;;;;;  "xml-query.el") (23278 48360 0 0))
 
 ;;;***
 
