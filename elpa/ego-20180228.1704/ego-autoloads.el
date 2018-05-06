@@ -3,7 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ego" "ego.el" (23166 23030 504857 31000))
+;;;### (autoloads nil "ego" "ego.el" (23278 48369 0 0))
 ;;; Generated autoloads from ego.el
 
 (autoload 'ego-do-publication "ego" "\
@@ -20,7 +20,7 @@ The main entrance of ego. The entire procedure is:
    if TEST-AND-NOT-PUBLISH is t, test the generated html files by the web-server,
    otherwise html files will be published on \"html-branch\" of \"repository directory\" and pushed to the remote repository.
 4) CHECKIN-ALL checkin all the org-files, with the CHECKIN-ALL you input as the COMMIT STRING.
-5) PUBLISH-CONFIG will publish the branchs in the repository, choose remote and corresponding branches.
+5) PUBLISH-CONFIG will publish the branchs in the repository, choose remote and corresponding branches. 
 
 \(fn &optional PROJECT-NAME TEST-AND-NOT-PUBLISH FORCE-ALL BASE-GIT-COMMIT CHECKIN-ALL PUBLISH-CONFIG)" t nil)
 
@@ -50,8 +50,8 @@ responsibility to guarantee the two parameters are valid.
 
 ;;;***
 
-;;;### (autoloads nil "ego-export" "ego-export.el" (23166 23030 504857
-;;;;;;  31000))
+;;;### (autoloads nil "ego-export" "ego-export.el" (23278 48369 0
+;;;;;;  0))
 ;;; Generated autoloads from ego-export.el
 
 (autoload 'ego-link-type-process-html "ego-export" "\
@@ -66,8 +66,7 @@ Completion function for EGO-LINK. ARG does nothing.
 
 ;;;***
 
-;;;### (autoloads nil "ego-mode" "ego-mode.el" (23166 23030 508857
-;;;;;;  26000))
+;;;### (autoloads nil "ego-mode" "ego-mode.el" (23278 48369 0 0))
 ;;; Generated autoloads from ego-mode.el
 
 (autoload 'ego-list-posts "ego-mode" "\
@@ -79,7 +78,7 @@ list posts
 
 ;;;### (autoloads nil nil ("ego-config.el" "ego-devtools.el" "ego-git.el"
 ;;;;;;  "ego-pkg.el" "ego-resource.el" "ego-template.el" "ego-util.el")
-;;;;;;  (23166 23030 544856 980000))
+;;;;;;  (23278 48369 0 0))
 
 ;;;***
 

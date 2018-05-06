@@ -102,7 +102,8 @@ a hash table accordint to current buffer."
 and pushed into cache from template. PARAM-TABLE is the hash table for mustache
 to render the template. If it is not set or nil, this function will try to
 render from a default hash table."
-  (let ((site-domain (ego--get-site-domain)))
+  (let ((site-domain (ego--get-site-domain))
+        (cat-real nil))
     (ego--get-cache-create
      :nav-bar-html
      (message "EGO: Render navigation bar from template")

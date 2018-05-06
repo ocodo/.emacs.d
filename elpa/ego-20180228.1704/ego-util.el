@@ -31,6 +31,7 @@
 (require 'ht)
 (require 'ego-config)
 (require 'ido)
+(require 'cl-lib)
 
 (defun ego--compare-standard-date (date1 date2)
   "Compare two standard ISO 8601 format dates, format is as below:
@@ -227,24 +228,25 @@ element to ALIST-VAR."
   documentation for `ido-completing-read' for details on the
   other parameters."
   (let
-      ((sentinel (if sentinel sentinel "*done*"))
+      ((sentinel (or sentinel
+                     "*done*"))
        (done-reading nil)
        (remain-choices choices)
        (res ()))
 
     ;; uniquify the SENTINEL value
-    (while (find sentinel choices)
+    (while (cl-find sentinel choices)
       (setq sentinel (concat sentinel "_")))
     (setq remain-choices (cons sentinel choices))
 
     ;; read some choices
     (while (not done-reading)
-      (setq this-choice (ido-completing-read prompt remain-choices predicate
-                                             require-match initial-input hist def))
-      (if (equal this-choice sentinel)
-          (setq done-reading t)
-        (setq res (cons this-choice res))
-        (setq remain-choices (delete this-choice remain-choices))))
+      (let ((this-choice (ido-completing-read prompt remain-choices predicate
+                                              require-match initial-input hist def)))
+        (if (equal this-choice sentinel)
+            (setq done-reading t)
+          (setq res (cons this-choice res))
+          (setq remain-choices (delete this-choice remain-choices)))))
 
     ;; return the result
     res

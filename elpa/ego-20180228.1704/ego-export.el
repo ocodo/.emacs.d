@@ -111,22 +111,22 @@ content of the buffer will be converted into html."
                               :description ,(or (ego--read-org-option "DESCRIPTION")
                                                 "No Description")
                               :thumb ,(ego--read-org-option "THUMBNAIL")))
+         (tags (ego--read-org-option "TAGS"))
+         (authors (ego--read-org-option "AUTHOR"))
+         (category (ego--get-category filename))
          assets-dir post-content
          asset-path asset-abs-path pub-abs-path converted-path
-         component-table tags category cat-config)
-    (setq tags (ego--read-org-option "TAGS"))
+         component-table cat-config)
     (when tags
       (plist-put
        attr-plist :tags (delete "" (mapcar 'string-trim
                                            (split-string tags "[:,]+" t))))
       (plist-put
        attr-plist :year (format "%.4s" (plist-get attr-plist :date))))
-    (setq authors (ego--read-org-option "AUTHOR"))
     (when authors
       (plist-put
        attr-plist :authors (delete "" (mapcar 'string-trim
                                               (split-string authors "[:,]+" t)))))
-    (setq category (ego--get-category filename))
     (plist-put attr-plist :category category)
     (setq cat-config (cdr (or (assoc category ego--category-config-alist)
                               (ego--get-category-setting
