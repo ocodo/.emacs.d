@@ -60,6 +60,7 @@
                super-hydras
                zappers
                html-entity-helper
+               emoji-cheatsheet
                tr
                kbd-gfm
                packages-outdated-packages
