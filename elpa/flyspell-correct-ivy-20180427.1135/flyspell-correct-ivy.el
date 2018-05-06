@@ -1,10 +1,10 @@
 ;;; flyspell-correct-ivy.el --- correcting words with flyspell via ivy interface
 ;;
-;; Copyright (c) 2016 Boris Buliga
+;; Copyright (c) 2016-2018 Boris Buliga
 ;;
 ;; Author: Boris Buliga <boris@d12frosted.io>
 ;; URL: https://github.com/d12frosted/flyspell-correct
-;; Package-Version: 20161031.1134
+;; Package-Version: 20180427.1135
 ;; Package-X-Original-Version: 0.4.0
 ;; Package-Requires: ((flyspell-correct "0.4.0") (ivy "0.8.0"))
 ;;
