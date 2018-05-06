@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "adafruit-wisdom" "adafruit-wisdom.el" (23166
-;;;;;;  22928 100982 358000))
+;;;### (autoloads nil "adafruit-wisdom" "adafruit-wisdom.el" (23278
+;;;;;;  48486 0 0))
 ;;; Generated autoloads from adafruit-wisdom.el
 
 (autoload 'adafruit-wisdom-select "adafruit-wisdom" "\
@@ -20,10 +20,10 @@ and we  need just \"the quote\".
 
 (autoload 'adafruit-wisdom "adafruit-wisdom" "\
 Display one of Adafruit's quotes in the minibuffer.
-If INSERT is non-nil the joke will be inserted into the current
+If ARG is non-nil the joke will be inserted into the current
 buffer rather than shown in the minibuffer.
 
-\(fn &optional INSERT)" t nil)
+\(fn &optional ARG)" t nil)
 
 ;;;***
 

@@ -2,7 +2,7 @@
 
 ;; Author: Neil Okamoto <neil.okamoto+melpa@gmail.com>
 ;; Version: 0.2.1
-;; Package-Version: 20180208.2316
+;; Package-Version: 20180224.1652
 ;; Keywords: games
 ;; URL: https://github.com/gonewest818/adafruit-wisdom.el
 ;; Package-Requires: ((emacs "25"))
@@ -72,17 +72,18 @@ and we  need just \"the quote\"."
     title))
 
 ;;;###autoload
-(defun adafruit-wisdom (&optional insert)
+(defun adafruit-wisdom (&optional arg)
   "Display one of Adafruit's quotes in the minibuffer.
-If INSERT is non-nil the joke will be inserted into the current
+If ARG is non-nil the joke will be inserted into the current
 buffer rather than shown in the minibuffer."
   (interactive "P")
   (let ((quote (adafruit-wisdom-select)))
     (if (null quote)
         (error "Couldn't retrieve a quote from adafruit")
-      (if insert
+      (if arg
           (insert quote)
-        (message quote)))))
+        (message quote))
+      t)))
 
 (provide 'adafruit-wisdom)
 
