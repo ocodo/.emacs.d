@@ -51,14 +51,21 @@
 
 (require 'color)
 
-(defun sanityinc-tomorrow-interpolate (hex1 hex2 gradations which)
+(defun sanityinc-tomorrow--interpolate (hex1 hex2 gradations which)
   (let ((c1 (color-name-to-rgb hex1))
         (c2 (color-name-to-rgb hex2)))
     (apply 'color-rgb-to-hex (nth which (color-gradient c1 c2 gradations)))))
 
+(defun sanityinc-tomorrow--alt-background (background highlight)
+  "Calculate the alt-background color by blending BACKGROUND and HIGHLIGHT.
+This cannot be done at runtime because its output is dependent
+upon the display characteristics of the frame in which it is
+executed."
+  (sanityinc-tomorrow--interpolate background highlight 7 3))
 
 (defconst color-theme-sanityinc-tomorrow-colors
   '((night . ((background . "#1d1f21")
+              (alt-background . "#22a224a427a7")
               (current-line . "#282a2e")
               (selection . "#373b41")
               (foreground . "#c5c8c6")
@@ -71,6 +78,7 @@
               (blue . "#81a2be")
               (purple . "#b294bb")))
     (day . ((background . "#ffffff")
+            (alt-background . "#f7f7f7f7f7f7")
             (current-line . "#efefef")
             (selection . "#d6d6d6")
             (foreground . "#4d4d4c")
@@ -83,6 +91,7 @@
             (blue . "#4271ae")
             (purple . "#8959a8")))
     (eighties . ((background . "#2d2d2d")
+                 (alt-background . "#333333333333")
                  (current-line . "#393939")
                  (selection . "#515151")
                  (foreground . "#cccccc")
@@ -95,6 +104,7 @@
                  (blue . "#6699cc")
                  (purple . "#cc99cc")))
     (blue . ((background . "#002451")
+             (alt-background . "#00002c2c5fdf")
              (current-line . "#00346e")
              (selection . "#003f8e")
              (foreground . "#ffffff")
@@ -107,6 +117,7 @@
              (blue . "#bbdaff")
              (purple . "#ebbbff")))
     (bright . ((background . "#000000")
+               (alt-background . "#151515151515")
                (current-line . "#2a2a2a")
                (selection . "#424242")
                (foreground . "#eaeaea")
@@ -124,13 +135,16 @@
 (defmacro color-theme-sanityinc-tomorrow--with-colors (mode &rest body)
   "Execute `BODY' in a scope with variables bound to the various tomorrow colors.
 
+Also sets background-mode to either 'light or 'dark, for use in
+setting `frame-background-mode'.
+
 `MODE' should be set to either 'day, 'night, 'eighties, 'blue or 'bright."
   `(let* ((colors (or (cdr (assoc ,mode color-theme-sanityinc-tomorrow-colors))
                       (error "no such theme flavor")))
           (background   (cdr (assoc 'background colors)))
           (contrast-bg  (cdr (assoc 'selection colors)))
           (highlight    (cdr (assoc 'current-line colors)))
-          (low-contrast-bg (sanityinc-tomorrow-interpolate background highlight 7 3))
+          (low-contrast-bg (cdr (assoc 'alt-background colors)))
           (foreground   (cdr (assoc 'foreground colors)))
           (comment      (cdr (assoc 'comment colors)))
           (red          (cdr (assoc 'red colors)))
@@ -140,7 +154,8 @@
           (aqua         (cdr (assoc 'aqua colors)))
           (blue         (cdr (assoc 'blue colors)))
           (purple       (cdr (assoc 'purple colors)))
-          (class '((class color) (min-colors 89))))
+          (class '((class color) (min-colors 89)))
+          (background-mode (if (eq ,mode 'day) 'light 'dark)))
      ,@body))
 
 (defmacro color-theme-sanityinc-tomorrow--face-specs ()
@@ -326,10 +341,10 @@ names to which it refers are bound."
       (ivy-confirm-face (:foreground ,green))
       (ivy-current-match (:foreground ,green :inherit highlight :underline t))
       (ivy-cursor (:background ,contrast-bg))
-      (ivy-match-required-face (:inherit ido-indicator))
+      (ivy-match-required-face (:foreground ,red :background ,background))
       (ivy-remote (:foreground ,orange))
-      (ivy-subdir (:inherit ido-subdir))
-      (ivy-virtual (:inherit ido-virtual))
+      (ivy-subdir (:foreground ,purple))
+      (ivy-virtual (:foreground ,comment))
       (ivy-minibuffer-match-face-1 (:foreground ,aqua))
       (ivy-minibuffer-match-face-2 (:foreground ,yellow))
       (ivy-minibuffer-match-face-3 (:foreground ,blue))
@@ -1218,6 +1233,7 @@ are bound."
                (color-theme-sanityinc-tomorrow--face-specs))
         (custom-theme-set-variables
          ',name
+         `(frame-background-mode ',background-mode)
          `(beacon-color ,red)
          `(fci-rule-color ,contrast-bg)
          `(vc-annotate-color-map
