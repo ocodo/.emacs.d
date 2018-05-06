@@ -5,7 +5,7 @@
 ;; Created    : Feburary 2005
 ;; Modified   : 2016
 ;; Version    : 0.9.1
-;; Package-Version: 20171211.2238
+;; Package-Version: 20180315.203
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : 2017-Jan-11
@@ -982,7 +982,11 @@ to work properly with code that includes attributes."
                                                       'c-decl-id-start)
                                  (c-forward-syntactic-ws))
                                (save-match-data
-                                 (c-font-lock-declarators limit t nil))
+                                 (ignore-errors
+                                   (condition-case nil
+                                       (c-font-lock-declarators limit t nil)
+                                     (wrong-number-of-arguments
+                                      (c-font-lock-declarators limit t nil nil)))))
                                (goto-char (match-end 0))
                                )
                              )))
