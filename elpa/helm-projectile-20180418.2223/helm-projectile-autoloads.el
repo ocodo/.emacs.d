@@ -3,13 +3,13 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "helm-projectile" "helm-projectile.el" (23064
-;;;;;;  61383 312147 658000))
+;;;### (autoloads nil "helm-projectile" "helm-projectile.el" (23278
+;;;;;;  48213 0 0))
 ;;; Generated autoloads from helm-projectile.el
 
 (defvar helm-projectile-fuzzy-match t "\
 Enable fuzzy matching for Helm Projectile commands.
-This needs to be set before loading helm-projectile.")
+This needs to be set before loading helm-projectile.el.")
 
 (custom-autoload 'helm-projectile-fuzzy-match "helm-projectile" t)
 
@@ -26,12 +26,12 @@ Other file extensions can be customized with the variable `projectile-other-file
 \(fn &optional FLEX-MATCHING)" t nil)
 
 (autoload 'helm-projectile-on "helm-projectile" "\
-Turn on helm-projectile key bindings.
+Turn on `helm-projectile' key bindings.
 
 \(fn)" t nil)
 
 (autoload 'helm-projectile-off "helm-projectile" "\
-Turn off helm-projectile key bindings.
+Turn off `helm-projectile' key bindings.
 
 \(fn)" t nil)
 
@@ -47,7 +47,7 @@ Helm version of projectile-ack.
 \(fn &optional DIR)" t nil)
 
 (autoload 'helm-projectile-ag "helm-projectile" "\
-Helm version of projectile-ag.
+Helm version of `projectile-ag'.
 
 \(fn &optional OPTIONS)" t nil)
 
