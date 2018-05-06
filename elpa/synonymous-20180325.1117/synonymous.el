@@ -5,7 +5,7 @@
 ;; Author: Katherine Whitlock <toroidalcode@gmail.com>
 ;;         Snippets adapted from FlySpell, authored by Manuel Serrano <Manuel.Serrano@inria.fr>
 ;; URL: http://github.com/toroidal-code/synonymous.el
-;; Package-Version: 20160721.2255
+;; Package-Version: 20180325.1117
 ;; Version: 1.0
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5") (request "0.2.0"))
 ;; Keywords: Utility
@@ -52,7 +52,7 @@
 
 (defmacro synonymous-get-word (word callback)
   `(request
-   (format "http://synonymous-toroidalcode.rhcloud.com/%s" ,word)
+   (format "http://synonymous-synonymous.a3c1.starter-us-west-1.openshiftapps.com/%s" ,word)
    :parser 'json-read
    :success ,callback
    :error (cl-function (lambda (&key error-thrown &allow-other-keys)
