@@ -1,13 +1,13 @@
 ;;; gitignore-mode.el --- Major mode for editing .gitignore files -*- lexical-binding: t; -*-
 
 ;; Copyright (c) 2012-2013  Sebastian Wiesner
-;; Copyright (C) 2012-2016  The Magit Project Contributors
+;; Copyright (C) 2012-2018  The Magit Project Contributors
 
 ;; Author: Sebastian Wiesner <lunaryorn@gmail.com>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 ;; Homepage: https://github.com/magit/git-modes
 ;; Keywords: convenience vc git
-;; Package-Version: 20160319.302
+;; Package-Version: 20180318.1256
 
 ;; This file is not part of GNU Emacs.
 
@@ -54,6 +54,7 @@
                        "/git/ignore\\'"))
   (add-to-list 'auto-mode-alist (cons pattern 'gitignore-mode)))
 
+;;; _
 (provide 'gitignore-mode)
 ;; Local Variables:
 ;; indent-tabs-mode: nil

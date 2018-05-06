@@ -1,10 +1,10 @@
 ;;; gitignore-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "gitignore-mode" "gitignore-mode.el" (22271
-;;;;;;  10577 446934 616000))
+;;;### (autoloads nil "gitignore-mode" "gitignore-mode.el" (23278
+;;;;;;  48272 0 0))
 ;;; Generated autoloads from gitignore-mode.el
 
 (autoload 'gitignore-mode "gitignore-mode" "\
