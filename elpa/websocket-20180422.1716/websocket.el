@@ -4,7 +4,7 @@
 
 ;; Author: Andrew Hyatt <ahyatt@gmail.com>
 ;; Keywords: Communication, Websocket, Server
-;; Package-Version: 20171113.2045
+;; Package-Version: 20180422.1716
 ;; Version: 1.9
 ;; Package-Requires: ((cl-lib "0.5"))
 ;;
@@ -235,12 +235,9 @@ approximately 537M long."
            val nbytes))
   (if (= nbytes 8)
       (progn
-        (let ((hi-32bits (lsh val -32))
-              ;; Test for systems that don't have > 32 bits, and
-              ;; for those systems just return the value.
-              (low-32bits (if (= 0 (expt 2 32))
-                              val
-                            (logand #xffffffff val))))
+        (let* ((hi-32bits (lsh val -32))
+               ;; This is just VAL on systems that don't have >= 32 bits.
+               (low-32bits (- val (lsh hi-32bits 32))))
           (when (or (> hi-32bits 0) (> (lsh low-32bits -29) 0))
             (signal 'websocket-frame-too-large val))
           (bindat-pack `((:val vec 2 u32))
@@ -729,25 +726,37 @@ to the websocket protocol.
                             (websocket-outer-filter websocket output))))
     (set-process-sentinel
      conn
-     (lambda (process change)
-       (let ((websocket (process-get process :websocket)))
-         (websocket-debug websocket "State change to %s" change)
-         (when (and
-                (member (process-status process) '(closed failed exit signal))
-                (not (eq 'closed (websocket-ready-state websocket))))
-           (websocket-try-callback 'websocket-on-close 'on-close websocket)))))
+     (websocket-sentinel url conn key protocols extensions custom-header-alist nowait))
     (set-process-query-on-exit-flag conn nil)
-    (process-send-string conn
-                         (format "GET %s HTTP/1.1\r\n"
-                                 (let ((path (url-filename url-struct)))
-                                   (if (> (length path) 0) path "/"))))
-    (websocket-debug websocket "Sending handshake, key: %s, acceptance: %s"
-                     key (websocket-accept-string websocket))
-    (process-send-string conn
-                         (websocket-create-headers
-                          url key protocols extensions custom-header-alist))
-    (websocket-debug websocket "Websocket opened")
+    (websocket-ensure-handshake url conn key protocols extensions custom-header-alist)
     websocket))
+
+(defun websocket-sentinel (url conn key protocols extensions custom-header-alist nowait)
+  #'(lambda (process change)
+      (let ((websocket (process-get process :websocket)))
+        (websocket-debug websocket "State change to %s" change)
+        (let ((status (process-status process)))
+          (when (and nowait (eq status 'open))
+            (websocket-ensure-handshake url conn key protocols extensions custom-header-alist))
+
+          (when (and (member status '(closed failed exit signal))
+                     (not (eq 'closed (websocket-ready-state websocket))))
+            (websocket-try-callback 'websocket-on-close 'on-close websocket))))))
+
+(defun websocket-ensure-handshake (url conn key protocols extensions custom-header-alist)
+  (let ((url-struct (url-generic-parse-url url))
+        (websocket (process-get conn :websocket)))
+    (when (and (eq 'connecting (websocket-ready-state websocket))
+               (eq 'open (process-status conn)))
+      (process-send-string conn
+                           (format "GET %s HTTP/1.1\r\n"
+                                   (let ((path (url-filename url-struct)))
+                                     (if (> (length path) 0) path "/"))))
+      (websocket-debug websocket "Sending handshake, key: %s, acceptance: %s"
+                       key (websocket-accept-string websocket))
+      (process-send-string conn
+                           (websocket-create-headers
+                            url key protocols extensions custom-header-alist)))))
 
 (defun websocket-process-headers (url headers)
   "On opening URL, process the HEADERS sent from the server."
