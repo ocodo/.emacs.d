@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "projectile" "projectile.el" (23166 23251 408593
-;;;;;;  377000))
+;;;### (autoloads nil "projectile" "projectile.el" (23278 48081 0
+;;;;;;  0))
 ;;; Generated autoloads from projectile.el
 
 (autoload 'projectile-version "projectile" "\
@@ -358,6 +358,11 @@ Open `vc-dir' at the root of the project.
 
 For git projects `magit-status-internal' is used if available.
 For hg projects `monky-status' is used if available.
+
+If PROJECT-ROOT is given, it is opened instead of the project
+root directory of the current buffer file.  If interactively
+called with a prefix argument, the user is prompted for a project
+directory to open.
 
 \(fn &optional PROJECT-ROOT)" t nil)
 
