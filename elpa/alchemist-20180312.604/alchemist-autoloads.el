@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "alchemist" "alchemist.el" (23064 61965 866504
-;;;;;;  21000))
+;;;### (autoloads nil "alchemist" "alchemist.el" (23278 48479 0 0))
 ;;; Generated autoloads from alchemist.el
 
 (autoload 'alchemist-mode "alchemist" "\
@@ -17,8 +16,8 @@ Key bindings:
 
 ;;;***
 
-;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (23064 61965
-;;;;;;  890503 965000))
+;;;### (autoloads nil "alchemist-iex" "alchemist-iex.el" (23278 48479
+;;;;;;  0 0))
 ;;; Generated autoloads from alchemist-iex.el
 
 (defalias 'run-elixir 'alchemist-iex-run)
@@ -39,7 +38,7 @@ Show the IEx buffer if an IEx process is already run.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-phoenix" "alchemist-phoenix.el"
-;;;;;;  (23064 61965 886503 975000))
+;;;;;;  (23278 48479 0 0))
 ;;; Generated autoloads from alchemist-phoenix.el
 
 (autoload 'alchemist-phoenix-project-p "alchemist-phoenix" "\
@@ -66,7 +65,7 @@ The following commands are available:
 ;;;***
 
 ;;;### (autoloads nil "alchemist-refcard" "alchemist-refcard.el"
-;;;;;;  (23064 61965 870504 12000))
+;;;;;;  (23278 48479 0 0))
 ;;; Generated autoloads from alchemist-refcard.el
 
 (autoload 'alchemist-refcard "alchemist-refcard" "\
@@ -77,7 +76,7 @@ Generate an Alchemist refcard of all the features.
 ;;;***
 
 ;;;### (autoloads nil "alchemist-test-mode" "alchemist-test-mode.el"
-;;;;;;  (23064 61965 898503 947000))
+;;;;;;  (23278 48479 0 0))
 ;;; Generated autoloads from alchemist-test-mode.el
 
 (autoload 'alchemist-test-mode "alchemist-test-mode" "\
@@ -105,8 +104,8 @@ The following commands are available:
 ;;;;;;  "alchemist-interact.el" "alchemist-key.el" "alchemist-macroexpand.el"
 ;;;;;;  "alchemist-message.el" "alchemist-mix.el" "alchemist-pkg.el"
 ;;;;;;  "alchemist-project.el" "alchemist-report.el" "alchemist-scope.el"
-;;;;;;  "alchemist-server.el" "alchemist-utils.el") (23064 61965
-;;;;;;  898503 947000))
+;;;;;;  "alchemist-server.el" "alchemist-utils.el") (23278 48479
+;;;;;;  0 0))
 
 ;;;***
 
