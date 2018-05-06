@@ -3,6 +3,7 @@ AddressFamily
 BadOption
 BatchMode
 BindAddress
+BindInterface
 CanonicalDomains
 CanonicalizeFallbackLocal
 CanonicalizeHostname

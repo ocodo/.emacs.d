@@ -3,8 +3,8 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ssh-config-mode" "ssh-config-mode.el" (23064
-;;;;;;  61019 5760 755000))
+;;;### (autoloads nil "ssh-config-mode" "ssh-config-mode.el" (23278
+;;;;;;  48030 0 0))
 ;;; Generated autoloads from ssh-config-mode.el
 
 (autoload 'ssh-config-mode "ssh-config-mode" "\
@@ -31,8 +31,8 @@ Major mode for fontifiying ssh known_hosts files.
 
 ;;;***
 
-;;;### (autoloads nil nil ("ssh-config-mode-pkg.el") (23064 61019
-;;;;;;  9760 733000))
+;;;### (autoloads nil nil ("ssh-config-mode-pkg.el") (23278 48030
+;;;;;;  0 0))
 
 ;;;***
 
