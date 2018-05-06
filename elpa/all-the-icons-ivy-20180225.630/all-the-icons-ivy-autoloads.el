@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "all-the-icons-ivy" "all-the-icons-ivy.el"
-;;;;;;  (22955 52901 904650 319000))
+;;;;;;  (23278 48473 0 0))
 ;;; Generated autoloads from all-the-icons-ivy.el
 
 (autoload 'all-the-icons-ivy-setup "all-the-icons-ivy" "\
