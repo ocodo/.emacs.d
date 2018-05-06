@@ -794,6 +794,7 @@ BODY-AFTER-EXIT is added to the end of the wrapper."
     `(defun ,cmd-name ()
        ,doc
        (interactive)
+       (require 'hydra)
        (hydra-default-pre)
        ,@(when body-pre (list body-pre))
        ,@(if (hydra--head-property head :exit)
@@ -1181,11 +1182,13 @@ result of `defhydra'."
   (when (keywordp (car body))
     (setq body (cons nil (cons nil body))))
   (condition-case-unless-debug err
-      (let* ((keymap (copy-keymap hydra-base-map))
-             (keymap-name (intern (format "%S/keymap" name)))
+      (let* ((keymap-name (intern (format "%S/keymap" name)))
              (body-name (intern (format "%S/body" name)))
              (body-key (cadr body))
              (body-plist (cddr body))
+             (base-map (or (eval (plist-get body-plist :base-map))
+                           hydra-base-map))
+             (keymap (copy-keymap base-map))
              (body-map (or (car body)
                            (plist-get body-plist :bind)))
              (body-pre (plist-get body-plist :pre))
