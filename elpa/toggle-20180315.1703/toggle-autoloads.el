@@ -1,9 +1,9 @@
 ;;; toggle-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "toggle" "toggle.el" (22291 19049 448156 91000))
+;;;### (autoloads nil "toggle" "toggle.el" (23278 48000 0 0))
 ;;; Generated autoloads from toggle.el
 
 (autoload 'toggle-style "toggle" "\
