@@ -11,8 +11,8 @@
 ;;	Marius Vollmer <marius.vollmer@gmail.com>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
-;; Package-Requires: ((emacs "24.4") (dash "20170810") (with-editor "20170817"))
-;; Package-Version: 20180202.321
+;; Package-Requires: ((emacs "24.4") (dash "20170810") (with-editor "20180318"))
+;; Package-Version: 20180411.1649
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -410,6 +410,7 @@ This is only used if Magit is available."
 
 (add-hook 'after-change-major-mode-hook 'git-commit-setup-font-lock-in-buffer)
 
+;;;###autoload
 (defun git-commit-setup-check-buffer ()
   (and buffer-file-name
        (string-match-p git-commit-filename-regexp buffer-file-name)
@@ -512,7 +513,8 @@ finally check current non-comment text."
     (flyspell-region (point-min) end)))
 
 (defun git-commit-flyspell-verify ()
-  (not (= (char-after (line-beginning-position)) ?#)))
+  (not (= (char-after (line-beginning-position))
+          (aref comment-start 0))))
 
 (defun git-commit-finish-query-functions (force)
   (run-hook-with-args-until-failure
@@ -795,10 +797,18 @@ Added to `font-lock-extend-region-functions'."
                   (progn
                     ;; Make sure the below functions are available.
                     (require 'magit)
-                    ;; Font-Lock wants every submatch to succeed.
-                    (format "\\(%s\\|\\)\\(%s\\|\\)"
-                            (regexp-opt (magit-list-local-branch-names))
-                            (regexp-opt (magit-list-remote-branch-names))))
+                    ;; Font-Lock wants every submatch to succeed,
+                    ;; so also match the empty string.  Do not use
+                    ;; `regexp-quote' because that is slow if there
+                    ;; are thousands of branches outweighing the
+                    ;; benefit of an efficient regep.
+                    (format "\\(\\(?:%s\\)\\|\\)\\(\\(?:%s\\)\\|\\)"
+                            (mapconcat #'identity
+                                       (magit-list-local-branch-names)
+                                       "\\|")
+                            (mapconcat #'identity
+                                       (magit-list-remote-branch-names)
+                                       "\\|")))
                 "\\([^']*\\)"))
   (setq-local font-lock-multiline t)
   (add-hook 'font-lock-extend-region-functions
