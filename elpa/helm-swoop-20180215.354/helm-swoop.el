@@ -1,9 +1,9 @@
 ;;; helm-swoop.el --- Efficiently hopping squeezed lines powered by helm interface -*- coding: utf-8; lexical-binding: t -*-
 
-;; Copyright (C) 2013 - 2017 by Shingo Fukuyama
+;; Copyright (C) 2013 - 2018 by Shingo Fukuyama
 
-;; Version: 1.7.3
-;; Package-Version: 20170923.2127
+;; Version: 1.7.4
+;; Package-Version: 20180215.354
 ;; Author: Shingo Fukuyama - http://fukuyama.co
 ;; URL: https://github.com/ShingoFukuyama/helm-swoop
 ;; Created: Oct 24 2013
@@ -142,7 +142,7 @@
   :group 'helm-swoop :type 'boolean)
 
 (defvar helm-swoop-split-window-function
-  (lambda ($buf)
+  (lambda ($buf &rest _$args)
    (if helm-swoop-split-with-multiple-windows
        (funcall helm-swoop-split-direction)
        (when (one-window-p)
