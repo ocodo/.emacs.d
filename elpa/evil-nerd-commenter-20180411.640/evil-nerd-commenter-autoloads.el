@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "evil-nerd-commenter" "evil-nerd-commenter.el"
-;;;;;;  (23138 48719 882369 344000))
+;;;;;;  (23278 48325 0 0))
 ;;; Generated autoloads from evil-nerd-commenter.el
 
 (autoload 'evilnc-comment-or-uncomment-paragraphs "evil-nerd-commenter" "\
@@ -95,10 +95,15 @@ If NO-EVIL-KEYBINDINGS is t, we don't define keybindings in EVIL.
 
 \(fn &optional NO-EVIL-KEYBINDINGS)" t nil)
 
+(autoload 'evilnc-imenu-create-index-function "evil-nerd-commenter" "\
+Imenu function find comments.
+
+\(fn)" nil nil)
+
 ;;;***
 
 ;;;### (autoloads nil nil ("evil-nerd-commenter-operator.el" "evil-nerd-commenter-pkg.el"
-;;;;;;  "evil-nerd-commenter-sdk.el") (23138 48719 882369 344000))
+;;;;;;  "evil-nerd-commenter-sdk.el") (23278 48325 0 0))
 
 ;;;***
 
