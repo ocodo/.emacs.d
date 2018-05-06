@@ -1,18 +1,18 @@
-;;; gruvbox-theme.el --- A retro-groove colour theme for Emacs
+;;; gruvbox-dark-medium-theme.el --- A retro-groove colour theme for Emacs
 
 ;; Copyright (c) 2013 Lee Machin
-;; Copyright (c) 2013-2016 Greduan
+;; Copyright (c) 2013-2016 Eduardo Lavaque
 ;; Copyright (c) 2016-2017 Jason Milkins
-;; Copyright (c) 2017 Martijn Terpstra
+;; Copyright (c) 2017-2018 Martijn Terpstra
 
 ;; Author: Jason Milkins <jasonm23@gmail.com>
 ;; (current maintainer)
 ;;
 ;; Author-list: Lee Machin <ljmachin@gmail.com>,
-;;              Greduan <me@greduan.com>
+;;              Eduardo Lavaque <me@greduan.com>
 ;;
-;; URL: http://github.com/Greduan/emacs-theme-gruvbox
-;; Version: 1.22.3
+;; URL: http://github.com/greduan/emacs-theme-gruvbox
+;; Version: 1.23.0
 
 ;; Package-Requires: ((autothemer "0.2"))
 
@@ -51,8 +51,8 @@
 (require 'gruvbox)
 
 (gruvbox-deftheme
- gruvbox
- "A retro-groove colour theme"
+ gruvbox-dark-medium
+ "A retro-groove colour theme (dark version, medium contrast)"
 
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
@@ -83,25 +83,17 @@
   (gruvbox-bright_aqua     "#8ec07c" "#87af87")
   (gruvbox-bright_orange   "#fe8019" "#ff8700")
 
-  (gruvbox-neutral_red     "#fb4934" "#d75f5f")
-  (gruvbox-neutral_green   "#b8bb26" "#afaf00")
-  (gruvbox-neutral_yellow  "#fabd2f" "#ffaf00")
-  (gruvbox-neutral_blue    "#83a598" "#87afaf")
-  (gruvbox-neutral_purple  "#d3869b" "#d787af")
-  (gruvbox-neutral_aqua    "#8ec07c" "#87af87")
-  (gruvbox-neutral_orange  "#fe8019" "#ff8700")
+  (gruvbox-faded_red       "#cc241d" "#d75f5f")
+  (gruvbox-faded_green     "#98971a" "#afaf00")
+  (gruvbox-faded_yellow    "#d79921" "#ffaf00")
+  (gruvbox-faded_blue      "#458588" "#87afaf")
+  (gruvbox-faded_purple    "#b16286" "#d787af")
+  (gruvbox-faded_aqua      "#689d6a" "#87af87")
+  (gruvbox-faded_orange    "#d65d0e" "#ff8700")
 
-  (gruvbox-faded_red       "#9d0006" "#870000")
-  (gruvbox-faded_green     "#79740e" "#878700")
-  (gruvbox-faded_yellow    "#b57614" "#af8700")
-  (gruvbox-faded_blue      "#076678" "#005f87")
-  (gruvbox-faded_purple    "#8f3f71" "#875f87")
-  (gruvbox-faded_aqua      "#427b58" "#5f8787")
-  (gruvbox-faded_orange    "#af3a03" "#af5f00")
-
-  (gruvbox-dark_red             "#421E1E" "#5f0000")
-  (gruvbox-dark_blue            "#2B3C44" "#000087")
-  (gruvbox-dark_aqua            "#36473A" "#005f5f")
+  (gruvbox-dark_red        "#421E1E" "#5f0000")
+  (gruvbox-dark_blue       "#2B3C44" "#000087")
+  (gruvbox-dark_aqua       "#36473A" "#005f5f")
 
   (gruvbox-delimiter-one   "#458588" "#008787")
   (gruvbox-delimiter-two   "#b16286" "#d75f87")
@@ -110,7 +102,7 @@
   (gruvbox-white           "#FFFFFF" "#FFFFFF")
   (gruvbox-black           "#000000" "#000000")
   (gruvbox-sienna          "#DD6F48" "#d7875f")
-  (gruvboxslategray4       "#528B8B" "#5f8787")
+  (gruvbox-darkslategray4  "#528B8B" "#5f8787")
   (gruvbox-lightblue4      "#66999D" "#5fafaf")
   (gruvbox-burlywood4      "#BBAA97" "#afaf87")
   (gruvbox-aquamarine4     "#83A598" "#87af87")
@@ -118,17 +110,16 @@
 
   (gruvbox-bg gruvbox-dark0))
 
- (custom-theme-set-variables 'gruvbox
+ (custom-theme-set-variables 'gruvbox-dark-medium
                              `(ansi-color-names-vector
-                               [,gruvbox1
-                                ,gruvbox-neutral_red
-                                ,gruvbox-neutral_green
-                                ,gruvbox-neutral_yellow
-                                ,gruvbox-neutral_blue
-                                ,gruvbox-neutral_purple
-                                ,gruvbox-neutral_aqua
+                               [,gruvbox-dark1
+                                ,gruvbox-bright_red
+                                ,gruvbox-bright_green
+                                ,gruvbox-bright_yellow
+                                ,gruvbox-bright_blue
+                                ,gruvbox-bright_purple
+                                ,gruvbox-bright_aqua
                                 ,gruvbox-light1])))
-
 
 ;;;###autoload
 (and load-file-name
@@ -137,11 +128,10 @@
                   (file-name-as-directory
                    (file-name-directory load-file-name))))
 
-(provide-theme 'gruvbox)
-
+(provide-theme 'gruvbox-dark-medium)
 
 ;; Local Variables:
 ;; eval: (when (fboundp 'rainbow-mode) (rainbow-mode +1))
 ;; End:
 
-;;; gruvbox-theme.el ends here
+;;; gruvbox-dark-medium-theme.el ends here

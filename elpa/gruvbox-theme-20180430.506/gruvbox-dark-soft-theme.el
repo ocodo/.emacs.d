@@ -1,18 +1,18 @@
 ;;; gruvbox-dark-soft-theme.el --- A retro-groove colour theme for Emacs
 
 ;; Copyright (c) 2013 Lee Machin
-;; Copyright (c) 2013-2016 Greduan
+;; Copyright (c) 2013-2016 Eduardo Lavaque
 ;; Copyright (c) 2016-2017 Jason Milkins
-;; Copyright (c) 2017 Martijn Terpstra
+;; Copyright (c) 2017-2018 Martijn Terpstra
 
 ;; Author: Jason Milkins <jasonm23@gmail.com>
 ;; (current maintainer)
 ;;
 ;; Author-list: Lee Machin <ljmachin@gmail.com>,
-;;              Greduan <me@greduan.com>
+;;              Eduardo Lavaque <me@greduan.com>
 ;;
-;; URL: http://github.com/Greduan/emacs-theme-gruvbox
-;; Version: 1.22.3
+;; URL: http://github.com/greduan/emacs-theme-gruvbox
+;; Version: 1.23.0
 
 ;; Package-Requires: ((autothemer "0.2"))
 
