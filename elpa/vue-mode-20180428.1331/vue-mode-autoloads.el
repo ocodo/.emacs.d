@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "vue-mode" "vue-mode.el" (23138 47651 495950
-;;;;;;  155000))
+;;;### (autoloads nil "vue-mode" "vue-mode.el" (23278 47981 0 0))
 ;;; Generated autoloads from vue-mode.el
 
 (autoload 'vue-mode-edit-all-indirect "vue-mode" "\
@@ -22,11 +21,6 @@ open.
 (setq mmm-global-mode 'maybe)
 
 (add-to-list 'auto-mode-alist '("\\.vue\\'" . vue-mode))
-
-;;;***
-
-;;;### (autoloads nil nil ("vue-mode-pkg.el") (23138 47648 27934
-;;;;;;  595000))
 
 ;;;***
 
