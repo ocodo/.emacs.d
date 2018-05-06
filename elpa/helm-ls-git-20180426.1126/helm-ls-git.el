@@ -3,7 +3,7 @@
 ;; Copyright (C) 2012 ~ 2015 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
 ;; Package-Requires: ((helm "1.7.8"))
-;; Package-Version: 20170727.1238
+;; Package-Version: 20180426.1126
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -30,6 +30,11 @@
 (make-obsolete-variable 'helm-c-source-ls-git 'helm-source-ls-git "1.5.1")
 (defvaralias 'helm-c-source-ls-git-status 'helm-source-ls-git-status)
 (make-obsolete-variable 'helm-c-source-ls-git-status 'helm-source-ls-git-status "1.5.1")
+
+(defvar inhibit-magit-refresh)
+(declare-function magit-stage-file "ext:magit-apply")
+(declare-function magit-unstage-file "ext:magit-apply")
+(declare-function magit-commit "ext:magit-commit")
 
 ;; Define the sources.
 (defvar helm-source-ls-git-status nil
@@ -101,7 +106,6 @@ Glob are enclosed in single quotes by default."
 To see files in submodules add the option \"--recurse-submodules\"."
   :type '(repeat string)
   :group 'helm-ls-git)
-
 
 (defface helm-ls-git-modified-not-staged-face
     '((t :foreground "yellow"))
@@ -109,12 +113,12 @@ To see files in submodules add the option \"--recurse-submodules\"."
   :group 'helm-ls-git)
 
 (defface helm-ls-git-modified-and-staged-face
-    '((t :foreground "Gold"))
+    '((t :foreground "Goldenrod"))
   "Files which are modified and already staged."
   :group 'helm-ls-git)
 
 (defface helm-ls-git-renamed-modified-face
-    '((t :foreground "Gold"))
+    '((t :foreground "Goldenrod"))
   "Files which are renamed or renamed and modified."
   :group 'helm-ls-git)
 
@@ -464,7 +468,21 @@ and launch git-grep from there.
               (t i))))
 
 (defun helm-ls-git-status-action-transformer (actions _candidate)
-  (let ((disp (helm-get-selection nil t)))
+  (let ((disp (helm-get-selection nil t))
+        (mofified-actions
+         (helm-make-actions "Diff file" 'helm-ls-git-diff
+                            "Revert file(s)"
+                            (lambda (_candidate)
+                              (let ((marked (helm-marked-candidates)))
+                                (cl-loop for f in marked do
+                                         (progn
+                                           (vc-git-revert f)
+                                           (helm-aif (get-file-buffer f)
+                                               (with-current-buffer it
+                                                 (revert-buffer t t)))))))
+                            "Copy file(s) `C-u to follow'" 'helm-find-files-copy
+                            "Rename file(s) `C-u to follow'" 'helm-find-files-rename)))
+    ;; Unregistered files
     (cond ((string-match "^[?]\\{2\\}" disp)
            (append actions
                    (list '("Add file(s)"
@@ -491,28 +509,117 @@ and launch git-grep from there.
                                          do (insert (concat bname "\n"))
                                          do (setq last-bname bname))
                                    (save-buffer))))))))
-          ((string-match "^ ?M+ *" disp)
-           (append actions (helm-make-actions "Diff file" 'helm-ls-git-diff
-                                              "Commit file(s)"
-                                              (lambda (_candidate)
-                                                (let* ((marked (helm-marked-candidates))
-                                                       (default-directory
-                                                        (file-name-directory (car marked))))
-                                                  (vc-checkin marked 'Git)))
-                                              "Revert file(s)"
-                                              (lambda (_candidate)
-                                                (let ((marked (helm-marked-candidates)))
-                                                  (cl-loop for f in marked do
-                                                           (progn
-                                                             (vc-git-revert f)
-                                                             (helm-aif (get-file-buffer f)
-                                                                 (with-current-buffer it
-                                                                   (revert-buffer t t)))))))
-                                              "Copy file(s) `C-u to follow'" 'helm-find-files-copy
-                                              "Rename file(s) `C-u to follow'" 'helm-find-files-rename)))
+          ((string-match "^A " disp)
+           (append actions '(("Commit staged file(s)"
+                              . helm-ls-git-commit)
+                             ("Extend commit"
+                              . helm-ls-git-extend-commit)
+                             ("Amend commit"
+                              . helm-ls-git-amend-commit)
+                             ("Unstage file(s)"
+                              . helm-ls-git-unstage-files))))
+          ;; Modified but not staged
+          ((string-match "^ M+ *" disp)
+           (append actions (helm-append-at-nth
+                            mofified-actions
+                            '(("Stage file(s)"
+                               . helm-ls-git-stage-files)
+                              ("Stage marked file(s) and commit"
+                               . helm-ls-git-stage-marked-and-commit)
+                              ("Stage marked file(s) and extend commit"
+                               . helm-ls-git-stage-marked-and-extend-commit)
+                              ("Stage marked file(s) and amend commit"
+                               . helm-ls-git-stage-marked-and-amend-commit))
+                            1)))
+          ;; Modified and staged
+          ((string-match "^M+ *" disp)
+           (append actions (helm-append-at-nth
+                            mofified-actions
+                            '(("Commit staged file(s)"
+                               . helm-ls-git-commit)
+                              ("Extend commit"
+                               . helm-ls-git-extend-commit)
+                              ("Amend commit"
+                               . helm-ls-git-amend-commit)
+                              ("Unstage file(s)"
+                               . helm-ls-git-unstage-files))
+                            1)))
+          ;; Deleted
           ((string-match "^ D " disp)
-           (append actions (list '("Git delete" . vc-git-delete-file))))
+           (append actions (list '("Git delete" . vc-git-delete-file)
+                                 '("Stage file(s)"
+                                   . helm-ls-git-stage-files))))
           (t actions))))
+
+(defun helm-ls-git-stage-files (_candidate)
+  "Stage marked files."
+  (require 'magit-apply nil t)
+  (let* ((files (helm-marked-candidates))
+         (default-directory
+          (file-name-directory (car files))))
+    (if (fboundp 'magit-stage-file)
+        (helm-ls-git-magit-stage-files files)
+      (apply #'process-file "git" nil nil nil "stage" files))))
+
+(defun helm-ls-git-unstage-files (_candidate)
+  "Unstage marked files."
+  (require 'magit-apply nil t)
+  (let* ((files (helm-marked-candidates))
+         (default-directory (file-name-directory (car files))))
+    (if (fboundp 'magit-unstage-file)
+        (helm-ls-git-magit-unstage-files files)
+      (apply #'process-file "git" nil nil nil "reset" "HEAD" "--" files))))
+
+(defun helm-ls-git-stage-marked-and-commit (candidate)
+  "Stage marked files and commit."
+  (helm-ls-git-stage-files nil)
+  (helm-ls-git-commit candidate))
+
+(defun helm-ls-git-stage-marked-and-extend-commit (candidate)
+  (helm-ls-git-stage-files nil)
+  (helm-ls-git-extend-commit candidate))
+
+(defun helm-ls-git-stage-marked-and-amend-commit (candidate)
+  (helm-ls-git-stage-files nil)
+  (helm-ls-git-amend-commit candidate))
+
+(defun helm-ls-git-extend-commit (candidate)
+  (require 'magit-commit nil t)
+  (let ((default-directory (file-name-directory candidate)))
+    (if (fboundp 'magit-commit-extend)
+        (let ((inhibit-magit-refresh t))
+          (magit-commit-extend))
+      (process-file "git" nil nil nil "commit" "--amend" "--no-edit"))))
+
+(defun helm-ls-git-amend-commit (candidate)
+  (require 'magit-commit nil t)
+  (let ((default-directory (file-name-directory candidate)))
+    (if (fboundp 'magit-commit-amend)
+        (let ((inhibit-magit-refresh t))
+          (magit-commit-amend))
+      (process-file "git" nil nil nil "commit" "--amend"))))
+
+(defun helm-ls-git-commit (candidate)
+  "Commit all staged files."
+  (require 'magit-commit nil t)
+  (let ((default-directory (file-name-directory candidate)))
+    (if (fboundp 'magit-commit)
+        (let ((inhibit-magit-refresh t))
+          (magit-commit))
+      (helm-ls-git-commit-files))))
+
+(defun helm-ls-git-commit-files ()
+  "Default function to commit files."
+  (let* ((marked (helm-marked-candidates)))
+    (vc-checkin marked 'Git)))
+
+(defun helm-ls-git-magit-stage-files (files)
+  (cl-loop for f in files
+           do (magit-stage-file f)))
+
+(defun helm-ls-git-magit-unstage-files (files)
+  (cl-loop for f in files
+           do (magit-unstage-file f)))
 
 (defun helm-ls-git-diff (candidate)
   (let ((default-directory
