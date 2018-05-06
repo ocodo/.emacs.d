@@ -8,7 +8,7 @@
 
 ;; Author: The go-mode Authors
 ;; Version: 1.5.0
-;; Package-Version: 20170726.555
+;; Package-Version: 20180327.830
 ;; Keywords: languages go
 ;; URL: https://github.com/dominikh/go-mode.el
 ;;
@@ -1030,7 +1030,8 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
         ;; Appending lines decrements the offset (possibly making it
         ;; negative), deleting lines increments it. This order
         ;; simplifies the forward-line invocations.
-        (line-offset 0))
+        (line-offset 0)
+        (column (current-column)))
     (save-excursion
       (with-current-buffer patch-buffer
         (goto-char (point-min))
@@ -1057,7 +1058,8 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
                 (cl-incf line-offset len)
                 (go--delete-whole-line len)))
              (t
-              (error "Invalid rcs patch or internal error in go--apply-rcs-patch")))))))))
+              (error "Invalid rcs patch or internal error in go--apply-rcs-patch")))))))
+    (move-to-column column)))
 
 (defun gofmt--is-goimports-p ()
   (string-equal (file-name-base gofmt-command) "goimports"))
