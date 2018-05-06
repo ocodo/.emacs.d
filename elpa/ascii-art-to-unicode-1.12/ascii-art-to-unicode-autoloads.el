@@ -4,7 +4,7 @@
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
 ;;;### (autoloads nil "ascii-art-to-unicode" "ascii-art-to-unicode.el"
-;;;;;;  (23064 61949 270542 446000))
+;;;;;;  (23278 48470 0 0))
 ;;; Generated autoloads from ascii-art-to-unicode.el
 
 (autoload 'aa2u "ascii-art-to-unicode" "\
@@ -33,8 +33,8 @@ More precisely, hyphen and vertical bar are substituted unconditionally,
 first, and plus is substituted with a character depending on its north,
 south, east and west neighbors.
 
-NB: Actually, `aa2u' can also use \"HEAVY\" instead of \"LIGHT\",
-depending on the value of variable `aa2u-uniform-weight'.
+NB: Actually, ‘aa2u’ can also use \"HEAVY\" instead of \"LIGHT\",
+depending on the value of variable ‘aa2u-uniform-weight’.
 
 This command operates on either the active region,
 or the accessible portion otherwise.
@@ -42,22 +42,22 @@ or the accessible portion otherwise.
 \(fn BEG END &optional INTERACTIVE)" t nil)
 
 (autoload 'aa2u-rectangle "ascii-art-to-unicode" "\
-Like `aa2u' on the region-rectangle.
+Like ‘aa2u’ on the region-rectangle.
 When called from a program the rectangle's corners
 are START (top left) and END (bottom right).
 
 \(fn START END)" t nil)
 
 (autoload 'aa2u-mark-as-text "ascii-art-to-unicode" "\
-Set property `aa2u-text' of the text from START to END.
-This prevents `aa2u' from misinterpreting \"|\", \"-\" and \"+\"
+Set property ‘aa2u-text’ of the text from START to END.
+This prevents ‘aa2u’ from misinterpreting \"|\", \"-\" and \"+\"
 in that region as lines and intersections to be replaced.
-Prefix arg means to remove property `aa2u-text', instead.
+Prefix arg means to remove property ‘aa2u-text’, instead.
 
 \(fn START END &optional UNMARK)" t nil)
 
 (autoload 'aa2u-mark-rectangle-as-text "ascii-art-to-unicode" "\
-Like `aa2u-mark-as-text' on the region-rectangle.
+Like ‘aa2u-mark-as-text’ on the region-rectangle.
 When called from a program the rectangle's corners
 are START (top left) and END (bottom right).
 

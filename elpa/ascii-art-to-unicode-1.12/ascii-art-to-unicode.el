@@ -1,10 +1,10 @@
 ;;; ascii-art-to-unicode.el --- a small artist adjunct -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>
-;; Version: 1.11
+;; Version: 1.12
 ;; Keywords: ascii, unicode, box-drawing
 ;; URL: http://www.gnuvola.org/software/aa2u/
 
@@ -23,9 +23,9 @@
 
 ;;; Commentary:
 
-;; The command `aa2u' converts simple ASCII art line drawings in
+;; The command ‘aa2u’ converts simple ASCII art line drawings in
 ;; the {active,accessible} region of the current buffer to Unicode.
-;; Command `aa2u-rectangle' is like `aa2u', but works on rectangles.
+;; Command ‘aa2u-rectangle’ is like ‘aa2u’, but works on rectangles.
 ;;
 ;; Example use case:
 ;; - M-x artist-mode RET
@@ -62,8 +62,8 @@
 ;;
 ;; Much easier on the eyes now!
 ;;
-;; Normally, lines are drawn with the `LIGHT' weight.  If you set var
-;; `aa2u-uniform-weight' to symbol `HEAVY', you will see, instead:
+;; Normally, lines are drawn with the ‘LIGHT’ weight.  If you set var
+;; ‘aa2u-uniform-weight’ to symbol ‘HEAVY’, you will see, instead:
 ;;
 ;;   ┏━━━━━━━━━━━━━━━┓
 ;;   ┃               ┃
@@ -78,24 +78,24 @@
 ;;           ┗━━━━━━━━━━┛
 ;;
 ;; To protect particular ‘|’, ‘-’ or ‘+’ characters from conversion,
-;; you can set the property `aa2u-text' on that text with command
-;; `aa2u-mark-as-text'.  A prefix arg clears the property, instead.
-;; (You can use `describe-text-properties' to check.)  For example:
+;; you can set the property ‘aa2u-text’ on that text with command
+;; ‘aa2u-mark-as-text’.  A prefix arg clears the property, instead.
+;; (You can use ‘describe-text-properties’ to check.)  For example:
 ;;
 ;;      ┌───────────────────┐
 ;;      │                   │
 ;;      │ |\/|              │
-;;      │ `Oo'   --Oop Ack! │
+;;      │ ‘Oo’   --Oop Ack! │
 ;;      │  ^&-MM.           │
 ;;      │                   │
 ;;      └─────────┬─────────┘
 ;;                │
 ;;            """""""""
 ;;
-;; Command `aa2u-mark-rectangle-as-text' is similar, for rectangles.
+;; Command ‘aa2u-mark-rectangle-as-text’ is similar, for rectangles.
 ;;
 ;; Tip: For best results, you should make sure all the tab characaters
-;; are converted to spaces.  See: `untabify', `indent-tabs-mode'.
+;; are converted to spaces.  See: ‘untabify’, ‘indent-tabs-mode’.
 
 ;;; Code:
 
@@ -105,7 +105,7 @@
 (autoload 'apply-on-rectangle "rect")
 
 (defvar aa2u-uniform-weight 'LIGHT
-  "A symbol, either `LIGHT' or `HEAVY'.
+  "A symbol, one of: ‘LIGHT’, ‘HEAVY’, ‘DOUBLE’.
 This specifies the weight of all the lines.")
 
 ;;;---------------------------------------------------------------------------
@@ -124,9 +124,9 @@ This specifies the weight of all the lines.")
   (get-text-property pos 'aa2u-text))
 
 (defun aa2u-ucs-bd-uniform-name (&rest components)
-  "Return a string naming UCS char w/ WEIGHT and COMPONENTS.
+  "Return the name of the UCS box-drawing char w/ COMPONENTS.
 The string begins with \"BOX DRAWINGS\"; followed by the weight
-as per variable `aa2u-uniform-weight', followed by COMPONENTS,
+as per variable ‘aa2u-uniform-weight’, followed by COMPONENTS,
 a list of one or two symbols from the set:
 
   VERTICAL
@@ -270,8 +270,8 @@ More precisely, hyphen and vertical bar are substituted unconditionally,
 first, and plus is substituted with a character depending on its north,
 south, east and west neighbors.
 
-NB: Actually, `aa2u' can also use \"HEAVY\" instead of \"LIGHT\",
-depending on the value of variable `aa2u-uniform-weight'.
+NB: Actually, ‘aa2u’ can also use \"HEAVY\" instead of \"LIGHT\",
+depending on the value of variable ‘aa2u-uniform-weight’.
 
 This command operates on either the active region,
 or the accessible portion otherwise."
@@ -294,7 +294,7 @@ or the accessible portion otherwise."
 
 ;;;###autoload
 (defun aa2u-rectangle (start end)
-  "Like `aa2u' on the region-rectangle.
+  "Like ‘aa2u’ on the region-rectangle.
 When called from a program the rectangle's corners
 are START (top left) and END (bottom right)."
   (interactive "r")
@@ -308,10 +308,10 @@ are START (top left) and END (bottom right)."
 
 ;;;###autoload
 (defun aa2u-mark-as-text (start end &optional unmark)
-  "Set property `aa2u-text' of the text from START to END.
-This prevents `aa2u' from misinterpreting \"|\", \"-\" and \"+\"
+  "Set property ‘aa2u-text’ of the text from START to END.
+This prevents ‘aa2u’ from misinterpreting \"|\", \"-\" and \"+\"
 in that region as lines and intersections to be replaced.
-Prefix arg means to remove property `aa2u-text', instead."
+Prefix arg means to remove property ‘aa2u-text’, instead."
   (interactive "r\nP")
   (funcall (if unmark
                'remove-text-properties
@@ -321,7 +321,7 @@ Prefix arg means to remove property `aa2u-text', instead."
 
 ;;;###autoload
 (defun aa2u-mark-rectangle-as-text (start end &optional unmark)
-  "Like `aa2u-mark-as-text' on the region-rectangle.
+  "Like ‘aa2u-mark-as-text’ on the region-rectangle.
 When called from a program the rectangle's corners
 are START (top left) and END (bottom right)."
   (interactive "r\nP")
@@ -337,6 +337,47 @@ are START (top left) and END (bottom right)."
 
 ;;;; ChangeLog:
 
+;; 2018-04-29  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	[aa2u] Release: 1.12
+;; 
+;; 	* packages/ascii-art-to-unicode/ascii-art-to-unicode.el
+;; 	[Version]: Bump to "1.12".
+;; 
+;; 2018-04-29  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	[aa2u] Mention ‘DOUBLE’ in ‘aa2u-uniform-weight’ docstring.
+;; 
+;; 	* packages/ascii-art-to-unicode/ascii-art-to-unicode.el
+;; 	(aa2u-uniform-weight): ...here.
+;; 
+;; 2018-04-29  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	[aa2u] Fix docstring for ‘aa2u-ucs-bd-uniform-name’.
+;; 
+;; 	Omission from 2014-05-09, "Make weight dynamically customizable".
+;; 
+;; 	* packages/ascii-art-to-unicode/ascii-art-to-unicode.el
+;; 	(aa2u-ucs-bd-uniform-name): Don't mention WEIGHT in docstring.
+;; 
+;; 2018-04-29  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	[aa2u maint] Update years in copyright notice; nfc.
+;; 
+;; 2018-04-29  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	[aa2u] Use U+2018, U+2019 instead of U+60, U+27.
+;; 
+;; 	* packages/ascii-art-to-unicode/ascii-art-to-unicode.el
+;; 	[Commentary]: ...here.
+;; 	(aa2u-uniform-weight, aa2u-ucs-bd-uniform-name)
+;; 	(aa2u, aa2u-rectangle, aa2u-mark-as-text)
+;; 	(aa2u-mark-rectangle-as-text): Likewise, in docstring.
+;; 
+;; 2017-10-04  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	[aa2u maint] Add Kaushal Modi to THANKS; nfc.
+;; 
 ;; 2017-10-03  Thien-Thi Nguyen  <ttn@gnu.org>
 ;; 
 ;; 	[aa2u] Release: 1.11
