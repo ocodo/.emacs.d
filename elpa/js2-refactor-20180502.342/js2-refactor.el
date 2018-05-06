@@ -57,12 +57,15 @@
 ;;  * `em` is `extract-method`: Extracts the marked expressions out into a new named method in an object literal.
 ;;  * `tf` is `toggle-function-expression-and-declaration`: Toggle between function name() {} and var name = function ();
 ;;  * `ta` is `toggle-arrow-function-and-expression`: Toggle between function expression to arrow function.
+;;  * `ts` is `toggle-function-async`: Toggle between an async and a regular function.
 ;;  * `ip` is `introduce-parameter`: Changes the marked expression to a parameter in a local function.
 ;;  * `lp` is `localize-parameter`: Changes a parameter to a local var in a local function.
 ;;  * `wi` is `wrap-buffer-in-iife`: Wraps the entire buffer in an immediately invoked function expression
 ;;  * `ig` is `inject-global-in-iife`: Creates a shortcut for a marked global by injecting it in the wrapping immediately invoked function expression
 ;;  * `ag` is `add-to-globals-annotation`: Creates a `/*global */` annotation if it is missing, and adds the var at point to it.
 ;;  * `ev` is `extract-var`: Takes a marked expression and replaces it with a var.
+;;  * `el` is `extract-var`: Takes a marked expression and replaces it with a let.
+;;  * `ec` is `extract-var`: Takes a marked expression and replaces it with a const.
 ;;  * `iv` is `inline-var`: Replaces all instances of a variable with its initial value.
 ;;  * `rv` is `rename-var`: Renames the variable on point and all occurrences in its lexical scope.
 ;;  * `vt` is `var-to-this`: Changes local `var a` to be `this.a` instead.
@@ -70,6 +73,7 @@
 ;;  * `3i` is `ternary-to-if`: Converts ternary operator to if-statement.
 ;;  * `sv` is `split-var-declaration`: Splits a `var` with multiple vars declared, into several `var` statements.
 ;;  * `ss` is `split-string`: Splits a `string`.
+;;  * `st` is `string-to-template`: Converts a `string` into a template string.
 ;;  * `uw` is `unwrap`: Replaces the parent statement with the selected region.
 ;;  * `lt` is `log-this`: Adds a console.log() statement for what is at point (or region).  With a prefix argument, use JSON pretty-printing.
 ;;  * `dt` is `debug-this`: Adds a debug() statement for what is at point (or region).
@@ -173,6 +177,13 @@ This only affects arrow functions with one parameter."
 (defcustom js2r-prefer-let-over-var nil
   "When non-nil, js2r uses let constructs over var when performing refactorings.")
 
+(defcustom js2r-log-before-point  nil
+  "When non-nil, js2r inserts logging and debug statements before point.
+When nil, logging and debug statements are inserted after point,
+unless point is in a return statement."
+  :group 'js2-refactor
+  :type 'boolean)
+
 ;;; Keybindings ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun js2r--add-keybindings (key-fn)
@@ -182,18 +193,22 @@ This only affects arrow functions with one parameter."
   (define-key js2-refactor-mode-map (funcall key-fn "wi") #'js2r-wrap-buffer-in-iife)
   (define-key js2-refactor-mode-map (funcall key-fn "ig") #'js2r-inject-global-in-iife)
   (define-key js2-refactor-mode-map (funcall key-fn "ev") #'js2r-extract-var)
+  (define-key js2-refactor-mode-map (funcall key-fn "el") #'js2r-extract-let)
+  (define-key js2-refactor-mode-map (funcall key-fn "ec") #'js2r-extract-const)
   (define-key js2-refactor-mode-map (funcall key-fn "iv") #'js2r-inline-var)
   (define-key js2-refactor-mode-map (funcall key-fn "rv") #'js2r-rename-var)
   (define-key js2-refactor-mode-map (funcall key-fn "vt") #'js2r-var-to-this)
   (define-key js2-refactor-mode-map (funcall key-fn "ag") #'js2r-add-to-globals-annotation)
   (define-key js2-refactor-mode-map (funcall key-fn "sv") #'js2r-split-var-declaration)
   (define-key js2-refactor-mode-map (funcall key-fn "ss") #'js2r-split-string)
+  (define-key js2-refactor-mode-map (funcall key-fn "st") #'js2r-string-to-template)
   (define-key js2-refactor-mode-map (funcall key-fn "ef") #'js2r-extract-function)
   (define-key js2-refactor-mode-map (funcall key-fn "em") #'js2r-extract-method)
   (define-key js2-refactor-mode-map (funcall key-fn "ip") #'js2r-introduce-parameter)
   (define-key js2-refactor-mode-map (funcall key-fn "lp") #'js2r-localize-parameter)
   (define-key js2-refactor-mode-map (funcall key-fn "tf") #'js2r-toggle-function-expression-and-declaration)
   (define-key js2-refactor-mode-map (funcall key-fn "ta") #'js2r-toggle-arrow-function-and-expression)
+  (define-key js2-refactor-mode-map (funcall key-fn "ts") #'js2r-toggle-function-async)
   (define-key js2-refactor-mode-map (funcall key-fn "ao") #'js2r-arguments-to-object)
   (define-key js2-refactor-mode-map (funcall key-fn "uw") #'js2r-unwrap)
   (define-key js2-refactor-mode-map (funcall key-fn "wl") #'js2r-wrap-in-for-loop)

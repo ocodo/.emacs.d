@@ -93,11 +93,10 @@ position where the log should be inserted."
 
 (defun js2r--find-suitable-log-position-around (parent-stmt)
   "Return the position close to PARENT-STMT where the log statement should be inserted."
-  (if (js2-return-node-p parent-stmt)
+  (if (or js2r-log-before-point (js2-return-node-p parent-stmt))
       (save-excursion
         (goto-char (js2-node-abs-pos parent-stmt))
-        (beginning-of-line)
-        (forward-char -1)
+        (skip-chars-backward " \t\n\r") ; Can't use skip-syntax-backward since \n is end-comment
         (point))
     (js2-node-abs-end parent-stmt)))
 
@@ -114,6 +113,19 @@ position where the log should be inserted."
        (if (looking-at (regexp-quote (format "%s + %s" delimiter delimiter)))
            (delete-char 5)
          (insert (format "%s + %s" delimiter delimiter)))))))
+
+(defun js2r-string-to-template ()
+  "Convert the string at point into a template string."
+  (interactive)
+  (let ((node (js2-node-at-point)))
+    (when (js2-string-node-p node)
+      (let* ((start (js2-node-abs-pos node))
+             (end (+ start (js2-node-len node))))
+        (when (memq (char-after start) '(?' ?\"))
+          (save-excursion
+            (goto-char end) (delete-char -1) (insert "`")
+            (goto-char start) (delete-char 1) (insert "`")
+            (perform-replace "`" "\\`" nil nil nil nil nil (1+ start) (1- end))))))))
 
 (defun js2r--string-delimiter (node)
   "Return the delimiter character of the string node NODE.
