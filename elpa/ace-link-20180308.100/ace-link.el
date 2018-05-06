@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-link
-;; Package-Version: 20180101.1328
+;; Package-Version: 20180308.100
 ;; Version: 0.5.0
 ;; Package-Requires: ((avy "0.4.0"))
 ;; Keywords: convenience, links, avy
@@ -50,12 +50,14 @@
   (interactive)
   (cond ((eq major-mode 'Info-mode)
          (ace-link-info))
-        ((member major-mode '(help-mode package-menu-mode geiser-doc-mode))
+        ((member major-mode '(help-mode package-menu-mode geiser-doc-mode elbank-report-mode elbank-overview-mode))
          (ace-link-help))
         ((eq major-mode 'woman-mode)
          (ace-link-woman))
         ((eq major-mode 'eww-mode)
          (ace-link-eww))
+        ((eq major-mode 'w3m-mode)
+         (ace-link-w3m))
         ((or (member major-mode '(compilation-mode grep-mode))
              (bound-and-true-p compilation-shell-minor-mode))
          (ace-link-compilation))
@@ -224,6 +226,47 @@
                      (point) (point-max) 'help-echo nil))
           (push (cons (buffer-substring-no-properties beg end) beg)
                 candidates))
+        (nreverse candidates)))))
+
+;;* `ace-link-w3m'
+;;;###autoload
+(defun ace-link-w3m ()
+  "Open a visible link in an `w3m-mode' buffer."
+  (interactive)
+  (require 'w3m)
+  (let ((pt (avy-with ace-link-w3m
+              (avy--process
+               (mapcar #'cdr (ace-link--w3m-collect))
+               (avy--style-fn avy-style)))))
+    (ace-link--w3m-action pt)))
+
+(declare-function w3m-view-this-url "w3m")
+
+(defun ace-link--w3m-action (pt)
+  (when (numberp pt)
+    (goto-char pt)
+    (w3m-view-this-url)))
+
+(defun ace-link--w3m-collect ()
+  "Collect the positions of visible links in the current `w3m' buffer."
+  (save-excursion
+    (save-restriction
+      (narrow-to-region
+       (window-start)
+       (window-end))
+      (goto-char (point-min))
+      (let ((anchor-prop 'w3m-anchor-sequence)
+            (beg (point))
+            (end 0)
+            candidates)
+        ;; property values for anchors in order are: 1 2 3 ...
+        (unless (get-text-property beg anchor-prop)
+          (setq beg (next-single-char-property-change beg anchor-prop)))
+        (while (< beg (point-max))
+          (setq end (next-single-char-property-change beg anchor-prop))
+          (push (cons (buffer-substring-no-properties beg end) beg)
+                candidates)
+          (setq beg (next-single-char-property-change end anchor-prop)))
         (nreverse candidates)))))
 
 ;;* `ace-link-compilation'
@@ -526,6 +569,8 @@
   (add-to-list 'avy-styles-alist
                '(ace-link-eww . post))
   (add-to-list 'avy-styles-alist
+               '(ace-link-w3m . post))
+  (add-to-list 'avy-styles-alist
                '(ace-link-compilation . post))
   (add-to-list 'avy-styles-alist
                '(ace-link-gnus . post))
@@ -560,7 +605,13 @@
        (define-key custom-mode-map ,key 'ace-link-custom)))
   (eval-after-load "helpful"
     `(progn
-       (define-key helpful-mode-map ,key 'ace-link-help))))
+       (define-key helpful-mode-map ,key 'ace-link-help)))
+  (eval-after-load "elbank-overview"
+    `(progn
+       (define-key elbank-overview-mode-map ,key 'ace-link-help)))
+  (eval-after-load "elbank-report"
+    `(progn
+       (define-key elbank-report-mode-map ,key 'ace-link-help))))
 
 (provide 'ace-link)
 

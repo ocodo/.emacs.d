@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "ace-link" "ace-link.el" (23138 48977 770636
-;;;;;;  963000))
+;;;### (autoloads nil "ace-link" "ace-link.el" (23278 48487 0 0))
 ;;; Generated autoloads from ace-link.el
 
 (autoload 'ace-link "ace-link" "\
@@ -29,6 +28,11 @@ Open a visible link in a `woman-mode' buffer.
 
 (autoload 'ace-link-eww "ace-link" "\
 Open a visible link in an `eww-mode' buffer.
+
+\(fn)" t nil)
+
+(autoload 'ace-link-w3m "ace-link" "\
+Open a visible link in an `w3m-mode' buffer.
 
 \(fn)" t nil)
 
