@@ -57,11 +57,13 @@
   (eval-when-compile
     (regexp-opt
      '("name" "public_name" "synopsis" "modules" "libraries" "wrapped"
+       "inline_tests" "inline_tests.backend"
        "preprocess" "preprocessor_deps" "optional" "c_names" "cxx_names"
        "install_c_headers" "modes" "no_dynlink" "kind"
        "ppx_runtime_libraries" "virtual_deps" "js_of_ocaml" "flags"
        "ocamlc_flags" "ocamlopt_flags" "library_flags" "c_flags"
        "cxx_flags" "c_library_flags" "self_build_stubs_archive"
+       "modules_without_implementation"
        ;; + for "executable" and "executables":
        "package" "link_flags" "modes" "names" "public_names"
        ;; + for "rule":
@@ -74,17 +76,23 @@
      'symbols))
   "Field names allowed in dune files.")
 
-(defvar tuareg-dune-actions-regex
+(defvar tuareg-dune-builtin-regex
   (eval-when-compile
     (concat (regexp-opt
-             '("run" "chdir" "setenv"
+             '(;; Actions
+               "run" "chdir" "setenv"
                "with-stdout-to" "with-stderr-to" "with-outputs-to"
                "ignore-stdout" "ignore-stderr" "ignore-outputs"
                "progn" "echo" "write-file" "cat" "copy" "copy#" "system"
-               "bash")
+               "bash" "diff" "diff?"
+               ;; inline_tests and inline_tests.backend
+               ;; FIXME: "flags" is already a field and we do not have enough
+               ;; context to distinguishing both.
+               "backend" "generate_runner" "runner_libraries" "flags"
+               "extends")
              t)
             "\\(?:\\_>\\|[[:space:]]\\)"))
-  "Builtin actions in dune")
+  "Builtin sub-fields in dune")
 
 (defvar tuareg-dune-var-kind-regex
   (eval-when-compile
@@ -96,8 +104,8 @@
 
 (defvar tuareg-dune-var-regex
       (concat "\\(!?\\)\\(\\(?:" tuareg-dune-var-kind-regex
-              ":\\)?\\)\\([a-zA-Z][a-zA-Z0-9_.]*\\|[<@^]\\)"
-              "\\(\\(?::[a-zA-Z][a-zA-Z0-9_.]*\\)?\\)"))
+              ":\\)?\\)\\([a-zA-Z][a-zA-Z0-9_.-]*\\|[<@^]\\)"
+              "\\(\\(?::[a-zA-Z][a-zA-Z0-9_.-]*\\)?\\)"))
 
 (defmacro tuareg-dune--field-vals (field &rest vals)
   `(list (concat "(" ,field "[[:space:]]+" ,(regexp-opt vals t))
@@ -110,10 +118,12 @@
     ("(\\(select\\)[[:space:]]+[^[:space:]]+[[:space:]]+\\(from\\)\\>"
      (1 font-lock-constant-face)
      (2 font-lock-constant-face))
-    ,(tuareg-dune--field-vals "kind" "normal" "ppx_rewriter" "ppx_deriver")
-    ,(tuareg-dune--field-vals "mode" "standard" "fallback" "promote"
-                              "promote-until-clean")
-    (,(concat "(" tuareg-dune-actions-regex) 1 font-lock-builtin-face)
+    ,(eval-when-compile
+       (tuareg-dune--field-vals "kind" "normal" "ppx_rewriter" "ppx_deriver"))
+    ,(eval-when-compile
+       (tuareg-dune--field-vals "mode" "standard" "fallback" "promote"
+                                "promote-until-clean"))
+    (,(concat "(" tuareg-dune-builtin-regex) 1 font-lock-builtin-face)
     ("(preprocess[[:space:]]+(\\(pps\\)" 1 font-lock-builtin-face)
     (,(eval-when-compile
         (concat "(" (regexp-opt '("fallback") t)))
@@ -346,8 +356,8 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   "(library" > \n
   "((name        " _ ")" > \n
   "(public_name " _ ")" > \n
-  "(synopsis  \"" _ "\")" > \n
-  "(libraries (" _ "))))" > ?\n)
+  "(libraries  (" _ "))" > \n
+  "(synopsis \"" _ "\")))" > ?\n)
 
 (define-skeleton tuareg-dune-insert-executable-form
   "Insert an executable stanza."
