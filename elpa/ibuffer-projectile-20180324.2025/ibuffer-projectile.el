@@ -6,7 +6,7 @@
 ;; Keywords: themes
 ;; Package-Requires: ((projectile "0.11.0"))
 ;; URL: http://github.com/purcell/ibuffer-projectile
-;; Package-Version: 20171222.2000
+;; Package-Version: 20180324.2025
 ;; Package-X-Original-Version: 0
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -77,6 +77,17 @@ This option can be used to exclude certain files from the grouping mechanism."
   :type 'string
   :group 'ibuffer-projectile)
 
+(defcustom ibuffer-projectile-group-name-function 'ibuffer-projectile-default-group-name
+  "Function used to produce the name for a group.
+The function is passed two arguments: the projectile project
+name, and the root directory path."
+  :type 'function
+  :group 'ibuffer-projectile)
+
+(defun ibuffer-projectile-default-group-name (project-name root-dir)
+  "Produce an ibuffer group name string for PROJECT-NAME and ROOT-DIR."
+  (format "%s%s" ibuffer-projectile-prefix project-name))
+
 (defun ibuffer-projectile--include-file-p (file)
   "Return t iff FILE should be included in ibuffer-projectile's filtering."
   (and file
@@ -125,7 +136,7 @@ If the file is not in a project, then nil is returned instead."
   (let ((roots (ibuffer-remove-duplicates
                 (delq nil (mapcar 'ibuffer-projectile-root (buffer-list))))))
     (mapcar (lambda (root)
-              (cons (format "%s%s" ibuffer-projectile-prefix (car root))
+              (cons (funcall ibuffer-projectile-group-name-function (car root) (cdr root))
                     `((projectile-root . ,root))))
             roots)))
 
