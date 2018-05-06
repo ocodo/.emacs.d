@@ -279,7 +279,9 @@ The child Emacs send data to this process on
     (with-current-buffer esup-server-log-buffer
       (unless (bobp) (insert "\n"))
       (goto-char (point-max))
-      (insert (apply 'format  format-str args)))))
+      (if args
+          (insert (apply 'format  format-str args))
+        (insert format-str)))))
 
 (defvar esup-incoming-results-buffer "*esup-results*"
   "The buffer to hold incoming information from the child Emacs.")
@@ -462,7 +464,8 @@ If INIT-FILE is non-nil, profile that instead of USER-INIT-FILE."
     (with-current-buffer (esup-buffer)
       (erase-buffer)
       (esup-update-percentages results)
-      (insert (esup-render-errors esup-errors) result-break)
+      (when esup-errors
+        (insert (esup-render-errors esup-errors) result-break))
       (insert (esup-render-summary results) result-break)
       (cl-loop for result in results
                do (insert (render result) result-break))

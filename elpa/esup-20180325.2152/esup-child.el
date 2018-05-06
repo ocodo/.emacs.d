@@ -40,19 +40,19 @@
          :type string
          :documentation "The file location for the result.")
    (start-point :initarg :start-point
-                :initform 0
+                :initform 1
                 :type number
                 :documentation
-                "The start position of the benchmarked expression.")
+     "The start position of the benchmarked expression.")
    (line-number :initarg :line-number
-                :initform 0
+                :initform 1
                 :type number
                 :documentation "The beginning line number of the expression.")
    (expression-string :initarg :expression-string
                       :initform ""
                       :type string
                       :documentation
-                      "A string representation of the benchmarked expression.")
+     "A string representation of the benchmarked expression.")
    (end-point :initarg :end-point
               :initform 0
               :type number
@@ -75,11 +75,21 @@
                :documentation "The percentage of time taken by expression."))
   "A record of benchmarked results.")
 
-(defvar esup-child-profile-require-level 1
+(defvar esup-child-max-depth 2
   "How deep to profile (require) statements.
 0, don't step into any require statements.
 1, step into require statements in `esup-init-file'.
 n, step into up to n levels of require statements.")
+
+(defvar esup-child-current-depth 0
+  "The current depth of require forms we've stepped into.")
+
+(defvar esup-child-last-call-intercept-results nil
+  "The results of an intercepted call, if any.
+This is set when eval'ing an esup-advised `require' or `load'
+call before reaching the max depth.  The profile information of
+the advice is used instead of the whole benchmark of the
+require.")
 
 (defvar esup-child-parent-log-process nil
   "The network process that connects to the parent Emacs.
@@ -118,14 +128,14 @@ a complete result.")
 (defun esup-child-send-log (format-str &rest args)
   "Send FORMAT-STR formatted with ARGS as a log message."
   (process-send-string esup-child-parent-log-process
-                       (apply 'format (concat "LOG: " format-str) args)))
+                       (apply 'format (concat "LOG: " format-str "\n") args)))
 
 (defun esup-child-send-result-separator ()
   "Send the result separator to the parent process."
   (process-send-string esup-child-parent-results-process
                        esup-child-result-separator))
 
-(defun esup-child-send-result (results)
+(defun esup-child-send-results (results)
   "Send RESULTS to the parent process."
   (process-send-string esup-child-parent-results-process
                        (esup-child-serialize-results results)))
@@ -137,7 +147,7 @@ a complete result.")
 (defun esup-child-log-invocation-options ()
   "Log the invocation options that esup-child was started with."
   (let ((invocation-binary (concat invocation-directory invocation-name)))
-    (esup-child-send-log "binary: %s\n" invocation-binary)))
+    (esup-child-send-log "binary: %s" invocation-binary)))
 
 (defun esup-child-init-streams (port)
   "Initialize the streams for logging and results on PORT."
@@ -146,13 +156,20 @@ a complete result.")
   (setq esup-child-parent-results-process
         (esup-child-init-stream port "RESULTSSTREAM")))
 
-(defun esup-child-run (init-file port)
+(defun esup-child-run (init-file port &optional max-depth)
   "Profile INIT-FILE and send results to localhost:PORT."
   (esup-child-init-streams port)
+  (setq esup-child-max-depth (or max-depth esup-child-max-depth))
+  (esup-child-send-log "starting esup-child on '%s' port=%s max-depth=%s"
+                       init-file port esup-child-max-depth)
+  (advice-add 'require :around 'esup-child-require-advice)
+  (advice-add 'load :around 'esup-child-load-advice)
   (setq enable-local-variables :safe)
   (esup-child-log-invocation-options)
   (prog1
-      (esup-child-profile-file init-file 0)
+      (esup-child-profile-file init-file)
+    (advice-remove 'require 'esup-child-require-advice)
+    (advice-remove 'load 'esup-child-load-advice)
     (kill-emacs)))
 
 (defun esup-child-chomp (str)
@@ -162,10 +179,69 @@ a complete result.")
     (setq str (replace-match "" t t str)))
   str)
 
-(defun esup-child-profile-file (file-name &optional level)
-  "Profile FILE-NAME and return the benchmarked expressions.
-LEVEL is the number of `load's or `require's we've stepped into."
-  (unless level (setq level 0))
+(defmacro with-esup-child-increasing-depth (&rest body)
+  "Run BODY and with an incremented depth level.
+Decrement the depth level after complete."
+  `(progn
+     (setq esup-child-current-depth (1+ esup-child-current-depth))
+     (setq esup-child-last-call-intercept-results '())
+     (prog1
+         ;; This is cleared after `esup-child-profile-string' completes.
+         (setq esup-child-last-call-intercept-results 
+               (progn ,@body))
+       (setq esup-child-current-depth
+             (1- esup-child-current-depth)))))
+
+(defun esup-child-require-advice
+    (old-require-fn feature &optional filename noerror)
+  "Advice to `require' to profile sexps with esup if max depth isn't exceeded."
+  (esup-child-send-log
+   "intercepted require call feature=%s filename=%s current-depth=%d  max-depth=%d"
+   feature filename esup-child-current-depth esup-child-max-depth)
+  (cond
+   ;; We've exceed the depth limit, call old require.
+   ((>= esup-child-current-depth esup-child-max-depth)
+    (progn
+      (esup-child-send-log
+       "using old require because depth %s >= max-depth %d"
+       esup-child-current-depth esup-child-max-depth)
+      (funcall old-require-fn feature filename noerror)))
+
+   ;; Feature already loaded.
+   ((featurep feature)
+    (esup-child-send-log "intercepted require call but feature already loaded")
+    (funcall old-require-fn feature filename noerror))
+
+   ;; Max depth not exceeded, so profile the file with esup.
+   (t
+    (with-esup-child-increasing-depth
+     (esup-child-send-log "stepping into require call" feature filename noerror)
+     (esup-child-profile-file
+      (esup-child-require-feature-to-filename feature filename))))))
+
+(defun esup-child-load-advice
+    (old-load-fn file &optional noerror nomessage nosuffix must-suffix)
+  "Advice around `load' to profile a file with esup.
+Only profiles if `esup-child-max-depth' isn't reached."
+  (cond
+   ;; We've exceed the depth limit, call old load.
+   ((>= esup-child-current-depth esup-child-max-depth)
+    (progn
+      (esup-child-send-log
+       "intercepted load call but depth %d exceeds max-depth %d"
+       esup-child-current-depth esup-child-max-depth)
+      (funcall old-load-fn file noerror nomessage nosuffix must-suffix)))
+
+   ;; Max depth not exceeded, so profile the file with esup.
+   (t
+    (with-esup-child-increasing-depth
+     (esup-child-send-log
+      "intercepted load call file=%s noerror=%s" file noerror)
+     (esup-child-profile-file file)))))
+
+(defun esup-child-profile-file (file-name)
+  "Profile FILE-NAME and return the benchmarked expressions."
+  (esup-child-send-log "profiling file='%s'" file-name)
   (let* ((clean-file (esup-child-chomp file-name))
          (abs-file-path
           (locate-file clean-file load-path
@@ -174,12 +250,10 @@ LEVEL is the number of `load's or `require's we've stepped into."
                        (cons "" load-suffixes))))
     (if abs-file-path
         (progn
-          ;; TODO: A file with no sexps (either nothing or comments) will
-          ;; cause an error.
-          (message "esup: loading %s" abs-file-path)
-          (esup-child-send-log "loading %s\n" abs-file-path)
-          (esup-child-profile-buffer (find-file-noselect abs-file-path) level))
+          (esup-child-send-log "loading %s" abs-file-path)
+          (esup-child-profile-buffer (find-file-noselect abs-file-path)))
       ;; The file doesn't exist, return an empty list of `esup-result'
+      (esup-child-send-log "found no matching files for %s" abs-file-path)
       '())))
 
 (defun esup-child-skip-byte-code-dynamic-docstrings ()
@@ -197,11 +271,8 @@ BUFFER defaults to the current buffer."
           (format "%s:%d" file-name line-number)))
     location-information))
 
-(defun esup-child-profile-buffer (buffer &optional level)
-  "Profile BUFFER and return the benchmarked expressions.
-LEVEL is the number of `load's or `require's we've stepped into."
-  (unless level (setq level 0))
-
+(defun esup-child-profile-buffer (buffer)
+  "Profile BUFFER and return the benchmarked expressions."
   (condition-case error-message
       (with-current-buffer buffer
         (goto-char (point-min))
@@ -218,7 +289,7 @@ LEVEL is the number of `load's or `require's we've stepped into."
               (after-init-time nil))
           (while (> start last-start)
             (setq results
-                  (append results (esup-child-profile-sexp start end level)))
+                  (append results (esup-child-profile-sexp start end)))
             (setq last-start start)
             (goto-char end)
             (esup-child-skip-byte-code-dynamic-docstrings)
@@ -228,64 +299,49 @@ LEVEL is the number of `load's or `require's we've stepped into."
             (setq start (point)))
           results))
     (error
-     (message "ERROR(profile-buffer): %s" error-message)
      (esup-child-send-log "ERROR(profile-buffer) at %s %s"
                           (esup-child-create-location-info-string buffer)
                           error-message)
      (esup-child-send-eof))))
 
-(defun esup-child-profile-sexp (start end &optional level)
+(defun esup-child-profile-sexp (start end)
   "Profile the sexp between START and END in the current buffer.
-Returns a list of class `esup-result'.
-LEVEL is the number of `load's or `require's we've stepped into."
-  (unless level (setq level 0))
+Returns a list of class `esup-result'."
   (let* ((sexp-string (esup-child-chomp (buffer-substring start end)))
          (line-number (line-number-at-pos start))
          (file-name (buffer-file-name))
          sexp
          esup--profile-results)
+    (esup-child-send-log
+     "profiling sexp at %s: %s"
+     (esup-child-create-location-info-string)
+     (buffer-substring-no-properties start (min end (+ 30 start))))
+
     (condition-case error-message
         (progn
-          (esup-child-send-log
-           "profiling sexp %s %s\n"
-           (esup-child-create-location-info-string)
-           (buffer-substring-no-properties start (min end (+ 30 start))))
-
           (setq sexp (if (string-equal sexp-string "")
                          ""
                        (car-safe (read-from-string sexp-string))))
 
           (cond
-           ((string-equal sexp-string "")
-            '())
-           ;; Recursively profile loaded files.
-           ((looking-at "(load ")
-            (goto-char (match-end 0))
-            (esup-child-profile-file (eval (nth 1 sexp)) (1+ level)))
-
-           ((and (< level esup-child-profile-require-level)
-                 (looking-at "(require "))
-            ;; TODO: See if symbol already provided.  #38
-            (esup-child-profile-file (esup-child-require-to-load sexp)
-                                     (1+ level)))
+           ((string-equal sexp-string "") '())
 
            (t
             (setq esup--profile-results
-                  (list (esup-child-profile-string
-                         sexp-string file-name line-number start end)))
-            (esup-child-send-result esup--profile-results)
+                  (esup-child-profile-string sexp-string file-name line-number
+                                             start end))
+            (esup-child-send-results esup--profile-results)
             (esup-child-send-result-separator)
             esup--profile-results)))
       (error
-       (message "ERROR: %s" error-message)
-       (esup-child-send-log "ERROR(profile-sexp) at %s: %s"
+       (esup-child-send-log "ERROR(profile-sexp) at %s with sexp %s: error=%s"
                             (esup-child-create-location-info-string)
+                            sexp
                             error-message)
        (esup-child-send-eof)))))
 
-(defun esup-child-profile-string (sexp-string
-                                  &optional file-name line-number
-                                  start-point end-point)
+(defun esup-child-profile-string
+    (sexp-string &optional file-name line-number start-point end-point)
   "Profile SEXP-STRING.
 Returns an `esup-reusult'.  FILE-NAME is the file that
 SEXP-STRING was `eval'ed in.  LINE-NUMBER is the line number of
@@ -296,22 +352,47 @@ SEXP-STRING appears in FILE-NAME."
                 (car-safe (read-from-string sexp-string))))
         benchmark)
     (setq benchmark (benchmark-run (eval sexp)))
-    (esup-result "esup-result"
-                 :file file-name
-                 :expression-string sexp-string
-                 :start-point start-point :end-point end-point
-                 :line-number line-number
-                 :exec-time (nth 0 benchmark)
-                 :gc-number (nth 1 benchmark)
-                 :gc-time (nth 2 benchmark))))
+    (prog1
+        (if esup-child-last-call-intercept-results
+            ;; We intercepted the last call with advice on load or
+            ;; require.  That means the we profiled the file by sexp,
+            ;; so use that instead of the load or require call.
+            (progn
+              (esup-child-send-log
+               "using intercepted results for string %s: %s"
+               sexp-string esup-child-last-call-intercept-results)
+              esup-child-last-call-intercept-results)
+
+          ;; Otherwise, use the normal profile results.
+          (list
+           (esup-result "esup-result"
+                        :file file-name
+                        :expression-string sexp-string
+                        :start-point start-point :end-point end-point
+                        :line-number line-number
+                        :exec-time (nth 0 benchmark)
+                        :gc-number (nth 1 benchmark)
+                        :gc-time (nth 2 benchmark))))
+      ;; Reset for the next invocation.
+      (setq esup-child-last-call-intercept-results nil))))
 
 
-(defun esup-child-require-to-load (sexp)
-  "Given a require SEXP, return the corresponding file-name."
-  (let ((library (symbol-name (eval (nth 1 sexp))))
-        (filename (when (>= (length sexp) 2)
-                    (nth 2 sexp))))
-    (or filename library)))
+(defun esup-child-require-feature-to-filename (feature &optional filename)
+  "Given a require FEATURE, return the corresponding file-name."
+  (esup-child-send-log
+   "converting require to file-name feature='%s' filename='%s'"
+   feature filename)
+
+  (if (not filename)
+      ;; Filename wasn't provided so use the feature.
+      (pcase (type-of feature)
+        ('symbol (symbol-name feature))
+        ('cons (symbol-name (eval feature))))
+
+    ;; Filename was provided so it overrides the feature.
+    (pcase (type-of filename)
+      ('string filename)
+      ('cons (eval filename)))))
 
 (defun esup-child-serialize-result (esup-result)
   "Serialize an ESUP-RESULT into a `read'able string.
@@ -340,3 +421,4 @@ We need this because `prin1-to-string' isn't stable between Emacs 25 and 26."
 
 (provide 'esup-child)
 ;;; esup-child.el ends here
+
