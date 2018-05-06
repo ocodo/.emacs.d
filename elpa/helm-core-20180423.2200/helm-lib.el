@@ -94,8 +94,8 @@ much more convenient to use a simple boolean value here."
               (if (string-match-p "[^/]$" f)
                   ;; files: e.g .o => \\.o$
                   (concat rgx "$")
-                ;; directories: e.g .git/ => \\.git/?
-                (concat rgx "?"))))
+                ;; directories: e.g .git/ => \.git\\(/\\|$\\)
+                (concat (substring rgx 0 -1) "\\(/\\|$\\)"))))
           completion-ignored-extensions)
   "A list of regexps matching boring files.
 
@@ -213,8 +213,8 @@ When only `add-text-properties' is available APPEND is ignored."
                                   if (member f old-to-rename)
                                   collect (assoc-default f files-renamed)
                                   else collect f))))
-	  ;; Re-sort the buffer.
-	  (revert-buffer)
+	  ;; Re-sort the buffer if all went well.
+	  (unless (> errors 0) (revert-buffer))
 	  (let ((inhibit-read-only t))
 	    (dired-mark-remembered wdired-old-marks)))
       (let ((inhibit-read-only t))
@@ -638,8 +638,12 @@ This is same as `remove-duplicates' but with memoisation.
 It is much faster, especially in large lists.
 A test function can be provided with TEST argument key.
 Default is `eq'.
-NOTE: Comparison of special elisp objects fails because their printed
-representation which is stored in hash-tables can't be compared."
+NOTE: Comparison of special elisp objects (e.g. markers etc...) fails
+because their printed representations which are stored in hash-table
+can't be compared with with the real object in SEQ.
+This is a bug in `puthash' which store the printable representation of
+object instead of storing the object itself, this to provide at the
+end a printable representation of hashtable itself."
   (cl-loop with cont = (make-hash-table :test test)
            for elm in seq
            unless (gethash elm cont)
@@ -741,15 +745,14 @@ ARGS is (cand1 cand2 ...) or ((disp1 . real1) (disp2 . real2) ...)
 (defun helm-source-by-name (name &optional sources)
   "Get a Helm source in SOURCES by NAME.
 
-Optional argument SOURCES is a list of Helm sources. The default
-value is computed with `helm-get-sources' which is faster
-than specifying SOURCES because sources are cached."
+Optional argument SOURCES is a list of Helm sources which default to
+`helm-sources'."
   (cl-loop with src-list = (if sources
                                (cl-loop for src in sources
                                         collect (if (listp src)
                                                     src
                                                     (symbol-value src)))
-                               (helm-get-sources))
+                               helm-sources)
            for source in src-list
            thereis (and (string= name (assoc-default 'name source)) source)))
 
@@ -876,6 +879,20 @@ of this function is really needed."
                            (t rep))
                      fixedcase literal nil subexp))
     (buffer-string)))
+
+(defun helm-url-unhex-string (str)
+  "Same as `url-unhex-string' but ensure STR is completely decoded."
+  (setq str (or str ""))
+  (with-temp-buffer
+    (save-excursion (insert str))
+    (while (re-search-forward "%[A-Za-z0-9]\\{2\\}" nil t)
+      (replace-match (byte-to-string (string-to-number
+                                      (substring (match-string 0) 1)
+                                      16))
+                     t t)
+      ;; Restart from beginning until string is completely decoded.
+      (goto-char (point-min)))
+    (decode-coding-string (buffer-string) 'utf-8)))
 
 ;;; Symbols routines
 ;;
