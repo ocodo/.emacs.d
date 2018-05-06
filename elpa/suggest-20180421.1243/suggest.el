@@ -4,7 +4,7 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 0.7
-;; Package-Version: 20180206.1327
+;; Package-Version: 20180421.1243
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.4") (loop "1.3") (dash "2.13.0") (s "1.11.0") (f "0.18.2"))
 ;; URL: https://github.com/Wilfred/suggest.el
@@ -49,10 +49,19 @@
    ;; TODO: add funcall, apply and map?
    ;; Boolean functions
    #'not
+   ;; Type predicates
+   #'arrayp
+   #'atom
    #'booleanp
    #'consp
+   #'floatp
+   #'functionp
+   #'integerp
+   #'listp
    #'numberp
+   #'sequencep
    #'stringp
+   #'symbolp
    ;; Built-in functions that access or examine lists.
    ;; TODO: why isn't car marked as pure?
    #'car
@@ -167,6 +176,10 @@
    #'ftruncate
    #'1+
    #'1-
+   #'evenp
+   #'natnump
+   #'oddp
+   #'zerop
    ;; Logical operators
    #'lsh
    #'logand
@@ -185,6 +198,7 @@
    #'replace-regexp-in-string
    #'format
    #'string-join
+   #'prin1-to-string
    ;; Quoting strings
    #'shell-quote-argument
    #'regexp-quote
@@ -389,7 +403,7 @@ Safety here means that we:
          (null args))
     (and (memq fn suggest-funcall-functions) ;
          ;; TODO: what about circular lists?
-         ;; 
+         ;;
          ;; Does apply even handle that nicely? It looks like apply
          ;; tries to get the length of the list and hangs until C-g.
          (format-proper-list-p args)
