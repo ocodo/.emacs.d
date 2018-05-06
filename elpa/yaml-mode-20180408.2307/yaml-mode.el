@@ -6,7 +6,7 @@
 ;;         Marshall T. Vandegrift <llasram@gmail.com>
 ;; Maintainer: Vasilij Schneidermann <v.schneidermann@gmail.com>
 ;; Package-Requires: ((emacs "24.1"))
-;; Package-Version: 20180204.2333
+;; Package-Version: 20180408.2307
 ;; Keywords: data yaml
 ;; Version: 0.0.13
 
@@ -235,13 +235,13 @@ that key is pressed to begin a block literal."
 ;; Font-lock support
 
 (defvar yaml-font-lock-keywords
-  `((,yaml-constant-scalars-re . (1 font-lock-constant-face))
+  `((yaml-font-lock-block-literals 0 font-lock-string-face)
+    (,yaml-constant-scalars-re . (1 font-lock-constant-face))
     (,yaml-tag-re . (0 font-lock-type-face))
     (,yaml-node-anchor-alias-re . (0 font-lock-function-name-face))
     (,yaml-hash-key-re . (1 font-lock-variable-name-face))
     (,yaml-document-delimiter-re . (0 font-lock-comment-face))
     (,yaml-directive-re . (1 font-lock-builtin-face))
-    (yaml-font-lock-block-literals 0 font-lock-string-face)
     ("^[\t]+" 0 'yaml-tab-face t))
    "Additional expressions to highlight in YAML mode.")
 
@@ -263,14 +263,21 @@ that key is pressed to begin a block literal."
   ;; after a non-whitespace character, then mark it as syntactic word.
   (save-excursion
     (goto-char beg)
-    (while (search-forward "'" end t)
+    (while (re-search-forward "['\"]" end t)
+      (when (get-text-property (point) 'yaml-block-literal)
+        (put-text-property (1- (point)) (point)
+                           'syntax-table (string-to-syntax "w")))
       (when (nth 8 (syntax-ppss))
         (save-excursion
           (forward-char -1)
-          (when (and (not (bolp))
-                     (not (memq (preceding-char) '(?\s ?\t))))
-            (put-text-property (point) (1+ (point))
-                               'syntax-table (string-to-syntax "w"))))))))
+          (cond ((and (char-equal ?' (char-before (point)))
+                      (char-equal ?' (char-after (point)))
+                      (put-text-property (1- (point)) (1+ (point))
+                                         'syntax-table (string-to-syntax "w"))))
+                ((and (not (bolp))
+                      (char-equal ?w (char-syntax (char-before (point)))))
+                 (put-text-property (point) (1+ (point))
+                                    'syntax-table (string-to-syntax "w")))))))))
 
 (defun yaml-font-lock-block-literals (bound)
   "Find lines within block literals.
@@ -287,29 +294,36 @@ artificially limitted to the value of
     (let ((begin (point))
           (end (min (1+ (point-at-eol)) bound)))
       (goto-char (point-at-bol))
-      (while (and (looking-at yaml-blank-line-re) (not (bobp)))
+      (while (and (looking-at yaml-blank-line-re)
+                  (not (bobp)))
         (forward-line -1))
       (let ((nlines yaml-block-literal-search-lines)
             (min-level (current-indentation)))
-      (forward-line -1)
-      (while (and (/= nlines 0)
-                  (/= min-level 0)
-                  (not (looking-at yaml-block-literal-re))
-                  (not (bobp)))
-        (set 'nlines (1- nlines))
-        (unless (looking-at yaml-blank-line-re)
-          (set 'min-level (min min-level (current-indentation))))
-        (forward-line -1))
-      (cond
-       ((and (< (current-indentation) min-level)
-             (looking-at yaml-block-literal-re))
-          (goto-char end) (set-match-data (list begin end)) t)
+        (forward-line -1)
+        (while (and (/= nlines 0)
+                    (/= min-level 0)
+                    (not (looking-at yaml-block-literal-re))
+                    (not (bobp)))
+          (setq nlines (1- nlines))
+          (unless (looking-at yaml-blank-line-re)
+            (setq min-level (min min-level (current-indentation))))
+          (forward-line -1))
+        (cond
+         ((and (< (current-indentation) min-level)
+               (looking-at yaml-block-literal-re))
+          (goto-char end)
+          (put-text-property begin end 'yaml-block-literal t)
+          (set-match-data (list begin end))
+          t)
          ((progn
             (goto-char begin)
             (re-search-forward (concat yaml-block-literal-re
                                        " *\\(.*\\)\n")
                                bound t))
-          (set-match-data (nthcdr 2 (match-data))) t))))))
+          (let ((range (nthcdr 2 (match-data))))
+            (put-text-property (car range) (cadr range) 'yaml-block-literal t)
+            (set-match-data range))
+          t))))))
 
 
 ;; Indentation and electric keys
@@ -344,8 +358,8 @@ back-dent the line by `yaml-indent-offset' spaces.  On reaching column
       (if (and (equal last-command this-command) (/= ci 0))
           (indent-to (* (/ (- ci 1) yaml-indent-offset) yaml-indent-offset))
         (indent-to need)))
-      (if (< (current-column) (current-indentation))
-          (forward-to-indentation 0))))
+    (if (< (current-column) (current-indentation))
+        (forward-to-indentation 0))))
 
 (defun yaml-electric-backspace (arg)
   "Delete characters or back-dent the current line.
@@ -389,8 +403,8 @@ margin."
   (self-insert-command (prefix-numeric-value arg))
   (save-excursion
     (beginning-of-line)
-    (if (and (not arg) (looking-at yaml-document-delimiter-re))
-        (delete-horizontal-space))))
+    (when (and (not arg) (looking-at yaml-document-delimiter-re))
+      (delete-horizontal-space))))
 
 (defun yaml-narrow-to-block-literal ()
   "Narrow the buffer to block literal if the point is in it,
@@ -408,13 +422,13 @@ otherwise do nothing."
 		  (/= min-level 0)
 		  (not (looking-at-p yaml-block-literal-re))
 		  (not (bobp)))
-	(set 'nlines (1- nlines))
+	(setq nlines (1- nlines))
 	(unless (looking-at-p yaml-blank-line-re)
-	  (set 'min-level (min min-level (current-indentation))))
+	  (setq min-level (min min-level (current-indentation))))
 	(forward-line -1))
       (when (and (< (current-indentation) min-level)
-		  (looking-at-p yaml-block-literal-re))
-	(set 'min-level (current-indentation))
+                 (looking-at-p yaml-block-literal-re))
+	(setq min-level (current-indentation))
 	(forward-line)
 	(setq beg (point))
 	(while (and (not (eobp))
@@ -425,13 +439,15 @@ otherwise do nothing."
 
 (defun yaml-fill-paragraph (&optional justify region)
   "Fill paragraph.
-This behaves as `fill-paragraph' except that filling does not
-cross boundaries of block literals."
+Outside of comments, this behaves as `fill-paragraph' except that
+filling does not cross boundaries of block literals.  Inside comments,
+this will do usual adaptive fill behaviors."
   (interactive "*P")
   (save-restriction
     (yaml-narrow-to-block-literal)
     (let ((fill-paragraph-function nil))
-      (fill-paragraph justify region))))
+      (or (fill-comment-paragraph justify)
+          (fill-paragraph justify region)))))
 
 (defun yaml-set-imenu-generic-expression ()
   (make-local-variable 'imenu-generic-expression)
