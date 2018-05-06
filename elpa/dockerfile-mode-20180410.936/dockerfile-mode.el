@@ -2,7 +2,7 @@
 
 ;; Copyright (c) 2013 Spotify AB
 ;; Package-Requires: ((emacs "24") (s "1.12"))
-;; Package-Version: 20171124.1647
+;; Package-Version: 20180410.936
 ;; Homepage: https://github.com/spotify/dockerfile-mode
 ;;
 ;; Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -170,7 +170,7 @@ If prefix arg NO-CACHE is set, don't cache the image."
   (setq local-abbrev-table dockerfile-mode-abbrev-table))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-mode))
+(add-to-list 'auto-mode-alist '("Dockerfile\\(?:\\..*\\)?\\'" . dockerfile-mode))
 
 (provide 'dockerfile-mode)
 
