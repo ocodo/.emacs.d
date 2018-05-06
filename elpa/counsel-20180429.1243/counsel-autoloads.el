@@ -3,8 +3,7 @@
 ;;; Code:
 (add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
 
-;;;### (autoloads nil "counsel" "counsel.el" (23166 23006 296886
-;;;;;;  441000))
+;;;### (autoloads nil "counsel" "counsel.el" (23278 48400 0 0))
 ;;; Generated autoloads from counsel.el
 
 (autoload 'counsel-el "counsel" "\
@@ -263,6 +262,11 @@ Browse all attachments for current Org file.
 
 \(fn)" t nil)
 
+(autoload 'counsel-org-entity "counsel" "\
+Complete Org entities using Ivy.
+
+\(fn)" t nil)
+
 (autoload 'counsel-org-capture "counsel" "\
 Capture something.
 
@@ -318,6 +322,11 @@ Browse Eshell history.
 
 (autoload 'counsel-shell-history "counsel" "\
 Browse shell history.
+
+\(fn)" t nil)
+
+(autoload 'counsel-outline "counsel" "\
+Jump to outline with completion.
 
 \(fn)" t nil)
 
@@ -388,9 +397,15 @@ or call the function `counsel-mode'.")
 Toggle Counsel mode on or off.
 Turn Counsel mode on if ARG is positive, off otherwise. Counsel
 mode remaps built-in emacs functions that have counsel
-replacements.
+replacements. 
 
 \(fn &optional ARG)" t nil)
+
+(autoload 'counsel-ibuffer "counsel" "\
+Use ibuffer to switch to another buffer.
+NAME specifies the name of the buffer (defaults to \"*Ibuffer*\").
+
+\(fn &optional NAME)" t nil)
 
 ;;;***
 
