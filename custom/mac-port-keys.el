@@ -62,13 +62,13 @@
             (eq x-super-keysym  'super)))
 
   (bind-keys
+   ("s-q"    . save-buffers-kill-emacs)
+   ("s-w"    . delete-frame-or-window-dwim)
    ("s-s"    . save-buffer)
    ("s-z"    . undo)
    ("s-x"    . cua-cut-region)
    ("s-c"    . cua-copy-region)
    ("s-v"    . cua-paste)
-   ("s-w"    . delete-frame)
-   ("s-q"    . save-buffers-kill-emacs)
    ("s-k"    . kill-this-buffer)
    ("s-u"    . revert-buffer)
    ("s-a"    . mark-whole-buffer)

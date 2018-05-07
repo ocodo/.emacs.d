@@ -1057,6 +1057,14 @@ URL must point to a plaintext elisp package."
 (global-set-key (kbd "C-c a") 'increment-number-at-point)
 (global-set-key (kbd "C-c x") 'decrement-number-at-point)
 
+(defun delete-frame-or-window-dwim ()
+    "Delete the current frame or buffer.
+When there is only one frame, kill the buffer."
+  (interactive)
+  (if (> 1 (length (frame-list)))
+      (delete-frame)
+    (kill-buffer)))
+
 ;; Key bindings
 (bind-keys
  ("<mode-line> <S-mouse-1>" . buffer-file-name-to-kill-ring)
