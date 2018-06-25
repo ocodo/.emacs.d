@@ -4,7 +4,8 @@
 (require 'use-package)
 
 (use-package web-mode
-  :mode ("\\.rxml\\'"
+  :mode ("\\.mustache\\'"
+         "\\.rxml\\'"
          "\\.rhtml\\'"
          "\\.erb\\'"
          "\\.rjs\\'"))
