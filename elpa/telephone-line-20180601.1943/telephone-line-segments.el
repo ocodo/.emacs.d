@@ -1,0 +1,226 @@
+;;; telephone-line-segments.el --- Segments for Telephone Line -*- lexical-binding: t -*-
+
+;; Copyright (C) 2015-2017 Daniel Bordak
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+;;
+;; Segments for Telephone Line.
+;; To create your own, look at the functions defined in telephone-line-utils.el
+
+;;; Code:
+
+(require 'telephone-line-utils)
+
+(telephone-line-defsegment* telephone-line-vc-segment ()
+  (telephone-line-raw vc-mode t))
+
+(telephone-line-defsegment telephone-line-process-segment ()
+  mode-line-process)
+
+(telephone-line-defsegment* telephone-line-position-segment ()
+  (telephone-line-raw
+   (if (eq major-mode 'paradox-menu-mode)
+       ;;Paradox fills this with position info.
+       mode-line-front-space
+     mode-line-position) t))
+
+(telephone-line-defsegment* telephone-line-airline-position-segment (&optional lines columns)
+  (let* ((l (number-to-string (if lines lines 4)))
+         (c (number-to-string (if columns columns 3))))
+    (if (eq major-mode 'paradox-menu-mode)
+        (telephone-line-raw mode-line-front-space t)
+      `((-3 "%p") ,(concat " %" l "l:%" c "c")))))
+
+(telephone-line-defsegment* telephone-line-misc-info-segment ()
+  (telephone-line-raw mode-line-misc-info t))
+
+(telephone-line-defsegment* telephone-line-buffer-segment ()
+  `(""
+    mode-line-mule-info
+    mode-line-modified
+    mode-line-client
+    mode-line-remote
+    mode-line-frame-identification
+    ,(telephone-line-raw mode-line-buffer-identification t)))
+
+(telephone-line-defsegment* telephone-line-simple-major-mode-segment ()
+  "%[%m%]")
+
+(telephone-line-defsegment* telephone-line-simple-minor-mode-segment ()
+  (telephone-line-raw minor-mode-alist t))
+
+(telephone-line-defsegment telephone-line-narrow-segment ()
+  "%n")
+
+(telephone-line-defsegment* telephone-line-major-mode-segment ()
+  (let ((recursive-edit-help-echo "Recursive edit, type C-M-c to get out"))
+    `((:propertize "%[" help-echo ,recursive-edit-help-echo face ,face)
+      (:propertize ("" mode-name)
+                   help-echo "Major mode\n\
+mouse-1: Display major mode menu\n\
+mouse-2: Show help for major mode\n\
+mouse-3: Toggle minor modes"
+                   mouse-face mode-line-highlight
+                   local-map ,mode-line-major-mode-keymap
+                   face ,face)
+      (:propertize "%]" help-echo ,recursive-edit-help-echo face ,face))))
+
+(telephone-line-defsegment telephone-line-minor-mode-segment ()
+  `((:propertize ("" minor-mode-alist)
+                 mouse-face mode-line-highlight
+                 help-echo "Minor mode\n\
+mouse-1: Display minor mode menu\n\
+mouse-2: Show help for minor mode\n\
+mouse-3: Toggle minor modes"
+                 local-map ,mode-line-minor-mode-keymap
+                 face ,face)
+    (:propertize "%n"
+                 mouse-face mode-line-highlight
+                 help-echo "mouse-2: Remove narrowing from buffer"
+                 local-map ,(make-mode-line-mouse-map
+                             'mouse-2 #'mode-line-widen)
+                 face ,face)))
+
+(defun telephone-line--hud-axis-func (y)
+  (let* ((height (or telephone-line-height (frame-char-height)))
+         (start (floor (* height (float (window-start))) (point-max)))
+         (end (ceiling (* height (float (window-end))) (point-max))))
+    (if (<= start y end) 1 0)))
+
+(defclass telephone-line--hud (telephone-line-separator)
+  ((axis-func :initarg :axis-func :initform #'telephone-line--hud-axis-func)
+   (axis-init :initarg :axis-init
+              :initform (lambda (height) (number-sequence 0 (- height 1))))
+   (pattern-func :initarg :pattern-func :initform #'telephone-line-row-pattern-binary)
+   (image-cache :initform (make-hash-table :test 'equal :size 100))))
+
+(cl-defmethod telephone-line-separator-render-image ((obj telephone-line--hud) foreground background)
+  "Find cached pbm of OBJ in FOREGROUND and BACKGROUND.
+If it doesn't exist, create and cache it."
+  (let* ((height (or telephone-line-height (frame-char-height)))
+         (start (floor (* height (float (window-start))) (point-max)))
+         (end (ceiling (* height (float (window-end))) (point-max)))
+         (hash-key (format "%s_%s_%d_%d" background foreground start end)))
+    ;; Return cached image if we have it.
+    (or (gethash hash-key (oref obj image-cache))
+        (puthash hash-key
+                 (telephone-line-propertize-image
+                  (telephone-line--create-pbm-image
+                   (telephone-line-separator-create-body obj)
+                   background foreground))
+                 (oref obj image-cache)))))
+
+(defvar telephone-line-hud (make-instance 'telephone-line--hud))
+
+(telephone-line-defsegment telephone-line-hud-segment ()
+  (let ((fg (face-attribute face :foreground)))
+    (telephone-line-separator-render telephone-line-hud
+                                     (if (eq fg 'unspecified)
+                                         (face-attribute 'default :foreground)
+                                       fg)
+                                     face)))
+
+(telephone-line-defsegment telephone-line-erc-modified-channels-segment ()
+  (when (boundp 'erc-modified-channels-object)
+    (string-trim erc-modified-channels-object)))
+
+(telephone-line-defsegment telephone-line-window-number-segment (&optional in-unicode)
+  (when (bound-and-true-p winum-mode)
+    (if in-unicode
+        (propertize (format "%c" (+ 9311 (winum-get-number))) 'face `winum-face)
+      (winum-get-number-string))))
+
+(telephone-line-defsegment telephone-line-projectile-segment ()
+    (if (fboundp 'projectile-project-name)
+        (propertize (projectile-project-name)
+                    'face '(:inherit)
+                    'display '(raise 0.0)
+                    'help-echo "Switch project"
+                    'mouse-face '(:box 1)
+                    'local-map (make-mode-line-mouse-map
+                                'mouse-1 (lambda ()
+                                           (interactive)
+                                           (projectile-switch-project))))))
+
+(telephone-line-defsegment* telephone-line-evil-tag-segment ()
+  (when (bound-and-true-p evil-mode)
+    (let ((tag (cond
+                ((not (evil-visual-state-p)) (upcase (symbol-name evil-state)))
+                ((eq evil-visual-selection 'block)
+                 (if telephone-line-evil-use-short-tag "VB" "V-BLOCK"))
+                ((eq evil-visual-selection 'line)
+                 (if telephone-line-evil-use-short-tag "VL" "V-LINE"))
+                (t "VISUAL"))))
+      (if telephone-line-evil-use-short-tag
+          (seq-take tag 2)
+        tag))))
+
+(telephone-line-defsegment telephone-line-flycheck-segment ()
+  (when (bound-and-true-p flycheck-mode)
+    (let* ((text (pcase flycheck-last-status-change
+                   ('finished (if flycheck-current-errors
+                                  (let-alist (flycheck-count-errors flycheck-current-errors)
+                                    (if (or .error .warning)
+                                        (propertize (format "Problems: %s/%s"
+                                                            (or .error 0) (or .warning 0))
+                                                    'face '(:foreground "orange"))
+                                      ""))
+                                ":)"))
+                   ('running     "*")
+                   ('no-checker  "-")
+                   ('not-checked "=")
+                   ('errored     (propertize "!" 'face '(:foreground "tomato")))
+                   ('interrupted (propertize "." 'face '(:foreground "tomato")))
+                   ('suspicious  "?"))))
+      (propertize text
+                  'help-echo (pcase flycheck-last-status-change
+                               ('finished "Display errors found by Flycheck")
+                               ('running "Running...")
+                               ('no-checker "No Checker")
+                               ('not-checked "Not Checked")
+                               ('errored "Error!")
+                               ('interrupted "Interrupted")
+                               ('suspicious "Suspicious?"))
+                  'display '(raise 0.0)
+                  'mouse-face '(:box 1)
+                  'local-map (make-mode-line-mouse-map
+                              'mouse-1 #'flycheck-list-errors)))))
+
+(telephone-line-defsegment* telephone-line-xah-fly-keys-segment ()
+  (when (boundp xah-fly-insert-state-q)
+    (let ((tag (if xah-fly-insert-state-q
+                   "INSERT" "COMMAND")))
+      (if telephone-line-evil-use-short-tag
+          (seq-take tag 1)
+        tag))))
+
+(telephone-line-defsegment* telephone-line-ryo-modal-segment ()
+  (let ((tag (if (bound-and-true-p ryo-modal-mode)
+                 "RYO" "EMACS")))
+    (if telephone-line-evil-use-short-tag
+        (seq-take tag 1)
+      tag)))
+
+(telephone-line-defsegment* telephone-line-workgroups2-segment ()
+  (when (bound-and-true-p workgroups-mode)
+    (telephone-line-raw (wg-mode-line-string) t)))
+
+(telephone-line-defsegment* telephone-line-nyan-segment ()
+  (when (bound-and-true-p nyan-mode)
+    (nyan-create)))
+
+(provide 'telephone-line-segments)
+;;; telephone-line-segments.el ends here
