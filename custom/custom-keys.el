@@ -85,6 +85,7 @@
      ("s-0"          . delete-window)
      ("s--"          . text-scale-decrease)
      ("s-="          . text-scale-increase)
+     ("s-+"          . text-scale-set)
      ("s-\\"         . linum-mode)
      ("s-/"          . hippie-expand)
      ("<s-return>"   . completion-at-point))))
