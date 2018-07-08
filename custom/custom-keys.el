@@ -1,16 +1,8 @@
-;; These binding are for both Emacs Mac and Emacs Cocoa (25.0~) (it
-;; should take care of conditional binding itself.)  Brings the Emacs
-;; mac key bindings closer into line with Emacs Cocoa. Also adds a lot
-;; of Mac specific bindings to Super (ie. ⌘) and elsewhere
+;;; custom-keys --- Custom keys for ocodo emacs
 
-;; Many universal / terminal
+;;; Commentary:
 
-;; Keys - universal
-
-;; Newest additions at the top...
-
-;; PLEASE NOTE: to be more modular, these bindings will be moved out
-;; to their respective modes init (see ../modes-init/init-*.el)
+;;; Custom keys
 
 ;;; Code:
 
@@ -55,6 +47,11 @@
 ;;
 ;; That's the true Emacs way, it's programmable, so program it.
 
+(defun text-scale-reset ()
+  "Reset text-scale to 0."
+  (interactive)
+  (text-scale-set 0))
+
 (when (and (window-system) (or (eq system-type  'darwin) (eq system-type 'gnu/linux)))
   (message "binding Super Key shortcuts - slightly osx specific, work with GNU/Linux too")
   ;; Toggle fullscreen (>= emacs-version 24.4)
@@ -85,8 +82,11 @@
      ("s-0"          . delete-window)
      ("s--"          . text-scale-decrease)
      ("s-="          . text-scale-increase)
-     ("s-+"          . text-scale-set)
+     ("s-+"          . text-scale-reset)
      ("s-\\"         . linum-mode)
      ("s-/"          . hippie-expand)
      ("<s-return>"   . completion-at-point))))
+
 (provide 'custom-keys)
+
+;;; custom-keys.el ends here
