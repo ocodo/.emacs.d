@@ -50,7 +50,6 @@
  '(linum-eager nil)
  '(lua-indent-level 2)
  '(make-backup-files nil)
- '(markdown-command "redcarpet")
  '(markdown-css-path "http://bootswatch.com/simplex/bootstrap.css")
  '(newsticker-url-list
    (quote
