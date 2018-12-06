@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "ace-mc" "20160409.37" "Add multiple cursors quickly using ace jump" '((ace-jump-mode "1.0") (multiple-cursors "1.0") (dash "2.10.0")) :commit "b106bf6a6c78c3e026fbe9a99a34d6239adce4fd" :keywords '("motion" "location" "cursor") :authors '(("Josh Moller-Mara" . "jmm@cns.nyu.edu")) :maintainer '("Josh Moller-Mara" . "jmm@cns.nyu.edu") :url "https://github.com/mm--/ace-mc")
