@@ -4,10 +4,10 @@
 
 ;; Author: Hiroaki Otsu <ootsuhiroaki@gmail.com>
 ;; Keywords: completion, html, xml
+;; Package-Version: 20140221.458
 ;; URL: https://github.com/aki2o/auto-complete-nxml
 ;; Package-Requires: ((auto-complete "1.4"))
-;; Version: 20140220.2058
-;; X-Original-Version: 0.5.0
+;; Version: 0.5.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
