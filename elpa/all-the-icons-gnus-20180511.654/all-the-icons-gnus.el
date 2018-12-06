@@ -2,8 +2,7 @@
 
 ;; Author: Nicolas Lamirault <nicolas.lamirault@gmail.com>
 ;; Version: 0.1.0
-;; Package-Version: 20180108.153
-;; Package-X-Original-Version: 20170726.619
+;; Package-Version: 20180511.654
 ;; Keywords: mail tools
 ;; Package-Requires: ((emacs "24.4") (dash "2.12.0") (all-the-icons "3.1.0"))
 
@@ -105,13 +104,13 @@
 
    gnus-group-line-format (concat "%1M%1S%5y "
                                   (propertize ;(all-the-icons-faicon "envelope-o")
-                                   (all-the-icons-material "email")
+                                   (all-the-icons-material "mail")
                                    'display '(raise 0.0))
                                   " : %(%-50,50G%)\n")
 
    gnus-summary-line-format (concat "%1{%U%R%z: %}%[%2{%&user-date;%}%] "
                                     (propertize ;(all-the-icons-faicon "male")
-                                     (all-the-icons-material "contact_mail")
+                                     (all-the-icons-material "person")
                                      'display '(raise 0.0))
                                     " %4{%-34,34n%} %3{"
                                     (propertize ;(all-the-icons-faicon "terminal")
@@ -127,7 +126,7 @@
                                               " %Y-%m-%d %H:%M")))
 
    gnus-sum-thread-tree-root (concat (propertize ;(all-the-icons-faicon "envelope-o" :v-adjust -0.01)
-                                      (all-the-icons-material "email")
+                                      (all-the-icons-material "mail")
                                       'display '(raise 0.0))
                                      " ")
    gnus-sum-thread-tree-false-root (concat (propertize ;(all-the-icons-faicon "chevron-circle-right" :v-adjust -0.01)
@@ -139,12 +138,12 @@
                                                'display '(raise 0.0))
                                               " ")
    gnus-sum-thread-tree-leaf-with-other (concat (propertize ;(all-the-icons-faicon "envelope-o" :v-adjust -0.01)
-                                                 (all-the-icons-material "email")
+                                                 (all-the-icons-material "mail")
                                                  'display '(raise 0.0))
                                                 " ")
    gnus-sum-thread-tree-vertical " "
    gnus-sum-thread-tree-single-leaf (concat (propertize ;(all-the-icons-faicon "envelope-o" :v-adjust -0.01)
-                                             (all-the-icons-material "email")
+                                             (all-the-icons-material "mail")
                                              'display '(raise 0.0))
                                             " ")
    ))
