@@ -5,7 +5,7 @@
 ;; Author: Roland Walker <walker@pobox.com>
 ;; Homepage: http://github.com/rolandwalker/back-button
 ;; URL: http://raw.githubusercontent.com/rolandwalker/back-button/master/back-button.el
-;; Package-Version: 20150804.1304
+;; Package-Version: 20150804.2004
 ;; Version: 0.6.8
 ;; Last-Updated:  4 Aug 2015
 ;; EmacsWiki: BackButton
