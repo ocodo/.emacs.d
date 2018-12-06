@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: moduledoc
+# key: mdoc
+# expand-env: ((yas-indent-line 'fixed))
+# --
+@moduledoc """
+$0
+"""

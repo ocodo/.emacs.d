@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: Application
+# key: Application
+# --
+defmodule ${1:MyApp} do
+use Application
+
+def start(_type, _args) do
+$1.Supervisor.start_link()$0
+end
+end

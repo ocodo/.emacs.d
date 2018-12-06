@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: defprotocol
+# key: defprotocol
+# --
+defprotocol ${1:Protocol} do
+def ${0:callback(args)}
+end
