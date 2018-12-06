@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# contributor: Toni Querol
+# name: assert
+# key: assert
+# --
+(assert ${1:assertion} (${2:vars-to-change})
+  "${3:string}"
+  ${4:mentioned-vars})
