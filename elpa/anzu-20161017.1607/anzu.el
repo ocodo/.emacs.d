@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-anzu
-;; Package-Version: 20161017.907
+;; Package-Version: 20161017.1607
 ;; Version: 0.62
 ;; Package-Requires: ((emacs "24.3"))
 

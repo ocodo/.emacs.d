@@ -1,9 +1,12 @@
 ;;; anzu-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "anzu" "anzu.el" (22533 41878 0 0))
+;;;### (autoloads nil "anzu" "anzu.el" (0 0 0 0))
 ;;; Generated autoloads from anzu.el
 
 (autoload 'anzu-mode "anzu" "\
@@ -68,11 +71,14 @@ anzu version of `isearch-query-replace-regexp'.
 
 \(fn ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "anzu" '("anzu-")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; anzu-autoloads.el ends here
