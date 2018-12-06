@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "company-restclient" "20151202.1201" "company-mode completion back-end for restclient-mode" '((cl-lib "0.5") (company "0.8.0") (emacs "24") (know-your-http-well "0.2.0") (restclient "0.0.0")) :commit "19d819b14b7cd186a840369060963a08377d052e" :authors '(("Iku Iwasa" . "iku.iwasa@gmail.com")) :maintainer '("Iku Iwasa" . "iku.iwasa@gmail.com") :url "https://github.com/iquiw/company-restclient")
