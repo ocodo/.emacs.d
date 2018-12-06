@@ -2,9 +2,11 @@
 ;;
 ;;; Code:
 
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads (ac-emmet-css-setup ac-emmet-html-setup) "ac-emmet"
-;;;;;;  "ac-emmet.el" (21223 22943 0 0))
+;;;### (autoloads nil "ac-emmet" "ac-emmet.el" (0 0 0 0))
 ;;; Generated autoloads from ac-emmet.el
 
 (defface ac-emmet-candidate-face '((t (:inherit ac-candidate-face))) "\
@@ -37,14 +39,10 @@ This affects only the current buffer.
 
 \(fn)" t nil)
 
-;;;***
-
-;;;### (autoloads nil nil ("ac-emmet-pkg.el") (21223 22943 732470
-;;;;;;  0))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ac-emmet" '("ac-emmet-")))
 
 ;;;***
 
-(provide 'ac-emmet-autoloads)
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t

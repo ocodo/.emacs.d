@@ -3,8 +3,8 @@
 ;; Copyright (C) 2013 Yasuyuki Oka <yasuyk@gmail.com>
 
 ;; Author: Yasuyuki Oka <yasuyk@gmail.com>
-;; Version: 20131015.858
-;; X-Original-Version: DEV
+;; Version: DEV
+;; Package-Version: 20131015.1558
 ;; URL: https://github.com/yasuyk/ac-emmet
 ;; Package-Requires: ((emmet-mode "1.0.2") (auto-complete "1.4"))
 ;; Keywords: completion, convenience, emmet
