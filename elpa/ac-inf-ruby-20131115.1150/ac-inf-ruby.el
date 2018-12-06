@@ -4,8 +4,8 @@
 
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; Keywords: languages, tools
-;; Version: 20131115.350
-;; X-Original-Version: DEV
+;; Package-Version: 20131115.1150
+;; Version: DEV
 ;; Package-Requires: ((inf-ruby "2.3.2") (auto-complete "1.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
