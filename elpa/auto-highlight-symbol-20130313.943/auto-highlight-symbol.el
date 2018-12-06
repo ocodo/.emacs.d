@@ -5,8 +5,8 @@
 
 ;; Author: Mitsuo Saito <arch320@NOSPAM.gmail.com>
 ;; Adapted-By: Gennadiy Zlobin <gennad.zlobin@NOSPAM.gmail.com>
-;; Version: 20130313.243
-;; X-Original-Version: 1.55
+;; Version: 1.55
+;; Package-Version: 20130313.943
 ;; Keywords: highlight face match convenience
 ;; URL: http://github.com/gennad/auto-highlight-symbol/raw/master/auto-highlight-symbol.el
 ;; Compatibility: GNU Emacs 22.3 23.x 24.x later
