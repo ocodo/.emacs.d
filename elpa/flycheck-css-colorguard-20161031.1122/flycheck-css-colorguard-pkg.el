@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "flycheck-css-colorguard" "20161031.1122" "Detect similar colors in CSS" '((flycheck "0.22") (emacs "24")) :commit "ae94fa0396acd99f9ec36d9572459df793f37fe8" :keywords '("flycheck" "css" "colorguard") :authors '(("Saša Jovanić" . "info@simplify.ba")) :maintainer '("Saša Jovanić" . "info@simplify.ba") :url "https://github.com/Simplify/flycheck-css-colorguard/")
