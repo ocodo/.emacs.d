@@ -1,9 +1,12 @@
 ;;; alert-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "alert" "alert.el" (23278 48476 0 0))
+;;;### (autoloads nil "alert" "alert.el" (0 0 0 0))
 ;;; Generated autoloads from alert.el
 
 (autoload 'alert-add-rule "alert" "\
@@ -34,7 +37,7 @@ fringe gets colored whenever people chat on BitlBee:
                 :style \\='fringe
                 :continue t)
 
-\(fn &key SEVERITY STATUS MODE CATEGORY TITLE MESSAGE PREDICATE ICON (style alert-default-style) PERSISTENT CONTINUE NEVER-PERSIST APPEND)" nil nil)
+\(fn &key SEVERITY STATUS MODE CATEGORY TITLE MESSAGE PREDICATE ICON (STYLE alert-default-style) PERSISTENT CONTINUE NEVER-PERSIST APPEND)" nil nil)
 
 (autoload 'alert "alert" "\
 Alert the user that something has happened.
@@ -82,7 +85,9 @@ Here are some more typical examples of usage:
   (alert \"This is an alert\" :title \"My Alert\"
          :category \\='some-category-or-other)
 
-\(fn MESSAGE &key (severity (quote normal)) TITLE ICON CATEGORY BUFFER MODE DATA STYLE PERSISTENT NEVER-PERSIST ID)" nil nil)
+\(fn MESSAGE &key (SEVERITY \\='normal) TITLE ICON CATEGORY BUFFER MODE DATA STYLE PERSISTENT NEVER-PERSIST ID)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "alert" '("alert-" "x-urgen")))
 
 ;;;***
 
@@ -90,5 +95,6 @@ Here are some more typical examples of usage:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; alert-autoloads.el ends here
