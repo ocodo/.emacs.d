@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010 Andrew Gwozdziewycz <git@apgwoz.com>
 
 ;; Version: 0.1
-;; Package-Version: 20160211.743
+;; Package-Version: 20160211.1543
 ;; Keywords: compilation, ant, java
 
 ;; This file is NOT part of GNU Emacs
