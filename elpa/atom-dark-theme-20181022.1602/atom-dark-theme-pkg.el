@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "atom-dark-theme" "20181022.1602" "An Emacs port of the Atom Dark theme from Atom.io." 'nil :commit "5c8610d0b45a536b8f7f9777297c86362685a357" :keywords '("themes" "atom" "dark") :authors '((nil . "Jeremy Whitlock <jwhitlock@apache.org")) :maintainer '(nil . "Jeremy Whitlock <jwhitlock@apache.org") :url "https://github.com/whitlockjc/atom-dark-theme-emacs")
