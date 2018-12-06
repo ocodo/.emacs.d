@@ -1,0 +1,1805 @@
+2018-11-06  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Don't initially fold El Occur buffers
+
+	This didn't always work correctly and may also be irritating for new 
+	users. Bump version to 1.7.15.
+
+	* packages/el-search/el-search.el (el-search--occur): Don't initially 
+	fold *El Occur* buffer.
+
+2018-11-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Small fix in el-search--reset-wrap-flag
+
+	We must reset 'el-search--wrap-flag' when the user does something 
+	different than search wrapping with the next command - else a later 
+	command could wrap the search even when not at the first or last match. 
+	Bump version to 1.7.14
+
+	* packages/el-search/el-search.el (el-search--reset-wrap-flag): Reset
+	'el-search--wrap-flag' also when user hasn't wrapped search.
+
+2018-11-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Don't try to kill modified buffers
+
+	This fixes a problem introduced by 1d2bbf66 "Improve working of
+	`el-search-kill-left-over-search-buffers'": We still need to check 
+	whether the buffer to be killed has been modified by
+	'el-search-query-replace' with 'el-search-auto-save-buffers' off. Bump
+	version to 1.7.13.
+
+	* packages/el-search/el-search.el
+	(el-search-kill-left-over-search-buffers): Exclude modified buffers from
+	killing.
+
+2018-11-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Follow-up to "Fix nested match issues in *El Occur*"
+
+	Get rid of the now obsolete el-search-match overlay property.  Always 
+	create match overlays with front-advance flag so added indentation 
+	doesn't get part of the overlays. Bump version to 1.7.12.
+
+	* packages/el-search/el-search.el (el-search-occur-jump-to-match): Use 
+	the data provided through the 'el-search-occur-match-ov-prop' property.
+	(el-search-occur--next-match): Correct a typo.
+	(el-search--occur): Don't attach the el-search-match property any more. 
+	Create all match-spanning overlays with front-advance flag.
+
+2018-11-03  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Fix an infloop in el-search--search-pattern-1
+
+	Also bump version to 1.7.11.
+
+	* packages/el-search/el-search.el (el-search--search-pattern-1): Move 
+	forward if a match is discarded because it exceeds a given BOUND.
+
+2018-11-01  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Fix nested match issues in *El Occur*
+
+	Fix flawed match count display and by-match moving in *El Occur* buffers
+	for nested or adjacent matches.	 Bump version to 1.7.10.
+
+	* packages/el-search/el-search.el (el-search--occur): Cover each match
+	with an individual overlay storing the match number and other data in an
+	overlay property.
+	(el-search-occur--next-match): Use these new overlays for navigation. 
+	Call 'el-search--scroll-sexp-in-view'.
+	(el-search-occur--show-match-count): Rewrite to use the new 
+	match-spanning overlays.
+
+2018-09-12  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Some scrolling tweaks
+
+	(el-search-fancy-scrolling): New user option.
+	(el-search--scroll-sexp-in-view): Use signed screen line counts again.
+
+	Bump version to 1.7.9.
+
+2018-09-09  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Open invisible text
+
+	Make el-search open invisible text like isearch.  We only define glue 
+	code functions that call the respective isearch functions and use these
+	in the relevant places.	 We also make
+	'el-search--scroll-sexp-in-view' do calculations based on visible lines
+	to make it work with invisible text as expected.
+
+	Bump version to 1.7.8.
+
+	* packages/el-search/el-search.el (el-search-open-invisible): New 
+	variable.
+	(el-search-hide-immediately): New user option.
+	(el-search-unhide-invisible, el-search-rehide-invisible): New functions.
+	(el-search-hl-sexp): Call 'el-search-unhide-invisible'.
+	(el-search-hl-remove): Call 'el-search-rehide-invisible'.
+	(el-search--scroll-sexp-in-view): Do calculation based on visible lines.
+
+2018-09-01  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Add some key bindings
+
+	This commit adds key bindings for the recently added scroll commands. It
+	also provides a way to officially cancel a search or query-replace 
+	session by hitting RET. Update comments in header and bump version to
+	1.7.7.
+
+	* packages/el-search/el-search.el
+	(el-search-keep-transient-map-commands): Add 'el-search-scroll-down' and
+	'el-search-scroll-up'.
+	(el-search-pause-search): New command.
+	(el-search-basic-transient-map): New keymap that is always enabled when
+	a search is active.  Bind RET to 'el-search-pause-search'.
+	(el-search-prefix-key-transient-map): Add binding for
+	'el-search-scroll-down' and 'el-search-scroll-up'.  Set parent keymap to
+	'el-search-basic-transient-map'.
+	(el-search-prefix-key-maybe-set-transient-map): Enable
+	'el-search-prefix-key-transient-map' or only the new
+	'el-search-basic-transient-map' depending on the value of
+	'el-search-use-transient-map'.
+	(el-search-install-shift-bindings): Add bindings for
+	'el-search-scroll-down' and 'el-search-scroll-up'.
+	(el-search--search-and-replace-pattern): Let RET terminate 
+	query-replace.
+
+2018-08-07  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Follow-ups to transient map handling
+
+	This fixes the transient map being still active when hitting the first 
+	key after 'el-search-jump-to-search-head' or
+	'el-search-skip-directory' prompt for minibuffer input. Bump version to
+	1.7.6.
+
+	(el-search-keep-transient-map-commands): Remove
+	'el-search-jump-to-search-head' and 'el-search-skip-directory' from the
+	list.
+	(el-search-jump-to-search-head, el-search-skip-directory): 
+	Unconditionally call 'el-search-prefix-key-maybe-set-transient-map'.
+	(el-search--entering-prefix-arg-p): New helper function.
+	(el-search-hl-post-command-fun): Use it.
+
+2018-08-01  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Minor tweaks and bump version to 1.7.5
+
+	(el-search-hl-post-command-fun): Don't hide key input feedback when a 
+	prefix argument is entered.
+	(el-search-jump-to-search-head): Simplify test when to call
+	'el-search-barf-if-not-search-buffer'.
+	(el-search-scroll-down, el-search-scroll-up): Call
+	'el-search-barf-if-not-search-buffer'.
+
+2018-07-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Add special scroll commands
+
+	* packages/el-search/el-search.el (el-search-scroll-down)
+	(el-search-scroll-up): New commands. Bindings will be added in a later
+	commit.
+
+2018-07-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Extend meaning of C-J prefix arg
+
+	* packages/el-search/el-search.el
+	(el-search-jump-to-search-head): Make numerical prefix jump between 
+	matches: 0 jumps to the match following point, N and -N jump to the Nth
+	match visible in the selected window or the Nth match before
+	'window-end'.
+
+2018-07-30  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Again tweak commentary in header
+
+2018-07-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Improve match faces
+
+	Optimize face definitions for terminals with few colors.
+
+	We also define a separate face for highlighting matches in *El Occur* 
+	buffers to make them better distinguishable from search buffers, and 
+	also to improve the visual feedback when doing an el-search in
+	*El Occur*.
+
+	Bump version to 1.7.3.
+
+	(el-search-match, el-search-other-match): Optimize definitions for 
+	terminals.
+	(el-search-occur-match): New face.
+	(el-search--occur): Use it.
+
+2018-07-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] More minor tweaks
+
+	Also bump package version to 1.7.2.
+
+	* packages/el-search/el-search.el: (el-search--search-buffer-p)
+	(el-search-barf-if-not-search-buffer): New functions.
+	(el-search-kill-left-over-search-buffers): Use
+	'el-search--search-buffer-p'.
+	(el-search-from-beginning, el-search-last-buffer-match): Call
+	'el-search-barf-if-not-search-buffer' when appropriate.
+	(el-search-loop-over-bindings): Bind 'el-search-last-buffer-match' only
+	in 'emacs-lisp-mode-map' instead of 'global-map'.
+	(el-search-prefix-key-transient-map): Add
+	'el-search-jump-to-search-head'.
+	(el-search-jump-to-search-head): Indentation fix.
+
+2018-06-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Bump version to 1.7.1
+
+2018-06-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Improve 'el-search-display-match-count'
+
+	* packages/el-search/el-search.el (el-search-display-match-count): 
+	Display name of defun the current match is in.	Display match count even
+	when not at a match.
+
+2018-06-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Enforce defun start for heuristic matching
+
+	Ensure a sexp is top-level before performing heuristic matching on it. 
+	This makes it possible to use heuristic matching for context aware 
+	pattern types we might add in the future.
+
+	(el-search--search-pattern-1): Test for (zerop (car (syntax-ppss))) 
+	before doing heuristic matching with a following sexp.
+
+2018-06-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Correct NOERROR argument uses
+
+	Correct calls of el-search search functions in the file to not use
+	'noerror as NOERROR argument since we have changed the semantics of 
+	non-nil non-t argument values.
+
+2018-06-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Avoid most calls to 'scan-sexps'
+
+	Replace 'scan-sexps' with 'el-search--end-of-sexp' where possible.  We 
+	do this because 'scan-sexps' currently has a bug - bug#24542 "The symbol
+	`@' and sexp scanning" - which we try to avoid.
+
+	* packages/el-search/el-search.el (el-search--end-of-sexp): Implement an
+	optional POS argument. Replace all calls of 'scan-sexps' with a COUNT
+	argument 1 with according 'el-search--end-of-sexp' calls.
+	(el-search--search-backward-1): Correct a variable name.
+	* packages/el-search/el-search-x.el: Also replace 'scan-sexps' calls.
+
+2018-06-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Bump version to 1.7
+
+	Also add a NEWS entry for this release.
+
+2018-06-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Add bindings for first/last match jumping
+
+	* packages/el-search/el-search.el (el-search-loop-over-bindings): Add 
+	bindings for < and > (to 'el-search-from-beginning' and
+	'el-search-last-buffer-match').
+	(el-search-keep-transient-map-commands): Add
+	'el-search-last-buffer-match' to the list.
+	(el-search-prefix-key-transient-map): Add
+	'el-search-last-buffer-match' as well.
+
+	Add the new bindings to the binding listing in the file header.
+
+2018-06-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Add command 'el-search-last-buffer-match'
+
+	* packages/el-search/el-search.el
+	(el-search--unless-no-buffer-match): New macro.
+	(el-search-pattern-backward): Use it.
+	(el-search-last-buffer-match): New command jumping to the last of the 
+	current buffer's matches.
+	(el-search-from-beginning): Let a negative prefix arg make it jump to 
+	the last buffer match.
+
+2018-06-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Special case 'el-search-make-matcher' for '_'
+
+	This makes adding an entry to 'pcase--dontwarn-upats' to suppress a 
+	warning about a redundant '_' clause unnecessary.
+
+	* packages/el-search/el-search.el (el-search-make-matcher): Avoid 
+	calling 'pcase' in the constructed lambda for '_' PATTERN argument.
+
+2018-06-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Some more minor tweaks
+
+	* packages/el-search/el-search.el: Some minor edits in the file header.
+	(el-search-history): Increase ring size.
+	(el-search--ensure-sexp-start): Clarify docstring with respect to 
+	behavior at eob.
+	(el-search--scroll-sexp-in-view): Factored out of 'el-search-hl-sexp'.
+	(el-search-hl-sexp): Use it.
+	(el-search-highlight-in-prompt-face): Inherit from 'warning' face to 
+	make important prompts even better noticeable.
+	(el-search-make-matcher): Rename second argument to emphasize that its 
+	value is an expression.	 Locally declare 'warning-suppress-log-types' to
+	quiet byte compiler.
+
+	And some more minor edits.
+
+2018-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	[el-search] Save two 'eval' calls
+
+	* packages/el-search/el-search.el
+	(el-search--with-additional-pcase-macros): Reimplement to set and unset
+	respective 'pcase-macroexpander' symbol properties "by hand" (i.e.
+	without 'cl-letf').
+	(el-search--macroexpand): Remove now unnecessary 'eval' wrapper.
+	(el-search-make-matcher): Remove now unnecessary 'eval' wrapper. Byte
+	compile lambda form instead of function value.
+
+2018-06-09  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Factor out `el-search-backward'
+
+	This commit provides a non-interactive backward search function analogue
+	to `el-search-forward'.
+
+	(el-search--search-backward-1, el-search-backward): New functions.
+	(el-search-pattern-backward): Rewrite to use `el-search-backward'.
+
+2018-06-08  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Improve forward search functions
+
+	The goal of this commit is to further align syntax and semantics of 
+	el-search's forward search functions with Emacs text search functions.
+
+	* packages/el-search/el-search.el (el-search--search-pattern-1)
+	(el-search-forward): Implement COUNT argument.	Make the NOERROR 
+	argument behave like in `search-forward' when neither nil or t.	 Raise 
+	error for invalid search bounds.  Search further after a found match 
+	ends after BOUND - a subsequent match may still end before.  Fix 
+	behavior when BOUND is exceeded.  Enhance docstrings.
+
+2018-05-27  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Use current buffer to check for matches in replacement
+
+	This fixes el-search-query-replace raising an error when the FROM 
+	pattern makes use of the `filename' pattern type.
+
+	* packages/el-search/el-search.el
+	(el-search--search-and-replace-pattern): Use the current buffer of this
+	`el-search-query-replace' session to check for matches inside the 
+	inserted replacement.
+
+2018-05-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	[el-search] Raise user-error when replacement contains gensyms
+
+	* el-search/el-search.el (el-search--format-replacement): Raise a
+	`user-error' when replacement contains uninterned symbols.
+
+	Also improve the comment about this issue in the file header.
+
+2018-05-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Skip over #N read syntaxes
+
+	This fixes issues with el-searching being distracted by these 
+	constructs.
+
+	(el-search--ensure-sexp-start): Skip over #N= and #N# read syntaxes. Add
+	a sentence to the docstring telling that parts of cyclic sexps may be
+	skipped.
+
+2018-05-16  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: More minor tweaks
+
+	(el-search-kill-left-over-search-buffers): Remove unused optional 
+	argument.
+
+	And some more minor edits.
+
+2018-05-14  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Prefer adverb "backward" in names and text
+
+	Prefer the adverb "backward" over "backwards" in package "el-search".
+
+	(el-search-pattern-backward, el-search-search-backward-from-isearch): 
+	Renamed from "el-search-pattern-backwards" and
+	"el-search-search-backwards-from-isearch".  Change all occurrences; 
+	define obsolete function aliases for the old names. Change all other
+	occurrences of the adverb to "backward".
+
+2018-05-12  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Fix heuristic matcher for 'nil
+
+	(el-search-heuristic-matcher): Special case 'nil.
+
+2018-05-12  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Fix infloop in el-search--flatten-tree
+
+	This fixes `el-search--flatten-tree' inflooping in cases like
+
+	  (el-search--flatten-tree '(x . #1=(y . #1#)))
+
+	(el-search--flatten-tree): Be more strict in adding objects to the 
+	WALKED-OBJECTS hash-table.
+
+2018-05-08  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix el-search's check for buffers visiting a given file
+
+	* packages/el-search/el-search.el (el-search-atom-list)
+	(el-search--next-buffer): Use `find-buffer-visiting' instead of
+	`get-file-buffer' to identify buffers already visiting a given file.
+	`find-buffer-visiting' also checks for buffers visiting a file under a 
+	different name, which is what we want.
+
+2018-04-07  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search-x.el: Some more tweaks
+
+2018-04-07  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: New user option `el-search-allow-scroll'
+
+2018-04-03  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search-x.el: New user option `el-search-lazy-l'
+
+2018-03-24  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search-x.el: New pattern type `string-lines'
+
+2018-03-18  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Show progress of automatic el-search-query-replace
+
+	* el-search/el-search.el: (el-search--search-and-replace-pattern): Show
+	percentage of progress of automatic query-replace.
+
+2018-03-13  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Add `el-search-looking-at'
+
+	(el-search-make-matcher): Renamed from `el-search--matcher'.  Change all
+	occurrences, including those in el-search/el-search-x.el.
+	(el-search--looking-at-1, el-search-looking-at): New functions.
+
+2018-02-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve working of `el-search-kill-left-over-search-buffers'
+
+	We used to consult the ring elements of el-search-history to identify 
+	buffers with non-nil el-search--temp-buffer-flag which might still be 
+	relevant to the user, which was not optimal.  With this change,
+	`el-search--pending-search-p' becomes a reliable mean to do that, and we
+	can reimplement el-search-kill-left-over-search-buffers to use this 
+	function instead.
+
+	* el-search/el-search.el (el-search--next-buffer): Remove
+	`el-search-hl-post-command-fun' from the local binding of
+	`post-command-hook' in the old buffer so that
+	`el-search--pending-search-p' is guaranteed to return nil there.
+	(el-search-kill-left-over-search-buffers): Use
+	`el-search--pending-search-p' to identify temporarily opened file 
+	buffers which we should not kill.
+
+2018-02-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Small improvements to el-search--search-and-replace-pattern
+
+	* packages/el-search/el-search.el
+	(el-search--search-and-replace-pattern): In particular, unite the
+	"replace all in this buffer" and "replace all in this and all following
+	buffers" answer using a second prompt when appropriate (i.e. when in a
+	multi-buffer session).
+
+2018-02-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Bump version to 1.6; some minor tweaks
+
+2018-02-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Fix single buffer query-replace
+
+	This fix makes ad-hoc (single-buffer) el-search-query-replace start from
+	current point as expected, instead of from the beginning of the buffer.
+
+	(el-search--search-and-replace-pattern): Use the setup function of the 
+	newly created ad-hoc search to make it start from point.
+
+2018-02-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Treat inserted replacements as potential to-replace candidates
+
+	Don't skip the inserted replacement so that it can potentially be 
+	subject to query-replace once more when matching the current search 
+	pattern unless the user chooses to skip matches in replacements.
+
+	* packages/el-search/el-search.el
+	(el-search--search-and-replace-pattern): Do it.
+
+2018-02-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Fix handling of void replacements
+
+	(el-search--replace-hunk): If we effectively killed a match, also kill 
+	any left empty line or trailing whitespace.
+	(el-search--search-and-replace-pattern): Don't try to move to the 
+	beginning of a void replacement.
+
+2018-02-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Don't highlight inserted replacement
+
+	(el-search--search-and-replace-pattern): Don't highlight inserted 
+	replacement.  This was more distracting than helpful.
+
+2018-02-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Update a variable when splicing mode is toggled
+
+	* packages/el-search/el-search.el
+	(el-search--search-and-replace-pattern): Recompute
+	`replacement-contains-another-match' when user toggles splicing-mode.
+
+2018-02-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve quit/error handling in el-search-query-replace
+
+	* packages/el-search/el-search.el
+	(el-search--search-and-replace-pattern): Use catch and throw to 
+	implement user quit.  Allow hitting `q' to quit also from the "There are
+	matches in this replacement" prompt.  Optimize control flow in case of
+	an error.
+
+2018-02-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add face `el-search-highlight-in-prompt-face'
+
+	* packages/el-search/el-search.el
+	(el-search-highlight-in-prompt-face): New face.
+	(el-search--search-and-replace-pattern): When there are matches in the 
+	replacement, don't ding, use the new face to make the prompt stand out 
+	from other prompts instead.
+
+2018-02-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Some minor tweaks
+
+	There were two separate bug sections in the header - fix that. Add
+	comment to "Known Limitations" section that circular syntaxes are 
+	unmatchable.
+	(el-search-pattern-backwards): Add fixme note.
+	(el-search-load-path): Use `remq' instead of `delq' to prevent altering
+	the `load-path'. And some whitespace changes
+
+2018-02-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix el-search's to register save when no search started yet
+
+	* packages/el-search/el-search.el: (el-search-to-register)
+	(el-search-clone-to-register): Throw a `user-error' when value of
+	`el-search--current-search' is nil.
+
+2018-02-05  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Work around Emacs Bug#29857
+
+	While trying to get rid of old-style backquotes, Emacs developers made 
+	something like (read "(,@a)") - i.e. reading a subexpression of a 
+	backquote expression, something that this package needs to be able to do
+	- raise an error.  A new variable `force-new-style-backquotes' has now
+	been introduced to prevent this kind of error and force everything to be
+	"interpreted as new style".
+
+	(el-search-read): New function binding `force-new-style-backquotes' to 
+	non-nil when this variable is defined. Change all callers of `read' to
+	use `el-search-read' instead.
+
+2018-01-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Add `el-search-edit-search-description'
+
+	(el-search-edit-search-description): New command to modify the 
+	description of the current search.
+
+2018-01-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Allow to save the current el-search to a register
+
+	* el-search/el-search.el (el-search-to-register)
+	(el-search-clone-to-register): New commands.
+	(register-val-jump-to, register-val-describe): Implement methods for
+	`el-search-object' values.
+
+2018-01-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Implement `cl-print-object' for el-search-objects
+
+	* el-search/el-search.el: Add (cl-print "1.0") to Package-Requires. 
+	Require cl-print.
+	(cl-print-object): Implement for `el-search-object's.
+
+2018-01-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add command `el-search-ibuffer-marked-buffers'
+
+	* el-search/el-search.el (el-search-ibuffer-marked-buffers): New 
+	command.
+	(el-search-loop-over-bindings): Add binding in `ibuffer-mode-map'. Also
+	mention the command in the key binding list in the file header.
+
+2018-01-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Bump version to 1.5
+
+2018-01-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make el-search key binding installation more flexible
+
+	Implement a function `el-search-install-bindings-under-prefix' that the
+	user can call to install repeatable versions of the el-search commands
+	under a prefix key.  Update header (list of key bindings etc.)
+	accordingly.  Also remove the el-search-keep-hl -> 'once hack, since it
+	is not compatible with this change.
+
+	* el-search/el-search.el (el-search-read-expression-map): Bind M-RET to
+	`el-search-set-occur-flag-exit-minibuffer'.
+	(el-search-use-transient-map, el-search-keep-transient-map-commands): 
+	New defvars.
+	(el-search-loop-over-bindings): New abstract key binding function 
+	generalizing `el-search-install-shift-bindings'.
+	(el-search-install-shift-bindings): Use it.
+	(el-search-install-bindings-under-prefix): New key binding function.
+	(el-search-prefix-key-transient-map)
+	(el-search-shift-bindings-bind-function)
+	(el-search-bind-under-prefix-key-function): New helper variables and 
+	functions.
+	(el-search-prefix-key-maybe-set-transient-map): New function to activate
+	the `el-search-prefix-key-transient-map'.
+	(el-search-setup-search-1, el-search-jump-to-search-head)
+	(el-search-continue-search, el-search-pattern-backwards): Call it.
+	(el-search-keep-hl, el-search-hl-post-command-fun)
+	(el-search--occur-button-action): Remove implementation of 
+	el-search-keep-hl -> 'once hack.
+
+2018-01-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Tweak el-search-jump-to-search-head
+
+	(el-search-jump-to-search-head): Don't use :annotation-function - 
+	directly add search description to the candidate instead so that the 
+	user can use completion on it.	Improve docstring.
+
+2018-01-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Tweak el-search--get-search-description-string
+
+	* el-search/el-search.el (el-search--get-search-description-string): 
+	Some minor tweaks.
+
+2018-01-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Some minor tweaks
+
+	(el-search-read-pattern-for-interactive): Add docstring.
+	(el-search-kill-left-over-search-buffers): Improve docstring.
+	(el-search-install-shift-bindings): Move defun.
+	(el-search--format-replacement): Decrease `sit-for' waiting time after 
+	messaging the current head file/buffer to 1.0 seconds.
+	(el-search--search-and-replace-pattern): Use faster
+	`el-search--search-pattern-1' instead of `el-search-forward' at one 
+	place.
+
+	And some comment changes.
+
+2018-01-08  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Declare any search started with `el-search-this-sexp' single-buffer
+
+	* el-search/el-search.el (el-search-this-sexp): Do it.
+
+2018-01-08  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Add two more autoload cookies
+
+	(el-search-pattern-backwards, el-search-this-sexp): Add autoload cookie.
+
+2018-01-08  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	New option value ask-multi for `el-search-auto-save-buffers'
+
+	This should be a bit more convenient than 'ask in practice.
+
+	* el-search/el-search.el (el-search-auto-save-buffers): Add new value
+	'ask-multi.
+	(el-search--search-and-replace-pattern): Do the right thing for the new
+	value.
+	* el-search/NEWS: New file, start filling it.
+
+2018-01-05  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Get rid of orgstruct-mode
+
+	orgstruct-mode will probably be obsoleted soon.	 Replace its usage in
+	*El Occur* buffers with similar functions offered by outline.el.
+
+	(el-search-occur-cycle): Reimplement to use functions from outline.el; 
+	add docstring.
+	(el-search-occur-tab-command): New command.
+	(el-search-occur-mode-map): Bind TAB to `el-search-occur-tab-command'.
+	(el-search-occur-mode): Enable `outline-minor-mode' instead of
+	`orgstruct-mode'.
+
+2018-01-05  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Allow `string' and `symbol' el-search patterns to set match data
+
+	The rationale is to allow to use the match data when replacing symbols 
+	and strings via `el-search-query-replace'.
+
+	* packages/el-search/el-search.el (el-search--string-matcher): Use
+	`string-match' instead of `string-match-p.
+	(symbol): Add to documentation an example of using match data with 
+	query-replace.
+
+2018-01-05  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Update copyrights of some packages
+
+	Update copyrights of el-search, iterators, on-screen and smart-yank.
+
+2017-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make the some-context function include an opening backquote
+
+	When choosing `el-search-occur-get-some-context' as
+	`el-search-get-occur-context-function', when the calculated context 
+	follows a backquote, also include that backquote.
+
+	This also works around one symptom of Emacs bug#29857.
+
+	* el-search/el-search.el (el-search-occur-get-some-context): Do it.
+
+2017-12-26  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Some buffer display related minor tweaks
+
+	(el-search-jump-to-search-head): Use `redisplay' and `sleep-for' to 
+	ensure the correct behavior when `pop-to-buffer' generated frame focus 
+	events.
+	(el-search-occur-jump-to-match): Call `el-search--occur-button-action' 
+	with an empty `display-buffer' action list.
+	(el-search--occur-button-action): Define with `cl-defun' to be able to 
+	decide whether the DISPLAY-BUFFER-ACTION argument is specified.
+	(el-search--search-and-replace-pattern): Minor tweaks.
+
+2017-12-26  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	; * el-search/el-search.el: Mention Emacs Bug#29857 in the header
+
+2017-12-26  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Declare doc-string in el-search-defpattern
+
+2017-12-07  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	packages/el-search: Some minor tweaks
+
+	* el-search/el-search.el: Explicitly require 'seq.
+	(el-search--read-pattern-for-interactive): Rename to
+	`el-search-read-pattern-for-interactive'; change callers.
+	(el-search--search-and-replace-pattern): Give a short message when 
+	switching to the next buffer. And some doc changes, minor tweaks, added
+	comments, and wording improvements.
+	* el-search/el-search-x.el (el-search--file-changed-p): Don't wrap into
+	`ignore-errors' and don't nil-bind `vc-git-diff-switches' (not needed).
+
+2017-12-06  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	* el-search/el-search.el: Shorten the query-replace prompt
+
+	Try to make the prompt of `el-search-query-replace' fit into one visible
+	line.
+
+	(el-search--search-and-replace-pattern): Do it.
+	(el-search-query-replace): Move the elaborations about splicing submode
+	to this command's documentation.
+
+2017-12-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Use local binding of `post-command-hook' to reset wrap flag
+
+	The current search is a global thing, so we must use the global value of
+	`post-command-hook' to reset the `el-search--wrap-flag'.
+
+2017-12-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix resuming a single-buffer query-replace
+
+2017-12-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Display match count for *El Occur* buffers
+
+	Make `el-search-occur-next-match' and `el-search-occur-previous-match' 
+	display an x/y-style match count.
+
+2017-12-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix starting a search with `el-search-this-sexp'
+
+	Improve behavior of `el-search-jump-to-search-head' and
+	`el-search-query-replace' called directly after `el-search-this-sexp'.
+
+2017-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* el-search/el-search.el: Minor tweak.
+
+	(el-search-make-search): Use `letrec'.
+	(el-search-previous-match): Specify when it was obsoleted.
+
+2017-11-30  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve folding behavior in *El Occur* buffers
+
+2017-11-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix resuming search in a modified buffer
+
+2017-11-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Show match count for `el-search-query-replace'
+
+2017-11-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	New command `el-search-count-matches'
+
+2017-11-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add a PROMPT arg to `el-search--read-pattern-for-interactive'
+
+	Use it.
+
+2017-11-15  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Bump el-search version to 1.4
+
+2017-11-01  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Don't limit `el-search-emacs-elisp-sources' to "lisp/" subdir
+
+2017-10-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Some details
+
+2017-10-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Always use the current search for query-replace
+
+2017-10-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Recover from search head pointing to a killed buffer
+
+	Try to resume from the associated buffer file; alternatively restart the
+	search.
+
+2017-10-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Display an x/y-style match count in the echo area
+
+2017-10-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve jumping to matches in *El Occur* buffers
+
+2017-10-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Require the new rmc.el lib when available
+
+2017-10-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix replacing matches with nil
+
+	Replacing PATTERN -> nil replaced with t instead.  This commit fixes 
+	this.
+
+2017-10-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix "Make amount of context around occur matches adjustable"
+
+	Add missing defun `el-search--bounds-of-defun'.
+
+2017-10-03  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make amount of context around occur matches adjustable
+
+	Make the amount of context included around each match in
+	*El Occur* buffers adjustable via new commands
+	`el-search-occur-defun-context', `el-search-occur-no-context' and
+	`el-search-occur-some-context'.
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Use a separate function to document defined pattern types
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Show line numbers in *El Occur* buffers
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	More multi query-replace related improvements
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Restore current search head in case of error or quit
+
+	In particular, this change prevents the search head to point to a 
+	temporary helper buffer.
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make `el-search-reset-search' modify its argument
+
+	Make `el-search-reset-search' modify its argument instead of returning a
+	reset copy.
+
+	This fixes `el-search-from-beginning' when called with prefix arg which
+	had the first search buffer instantly being killed because the new
+	search had not been taken into consideration when killing temporarily
+	opened file buffers.
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Don't let el-search-pattern resume a paused search
+
+	When calling `el-search-pattern' from the head buffer of the 
+	el-search--current-search, don't automatically resume the 
+	el-search--current-search when the last command was not a search command
+	even when the search pattern is the same.  Start a new single-buffer
+	search as normal.  `el-search-jump-to-search-head' is now the preferred
+	way to resume a suspended el-search--current-search.
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add some useful commands for *El Occur* buffers
+
+	Add commands `el-search-occur-next-match',
+	`el-search-occur-previous-match' for quick navigation between matches 
+	and `el-search-edit-occur-pattern', a command to modify the search 
+	pattern associated with an occur buffer.
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Use stream-x.el
+
+2017-09-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Narrow down the semantics of symbol LPATs
+
+	Narrow down the semantics of symbol LPATs: Matching also the quoted and
+	function-quoted symbol made the thing too slow.
+
+2017-08-03  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Some details
+
+2017-08-02  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix el-search--change-p for atoms
+
+	Factor out predicate `el-search--atomic-p'.
+
+	Fix a bug in the implementation of `change': Count any 
+	el-search--atomic-p thing (e.g. a large string spanning multiple lines)
+	as a change even when not all of its lines have changed.
+
+2017-08-01  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make the el-search-object struct contain an alist of properties
+
+	Make the el-search-object struct contain a field "properties".	Use it 
+	to store diverse metadata.  Remove the "command" field; instead, use the
+	property "description" which can be bound to a string describing the
+	search.
+
+	Factor out `el-search--get-search-description-string' which can be 
+	called to get a description text for the occur buffer or completion 
+	annotation.
+
+	Make `el-search-setup-search-1' accept an additional optional argument 
+	SETUP-FUNCTION that can be used to manipulate the new "properties" field
+	of newly created searches.  Use it.
+
+2017-07-25  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix and speed up the `change' pattern type
+
+2017-07-24  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Implement multi-buffer query-replace
+
+2017-07-02  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add new command `el-search-this-sexp'
+
+2017-05-24  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Handle read errors when reading and validating replacement
+
+2017-05-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Some details
+
+2017-05-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Extend heuristic matching to top-level sexps
+
+	This speeds up searching in large files.
+
+2017-05-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Recompile search pattern when resuming searches
+
+	When resuming a search, recompile the search pattern.  This is useful 
+	when a pattern type has been redefined.
+
+2017-05-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Reset wrap flag even when no match
+
+2017-04-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Tweak el-search--pp-to-string
+
+	Bind print-circle -> nil.
+
+	When an object contains multiple occurrences of the empty string, all 
+	but the last are printed as #N#.  We don't want this (especially when 
+	printing a replacement).
+
+	`string-trim-right' the result from pp which may end with a line break.
+
+2017-04-23  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Explicitly require pcase
+
+	emacs -Q doesn't load pcase any more.
+
+2017-04-15  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add new pattern type `de-morgan'
+
+	Add pattern `de-morgan' which allows to simplify expressions by applying
+	de Morgan's law.
+
+2017-03-09  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search version 1.3: Lots of fixes and improvements
+
+	This change mixes a bunch of new features and fixes:
+
+	* It is now possible to execute a search as non-interactive occur.
+
+	* Search patterns, matcher and the invoking command are now stored in 
+	the search object instead of separate variables.
+
+	* A search object doesn't use a stream of matches internally any more 
+	but can still export a stream finding all positions of matches of this 
+	search with the method `el-search-object-get-matches'.	This internal 
+	change was a prerequisite to implement a real backward search, bound to
+	C-R when using the default keys.
+
+	* More careful buffer killing: avoid killing file buffers opened for 
+	searching when they are still referenced by a search in the history.
+
+	* When opening files for searching, avoid `find-file' for better 
+	performance.
+
+	* Displaying buffers has been made customizable by using dedicated
+	`display-buffer' actions.
+
+	* "Generalized" regexps have been renamed to "regexp-likes".  They 
+	include function predicates now.
+
+	* `el-search-jump-to-search-head' now restarts completed searches 
+	automatically.
+
+	* `el-search-forward' now accepts a BOUND argument to make the signature
+	more similar to that of `search-forward'.
+
+	* A new pattern `in-buffer' (and synonymous `in-file') has been defined
+	that makes it possible to give the heuristic matcher explicit hints.
+
+	* The `file' pattern has been renamed to `filename' and accepts multiple
+	arguments now.
+
+	* Searching directories dismisses subdirectories containing a file named
+	".nosearch" now by default.
+
+	* Key bindings have been cleaned up.  The suggested key bindings can be
+	installed now by calling the new function
+	`el-search-install-shift-bindings'.
+
+	* `el-search-dired-marked-files' now accepts the list of marked files as
+	an argument and computes the list in the interactive spec instead of the
+	body so that repeating the command from the history works as expected
+	(i.e. uses the same file list).
+
+	* Improved introduction, lots of details and doc fixes.
+
+2017-01-27  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add a FILE argument to `el-search-dired-marked-files'
+
+	Make `el-search-dired-marked-files' accept the list of marked files as 
+	an argument and compute the list in the interactive spec instead of the
+	body so that repeating the command from the history works as expected
+	(i.e. uses the same file list).
+
+2017-01-26  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Update some copyrights
+
+2017-01-25  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Use `read' to circumvent bug#24542
+
+	Use `read' to jump over symbols starting with an "@" character.	 This 
+	should fix the issues caused by bug#24542 completely instead of handling
+	only special cases.
+
+	Add some documentation for `el-search--end-of-sexp'.
+
+2017-01-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve half-baked introduction of key bindings
+
+	Define a helper function installing the suggested key bindings.	 Don't 
+	bind any keys by default, even not in `el-search-map'.
+
+2017-01-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve summary message of `el-search-overview'
+
+2017-01-18  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	New command `el-search-from-beginning'
+
+2017-01-14  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Also count pattern types starting with "_" as internal
+
+2017-01-02  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Work around more manifestations of Emacs bug #24542
+
+	Not only the symbol `@' but all symbols with names of the form "@+" 
+	cause trouble.	We need to avoid to call `scan-sexps' from the beginning
+	of any of these symbols.
+
+2016-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: bump version to 1.2.2
+
+2016-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve handling of reader errors in el-search-atom-list
+
+2016-12-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Avoid infinite recursion in circular programs
+
+	Prevent heuristic matching go into an infinite recursion in circular 
+	programs like '#1=(1 . #1#).
+
+2016-12-27  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Call `user-error' instead of `error' where appropriate
+
+	Also improve some error messages.
+
+2016-12-27  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Use regexp-opt on suffixes in el-search--elisp-file-name-p
+
+2016-12-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Use jka-compr-load-suffixes instead of hardcoded suffixes
+
+2016-12-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add a helpful comment; bump version to 1.2.1
+
+2016-12-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Explicitly `error' when trying to jump to invalid search head
+
+	Give a meaningful error message when the user calls
+	`el-search-jump-to-search-head' but the search head points to a killed 
+	buffer.
+
+2016-12-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Set syntax table for temp buffers in el-search-atom-list
+
+2016-12-20  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix disregarding compressed elisp files
+
+2016-12-15  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Extend the heuristic matching approach; complete review
+
+2016-11-16  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix leaving behind helper buffers
+
+2016-11-08  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Don't use the non-word "heuristical"
+
+2016-11-07  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Some details
+
+2016-11-06  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Speed up multi searching; version 1.1
+
+2016-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	New command `el-search-load-path'
+
+2016-10-30  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Document change-revision transformer function; make a defcustom
+
+2016-10-30  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Inhibit logging of some messages
+
+2016-10-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	`change', `changed': make "HEAD" as default explicit
+
+2016-10-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: more cleanup and minor tweaks; version 1.0.1
+
+2016-10-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add missing settings of some vars when restoring a previous search
+
+2016-10-17  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Call el-search--wrap-pattern at better places
+
+	Try to call `el-search--wrap-pattern' directly before compiling the 
+	pattern to avoid that the wrapped pattern appears in the histories.
+
+2016-10-15  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Rewrite of el-search for version 1.0
+
+	Big rewrite and cleanup.  Add multi-search support.  Update and improve 
+	docs.
+
+2016-10-15  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Work around Emacs bug#24542
+
+	Avoid calling `scan-sexps' directly before the symbol `@' since it may 
+	error.
+
+2016-10-07  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add section "Patterns for stylistic rewriting" and pattern `iffy-if'
+
+2016-09-16  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make el-search--make-docstring require a NAME argument
+
+2016-09-13  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add `el-search--macroexpand'
+
+2016-09-07  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix replacement verification for splicing mode
+
+2016-08-30  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Some details
+
+2016-08-16  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Simplify `el-search--transform-nontrivial-lpat'
+
+2016-08-16  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Simplify nested backquotes
+
+2016-08-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: bump version to 0.2.2
+
+2016-08-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve `change' and `changed'
+
+	- Renew cache when saved file version has changed.
+
+	- Use markers as region boundaries so that replacing inside changed 
+	expressions works.
+
+2016-08-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add calling convention to el-search-defpattern's docstring
+
+2016-08-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search--make-docstring: exclude some specially named patterns
+
+	Make patterns starting with a hyphen, or containing "--" not appear in 
+	the generated docstring of `el-search-pattern': patterns with these 
+	names are now considered internal.
+
+2016-08-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix el-search-query-replace reindent wrongly in narrowed buffer
+
+2016-08-10  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Move some pattern definitions to new file "el-search-x"
+
+2016-08-10  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Update copyright
+
+2016-08-03  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add comment about (pcase) backquote inside (real) backquote
+
+2016-07-11  Paul Eggert	 <eggert@cs.ucla.edu>
+
+	Fix some quoting problems in doc strings
+
+	Most of these are minor issues involving, e.g., quoting `like this' 
+	instead of 'like this'.	 A few involve escaping ` and ' with a preceding
+	\= when the characters should not be turned into curved single quotes.
+
+2016-05-28  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Rewrite the `change' and `changed' patterns
+
+	so that they don't rely on `diff-hl-mode's overlays.  Instead use the 
+	output of `diff-hl-changes' directly (and cache it).
+
+	Make both patterns accept an optional REVISION argument.
+
+2016-05-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search version 0.2
+
+2016-05-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search--ensure-sexp-start: don't assume point-min==1
+
+	Thanks Stefan.
+
+2016-05-21  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Factor out `el-search--replace-hunk'
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve history handling
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Set initial input for replace when coming from el-search-pattern
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Clean up el-search-read-expression-map; add some doc
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make sure not to lose the minibuffer-prompt face
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Reduce duration of a `sit-for'
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Rename a local variable
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make query-replace accept FROM -> TO style input
+
+	Use this format for history entries.
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Small fix in el-search--setup-minibuffer
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Use `pp-to-string' to print replacement expression
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Give el-search--s a more meaningful name
+
+	Rename `el-search--s' to `el-search--transform-nontrivial-lpat'.
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Make el-search-pattern accept an optional NO-ERROR arg
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix el-search--ensure-sexp-start error at bob
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Clarify the operation scope of replacing
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Address compiler warnings
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Add patterns for character properties
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Rename two functions
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Handle replacements containing another match
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve documentation and argument names of el-search-query-replace
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Comment and whitespace changes only
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Replacing: make C-g an alternative key for quitting
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Rewrite replacement layout restoration
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search--check-pattern-args: make arg TYPE a string
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Rewrite `string' pattern definition
+
+2016-05-19  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	New user option: el-search-use-sloppy-strings
+
+2016-03-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	New function el-search--macroexpand-1 for debugging
+
+2016-03-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Minor change in `string' pattern
+
+2016-03-02  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Fix for non-interactive calls of el-search-pattern
+
+2016-03-02  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Tweak docstring of el-search--ensure-sexp-start
+
+2016-03-01  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	New user option: el-search-smart-case-fold-search
+
+2016-02-15  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	factor out minibuffer setup hook fun; treat empty input
+
+2016-02-14  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Improve doc of el-search-this-expression-identifier.
+
+2016-02-12  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Complete and document what a SYMBOL in `l' matches
+
+2016-02-12  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	use uninterned symbol in `el-search--matcher'
+
+2016-02-09  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Go to isearch left end when starting replace
+
+	with el-search from isearch
+
+	This partially reverts
+
+	"When coming from isearch, don't move to other end".
+
+2016-01-10  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	Support highlighting of all visible matches
+
+2016-01-09  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: New pattern type `l'
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: bump version to 0.1.3
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	When coming from isearch, don't move to other end
+
+	when at match end
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: new pattern type `contains'
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	use more newlines in `el-search--make-docstring'
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	remove annoying message on how to repeat el-search
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	factor out `el-search--search-pattern-1'
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: new pattern type `not'
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	remove example using `message' in a guard
+
+2015-12-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: new pattern type `append'
+
+2015-12-29  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: some cleanup
+
+	- fix `help-fns--signature' call to make `el-search--make-docstring' 
+	work when loading the library as non-compiled source code
+
+	- refine definition of `kbd' pattern and documentation
+
+	- move stuff for defining additional patterns to a separate section
+
+	- add some commentaries
+
+	- bump version to 0.1.2
+
+2015-12-12  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search--matcher: refine when to warn or error
+
+2015-11-27  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	bump version to 0.1.1
+
+2015-11-27  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search-query-replace: add s (toggle splicing) and ? (help) keys
+
+2015-11-18  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	prerequisites to allow replace with multiple expressions
+
+2015-11-16  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	add a to do
+
+2015-11-15  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	edit TODO list
+
+2015-11-05  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	fix compiler errors and warnings
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: bump version to 0.1
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	simplify el-search-hl-post-command-fun
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	remove search wrapping functionality
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	improve docs; new: el-search-defpattern; add some pattern types
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	fix whitespace
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	spelling fixes
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search--read-pattern: fix default(s)
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	give feedback in the echo area again
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	fix whitespace
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	document el-search--do-subsexps
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	fix el-search-hl-post-command-fun auto-removal
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	fix el-search--repair-replacement-layout: don't move when replacing
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	rename a local variable
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	some doc tweaks
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	change a TODO entry; no code change
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	remove not so useful message of how to repeat search
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	allow search wrapping
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	arrange we can use `call-interactively' when coming from isearch
+
+2015-10-31  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	call syntax functions less often for better efficiency
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	whitespace clean up
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	rename a local variable
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	rename a function
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	new function el-search--end-of-sexp; use it
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	avoid repeated expansion of pcase forms
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	rename a function
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	drop el-search-expression-contains-match-p
+
+	A correct implementation would have to be more complicated.  We didn't 
+	recurse on arrays for example, or we didn't find (2 3) in (1 . (2 3)).
+
+	And it wasn't that effective either, so I remove it.
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	fix a condition in el-search--do-subsexps
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: some comment changes
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	rename a function
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	change default of el-search-this-expression-identifier
+
+2015-10-11  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	avoid looking-back in el-search--goto-next-sexp
+
+	because it extremely slows it down
+
+2015-09-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: bump version
+
+2015-09-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: some comment changes
+
+2015-09-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: add autoload cookies
+
+2015-09-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: remove redundant :group specs from custom defs
+
+2015-09-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: remove redundant package dependency on cl-lib
+
+2015-09-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: fix two typos
+
+2015-09-22  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: fix comment styles
+
+2015-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* el-search.el: Add missing footer
+
+2015-08-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* el-search.el: Fix first line convention
+
+2015-08-05  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	el-search: some small improvements
+
+2015-08-04  Michael Heerdegen  <michael_heerdegen@web.de>
+
+	new package el-search for searching elisp
+

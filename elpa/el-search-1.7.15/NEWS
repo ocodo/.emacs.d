@@ -1,0 +1,90 @@
+Some of the user visible news were:
+
+
+Version: 1.7.15
+
+  *El Occur* buffers are now initially unfolded.
+
+Version: 1.7.8
+
+  Similar to isearch, el-search now opens invisible text.
+
+Version: 1.7.7
+
+  The new scroll commands `el-search-scroll-down' and
+  `el-search-scroll-up', bound to C-S-next and C-S-prior, or v and V
+  respectively, perform by-match scrolling: `el-search-scroll-down'
+  scrolls the next matches after `window-end' into view, i.e. it
+  selects the first match after `window-end'.  Likewise,
+  `el-search-scroll-up' selects the last match before `window-start'.
+
+  You can now explicitly terminate (pause) search and query-replace
+  sessions by hitting RET.
+
+Version: 1.7.5
+
+  The meaning of the prefix argument of
+  `el-search-jump-to-search-head' (C-J or M-s e j with the default
+  bindings) has been extended: A numeric prefix N jumps to the Nth
+  match after `window-start', while a negative prefix -N jumps to the
+  Nth match before `window-end'.  Prefix 0 jumps to the match
+  following point, which is also useful to resume the current search
+  from any buffer position.  A former search can now be made current
+  with a plain C-u prefix arg.
+
+
+Version: 1.7.3
+
+  Match highlighting faces have been improved to look better on text
+  terminals.  Matches in *El Occur* buffers are now highlighted with a
+  separate face.
+
+Version: 1.7
+
+  Signature and semantics of non-interactive function
+  `el-search-forward' have been further adapted to that of the vanilla
+  search function `search-forward'.  The counterpart
+  `el-search-backward' has been added.
+
+  The new key bindings < and > let you directly jump to the first and
+  to the last match in a buffer.
+
+Version: 1.6.5
+
+  When the new user option `el-search-allow-scroll' is enabled (the
+  default), scrolling doesn't deactivate the current el-search.
+  Unlike isearch you can scroll the current match offscreen - use
+  `el-search-jump-to-search-head' (C-J or M-s e j when using the
+  suggested key bindings) to jump back to the current match.
+
+Version: 1.6.1
+
+  New function `el-search-looking-at', the el-search version of
+  `looking-at'.
+
+Version: 1.5.2
+
+  The new command `el-search-to-register' allows to save the current
+  search (including its state) to a register and later make that
+  search current again with `jump-to-register' (C-x r j).
+
+Version: 1.5.1
+
+  The new command `el-search-ibuffer-marked-buffers' el-searches the
+  marked buffers in *Ibuffer*.
+
+Version: 1.5
+
+  The new function `el-search-install-bindings-under-prefix' can be
+  used to install repeatable versions of the el-search commands under
+  a prefix key.
+
+Version: 1.4.0.15
+
+  The new option value 'ask-multi for el-search-auto-save-buffers,
+  which is also the new default, makes el-search only prompt for
+  whether to save buffers for multi-buffer query-replace sessions.
+  For single buffer sessions, no prompt, and you can/should save
+  yourself.  I find that behavior slightly more convenient than 'ask
+  in most cases.
+
