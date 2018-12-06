@@ -4,9 +4,9 @@
 
 ;; Author: Arne Brasseur <arne@arnebrasseur.net>
 ;; URL: https://github.com/plexus/a.el
-;; Package-Version: 20170720.553
+;; Package-Version: 20180907.953
 ;; Keywords: lisp
-;; Version: 0.1.0alpha4
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "25"))
 
 ;; This file is not part of GNU Emacs.
@@ -91,6 +91,19 @@ value if supplied."
             (setq result (a-get result k))
           (cl-return not-found)))
       result)))
+
+(defmacro a-get* (&rest keys)
+  "Look up a value in a nested associative structure.
+
+Like a-get-in, but takes the key sequence KEYS directly as vararg
+arguments, rather than as a single sequence."
+  (cl-labels ((rec (keys)
+                   `(a-get ,(if (and (consp (cdr keys))
+                                     (cddr keys))
+                                (rec (cdr keys))
+                              (cadr keys))
+                           ,(car keys))))
+    (rec (nreverse keys))))
 
 (defun a-has-key (coll k)
   "Check if the given associative collection COLL has a certain key K."
