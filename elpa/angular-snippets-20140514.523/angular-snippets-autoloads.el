@@ -2,9 +2,12 @@
 ;;
 ;;; Code:
 
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads (angular-snippets-initialize ng-snip-show-docs-at-point)
-;;;;;;  "angular-snippets" "angular-snippets.el" (21371 17445 0 0))
+;;;### (autoloads nil "angular-snippets" "angular-snippets.el" (0
+;;;;;;  0 0 0))
 ;;; Generated autoloads from angular-snippets.el
 
 (autoload 'ng-snip-show-docs-at-point "angular-snippets" "\
@@ -19,14 +22,14 @@
 
 (eval-after-load "yasnippet" '(angular-snippets-initialize))
 
-;;;***
-
-;;;### (autoloads nil nil ("angular-snippets-pkg.el") (21371 17445
-;;;;;;  982702 0))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "angular-snippets" '("ng-" "-aget")))
 
 ;;;***
 
-(provide 'angular-snippets-autoloads)
+;;;### (autoloads nil nil ("angular-snippets-pkg.el") (0 0 0 0))
+
+;;;***
+
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
