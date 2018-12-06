@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "occur-context-resize" "20170904.2309" "dynamically resize context around matches in occur-mode" 'nil :commit "cdee5a631ceed9337579d4090e0acf8140747f80" :keywords '("matching") :authors '(("Charles L.G. Comstock" . "dgtized@gmail.com")) :maintainer '("Charles L.G. Comstock" . "dgtized@gmail.com") :url "https://github.com/dgtized/occur-context-resize.el")
