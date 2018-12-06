@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "sml-modeline" "20170614.2111" "Show position in a scrollbar like way in mode-line" 'nil :commit "d2f9f70174c4cf68c67eb3bb8088235735e34d9a" :authors '(("Lennart Borgman (lennart O borgman A gmail O com)")) :maintainer '("Lennart Borgman (lennart O borgman A gmail O com)") :url "http://bazaar.launchpad.net/~nxhtml/nxhtml/main/annotate/head%3A/util/sml-modeline.el")
