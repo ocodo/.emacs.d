@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# key: opt
+# name: GHC options pragma
+# condition: (= (length "opt") (current-column))
+# contributor: Luke Hoersten <luke@hoersten.org>
+# --
+{-# OPTIONS_GHC `(when (boundp 'haskell-ghc-supported-options)
+                   (cl-some #'(lambda (fn) (funcall fn "GHC Option: " haskell-ghc-supported-options))
+                         yas-prompt-functions))` #-}
