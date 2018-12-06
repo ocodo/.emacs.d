@@ -1,0 +1,7 @@
+# name: deftype
+# key: deft
+# --
+(deftype
+  $2$>
+  [$3]$>
+  $0)$>
