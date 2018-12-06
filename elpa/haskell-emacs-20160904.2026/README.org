@@ -1,0 +1,444 @@
+[[http://melpa.org/#/haskell-emacs][file:http://melpa.org/packages/haskell-emacs-badge.svg]]
+[[https://travis-ci.org/knupfer/haskell-emacs][file:https://travis-ci.org/knupfer/haskell-emacs.svg]]
+
+* What is it?
+=haskell-emacs= is a library which allows the extension of Emacs using
+Haskell.  It provides an FFI (Foreign Function Interface) for Haskell
+functions.
+
+* Examples
+Melpa install =haskell-emacs= (if you choose to clone the repo
+directly, then you have to add the repo to your =load-path=, =(require
+'haskell-emacs)=), and then run =M-x haskell-emacs-init=.  After that,
+you'll prompted to enter installation options.  If you so choose,
+=haskell-emacs= will create the following demo library:
+
+#+BEGIN_SRC haskell
+-- /home/foo/.emacs.d/haskell-fun/Matrix.hs
+module Matrix where
+
+import qualified Data.List as L
+
+-- | Takes a matrix (a list of lists of ints) and returns its transposition.
+transpose :: [[Int]] -> [[Int]]
+transpose = L.transpose
+
+-- | Returns an identity matrix of size n.
+identity :: Int -> [[Int]]
+identity n
+  | n > 1 = L.nub $ L.permutations $ 1 : replicate (n-1) 0
+  | otherwise = [[1]]
+
+-- | Check whether a given matrix is a identity matrix.
+isIdentity :: [[Int]] -> Bool
+isIdentity xs = xs == identity (length xs)
+
+-- | Compute the dyadic product of two vectors.
+dyadic :: [Int] -> [Int] -> [[Int]]
+dyadic xs ys = map (\x -> map (x*) ys) xs
+#+END_SRC
+
+Now you're set to toy around with your new elisp functions:
+#+BEGIN_SRC emacs-lisp
+(Matrix.identity 3)
+  => ((1 0 0) (0 1 0) (0 0 1))
+
+(Matrix.transpose '((1 2) (3 4) (5 6)))
+  => ((1 3 5) (2 4 6))
+
+(Matrix.isIdentity '((1 0) (0 1)))
+  => t
+
+(Matrix.dyadic '(1 2 3) '(4 5 6))
+  => ((4 5 6) (8 10 12) (12 15 18))
+#+END_SRC
+
+Now consider some bad input:
+#+BEGIN_SRC emacs-lisp
+(Matrix.identity "a")
+  => Debugger entered--Lisp error: (error "when expecting a Integral, encountered string instead")
+
+(Matrix.transpose [(1 2) [3 4]])
+  => ((1 3) (2 4))
+
+(Matrix.dyadic '+)
+  => Debugger entered--Lisp error: (error "when expecting a pair, encountered symbol instead")
+#+END_SRC
+
+You see that type errors result in emacs errors with good descriptions
+therein. It is an error to pass a value to a Haskell function for
+which =haskell-emacs= cannot marshal to the correct type. Please keep in
+mind that Emacs Lisp Arrays will be translated (recursively) to
+Haskell lists and Emacs Lisp lists will be marshaled to either Haskell
+lists or Haskell tuples.
+
+Note that if you modify =Matrix.hs= or add new files you have to rerun
+=haskell-emacs-init=.  If you remove a function from a module or an
+entire module, the lisp function will still be bound untill the next
+restart of emacs but produce undefined behaviour.
+
+* Build tools
+You can use your favorite build tool.  Nix, stack and cabal are
+supported out of the box.  If you don't specify which one to use via
+=haskell-emacs-build-tool= it'll try to guess your build tool and ask
+you when initializing.
+* Performance
+There is a (very) small overhead calling Haskell functions, so for very
+trivial situations, elisp functions will be faster.  On my laptop
+(i5-4210, 2.7Ghz) it costs the following:
+- 0.07 ms per function call
+- 0.0002 ms per sent or received char
+
+Unless you use haskell functions on megabytes of text or in very tight
+loops (which wouldn't be wise, transfer the whole task to haskell) the
+overhead is irrelevant.
+
+Additionally, if you watch closely, Haskell functions will recursively
+fuse with any of its arguments which are Haskell functions so you can
+define Haskell functions that are quite modular and combine them on
+the lisp side and pay the overhead cost *only once*.
+
+#+BEGIN_SRC emacs-lisp
+  (Matrix.transpose (Matrix.transpose '((1 2) (3 4))))
+     => ((1 2) (3 4))
+
+  (Matrix.transpose (identity (Matrix.transpose '((1 2) (3 4)))))
+     => ((1 2) (3 4))
+
+  (let ((result (Matrix.transpose-async (Matrix.transpose '((1 2) (3 4))))))
+
+    ;; other stuff
+
+    (eval result))
+     => ((1 2) (3 4))
+#+END_SRC
+
+In example above, the first and the third call are twice as fast as
+the second.  In the second case, the identity function does nothing
+but prevent fusion of the Haskell functions.  The result is the same,
+but the intermediate result must be sent over pipes back to emacs and
+from emacs back to Haskell.  Obviously, fusing synchronous functions
+gives (huge) performance benefit, where the overhead is the
+performance bottleneck.
+
+The third case is an async function (which can fuse as well)
+which returns a future without blocking Emacs.  Evaluating the future
+will return the result of the computation, or block and wait if it
+isn't already present.  The ability to fuse is quite powerful,
+especially for async functions: You can glue together for example 4
+costly computations which will execute all on the Haskell side without
+the need to manually block for intermediate results.
+
+Considering big intermediate results (lets say an entire buffer), it's
+possible that fused functions are orders of magnitude faster by
+omitting the performance costs per char.
+
+Every branch of a fused function will be evaluated in parallel on
+multiple cores, so if you call a function asynchronously which takes
+as arguments three Haskell functions, your call will be evaluated on
+up to three cores in parallel and without blocking Emacs.
+
+* Documentation
+Document your Haskell functions!  The Haddock strings will be parsed
+and used as the documentation for the Emacs Lisp wrappers, so they are
+accessible from Emacs at all times.  In any case, the Emacs docs (C-h f)
+will show the arity and the type of Haskell functions.  Furthermore, it
+will indicate where the Haskell function is defined and you can jump
+directly to that file, just as with elisp functions.  Thanks to a
+hack, Emacs actually thinks that they reside in an elisp function, which
+they obviously do not, so Emacs jumps to the top of the module where the
+Haskell function is defined.
+
+#+BEGIN_SRC emacs-lisp
+; C-h f Matrix.transpose
+Matrix\.transpose is a Lisp macro in `Matrix.hs'.
+
+(Matrix\.transpose X1)
+
+transpose :: [[Int]] -> [[Int]]
+
+Takes a matrix (a list of lists of ints) and returns its transposition.
+#+END_SRC
+
+Unfortunately, Emacs doesn't like dots in function names in the help
+buffer.
+* Dependencies
+You'll need:
+- ghc
+- cabal
+- atto-lisp
+- happy
+- haskell-src-exts
+- parallel
+- utf8-string
+
+Thats all.  If you've got ghc and cabal, the rest will be installed
+automatically if you choose so during the setup dialog.
+
+* Foreign.Emacs
+If you =import Foreign.Emacs=, you'll have more advanced features at
+your finger tip:
+
+#+BEGIN_SRC haskell
+data Emacs a
+eval  :: [Lisp] -> Emacs a
+eval_ :: [Lisp] -> Emacs ()
+
+data Lisp = Symbol  Text
+          | String  Text
+          | Number  Number
+          | List    [Lisp]
+          | DotList [Lisp] Lisp
+
+data Buffer = Buffer {text :: Text, point :: Int}
+getBuffer    :: Emacs Buffer
+putBuffer    :: Buffer -> Emacs ()
+modifyBuffer :: (Buffer -> Buffer) -> Emacs ()
+#+END_SRC
+
+If a function returns a =Lisp= it will be evaluated by emacs.  A
+function which takes a =Lisp= can perform arbitrary transformations on
+a =Lisp=.  A function which returns the monad =Emacs a= will engage a
+dialog with emacs.  If you call such a function asynchronously, it'll
+interleave the dialog with emacs, but return a future which holds the
+result of the function.  Note that when using =eval= you have to
+ensure that the type of the result is inferable, if you perform
+something only for it's effects use =eval_= instead.
+
+In many cases it is the most efficient and elegant solution to write a
+function which transforms a buffer and apply it with =modifyBuffer= to
+emacs.  In this scenario, you'll pay only two times the communication
+costs and make all the calculations with pure and efficient haskell
+functions.  This function respects narrowed buffers, if you want to
+work with the whole buffer, you have to widen it.  It is not
+recommended to call effectful functions like =modifyBuffer=
+asynchronously because it could write the buffer content into another
+buffer if you change it while haskell is calculating.
+
+Note that =Emacs a= is an instance of =MonadIO=, so if you've got dire
+need you can perform arbitrary IO with =liftIO= which will be
+performed sequentially in the =Emacs a=.
+
+#+BEGIN_SRC haskell
+  -- /home/foo/.emacs.d/haskell-fun/Test.hs
+  {-# LANGUAGE OverloadedStrings #-}
+  module Test where
+
+  import           Control.Monad
+  import qualified Data.List     as L
+  import qualified Data.Text     as T
+  import           Foreign.Emacs
+
+  forwardChar :: Int -> Lisp
+  forwardChar n = List [Symbol "forward-char", Number $ fromIntegral n]
+
+  lispType :: Lisp -> String
+  lispType (Number  _) = "Number"
+  lispType (String  _) = "String"
+  lispType (Symbol  _) = "Symbol"
+  lispType _           = "List"
+
+  genericTranspose :: [[Lisp]] -> [[Lisp]]
+  genericTranspose = L.transpose
+
+  -- This is fine: it will call forward-line, return the result (which
+  -- is an Int) to haskell which will discard the result and return to
+  -- emacs nil.
+  example1 :: Emacs ()
+  example1 = eval_ [Symbol "forward-line"]
+
+  -- This is fine: it will call forward-line, return the result (which
+  -- is an Int) to haskell which will return to emacs the resulting Int.
+  example2 :: Emacs Int
+  example2 = eval [Symbol "forward-line"]
+
+  -- This is fine: it will go n lines forward and bounce if it reaches
+  -- the end of the buffer.
+  example3 :: Int -> Emacs ()
+  example3 n = do x <- eval [Symbol "forward-line", Number $ fromIntegral n]
+                  eval_     [Symbol "forward-line", Number $ negate x]
+
+  -- This is fine: it is nearly the same as example3, if called
+  -- asynchronously, the returned lisp will be executed only when the
+  -- future is asked for.
+  example4 :: Int -> Emacs Lisp
+  example4 n = do x <- eval     [Symbol "forward-line", Number $ fromIntegral n]
+                  return $ List [Symbol "forward-line", Number $ negate x]
+
+  -- This is fine: a mutual recursion between haskell and emacs.
+  example5 :: Int -> Emacs ()
+  example5 n = do eval_ [Symbol "insert", String . T.pack $ show n]
+                  when (n > 0) $ example5 (n-1)
+
+  -- This is fine: nearly the same but ugly.
+  example6 :: Int -> Emacs Lisp
+  example6 n = do eval_ [Symbol "insert", String . T.pack $ show n]
+                  return $ if n > 0
+                              then List [Symbol "Test.example6", Number $ fromIntegral (n-1)]
+                              else List []
+
+  -- This is bad: at the moment, emacs monads aren't allowed to
+  -- interleave, this will result in a dead lock
+  example7 :: Int -> Emacs ()
+  example7 n = do eval_ [Symbol "insert", String . T.pack $ show n]
+                  eval_ $ if n > 0
+                             then [Symbol "Test.example7", Number $ fromIntegral (n-1)]
+                             else []
+
+  -- This is bad: it will call forward-line, return the result (which is
+  -- an Int) to haskell which will try parse the Int as a () resulting
+  -- in a runtime error.
+  example8 :: Emacs ()
+  example8 = eval [Symbol "forward-line"]
+
+  -- This is bad: ghc can't infer the type of the first eval and will
+  -- refuse to compile.
+  -- example9 :: Emacs ()
+  -- example9 = do eval  [Symbol "forward-line"]
+  --               eval_ [Symbol "forward-line"]
+#+END_SRC
+
+You can write type safe elisp if you compose small functions in the
+emacs monad with type signatures.  You can try the following code
+which asks for every non empty line in your buffer if you want to
+comment it.
+
+#+BEGIN_SRC haskell
+  {-# LANGUAGE OverloadedStrings #-}
+  module Comment ( commentLines1
+                 , commentLines2
+                 , uncomment
+                 ) where
+
+  import           Control.Applicative
+  import           Control.Monad
+  import           Data.Char
+  import           Data.Maybe
+  import           Data.Text           (Text)
+  import qualified Data.Text           as T
+  import           Foreign.Emacs
+
+  data MajorMode = Haskell
+                 | EmacsLisp
+                 | Unknown deriving (Eq, Show)
+
+  majorMode :: Emacs MajorMode
+  majorMode = do Symbol x <- getVar "major-mode"
+                 return . toMajorMode $ x
+
+  toPrefix :: MajorMode -> Text
+  toPrefix Haskell   = "-- "
+  toPrefix EmacsLisp = "; "
+  toPrefix Unknown   = "# "
+
+  toMajorMode :: Text -> MajorMode
+  toMajorMode s = case s of
+    "haskell-mode"    -> Haskell
+    "emacs-lisp-mode" -> EmacsLisp
+    _                 -> Unknown
+
+  yOrNP :: Text -> Emacs Bool
+  yOrNP s = eval [Symbol "y-or-n-p", String s]
+
+  insert :: Text -> Emacs ()
+  insert s = eval_ [Symbol "insert", String s]
+
+  getVar :: Text -> Emacs Lisp
+  getVar s = eval [Symbol "identity", Symbol s]
+
+  uncomment :: Emacs ()
+  uncomment = toPrefix <$> majorMode >>= modifyBuffer . strip
+
+  strip :: Text -> Buffer -> Buffer
+  strip p b = Buffer ( T.unlines
+                     . map (fromMaybe <*> T.stripPrefix p)
+                     . T.lines
+                     $ text b
+                     ) 1
+
+  -- implementation1
+
+  gotoChar :: Int -> Emacs ()
+  gotoChar n = eval_ [Symbol "goto-char", Number $ fromIntegral n]
+
+  forwardLine :: Int -> Emacs Int
+  forwardLine n = eval [Symbol "forward-line", Number $ fromIntegral n]
+
+  lookingAt :: Text -> Emacs Bool
+  lookingAt s = eval [Symbol "looking-at", String s]
+
+  commentLines1 :: Emacs ()
+  commentLines1 = do
+    prefix <- toPrefix <$> majorMode
+    let loop = do hasChr <- not <$> lookingAt "^ *$"
+                  when hasChr $ do ask <- yOrNP "Comment line?"
+                                   when ask $ insert prefix
+                  notEof <- (/=1) <$> forwardLine 1
+                  when notEof loop
+    gotoChar 0
+    loop
+
+  -- implementation2
+
+  gotoLine :: Int -> Emacs ()
+  gotoLine n = eval_ [Symbol "goto-line", Number $ fromIntegral n]
+
+  notEmpty :: Text -> [Int]
+  notEmpty str = [n | (l,n) <- zip (T.lines str) [1..], not $ T.all isSpace l]
+
+  commentLines2 :: Emacs ()
+  commentLines2 = do prefix <- toPrefix <$> majorMode
+                     ls     <- (notEmpty . text) <$> getBuffer
+                     mapM_ (\x -> do gotoLine x
+                                     ask <- yOrNP "Comment line?"
+                                     when ask $ insert prefix) ls
+#+END_SRC
+=uncomment= strips one layer of comment prefixes from the buffer and
+puts point to the beginning of the buffer.  Note that the function
+=strip= is entirely pure.
+
+The implementation1 is more or less in an imperative style while the
+implementation2 is a lot more functional.  Needless to say you should
+prefer the second one.  If you check this file with liquid-haskell, it
+will complain about the first implementation because it isn't provable
+that it will terminate.  Additionally, the second implementation
+communicates less times with emacs resulting in a better performance
+(transfering one time the entire buffer is cheap).  Assuming that one
+answers always with no, =commentLines1= communicates with emacs:
+- 3x per non-empty line
+- 2x per empty line
+- 2x per call
+
+=commentLines2= communicates with emacs:
+- 2x per non-empty line
+- 0x per empty line
+- 2x per call
+
+Let's compare the performance using this readme.
+#+BEGIN_SRC elisp
+  (require 'cl)
+
+  (flet ((y-or-n-p (x) nil))
+    (let ((result (mapcar (lambda (x) (car (benchmark-run 100 (eval (list x)))))
+                          '(Comment.commentLines1
+                            Comment.commentLines2))))
+      (mapcar (lambda (x) (/ x (apply 'min result))) result)))
+#+END_SRC
+
+The first implementation takes 50% more time, even though the second
+has to transfer the whole buffer.
+
+Note that in such a trivial case a function written in elisp would be
+faster (albeit a lot unsafer).  A sophisticated function could take
+the buffer-string, parMap it and replace the old buffer-string.
+* Shortcomings
+Not all types marshal across languages, if you write a function with
+an unknown type, =haskell-emacs-init= will signal an error with the
+output from GHC.
+
+Higher-order functions aren't supported at all, you can't pass functions as
+arguments to Haskell functions in emacs.
+* Contribute
+I highly encourage contributions of all sorts.  If you notice a
+feature that doesn't behave as you would like or simply doesn't exist,
+let me know in an issue and I'll respond ASAP!
