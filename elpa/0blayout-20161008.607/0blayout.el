@@ -4,7 +4,7 @@
 
 ;; Author: Elis "etu" Axelsson
 ;; URL: https://github.com/etu/0blayout
-;; Package-Version: 20161007.2307
+;; Package-Version: 20161008.607
 ;; Package-X-Original-Version: 20160918.0
 ;; Version: 1.0.2
 ;; Keywords: convenience, window-management
