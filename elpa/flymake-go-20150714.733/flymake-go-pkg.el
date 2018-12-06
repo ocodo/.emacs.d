@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "flymake-go" "20150714.733" "A flymake handler for go-mode files" 'nil :commit "ae83761aa908c1a50ff34af04f00dcc46bca2ce9" :keywords '("go" "flymake") :authors '(("Michael Fellinger" . "michael@iron.io") ("Robert Zaremba" . "robert.marek.zaremba@wp.eu")) :maintainer '("Michael Fellinger" . "michael@iron.io") :url "https://github.com/robert-zaremba/flymake-go")
