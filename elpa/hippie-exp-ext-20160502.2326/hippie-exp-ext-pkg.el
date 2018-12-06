@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "hippie-exp-ext" "20160502.2326" "Extension of hippie-expand" 'nil :commit "4eda13f90da51ab217d024701f4c30f91ffcb90e" :keywords '("abbrev" "convenience" "completions" "hippie-expand") :authors '(("rubikitch" . "rubikitch@ruby-lang.org")) :maintainer '("rubikitch" . "rubikitch@ruby-lang.org") :url "http://www.emacswiki.org/emacs/download/hippie-exp-ext.el")
