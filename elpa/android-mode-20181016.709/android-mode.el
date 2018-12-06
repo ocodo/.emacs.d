@@ -1,12 +1,12 @@
 ;;; android-mode.el --- Minor mode for Android application development
 
-;; Copyright (C) 2009-2014 R.W van 't Veer
+;; Copyright (C) 2009-2018 R.W van 't Veer
 
 ;; Author: R.W. van 't Veer
 ;; Created: 20 Feb 2009
 ;; Keywords: tools processes
-;; Package-Version: 20170323.115
-;; Version: 0.5.0
+;; Package-Version: 20181016.709
+;; Version: 0.5.1
 ;; URL: https://github.com/remvee/android-mode
 
 ;; Contributors:
@@ -21,6 +21,7 @@
 ;;   K. Adam Christensen
 ;;   Haden Pike
 ;;   Camilo QS
+;;   Jonathan Schmeling
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -167,25 +168,32 @@ If received line from logcat doesn't match this, Emacs will
 ignore that line.  User can see their log in a less verbose
 way.")
 
-(defun android-root ()
-  "Look for AndroidManifest.xml file to find project root of android application."
-  (let ((dominating-file (plist-get android-mode-root-file-plist
-                                    android-mode-builder)))
-    (if dominating-file
-        (locate-dominating-file default-directory dominating-file)
-      (message "%s was not found in `android-mode-root-file-plist'"
-               android-mode-builder)
-      nil)))
+(defun android-find-dir (filename)
+  "Look for specified FILENAME to find the directory in which the file is located."
+  (if filename
+      (locate-dominating-file default-directory filename)
+    (message "%s was not found in `android-mode-root-file-plist'"
+             android-mode-builder)
+    nil))
 
-(defmacro android-in-root (body)
-  "Execute BODY form with project root directory as
+(defun android-root ()
+  "Look for the builder's main file (AndroidManifest.xml for ant and maven,
+ gradlew for gradle) to find project root of android application."
+  (android-find-dir (plist-get android-mode-root-file-plist
+                               android-mode-builder)))
+
+(defun android-manifest-dir ()
+  "Look for AndroidManifest.xml to find the directory it's located in."
+  (android-find-dir "AndroidManifest.xml"))
+
+(defmacro android-in-directory (chosen-dir body)
+  "Execute BODY form with CHOSEN-DIR directory as
 ``default-directory''.  The form is not executed when no project
 root directory can be found."
-  `(let ((android-root-dir (android-root)))
-     (if android-root-dir
-       (let ((default-directory android-root-dir))
+  `(if ,chosen-dir
+       (let ((default-directory ,chosen-dir))
          ,body)
-       (error "can't find project root"))))
+     (error "Can't find project root")))
 
 (defun android-local-sdk-dir ()
   "Try to find android sdk directory through the local.properties
@@ -195,7 +203,8 @@ referred directory does not exist, return the ANDROID_HOME
 environment value otherwise the `android-mode-sdk-dir' variable."
   (or
    (ignore-errors
-     (android-in-root
+     (android-in-directory
+      (android-root)
       (let ((local-properties "local.properties"))
         (and (file-exists-p local-properties)
              (with-temp-buffer
@@ -206,10 +215,10 @@ environment value otherwise the `android-mode-sdk-dir' variable."
                       (and (file-exists-p sdk-dir) sdk-dir))))))))
    (getenv "ANDROID_HOME")
    android-mode-sdk-dir
-   (error "no SDK directory found")))
+   (error "No SDK directory found")))
 
 (defun android-tool-path (name)
-  "Find path to SDK tool."
+  "Find path to NAME SDK tool."
   (or (cl-find-if #'file-exists-p
                   (apply #'append
                          (mapcar (lambda (path)
@@ -220,10 +229,11 @@ environment value otherwise the `android-mode-sdk-dir' variable."
                                                         "/"))
                                            android-mode-sdk-tool-extensions))
                                  android-mode-sdk-tool-subdirs)))
-      (error "can't find SDK tool: %s" name)))
+      (error "Can't find SDK tool: %s" name)))
 
 (defvar android-exclusive-processes ())
 (defun android-start-exclusive-command (name command &rest args)
+  "Run COMMAND named NAME with ARGS unless it's already running."
   (and (not (cl-find (intern name) android-exclusive-processes))
        (set-process-sentinel (apply #'start-process-shell-command name name
                                     (shell-quote-argument command)
@@ -237,7 +247,7 @@ environment value otherwise the `android-mode-sdk-dir' variable."
                                                android-exclusive-processes))))
 
 (defun android-create-project (path package activity)
-  "Create new Android project with SDK app."
+  "Create new Android project on PATH with SDK app with PACKAGE and first ACTIVITY."
   (interactive "FPath: \nMPackage: \nMActivity: ")
   (let* ((target (completing-read "Target: " (android-list-targets)))
          (expanded-path (expand-file-name path))
@@ -265,7 +275,7 @@ environment value otherwise the `android-mode-sdk-dir' variable."
       (setq offset (match-end 0)))
     (if result
         (reverse result)
-      (error "no Android Targets found"))))
+      (error "No Android Targets found"))))
 
 (defun android-list-avd ()
   "List of Android Virtual Devices installed on local machine."
@@ -278,7 +288,7 @@ environment value otherwise the `android-mode-sdk-dir' variable."
       (setq offset (match-end 0)))
     (if result
         (reverse result)
-      (error "no Android Virtual Devices found"))))
+      (error "No Android Virtual Devices found"))))
 
 (defun android-start-emulator ()
   "Launch Android emulator."
@@ -301,6 +311,7 @@ environment value otherwise the `android-mode-sdk-dir' variable."
   :group 'android-mode)
 
 (defun android-logcat-find-file ()
+  "Open file at point in logcat."
   (interactive)
   (let ((filename (get-text-property (point) 'filename))
         (linenr (get-text-property (point) 'linenr)))
@@ -310,6 +321,7 @@ environment value otherwise the `android-mode-sdk-dir' variable."
       (forward-line (1- linenr)))))
 
 (defun android-logcat-find-file-mouse (event)
+  "Open file at mouse EVENT in logcat."
   (interactive "e")
   (let (window pos file)
     (save-excursion
@@ -332,6 +344,7 @@ environment value otherwise the `android-mode-sdk-dir' variable."
     map))
 
 (defun android-logcat-prepare-msg (msg)
+  "Apply text properties to log MSG."
   (if (string-match "\\bat \\(.+\\)\\.\\([^.]+\\)\\.\\([^.]+\\)(\\(.+\\):\\([0-9]+\\))" msg)
       (let* ((package (match-string 1 msg))
              (class (match-string 2 msg))
@@ -351,7 +364,7 @@ environment value otherwise the `android-mode-sdk-dir' variable."
 (defvar android-logcat-pending-output "")
 
 (defun android-logcat-process-filter (process output)
-  "Process filter for displaying logcat output."
+  "Process filter for PROCESS displaying logcat OUTPUT."
   (with-current-buffer android-logcat-buffer
     (let ((following (= (point-max) (point)))
           (buffer-read-only nil)
@@ -405,8 +418,7 @@ environment value otherwise the `android-mode-sdk-dir' variable."
   (goto-char (point-max)))
 
 (defun android-current-buffer-class-name ()
-  "Try to determine the full qualified class name defined in the
-current buffer."
+  "Try to determine the full qualified class name defined in the current buffer."
   (save-excursion
     (when (and buffer-file-name
                (string-match "\\.java$" buffer-file-name))
@@ -420,8 +432,9 @@ current buffer."
               (class class))))))
 
 (defun android-project-package ()
-  "Return the package of the Android project"
-  (android-in-root
+  "Return the package of the Android project."
+  (android-in-directory
+   (android-manifest-dir)
    (let ((root (car (xml-parse-file "AndroidManifest.xml"))))
      (xml-get-attribute root 'package))))
 
@@ -432,7 +445,8 @@ Names starting with a period or a capital letter are prepended by
 the project package name.
 
 Filter on CATEGORY intent when supplied."
-  (android-in-root
+  (android-in-directory
+   (android-manifest-dir)
    (cl-flet* ((first-xml-child (parent name)
                                (car (xml-get-children parent name)))
               (action-main-p (activity)
@@ -476,7 +490,7 @@ activity in the 'launcher' category."
          (command (concat (android-tool-path "adb")
                           " shell am start -n "
                           (concat package "/" activity))))
-    (unless activity (error "no main activity found in manifest"))
+    (unless activity (error "No main activity found in manifest"))
     (message "Starting activity: %s" activity)
     (let ((output (shell-command-to-string command)))
       (when (string-match "^Error: " output)
@@ -516,7 +530,8 @@ logs"
   `(defun ,(intern (concat "android-" builder)) (tasks-or-goals)
      ,(concat "Run " builder " TASKS-OR-GOALS in the project root directory.")
      (interactive "sTasks or Goals: ")
-     (android-in-root
+     (android-in-directory
+      (android-root)
       (compile (concat (cdr (assoc (intern ,builder) android-mode-build-command-alist))
                        " " tasks-or-goals)))))
 
