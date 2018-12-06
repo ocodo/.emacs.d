@@ -37,8 +37,8 @@
 
 ;; Filename: auto-complete-exuberant-ctags.el
 ;; Description: Exuberant ctags auto-complete.el source
-;; Version: 20140320.24
-;; X-Original-Version: 0.0.7
+;; Version: 0.0.7
+;; Package-Version: 20140320.724
 ;; Author: Kenichirou Oyama <k1lowxb@gmail.com>
 ;; URL: http://code.101000lab.org
 ;; Keywords: anto-complete, exuberant ctags
