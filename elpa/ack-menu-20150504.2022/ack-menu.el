@@ -6,7 +6,7 @@
 ;;         Nikolaj Schumacher
 ;; Created: 06 Jan 2013
 ;; Version: 0.1.0
-;; Package-Version: 20150504.1322
+;; Package-Version: 20150504.2022
 ;; Keywords: tools matching convenience
 ;; URL: https://github.com/chumpage/ack-menu
 ;; Package-Requires: ((mag-menu "0.1.0"))
