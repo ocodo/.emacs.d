@@ -4,7 +4,7 @@
 
 ;; Author: Sebastian Sturm
 ;; URL: https://github.com/sebastiansturm/autothemer
-;; Package-Version: 20170112.1324
+;; Package-Version: 20180920.923
 ;; Version: 0.2.2
 ;; Package-Requires: ((dash "2.10.0") (emacs "24") (cl-lib "0.5"))
 
@@ -66,6 +66,7 @@ bindings within both the REDUCED-SPECS and the BODY."
          (temp-colorname (make-symbol "colorname")))
     (setq face-customizer
           `(let ((,face-specs)
+                 (,temp-color-structs)
                  (,temp-defined-colors))
              (deftheme ,name ,description)
              ,@(cl-loop for n from 0 to (1- n-displays)
@@ -73,22 +74,21 @@ bindings within both the REDUCED-SPECS and the BODY."
                         `(let* ,(autothemer--extract-let-block full-palette n)
                            ,@(when (and body (eq n 0))
                                body)
-                           ;; FIXME: instead of emitting this code for all n,
-                           ;; and including a runtime check for n = 0, the when
-                           ;; clause below should only be emitted for n = 0 in
-                           ;; the first place
-                           (when ,(eq n 0)
-                             (setq ,temp-defined-colors
-                                   (list ,@(--map (list 'list `',it it) color-names)))
-                             (setq ,temp-color-structs
-                                   (cl-loop for (,temp-colorname ,temp-color)
-                                            in ,temp-defined-colors
-                                            collect (make-autothemer--color :name ,temp-colorname
-                                                                            :value ,temp-color)))
-                             (setq autothemer--current-theme
-                                   (make-autothemer--theme
-                                    :colors ,temp-color-structs
-                                    :defined-faces ',face-names)))
+                           ,(when (> n 0)
+                              `(ignore ,@color-names))
+                           ,(when (and (eq n 0) (not (bound-and-true-p byte-compile-current-file)))
+                              `(progn
+                                 (setq ,temp-defined-colors
+                                       (list ,@(--map (list 'list `',it it) color-names)))
+                                 (setq ,temp-color-structs
+                                       (cl-loop for (,temp-colorname ,temp-color)
+                                                in ,temp-defined-colors
+                                                collect (make-autothemer--color :name ,temp-colorname
+                                                                                :value ,temp-color)))
+                                 (setq autothemer--current-theme
+                                       (make-autothemer--theme
+                                        :colors ,temp-color-structs
+                                        :defined-faces ',face-names))))
                            (setq ,face-specs
                                  (autothemer--append-column
                                   ,face-specs
@@ -227,10 +227,10 @@ palette used in the most recent invocation of
     (with-current-buffer buffer (emacs-lisp-mode) (insert (pp templates)))
     (switch-to-buffer buffer)))
 
-(defun autothemer--append-column (list-of-lists new-column)
+(cl-defsubst autothemer--append-column (list-of-lists new-column)
   "If LIST-OF-LISTS is nil, return NEW-COLUMN.  Otherwise, append to every element of LIST-OF-LISTS the corresponding element of NEW-COLUMN."
   (cl-assert (or (not list-of-lists) (eq (length list-of-lists) (length new-column))))
-  (if list-of-lists (-zip-with #'append list-of-lists new-column)
+  (if list-of-lists (inline (-zip-with #'append list-of-lists new-column))
     new-column))
 
 (provide 'autothemer)
