@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "digitalocean" "20180603.925" "Create and manipulate digitalocean droplets" '((request "2.5") (emacs "24.4")) :commit "1cac663c4bcb7f8325783954df6c0caf3dc20f6e" :keywords '("processes" "tools") :authors '(("Oliver Marks" . "oly@digitaloctave.com")) :maintainer '("Oliver Marks" . "oly@digitaloctave.com") :url "https://github.com/olymk2/emacs-digitalocean")
