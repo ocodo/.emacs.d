@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "jist" "20161229.1721" "Gist integration" '((emacs "24.4") (dash "2.12.0") (seq "1.11") (let-alist "1.0.4") (magit "2.1.0") (request "0.2.0")) :commit "da0692452e312a99bb27d8708504b521798aca48" :keywords '("convenience") :authors '(("Mario Rodas" . "marsam@users.noreply.github.com")) :maintainer '("Mario Rodas" . "marsam@users.noreply.github.com") :url "https://github.com/emacs-pe/jist.el")
