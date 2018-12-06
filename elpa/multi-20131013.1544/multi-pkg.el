@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "multi" "20131013.1544" "Clojure-style multi-methods for emacs lisp" '((emacs "24")) :commit "0987ab71692717ed457cb3984de184db9185806d" :keywords '("multimethod" "generic" "predicate" "dispatch") :authors '(("Christina Whyte" . "kurisu.whyte@gmail.com")) :maintainer '("Christina Whyte" . "kurisu.whyte@gmail.com") :url "http://github.com/kurisuwhyte/emacs-multi")
