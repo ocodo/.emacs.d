@@ -4,7 +4,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-link
-;; Package-Version: 20180308.100
+;; Package-Version: 20181103.2106
 ;; Version: 0.5.0
 ;; Package-Requires: ((avy "0.4.0"))
 ;; Keywords: convenience, links, avy
@@ -50,7 +50,8 @@
   (interactive)
   (cond ((eq major-mode 'Info-mode)
          (ace-link-info))
-        ((member major-mode '(help-mode package-menu-mode geiser-doc-mode elbank-report-mode elbank-overview-mode))
+        ((member major-mode '(help-mode package-menu-mode geiser-doc-mode elbank-report-mode
+                                        elbank-overview-mode slime-trace-dialog-mode))
          (ace-link-help))
         ((eq major-mode 'woman-mode)
          (ace-link-woman))
@@ -69,6 +70,12 @@
          (ace-link-org-agenda))
         ((eq major-mode 'Custom-mode)
          (ace-link-org))
+        ((eq major-mode 'sldb-mode)
+         (ace-link-sldb))
+        ((eq major-mode 'slime-xref-mode)
+         (ace-link-slime-xref))
+        ((eq major-mode 'slime-inspector-mode)
+         (ace-link-slime-inspector))
         ((and ace-link-fallback-function
               (funcall ace-link-fallback-function)))
         (t
@@ -551,6 +558,113 @@
           (push (overlay-start overlay) candidates)))
     (nreverse candidates)))
 
+;;* `ace-link-sldb'
+;;;###autoload
+(defun ace-link-sldb ()
+  "Interact with a frame or local variable in a sldb buffer."
+  (interactive)
+  (let ((pt (avy-with ace-link-sldb
+              (avy--process
+               (ace-link--sldb-collect)
+               (avy--style-fn avy-style)))))
+      (ace-link--sldb-action pt)))
+
+(declare-function sldb-default-action "slime")
+
+(defvar ace-link--sldb-action-fn #'sldb-default-action
+  "Function to call after jump.")
+
+(defun ace-link--sldb-action (pt)
+  (when (number-or-marker-p pt)
+    (goto-char pt)
+    (funcall ace-link--sldb-action-fn)))
+
+(defun ace-link--sldb-collect ()
+  (let ((vars (list))
+        (frames (list))
+        (frame-prop 'frame)
+        (var-face 'sldb-local-value-face))
+    (save-excursion
+      (goto-char (window-start))
+      (while (< (point) (window-end))
+        (when (get-text-property (point) frame-prop)
+          (if (get-text-property (point) 'var)
+              (push (text-property-any
+                     (point)
+                     (line-end-position)
+                     'face var-face)
+                    vars)
+            (push (point) frames)
+            (point)))
+        (forward-visible-line 1)))
+    ;; sort variables before frames
+    (nreverse (nconc frames vars))))
+
+;;* `ace-link-slime-xref'
+;;;###autoload
+(defun ace-link-slime-xref ()
+  "Open a visible link in an `slime-xref-mode' buffer."
+  (interactive)
+  (let ((pt (avy-with ace-link-slime-xref
+              (avy--process
+               (ace-link--slime-xref-collect)
+               (avy--style-fn avy-style)))))
+      (ace-link--slime-xref-action pt)))
+
+(declare-function slime-goto-xref "slime.el")
+
+(defun ace-link--slime-xref-action (pt)
+  (when (number-or-marker-p pt)
+    (goto-char pt)
+    (slime-goto-xref)))
+
+(defun ace-link--slime-xref-collect ()
+  (let ((candidates (list))
+        (prop 'slime-location)
+        (pt (window-start)))
+    (while (and pt (< pt (window-end)))
+      (when (get-text-property pt prop)
+        (push pt candidates))
+      (setq pt (next-single-property-change pt prop)))
+    (nreverse candidates)))
+
+
+;;* `ace-link-slime-inspector'
+;;;###autoload
+(defun ace-link-slime-inspector ()
+  "Interact with a value, an action or a range button in a
+`slime-inspector-mode' buffer."
+  (interactive)
+  (let ((pt (avy-with ace-link-slime-inspector
+              (avy--process
+               (ace-link--slime-inspector-collect)
+               (avy--style-fn avy-style)))))
+      (ace-link--slime-inspector-action pt)))
+
+(declare-function slime-inspector-operate-on-point "slime.el")
+(declare-function slime-inspector-copy-down-to-repl "slime.el")
+
+(defun ace-link--slime-inspector-action (pt)
+  (when (number-or-marker-p pt)
+    (goto-char pt)
+    (if (= pt 1)
+        (call-interactively #'slime-inspector-copy-down-to-repl)
+      (slime-inspector-operate-on-point))))
+
+(defun ace-link--slime-inspector-collect ()
+  (let ((candidates (list))
+        (part 'slime-part-number)
+        (range 'slime-range-button)
+        (action 'slime-action-number)
+        (pt (window-start)))
+    (while (and pt (< pt (window-end)))
+      (when (or (get-text-property pt part)
+                (get-text-property pt range)
+                (get-text-property pt action))
+        (push pt candidates))
+      (setq pt (next-property-change pt)))
+    (nreverse candidates)))
+
 ;;* Bindings
 (defvar eww-link-keymap)
 (defvar eww-mode-map)
@@ -586,6 +700,12 @@
                '(ace-link-addr . pre))
   (add-to-list 'avy-styles-alist
                '(ace-link-xref . at))
+  (add-to-list 'avy-styles-alist
+               '(ace-link-sldb . pre))
+  (add-to-list 'avy-styles-alist
+               '(ace-link-slime-xref . pre))
+  (add-to-list 'avy-styles-alist
+               '(ace-link-slime-inspector . pre))
   (eval-after-load "xref"
     `(define-key xref--xref-buffer-mode-map ,key 'ace-link-xref))
   (eval-after-load "info"

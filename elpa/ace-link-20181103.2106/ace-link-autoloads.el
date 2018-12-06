@@ -1,9 +1,12 @@
 ;;; ace-link-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "ace-link" "ace-link.el" (23278 48487 0 0))
+;;;### (autoloads nil "ace-link" "ace-link.el" (0 0 0 0))
 ;;; Generated autoloads from ace-link.el
 
 (autoload 'ace-link "ace-link" "\
@@ -76,10 +79,28 @@ Open a visible link in a goto-address buffer.
 
 \(fn)" t nil)
 
+(autoload 'ace-link-sldb "ace-link" "\
+Interact with a frame or local variable in a sldb buffer.
+
+\(fn)" t nil)
+
+(autoload 'ace-link-slime-xref "ace-link" "\
+Open a visible link in an `slime-xref-mode' buffer.
+
+\(fn)" t nil)
+
+(autoload 'ace-link-slime-inspector "ace-link" "\
+Interact with a value, an action or a range button in a
+`slime-inspector-mode' buffer.
+
+\(fn)" t nil)
+
 (autoload 'ace-link-setup-default "ace-link" "\
 Bind KEY to appropriate functions in appropriate keymaps.
 
 \(fn &optional KEY)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ace-link" '("ace-link-")))
 
 ;;;***
 
@@ -87,5 +108,6 @@ Bind KEY to appropriate functions in appropriate keymaps.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; ace-link-autoloads.el ends here
