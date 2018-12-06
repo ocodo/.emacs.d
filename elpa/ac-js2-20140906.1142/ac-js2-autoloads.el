@@ -1,9 +1,12 @@
 ;;; ac-js2-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "ac-js2" "ac-js2.el" (21771 53444 47401 0))
+;;;### (autoloads nil "ac-js2" "ac-js2.el" (0 0 0 0))
 ;;; Generated autoloads from ac-js2.el
 
 (autoload 'ac-js2-expand-function "ac-js2" "\
@@ -35,10 +38,18 @@ A minor mode that provides auto-completion and navigation for Js2-mode.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ac-js2" '("ac-js2-")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("ac-js2-pkg.el" "ac-js2-tests.el") (21771
-;;;;;;  53444 59825 700000))
+;;;### (autoloads nil "ac-js2-tests" "ac-js2-tests.el" (0 0 0 0))
+;;; Generated autoloads from ac-js2-tests.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ac-js2-tests" '("completion-frontend-test")))
+
+;;;***
+
+;;;### (autoloads nil nil ("ac-js2-pkg.el") (0 0 0 0))
 
 ;;;***
 
@@ -46,5 +57,6 @@ A minor mode that provides auto-completion and navigation for Js2-mode.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; ac-js2-autoloads.el ends here
