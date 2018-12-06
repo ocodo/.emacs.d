@@ -1,10 +1,12 @@
 ;;; ac-cider-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "ac-cider" "ac-cider.el" (22519 51876 480565
-;;;;;;  823000))
+;;;### (autoloads nil "ac-cider" "ac-cider.el" (0 0 0 0))
 ;;; Generated autoloads from ac-cider.el
 
 (defface ac-cider-candidate-face '((t (:inherit ac-candidate-face))) "\
@@ -30,11 +32,14 @@ A popup alternative to `cider-doc'.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ac-cider" '("ac-cider-")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; ac-cider-autoloads.el ends here

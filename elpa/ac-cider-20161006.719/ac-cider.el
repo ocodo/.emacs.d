@@ -7,7 +7,7 @@
 ;;         Sam Aaron <samaaron@gmail.com>
 ;;
 ;; URL: https://github.com/clojure-emacs/ac-cider
-;; Package-Version: 20161006.19
+;; Package-Version: 20161006.719
 ;; Keywords: languages, clojure, nrepl, cider, compliment
 ;; Version: 0.2.3
 ;; Package-Requires: ((cider "0.8.0") (auto-complete "1.4") (cl-lib "0.3"))
