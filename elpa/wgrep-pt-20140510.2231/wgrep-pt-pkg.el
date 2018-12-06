@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "wgrep-pt" "20140510.2231" "Writable pt buffer and apply the changes to files" '((wgrep "2.1.5")) :commit "414be70bd313e482cd9f0b70fd2daad4ee23497c" :keywords '("grep" "edit" "extensions") :authors '(("Masahiro Hayashi <mhayashi1120@gmail.com>, Bailey Ling" . "bling@live.ca")) :maintainer '("Masahiro Hayashi <mhayashi1120@gmail.com>, Bailey Ling" . "bling@live.ca") :url "http://github.com/mhayashi1120/Emacs-wgrep/raw/master/wgrep-pt.el")
