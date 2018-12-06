@@ -2,7 +2,7 @@
 
 ;; Author: David Shepherd <davidshepherd7@gmail.com>
 ;; Version: 0.0.1
-;; Package-Version: 20170902.705
+;; Package-Version: 20180910.816
 ;; Package-Requires: ((dash "2.10.0"))
 ;; URL: https://github.com/davidshepherd7/aggressive-fill-paragraph-mode
 ;; Keywords: fill-paragraph, automatic, comments
@@ -123,24 +123,6 @@ Argument JUSTIFY is passed on to the fill function."
   (-any? #'funcall afp-suppress-fill-pfunction-list))
 
 
-;; Tell the byte compiler that these functions exist
-(declare-function ess-roxy-entry-p "ess-roxy" nil)
-(declare-function ess-roxy-fill-field "ess-roxy" nil)
-
-(defun afp-ess-fill-comments ()
-  "Fill comments in ‘ess-mode’.
-
-Takes care with special cases for documentation comments."
-  ;; Make sure we have the required libraries (this function is only run
-  ;; when (derived-mode-p 'ess-mode) so we should!)
-  (require 'ess-mode)
-  (require 'ess-roxy)
-
-  (if (ess-roxy-entry-p)
-      (ess-roxy-fill-field)
-    (afp-only-fill-comments)))
-
-
 (defun afp-choose-fill-function ()
   "Select which fill paragraph function to use."
   (cond
@@ -155,8 +137,6 @@ Takes care with special cases for documentation comments."
    ;; allow docstrings to be filled, but unfortunately filling of strings
    ;; and docstrings are both handled by the same chunk of code, so even
    ;; normal strings would be filled.
-
-   ((derived-mode-p 'ess-mode) #'afp-ess-fill-comments)
 
    ;; Use the buffer local fill function if it's set
    ((not (null fill-paragraph-function)) fill-paragraph-function)
