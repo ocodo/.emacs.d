@@ -8,7 +8,7 @@
 ;; Time-stamp: <2017-01-15 11:04:53 rubikitch>
 ;; Created: 2013-01-31 16:05:17
 ;; Version: 0.5
-;; Package-Version: 20170114.1805
+;; Package-Version: 20170115.205
 ;; URL: https://github.com/rubikitch/all-ext
 ;; Package-Requires: ((all "1.0"))
 ;; Keywords: all, search, replace, anything, helm, helm-swoop, occur
