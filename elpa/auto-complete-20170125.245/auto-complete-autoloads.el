@@ -1,7 +1,10 @@
 ;;; auto-complete-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
 ;;;### (autoloads nil "auto-complete" "auto-complete.el" (0 0 0 0))
 ;;; Generated autoloads from auto-complete.el
@@ -63,5 +66,6 @@ See `auto-complete-mode' for more information on Auto-Complete mode.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; auto-complete-autoloads.el ends here
