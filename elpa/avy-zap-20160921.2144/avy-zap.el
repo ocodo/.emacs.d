@@ -4,7 +4,7 @@
 
 ;; Author: Junpeng Qiu <qjpchmail@gmail.com>
 ;; URL: https://github.com/cute-jumper/avy-zap
-;; Package-Version: 20160921.1444
+;; Package-Version: 20160921.2144
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: extensions
 
