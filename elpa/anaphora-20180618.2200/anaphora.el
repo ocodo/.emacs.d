@@ -1,13 +1,13 @@
-;;; anaphora.el --- anaphoric macros providing implicit temp variables
+;;; anaphora.el --- anaphoric macros providing implicit temp variables  -*- lexical-binding: t -*-
 ;;
 ;; This code is in the public domain.
 ;;
 ;; Author: Roland Walker <walker@pobox.com>
 ;; Homepage: http://github.com/rolandwalker/anaphora
 ;; URL: http://raw.githubusercontent.com/rolandwalker/anaphora/master/anaphora.el
-;; Package-Version: 20140728.1536
-;; Version: 1.0.0
-;; Last-Updated: 22 Oct 2013
+;; Package-Version: 20180618.2200
+;; Version: 1.0.4
+;; Last-Updated: 18 Jun 2018
 ;; EmacsWiki: Anaphora
 ;; Keywords: extensions
 ;;
@@ -23,6 +23,10 @@
 ;;
 ;;     ;; anonymous function to compute factorial using `self'
 ;;     (alambda (x) (if (= x 0) 1 (* x (self (1- x)))))
+;;
+;;     ;; to fontify `it' and `self'
+;;     (with-eval-after-load "lisp-mode"
+;;       (anaphora-install-font-lock-keywords))
 ;;
 ;; Explanation
 ;;
@@ -57,11 +61,6 @@
 ;;     `a*'
 ;;     `a/'
 ;;
-;; The following macros are experimental
-;;
-;;     `anaphoric-set'
-;;     `anaphoric-setq'
-;;
 ;; See Also
 ;;
 ;;     M-x customize-group RET anaphora RET
@@ -73,16 +72,13 @@
 ;; Partially based on examples from the book "On Lisp", by Paul
 ;; Graham.
 ;;
-;; When this library is loaded, the provided anaphoric forms are
-;; registered as keywords in font-lock.  This may be disabled via
-;; customize.
-;;
 ;; Compatibility and Requirements
 ;;
-;;     GNU Emacs version 24.4-devel     : yes, except macros marked experimental
-;;     GNU Emacs version 24.3           : yes, except macros marked experimental
-;;     GNU Emacs version 23.3           : yes, except macros marked experimental
-;;     GNU Emacs version 22.2           : yes, except macros marked experimental
+;;     GNU Emacs version 26.1           : yes
+;;     GNU Emacs version 25.x           : yes
+;;     GNU Emacs version 24.x           : yes
+;;     GNU Emacs version 23.x           : yes
+;;     GNU Emacs version 22.x           : yes
 ;;     GNU Emacs version 21.x and lower : unknown
 ;;
 ;; Bugs
@@ -95,9 +91,7 @@
 ;;
 ;; All code contributed by the author to this library is placed in the
 ;; public domain.  It is the author's belief that the portions adapted
-;; from examples in "On Lisp" are in the public domain.  At least 10
-;; lines of code have been adapted from the Emacs 'cl package (in the
-;; function `anaphoric-setq').
+;; from examples in "On Lisp" are in the public domain.
 ;;
 ;; Regardless of the copyright status of individual functions, all
 ;; code herein is free software, and is provided without any express
@@ -109,24 +103,19 @@
 ;;; requirements
 
 ;; for declare, labels, do, block, case, ecase, typecase, etypecase
-(require 'cl)
+(require 'cl-lib)
 
 ;;; customizable variables
 
 ;;;###autoload
 (defgroup anaphora nil
   "Anaphoric macros providing implicit temp variables"
-  :version "1.0.0"
+  :version "1.0.4"
   :link '(emacs-commentary-link :tag "Commentary" "anaphora")
   :link '(url-link :tag "GitHub" "http://github.com/rolandwalker/anaphora")
   :link '(url-link :tag "EmacsWiki" "http://emacswiki.org/emacs/Anaphora")
   :prefix "anaphora-"
   :group 'extensions)
-
-(defcustom anaphora-add-font-lock-keywords t
-  "Add anaphora macros to font-lock keywords when editing Emacs Lisp."
-  :type 'boolean
-  :group 'anaphora)
 
 ;;;###autoload
 (defcustom anaphora-use-long-names-only nil
@@ -136,47 +125,10 @@
 
 ;;; font-lock
 
-(when anaphora-add-font-lock-keywords
-  (eval-after-load "lisp-mode"
-    '(progn
-       (let ((new-keywords '(
-                             "anaphoric-if"
-                             "anaphoric-prog1"
-                             "anaphoric-prog2"
-                             "anaphoric-when"
-                             "anaphoric-while"
-                             "anaphoric-and"
-                             "anaphoric-cond"
-                             "anaphoric-lambda"
-                             "anaphoric-block"
-                             "anaphoric-case"
-                             "anaphoric-ecase"
-                             "anaphoric-typecase"
-                             "anaphoric-etypecase"
-                             "anaphoric-let"
-                             "aif"
-                             "aprog1"
-                             "aprog2"
-                             "awhen"
-                             "awhile"
-                             "aand"
-                             "acond"
-                             "alambda"
-                             "ablock"
-                             "acase"
-                             "aecase"
-                             "atypecase"
-                             "aetypecase"
-                             "alet"
-                             ))
-             (special-variables '(
-                                  "it"
-                                  "self"
-                                  )))
-         (font-lock-add-keywords 'emacs-lisp-mode `((,(concat "\\<" (regexp-opt special-variables 'paren) "\\>")
-                                                     1 font-lock-variable-name-face)) 'append)
-         (font-lock-add-keywords 'emacs-lisp-mode `((,(concat "(\\s-*" (regexp-opt new-keywords 'paren) "\\>")
-                                                     1 font-lock-keyword-face)) 'append)))))
+(defun anaphora-install-font-lock-keywords nil
+  "Fontify keywords `it' and `self'."
+  (font-lock-add-keywords 'emacs-lisp-mode `((,(concat "\\<" (regexp-opt '("it" "self") 'paren) "\\>")
+                                              1 font-lock-variable-name-face)) 'append))
 
 ;;; aliases
 
@@ -341,7 +293,7 @@ CLAUSES are otherwise as documented for `cond'."
 ARGS and BODY are otherwise as documented for `lambda'."
   (declare (debug lambda)
            (indent defun))
-  `(labels ((self ,args ,@body))
+  `(cl-labels ((self ,args ,@body))
      #'self))
 
 ;;;###autoload
@@ -354,9 +306,9 @@ except the initial one.
 NAME and BODY are otherwise as documented for `block'."
   (declare (debug block)
            (indent 1))
-  `(block ,name
+  `(cl-block ,name
      ,(funcall (anaphoric-lambda (body)
-                 (case (length body)
+                 (cl-case (length body)
                    (0 nil)
                    (1 (car body))
                    (t `(let ((it ,(car body)))
@@ -373,7 +325,7 @@ EXPR and CLAUSES are otherwise as documented for `case'."
   (declare (debug case)
            (indent 1))
   `(let ((it ,expr))
-     (case it ,@clauses)))
+     (cl-case it ,@clauses)))
 
 ;;;###autoload
 (defmacro anaphoric-ecase (expr &rest clauses)
@@ -385,7 +337,7 @@ EXPR and CLAUSES are otherwise as documented for `ecase'."
   (declare (debug ecase)
            (indent 1))
   `(let ((it ,expr))
-     (ecase it ,@clauses)))
+     (cl-ecase it ,@clauses)))
 
 ;;;###autoload
 (defmacro anaphoric-typecase (expr &rest clauses)
@@ -397,7 +349,7 @@ EXPR and CLAUSES are otherwise as documented for `typecase'."
   (declare (debug typecase)
            (indent 1))
   `(let ((it ,expr))
-     (typecase it ,@clauses)))
+     (cl-typecase it ,@clauses)))
 
 ;;;###autoload
 (defmacro anaphoric-etypecase (expr &rest clauses)
@@ -409,20 +361,16 @@ EXPR and CLAUSES are otherwise as documented for `etypecase'."
   (declare (debug etypecase)
            (indent 1))
   `(let ((it ,expr))
-     (etypecase it ,@clauses)))
+     (cl-etypecase it ,@clauses)))
 
 ;;;###autoload
-(defmacro anaphoric-let (varlist &rest body)
-  "Like `let', but the content of VARLIST is bound to `it'.
+(defmacro anaphoric-let (form &rest body)
+  "Like `let', but the result of evaluating FORM is bound to `it'.
 
-VARLIST as it appears in `it' is not evaluated.  The variable `it'
-is available within BODY.
-
-VARLIST and BODY are otherwise as documented for `let'."
+FORM and BODY are otherwise as documented for `let'."
   (declare (debug let)
            (indent 1))
-  `(let ((it ',varlist)
-         ,@varlist)
+  `(let ((it ,form))
      (progn ,@body)))
 
 ;;;###autoload
@@ -492,43 +440,6 @@ DIVIDEND, DIVISOR, and DIVISORS are otherwise as documented for `/'."
      `(let ((it ,divisor))
         (/ ,dividend (* it (anaphoric-* ,@divisors)))))))
 
-;;;###autoload
-(defmacro anaphoric-set (symbol value)
-  "Like `set', except that the value of SYMBOL is bound to `it'.
-
-The variable `it' is available within VALUE.
-
-SYMBOL and VALUE are otherwise as documented for `set'.
-
-Note that if this macro followed traditional naming for
-anaphoric expressions, it would conflict with the existing
-\(quite different\) function `aset'."
-  `(let ((it ,symbol))
-     (set it ,value)))
-
-;;;###autoload
-(defmacro anaphoric-setq (&rest args)
-  "Like `setq', except that the value of SYM is bound to `it'.
-
-The variable `it' is available within each VAL.
-
-ARGS in the form [SYM VAL] ... are otherwise as documented for `setq'.
-
-No alias `asetq' is provided, because it would be easily mistaken
-for the pre-existing `aset', and because `anaphoric-setq' is not
-likely to find frequent use."
-  (cond
-    ((null args)
-     nil)
-    ((> (length args) 2)
-     (let ((pairs nil))
-       (while args
-         (push (list 'anaphoric-setq (pop args) (pop args)) pairs))
-       (cons 'progn (nreverse pairs))))
-    (t
-     `(let ((it (quote ,(car args))))
-        (set it ,(cadr args))))))
-
 (provide 'anaphora)
 
 ;;
@@ -544,7 +455,7 @@ likely to find frequent use."
 ;;
 ;; LocalWords: Anaphora EXPR awhen COND ARGS alambda ecase typecase
 ;; LocalWords: etypecase aprog aand acond ablock acase aecase alet
-;; LocalWords: atypecase aetypecase VARLIST
+;; LocalWords: atypecase aetypecase
 ;;
 
 ;;; anaphora.el ends here

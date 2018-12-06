@@ -1,9 +1,12 @@
 ;;; anaphora-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "anaphora" "anaphora.el" (22544 5006 0 0))
+;;;### (autoloads nil "anaphora" "anaphora.el" (0 0 0 0))
 ;;; Generated autoloads from anaphora.el
 
 (let ((loads (get 'anaphora 'custom-loads))) (if (member '"anaphora" loads) nil (put 'anaphora 'custom-loads (cons '"anaphora" loads))))
@@ -163,14 +166,11 @@ EXPR and CLAUSES are otherwise as documented for `etypecase'.
 (function-put 'anaphoric-etypecase 'lisp-indent-function '1)
 
 (autoload 'anaphoric-let "anaphora" "\
-Like `let', but the content of VARLIST is bound to `it'.
+Like `let', but the result of evaluating FORM is bound to `it'.
 
-VARLIST as it appears in `it' is not evaluated.  The variable `it'
-is available within BODY.
+FORM and BODY are otherwise as documented for `let'.
 
-VARLIST and BODY are otherwise as documented for `let'.
-
-\(fn VARLIST &rest BODY)" nil t)
+\(fn FORM &rest BODY)" nil t)
 
 (function-put 'anaphoric-let 'lisp-indent-function '1)
 
@@ -215,31 +215,7 @@ DIVIDEND, DIVISOR, and DIVISORS are otherwise as documented for `/'.
 
 \(fn DIVIDEND DIVISOR &rest DIVISORS)" nil t)
 
-(autoload 'anaphoric-set "anaphora" "\
-Like `set', except that the value of SYMBOL is bound to `it'.
-
-The variable `it' is available within VALUE.
-
-SYMBOL and VALUE are otherwise as documented for `set'.
-
-Note that if this macro followed traditional naming for
-anaphoric expressions, it would conflict with the existing
-\(quite different) function `aset'.
-
-\(fn SYMBOL VALUE)" nil t)
-
-(autoload 'anaphoric-setq "anaphora" "\
-Like `setq', except that the value of SYM is bound to `it'.
-
-The variable `it' is available within each VAL.
-
-ARGS in the form [SYM VAL] ... are otherwise as documented for `setq'.
-
-No alias `asetq' is provided, because it would be easily mistaken
-for the pre-existing `aset', and because `anaphoric-setq' is not
-likely to find frequent use.
-
-\(fn &rest ARGS)" nil t)
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "anaphora" '("anaphora-install-font-lock-keywords")))
 
 ;;;***
 
@@ -247,5 +223,6 @@ likely to find frequent use.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; anaphora-autoloads.el ends here
