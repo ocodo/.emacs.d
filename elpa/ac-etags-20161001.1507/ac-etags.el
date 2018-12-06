@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-ac-etags
-;; Package-Version: 20161001.807
+;; Package-Version: 20161001.1507
 ;; Version: 0.06
 ;; Package-Requires: ((auto-complete "1.4"))
 
