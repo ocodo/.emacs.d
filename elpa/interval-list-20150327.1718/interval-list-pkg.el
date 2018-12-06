@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "interval-list" "20150327.1718" "Interval list data structure for 1D selections" '((dash "2.4.0") (cl-lib "0.5") (emacs "24.4")) :commit "38af7ecf0a493ad8f487074938a2a115f3531177" :keywords '("extensions" "data structure") :authors '(("Matus Goljer" . "matus.goljer@gmail.com")) :maintainer '("Matus Goljer" . "matus.goljer@gmail.com") :url "https://github.com/Fuco1/interval-list")
