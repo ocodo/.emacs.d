@@ -4,7 +4,7 @@
 
 ;; Author: Adam Niederer <adam.niederer@gmail.com>
 ;; URL: http://github.com/AdamNiederer/0xc
-;; Package-Version: 20170125.1953
+;; Package-Version: 20170126.353
 ;; Version: 0.1
 ;; Keywords: base conversion
 ;; Package-Requires: ((emacs "24.4") (s "1.11.0"))
