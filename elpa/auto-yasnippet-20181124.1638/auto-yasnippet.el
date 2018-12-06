@@ -2,7 +2,7 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/auto-yasnippet
-;; Package-Version: 20180503.1208
+;; Package-Version: 20181124.1638
 ;; Version: 0.3
 ;; Package-Requires: ((yasnippet "0.8.0"))
 
@@ -202,6 +202,7 @@ menu.add_item(spamspamspam, \"spamspamspam\")"
         (delete-region beg end)
         (when aya-create-with-newline (delete-char 1))
         (setq aya-current line)
+        (yas-minor-mode 1)
         (yas-expand-snippet line)))))
 
 (defun aya--parse (str)
