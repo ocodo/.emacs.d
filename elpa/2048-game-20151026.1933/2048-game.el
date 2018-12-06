@@ -4,7 +4,7 @@
 
 ;; Author: Zachary Kanfer <zkanfer@gmail.com>
 ;; Version: 2014.03.27
-;; Package-Version: 20151026.1233
+;; Package-Version: 20151026.1933
 ;; URL: https://bitbucket.org/zck/2048.el
 
 ;; This file is not part of GNU Emacs
