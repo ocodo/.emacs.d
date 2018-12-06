@@ -1,10 +1,13 @@
 ;;; apt-sources-list-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "apt-sources-list" "apt-sources-list.el" (23278
-;;;;;;  48472 0 0))
+;;;### (autoloads nil "apt-sources-list" "apt-sources-list.el" (0
+;;;;;;  0 0 0))
 ;;; Generated autoloads from apt-sources-list.el
 
 (autoload 'apt-sources-list-mode "apt-sources-list" "\
@@ -32,11 +35,14 @@ is not a correctly-formatted APT source.
 
 (add-to-list 'auto-mode-alist (cons (rx (or (and (any "./") "sources.list") (and "/sources.list.d/" (one-or-more anything) ".list")) string-end) #'apt-sources-list-mode))
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "apt-sources-list" '("apt-sources-list-")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; apt-sources-list-autoloads.el ends here
