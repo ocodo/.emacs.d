@@ -4,7 +4,7 @@
 
 ;; Authors: Glen Stampoultzis <gstamp(at)gmail.com>, Reid D McKenzie <https://github.com/arrdem>
 ;; Version: 0.6
-;; Package-Version: 20160112.1301
+;; Package-Version: 20160112.2101
 ;; Package-Requires: ((clojure-mode "1.11.5"))
 ;; Keywords; clojure, align, let
 ;; URL: https://github.com/gstamp/align-cljlet
