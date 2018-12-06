@@ -4,7 +4,7 @@
 
 ;; Author: jtbm37
 ;; Version: 1.0
-;; Package-Version: 20170418.1431
+;; Package-Version: 20170418.2131
 ;; Keywords: files icons dired
 ;; Package-Requires: ((emacs "24.4") (all-the-icons "2.2.0"))
 
