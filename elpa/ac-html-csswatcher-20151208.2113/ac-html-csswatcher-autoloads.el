@@ -1,10 +1,13 @@
 ;;; ac-html-csswatcher-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
 ;;;### (autoloads nil "ac-html-csswatcher" "ac-html-csswatcher.el"
-;;;;;;  (22120 11792 929772 79000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from ac-html-csswatcher.el
 
 (autoload 'ac-html-csswatcher-refresh "ac-html-csswatcher" "\
@@ -35,11 +38,14 @@ when `csswatcher' support them.
 
 (defalias 'company-web-csswatcher-setup 'ac-html-csswatcher-setup)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ac-html-csswatcher" '("ac-html-csswatcher-" "AC-HTML-CSSWATCHER-LOG")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; ac-html-csswatcher-autoloads.el ends here
