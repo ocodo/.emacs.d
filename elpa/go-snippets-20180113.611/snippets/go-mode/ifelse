@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# contributer: Yusuke Tsutsumi <tsutsumi.yusuke@gmail.com>
+# name: ifelse
+# key: ifelse
+# description: if else snippet
+# --
+if ${1:condition} {
+	$0
+} else {
+}
