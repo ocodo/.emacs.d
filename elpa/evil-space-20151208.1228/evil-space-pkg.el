@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "evil-space" "20151208.1228" "Repeat motion in Evil. Correct the behaviour of what SPC should do." '((evil "1.0.0")) :commit "a9c07284d308425deee134c9d88a2d538dd229e6" :keywords '("space" "repeat" "motion") :authors '(("Quang Linh LE" . "linktohack@gmail.com")) :maintainer '("Quang Linh LE" . "linktohack@gmail.com") :url "http://github.com/linktohack/evil-space")
