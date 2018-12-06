@@ -153,6 +153,7 @@
    `(org-scheduled-today ((t (:foreground "SeaGreen3" :slant italic))))
    `(org-todo ((t (:foreground "forest green" :weight bold :box (:line-width 1 :color "dark green" :style nil) :foreground "forest green"))))
    `(org-upcoming-deadline ((t (:foreground "hot pink"))))
+   `(org-quote ((t (:slant italic :background "#002a4d"))))
    `(outline-1 ((t (:foreground "LightSteelBlue2" :inherit nil :height 1.3))))
    `(outline-3 ((t (:foreground "yellow"))))
    `(outline-7 ((t (:foreground "chartreuse"))))
