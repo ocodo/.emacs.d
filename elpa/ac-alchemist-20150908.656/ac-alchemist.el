@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-ac-alchemist
-;; Package-Version: 20150907.2356
+;; Package-Version: 20150908.656
 ;; Version: 0.01
 ;; Package-Requires: ((auto-complete "1.5.0") (alchemist "1.5.0") (cl-lib "0.5"))
 
