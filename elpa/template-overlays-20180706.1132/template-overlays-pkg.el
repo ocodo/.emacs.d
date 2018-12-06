@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "template-overlays" "20180706.1132" "Display template regions using overlays" '((emacs "24.4") (ov "1.0.6")) :commit "d32db58c044b2aca3720879003f55b1d57208b07" :keywords '("faces" "convenience" "templates" "overlays") :authors '(("Mariano Montone" . "marianomontone@gmail.com")) :maintainer '("Mariano Montone" . "marianomontone@gmail.com") :url "http://www.github.com/mmontone/template-overlays")
