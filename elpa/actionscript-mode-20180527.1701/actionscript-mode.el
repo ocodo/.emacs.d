@@ -4,7 +4,7 @@
 
 ;; Author: Austin Haas
 ;; Keywords: language modes
-;; Package-Version: 20160820.1731
+;; Package-Version: 20180527.1701
 
 ;; Tabbing stolen from: Aemon Cannon, http://github.com/aemoncannon/as3-mode/tree/master/as3-mode.el
 ;; Copyright (C) 2007 Aemon Cannon
@@ -576,5 +576,4 @@ whitespace. Keep point at same relative point in the line."
 		(actionscript-mode)
 		(message "actionscript-mode reloaded.")))
 
-(define-key global-map [f5] 'reload-actionscript-mode)
 ;;; actionscript-mode.el ends here
