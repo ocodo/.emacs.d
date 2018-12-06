@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "company-sourcekit" "20170126.1153" "company-mode completion backend for SourceKit" '((emacs "24.3") (company "0.8.12") (dash "2.12.1") (dash-functional "1.2.0") (sourcekit "0.2.0")) :commit "abf9bc5a0102eb666d3aa6d6bf22f6efcc852781" :keywords '("abbrev") :authors '(("Nathan Kot" . "nk@nathankot.com")) :maintainer '("Nathan Kot" . "nk@nathankot.com") :url "https://github.com/nathankot/company-sourcekit")
