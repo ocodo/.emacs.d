@@ -5,7 +5,7 @@
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Maintainer: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-window
-;; Package-Version: 20180123.1111
+;; Package-Version: 20181008.1549
 ;; Version: 0.9.0
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: window, location
@@ -84,6 +84,15 @@
           (const :tag "global" global)
           (const :tag "frame" frame)))
 
+(defcustom aw-translate-char-function #'identity
+  "Function to translate user input key into another key.
+For example, to make SPC do the same as ?a, use
+\(lambda (c) (if (= c 32) ?a c))."
+  :type '(choice
+          (const :tag "Off" #'identity)
+          (const :tag "Ignore Case" #'downcase)
+          (function :tag "Custom")))
+
 (defcustom aw-minibuffer-flag nil
   "When non-nil, also display `ace-window-mode' string in the minibuffer when ace-window is active."
   :type 'boolean)
@@ -138,6 +147,13 @@ Its value is an (x-offset . y-offset) pair in pixels."
 Its value is a (width . height) pair in pixels or nil for the default frame size.
 (0 . 0) is special and means make the frame size the same as the last selected frame size."
   :type '(cons integer integer))
+
+(defcustom aw-char-position 'top-left
+  "Window positions of the character overlay.
+Consider changing this if the overlay tends to overlap with other things."
+  :type '(choice
+          (const :tag "top left corner only" 'top-left)
+          (const :tag "both left corners" 'left)))
 
 ;; Must be defined before `aw-make-frame-char' since its :set function references this.
 (defvar aw-dispatch-alist
@@ -265,6 +281,35 @@ Modify them back eventually.")
           (delete-region (point-min) (point-max))))))
   (setq aw-empty-buffers-list nil))
 
+(defun aw--overlay-str (wnd pos path)
+  "Return the replacement text for an overlay in WND at POS,
+accessible by typing PATH."
+  (let ((old-str (or
+                  (ignore-errors
+                    (with-selected-window wnd
+                      (buffer-substring pos (1+ pos))))
+                  "")))
+    (concat
+     (cl-case aw-leading-char-style
+       (char
+        (string (avy--key-to-char (car (last path)))))
+       (path
+        (mapconcat
+         (lambda (x) (string (avy--key-to-char x)))
+         (reverse path)
+         ""))
+       (t
+        (error "Bad `aw-leading-char-style': %S"
+               aw-leading-char-style)))
+     (cond ((string-equal old-str "\t")
+            (make-string (1- tab-width) ?\ ))
+           ((string-equal old-str "\n")
+            "\n")
+           (t
+            (make-string
+             (max 0 (1- (string-width old-str)))
+             ?\ ))))))
+
 (defun aw--lead-overlay (path leaf)
   "Create an overlay using PATH at LEAF.
 LEAF is (PT . WND)."
@@ -274,38 +319,30 @@ LEAF is (PT . WND)."
         (push (current-buffer) aw-empty-buffers-list)
         (let ((inhibit-read-only t))
           (insert " ")))
+
       (let* ((pt (car leaf))
-             (ol (make-overlay pt (1+ pt) (window-buffer wnd)))
-             (old-str (or
-                       (ignore-errors
-                         (with-selected-window wnd
-                           (buffer-substring pt (1+ pt))))
-                       ""))
-             (new-str
-              (concat
-               (cl-case aw-leading-char-style
-                 (char
-                  (string (avy--key-to-char (car (last path)))))
-                 (path
-                  (mapconcat
-                   (lambda (x) (string (avy--key-to-char x)))
-                   (reverse path)
-                   ""))
-                 (t
-                  (error "Bad `aw-leading-char-style': %S"
-                         aw-leading-char-style)))
-               (cond ((string-equal old-str "\t")
-                      (make-string (1- tab-width) ?\ ))
-                     ((string-equal old-str "\n")
-                      "\n")
-                     (t
-                      (make-string
-                       (max 0 (1- (string-width old-str)))
-                       ?\ ))))))
+             (ol (make-overlay pt (1+ pt) (window-buffer wnd))))
+        (overlay-put ol 'display (aw--overlay-str wnd pt path))
         (overlay-put ol 'face 'aw-leading-char-face)
         (overlay-put ol 'window wnd)
-        (overlay-put ol 'display new-str)
-        (push ol avy--overlays-lead)))))
+        (push ol avy--overlays-lead))
+
+      (when (eq aw-char-position 'left)
+        (let* ((pt
+                (save-excursion
+                  ;; Move to the start of the last visible line in the buffer.
+                  (move-to-window-line -1)
+                  (move-beginning-of-line nil)
+                  ;; If this line is empty, use the previous line so we
+                  ;; have space for the overlay.
+                  (when (equal (point) (point-max))
+                    (forward-line -1))
+                  (point)))
+               (ol (make-overlay pt (1+ pt) (window-buffer wnd))))
+          (overlay-put ol 'display (aw--overlay-str wnd pt path))
+          (overlay-put ol 'face 'aw-leading-char-face)
+          (overlay-put ol 'window wnd)
+          (push ol avy--overlays-lead))))))
 
 (defun aw--make-backgrounds (wnd-list)
   "Create a dim background overlay for each window on WND-LIST."
@@ -460,7 +497,7 @@ Amend MODE-LINE to the mode line for the duration of the selection."
                    (remove-hook 'post-command-hook 'helm--maybe-update-keymap)
                    (unwind-protect
                         (let* ((avy-handler-function aw-dispatch-function)
-                               (avy-translate-char-function #'identity)
+                               (avy-translate-char-function aw-translate-char-function)
                                (res (avy-read (avy-tree candidate-list aw-keys)
                                               #'aw--lead-overlay
                                               #'avy--remove-leading-chars)))
@@ -530,6 +567,16 @@ window."
     (t (ace-select-window))))
 
 ;;* Utility
+(unless (fboundp 'frame-position)
+  (defun frame-position (&optional frame)
+    (let ((pl (frame-parameter frame 'left))
+          (pt (frame-parameter frame 'top)))
+      (when (consp pl)
+        (setq pl (eval pl)))
+      (when (consp pt)
+        (setq pt (eval pt)))
+      (cons pl pt))))
+
 (defun aw-window< (wnd1 wnd2)
   "Return true if WND1 is less than WND2.
 This is determined by their respective window coordinates.
@@ -538,8 +585,9 @@ Windows are numbered top down, left to right."
         (f2 (window-frame wnd2))
         (e1 (window-edges wnd1))
         (e2 (window-edges wnd2)))
-    (cond ((string< (frame-parameter f1 'window-id)
-                    (frame-parameter f2 'window-id))
+    (cond ((< (car (frame-position f1)) (car (frame-position f2)))
+           (not aw-reverse-frame-list))
+          ((> (car (frame-position f1)) (car (frame-position f2)))
            aw-reverse-frame-list)
           ((< (car e1) (car e2))
            t)
