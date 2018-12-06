@@ -2,7 +2,7 @@
 
 ;; Author: Neil Okamoto <neil.okamoto+melpa@gmail.com>
 ;; Version: 0.2.1
-;; Package-Version: 20180224.1652
+;; Package-Version: 20180225.52
 ;; Keywords: games
 ;; URL: https://github.com/gonewest818/adafruit-wisdom.el
 ;; Package-Requires: ((emacs "25"))
