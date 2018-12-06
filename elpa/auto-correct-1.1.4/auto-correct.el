@@ -1,11 +1,11 @@
 ;;; auto-correct.el --- Remembers and automatically fixes past corrections -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
 
 ;; Author: Ian Dunn <dunni@gnu.org>
 ;; Maintainer: Ian Dunn <dunni@gnu.org>
 ;; Keywords: editing
-;; Version: 1.1.3
+;; Version: 1.1.4
 
 ;; This file is part of GNU Emacs.
 
@@ -204,19 +204,32 @@ indicating whether to activate or deactivate support."
 
 ;; Flyspell Support
 
+(defvar-local auto-correct--flyspell-old-word nil)
+
 (defvar flyspell-auto-correct-word)
 (defvar flyspell-use-global-abbrev-table-p)
 (defvar flyspell-insert-function)
+
+(defun auto-correct--flyspell-do-correct-wrapper (oldfun replace poss word cursor-location start end save)
+  "Wraps `flyspell-do-correct' to store the word it's correcting."
+  (let ((auto-correct--flyspell-old-word word))
+    (funcall oldfun replace poss word cursor-location start end save)))
 
 (defun auto-correct-flyspell-insert (word)
   "Insert WORD and add it as a correction.
 
 The original (misspelled) word is drawn from the variable
-`flyspell-auto-correct-word'.
+`flyspell-auto-correct-word' (if coming from
+`flyspell-auto-correct-word') or `auto-correct--flyspell-old-word'
+if coming from `flyspell-do-correct'.
 
 When `auto-correct-mode' is enabled, this function is set as
 `flyspell-insert-function'."
-  (let ((old-word flyspell-auto-correct-word)
+  ;; If coming from `flyspell-auto-correct-word' (the function), use
+  ;; `flyspell-auto-correct-word' (the variable) for the old word.  Otherwise,
+  ;; we're coming from `flyspell-do-correct', so use our stored old word.
+  (let ((old-word (or flyspell-auto-correct-word
+                      auto-correct--flyspell-old-word))
         (new-word word)
         (local (not flyspell-use-global-abbrev-table-p)))
     (auto-correct--add-or-update-correction old-word new-word local)))
@@ -230,9 +243,13 @@ Otherwise, deactivate it.
 Activation means adding `auto-correct-flyspell-insert' to
 `flyspell-insert-function'."
   (if activate
-      (add-function :before flyspell-insert-function
-                    #'auto-correct-flyspell-insert)
-    (remove-function flyspell-insert-function #'auto-correct-flyspell-insert)))
+      (progn
+        (advice-add 'flyspell-do-correct :around
+                    #'auto-correct--flyspell-do-correct-wrapper)
+        (add-function :before flyspell-insert-function
+                      #'auto-correct-flyspell-insert))
+    (remove-function flyspell-insert-function #'auto-correct-flyspell-insert)
+    (advice-remove 'flyspell-do-correct #'auto-correct--flyspell-do-correct-wrapper)))
 
 ;; Silence the byte-compiler; this will be enabled shortly
 (defvar auto-correct-enable-flyspell-support)
@@ -395,6 +412,20 @@ instead."
 
 ;;;; ChangeLog:
 
+;; 2018-06-23  Ian Dunn  <dunni@gnu.org>
+;; 
+;; 	auto-correct: Add support for flyspell-correct-word-*
+;; 
+;; 	* auto-correct.el (auto-correct--flyspell-old-word): New variable.
+;; 	 (auto-correct--flyspell-do-correct-wrapper): Wrapper for
+;; 	flyspell-do-correct.
+;; 	 (auto-correct-flyspell-insert): Use the new variable.
+;; 	 (auto-correct--activate-flyspell-support): Advise flyspell-do-correct.
+;; 
+;; 2018-01-01  Ian Dunn  <dunni@gnu.org>
+;; 
+;; 	Updated copyright on auto-correct, captain, and vigenere
+;; 
 ;; 2017-10-21  Ian Dunn  <dunni@gnu.org>
 ;; 
 ;; 	auto-correct: Defer loading of flyspell support until after flyspell has

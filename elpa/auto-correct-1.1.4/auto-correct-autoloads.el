@@ -1,10 +1,12 @@
 ;;; auto-correct-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "auto-correct" "auto-correct.el" (23064 60686
-;;;;;;  688107 926000))
+;;;### (autoloads nil "auto-correct" "auto-correct.el" (0 0 0 0))
 ;;; Generated autoloads from auto-correct.el
 
 (defvar auto-correct-mode nil "\
@@ -87,11 +89,14 @@ instead.
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "auto-correct" '("auto-correct-")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; auto-correct-autoloads.el ends here
