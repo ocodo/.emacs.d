@@ -8,7 +8,7 @@
 ;; Maintainer:      Andrew Johnson (andrew@andrewjamesjohnson.com)
 ;; Created:         July 1, 2001
 ;; Keywords:        files
-;; Package-Version: 20180226.1645
+;; Package-Version: 20180227.45
 ;; URL: https://github.com/ajsquared/bar-cursor
 ;; Version: 2.0
 
