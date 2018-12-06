@@ -4,7 +4,7 @@
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20180125.944
+;; Package-Version: 20181120.1301
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -1541,34 +1541,49 @@ do nothing."
 ;; get arguments from the user
 (defvar ahg-log-default-revisions '("tip" . "0"))
 (defvar ahg-log-default-extra-flags "")
-(defun ahg-log-read-args (is-on-selected-files read-extra-flags)
+(defun ahg-log-read-args (is-on-selected-files read-extra-flags
+                                               &optional reverse)
   (let* ((firstrev
           (read-string
            (concat "hg log"
-                   (if is-on-selected-files " (on selected files)" "")
-                   ", R1: ") (car ahg-log-default-revisions)))
+                   (if is-on-selected-files " (on selected files)" "") ", R1: ")
+           (car ahg-log-default-revisions)))
          (is-revset (ahg-maybe-revset firstrev))
          (firstarg-to-save firstrev)
          (retval
           (append
            (list
             (progn
-              (when is-revset
-                (let* ((limit (string-to-number
-                               (read-string "hg log, limit (default 100): "
-                                            nil nil "100"))))
-                  (cond ((< limit 0)
-                         (setq firstrev
-                               (format "first(%s,%s)" firstrev (- limit))))
-                        ((> limit 0)
-                         (setq firstrev
-                               (format "last(%s,%s)" firstrev limit))))))
-              firstrev)
-            (when (not is-revset)
-              (read-string
-               (concat "hg log"
-                       (if is-on-selected-files " (on selected files)" "")
-                       ", R2: ") (ahg-log-revrange-end))))
+              (when (not is-revset)
+                (setq firstrev (format "ancestors(%s)" firstrev)))
+              (let* ((deflimit (number-to-string
+                                (* (if is-revset 1 -1) ahg-log-revrange-size)))
+                     (slimit (read-string
+                              (if is-revset
+                                  (format "hg log, limit (default %s): "
+                                          deflimit)
+                                (concat
+                                 "hg log"
+                                 (if is-on-selected-files
+                                     " (on selected files)" "") ", R2: "))
+                              (unless is-revset deflimit) nil deflimit))
+                     (limit (string-to-number slimit)))
+                (cond ((and (not is-revset)
+                            (= limit 0) (not (string= slimit "0")))
+                       (setq firstrev
+                             (format "descendants(%s) & %s" slimit firstrev)))
+                      ((and (not is-revset) (> limit 0))
+                       (setq firstrev
+                             (format "descendants(%s) & %s" slimit firstrev)))
+                      ((if is-revset (< limit 0) (> limit 0))
+                       (setq firstrev
+                             (format "first(%s,%s)" firstrev (abs limit))))
+                      ((if is-revset (> limit 0) (< limit 0))
+                       (setq firstrev
+                             (format "last(0:%s,%s)" firstarg-to-save
+                                     (abs limit)))))
+                (if reverse firstrev (format "reverse(%s)" firstrev))))
+            nil)
            (when read-extra-flags
              (list (read-string
                     (concat "hg log"
@@ -2272,7 +2287,7 @@ consider. When run interactively, the user must enter their
 values (which default to tip for R1 and 0 for R2). If called with
 a prefix argument, prompts also for EXTRA-FLAGS."
   (interactive
-   (ahg-log-read-args ahg-file-list-for-log-command current-prefix-arg))
+   (ahg-log-read-args ahg-file-list-for-log-command current-prefix-arg t))
   (let* ((root (ahg-root))
          (buffer (get-buffer-create
                  (concat "*hg glog: " root "*")))
