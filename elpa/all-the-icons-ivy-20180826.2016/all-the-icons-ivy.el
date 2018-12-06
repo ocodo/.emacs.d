@@ -3,8 +3,8 @@
 ;; Copyright (C) 2017 asok
 
 ;; Author: asok
-;; Version: 0.2.0
-;; Package-Version: 20180225.630
+;; Version: 0.3.0
+;; Package-Version: 20180826.2016
 ;; Keywords: faces
 ;; Package-Requires: ((emacs "24.4") (all-the-icons "2.4.0") (ivy "0.8.0"))
 
@@ -49,7 +49,13 @@
 
 
 (defcustom all-the-icons-ivy-file-commands
-  '(counsel-find-file counsel-projectile-find-file counsel-projectile-find-dir)
+  '(counsel-find-file
+    counsel-file-jump
+    counsel-recentf
+    counsel-projectile
+    counsel-projectile-find-file
+    counsel-projectile-find-dir
+    counsel-git)
   "Commands to use with `all-the-icons-ivy-file-transformer'."
   :type '(repeat function)
   :group 'all-the-icons-ivy)
