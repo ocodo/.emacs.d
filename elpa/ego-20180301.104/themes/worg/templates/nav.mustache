@@ -1,0 +1,29 @@
+    <div>{{! nav }}
+      <header class="masthead">
+        <h1 class="masthead-title"><a href="/">{{site-main-title}}</a> <span class="subtitle">{{site-sub-title}}</span></h1>
+        <ul>
+          {{#nav-categories}}
+          <li><a href="{{category-uri}}">{{category-name}}</a></li>
+          {{/nav-categories}}
+          {{#nav-summary}}
+          <li><a href="{{summary-item-uri}}">{{summary-item-name}}</a></li>
+          {{/nav-summary}}
+          {{#nav-about}}
+          <li><a href="{{about-uri}}">{{about-name}}</a></li>
+          {{/nav-about}}
+          {{#nav-source-browse}}
+          <li><a href="{{source-browse-uri}}">{{source-browse-name}}</a></li>
+          {{/nav-source-browse}}
+          {{#nav-rss}}
+          <li><a href="{{rss-uri}}">{{rss-name}}</a></li>
+          {{/nav-rss}}
+        </ul>
+        <form method="get" id="searchform" action="http://www.google.com/search">
+          <input type="text" class="field" name="q" id="s" placeholder="Search">
+          <input type="hidden" name="as_sitesearch" value="{{site-domain}}">
+        </form>
+        {{#avatar}}
+        <img class="avatar" src="{{avatar}}" />
+        {{/avatar}}
+      </header>
+    </div>
