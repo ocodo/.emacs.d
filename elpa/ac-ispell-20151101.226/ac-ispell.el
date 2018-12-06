@@ -4,7 +4,7 @@
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; URL: https://github.com/syohex/emacs-ac-ispell
-;; Package-Version: 20151031.1926
+;; Package-Version: 20151101.226
 ;; Version: 0.07
 ;; Package-Requires: ((auto-complete "1.4") (cl-lib "0.5"))
 
