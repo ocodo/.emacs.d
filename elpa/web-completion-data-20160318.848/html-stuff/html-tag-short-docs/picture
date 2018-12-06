@@ -1,0 +1,18 @@
+The HTML <picture> element is a container used to specified multiple <source> for a specific <img> contained in it. The browser will choose the most suitable source according to the current layout (constraints of the box the image will appear in) of the page and the device it will be displayed on (like a normal or hiDPI device).
+
+This is an experimental technology.
+
+Content categories:
+Flow content, phrasing content, embedded content.
+
+Permitted content:
+Zero or more <source> elements, followed by one <img>element, optionally intermixed with script-supporting elements.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that allows embedded content.
+
+DOM interface:
+HTMLPictureElement

@@ -1,0 +1,4 @@
+_blank Load in a new window
+_parent Load in the parent frameset
+_self Load in the same frame as it was clicked
+_top Load in the full body of the window

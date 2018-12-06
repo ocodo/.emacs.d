@@ -1,0 +1,7 @@
+frameborder frameborder [Deprecated]\n\nThis attribute allows you to put borders for frames.
+marginheight marginheight [Deprecated]\n\nThis attribute defines how tall the margin between frames will be.
+marginwidth marginwidth [Deprecated]\n\nThis attribute defines how wide the margin between frames will be.
+name name [Deprecated]\n\nThis attribute is used to labeling frames. Without labeling all links will open in the frame that they are in.
+noresize noresize [Deprecated]\n\nThis attribute avoid resizing of frames by users.
+scrolling
+src src [Deprecated]\n\nThis attribute is specify document which will be displayed by frame.

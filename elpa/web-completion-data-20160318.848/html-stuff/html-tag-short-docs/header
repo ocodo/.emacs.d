@@ -1,0 +1,19 @@
+The HTML <header> Element represents a group of introductory or navigational aids. It may contain some heading elements but also other elements like a logo, wrapped section's header, a search form, and so on.
+
+Usage note:
+The <header> element is not sectioning content and therefore doesn't introduce a new section in the outline.
+
+Content categories:
+Flow content, palpable content.
+
+Permitted content:
+Flow content, but with no <header> or <footer> descendant.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts flow content. Note that a <header> element must not be a descendant of an <address>, <footer> or another <header> element..
+
+DOM interface:
+HTMLElement

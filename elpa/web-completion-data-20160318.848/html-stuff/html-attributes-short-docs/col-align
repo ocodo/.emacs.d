@@ -1,0 +1,8 @@
+align [Deprecated since HTML4.01] [Obsolete since HTML5]
+
+This enumerated attribute specifies how horizontal alignment of each column cell content will be handled. Possible values are:
+  left, aligning the content to the left of the cell
+  center, centering the content in the cell
+  right, aligning the content to the right of the cell
+  justify, inserting spaces into the textual content so that the content is justified in the cell
+  char, aligning the textual content on a special character with a minimal offset, defined by the char and charoff attributes Unimplemented (see bug 2212).

@@ -1,0 +1,5 @@
+align align [Deprecated since HTML4.01] [Obsolete since HTML5]\n\nSets the alignment of the rule on the page. If no value is specified, the default value is left.
+color color [!]\n\nSets the color of the rule through color name or hexadecimal value.
+noshade noshade [Deprecated since HTML4.01] [Obsolete since HTML5]\n\nSets the rule to have no shading.
+size size [Deprecated since HTML4.01] [Obsolete since HTML5]\n\nSets the height, in pixels, of the rule.
+width width [Deprecated since HTML4.01] [Obsolete since HTML5]\n\nSets the length of the rule on the page through a pixel or percentage value.

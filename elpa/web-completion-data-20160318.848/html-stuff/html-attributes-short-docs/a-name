@@ -1,0 +1,7 @@
+name [HTML4 only] [Obsolete since HTML5]
+
+This attribute is required in an anchor defining a target location within a page. A value for name is similar to a value for the id core attribute and should be an alphanumeric identifier unique to the document. Under the HTML 4.01 specification, id and name both can be used with the <a> element as long as they have identical values.
+
+Usage note: 
+
+This attribute is obsolete in HTML5, use global attribute id instead.

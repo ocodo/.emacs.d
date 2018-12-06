@@ -1,0 +1,16 @@
+The HTML <ins> Element (or HTML Inserted Text) HTML represents a range of text that has been added to a document.
+
+Content categories:
+Phrasing content or flow content.
+
+Permitted content:
+Transparent.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts phrasing content.
+
+DOM interface:
+HTMLModElement

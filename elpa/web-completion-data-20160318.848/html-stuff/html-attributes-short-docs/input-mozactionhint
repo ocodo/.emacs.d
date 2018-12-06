@@ -1,0 +1,3 @@
+mozactionhint [!]
+
+Specifies an "action hint" used to determine how to label the enter key on mobile devices with virtual keyboards. Supported values are go, done, next, search, and send; these automatically get mapped to the appropriate string (and are case-insensitive).

@@ -1,0 +1,5 @@
+disabled
+
+This Boolean attribute indicates that the user cannot interact with the button. If this attribute is not specified, the button inherits its setting from the containing element, for example <fieldset>; if there is no containing element with the disabled attribute set, then the button is enabled.
+
+Firefox will, unlike other browsers, by default, persist the dynamic disabled state of a <button> across page loads. Use the autocomplete attribute to control this feature.

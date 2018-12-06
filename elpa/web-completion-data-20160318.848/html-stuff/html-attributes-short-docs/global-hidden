@@ -1,0 +1,9 @@
+Prevents rendering of given element, while keeping child elements, e.g. script elements, active.
+
+This Boolean attribute indicates that the element is not yet, or is no longer, relevant. For example, it can be used to hide elements of the page that can't be used until the login process has been completed. The browser won't render such elements.
+
+Usage notes:
+This attribute must not be used to hide content that could legitimately be shown. For example, it shouldn't be used to hide tabs panels of a tabbed interface, as this is a styling decision and another style showing them would lead to a perfectly correct page.
+Hidden elements shouldn't be linked from non-hidden elements.
+Elements that are descendants of a hidden element are still active, which means that script elements can still execute and form elements can still submit.
+Changing the display CSS value of an element with the hidden attribute overrides the behavior. For instance, an element styled display: flex will be displayed on screen regardless of the hidden attribute being present.

@@ -1,0 +1,22 @@
+The HTML <dialog> element represents a dialog box or other interactive component, such as an inspector or window. <form> elements can be integrated within a dialog by specifying them with the attribute method="dialog". When such a form is submitted, the dialog is closed with a returnValue attribute set to the value of the submit button used.
+
+This is an experimental technology.
+
+Browser Compatibility:
+Desktop: F O
+Mobile: None
+
+Content categories:
+Flow content, sectioning root.
+
+Permitted content:
+Flow content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts flow content.
+
+DOM interface:
+HTMLDialogElement

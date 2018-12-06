@@ -1,0 +1,20 @@
+The HTML <footer> Element represents a footer for its nearest sectioning content or sectioning root element (i.e, its nearest parent <article>, <aside>, <nav>, <section>, <blockquote>, <body>, <details>, <fieldset>, <figure>, <td>). A footer typically contains information about the author of the section, copyright data or links to related documents.
+
+Usage notes:
+Enclose information about the author in an <address> element that can be included into the <footer> element.
+The <footer> element is not sectioning content and therefore doesn't introduce a new section in the outline.
+
+Content categories:
+Flow content, palpable content.
+
+Permitted content:
+Flow content, but with no <footer> or <header> descendants.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts flow content. Note that a <footer> element must not be a descendant of an <address>, <header> or another <footer> element.
+
+DOM interface:
+HTMLElement

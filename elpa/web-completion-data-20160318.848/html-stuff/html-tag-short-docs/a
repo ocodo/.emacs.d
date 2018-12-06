@@ -1,0 +1,16 @@
+The HTML <a> Element (or the HTML Anchor Element) defines a hyperlink, the named target destination for a hyperlink, or both.
+
+Content categories:
+Flow content, phrasing content, interactive content, palpable content.
+
+Permitted content:
+Transparent, containing either flow content or phrasing content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts phrasing content, or any element that accepts flow content.
+
+DOM interface:
+HTMLAnchorElement

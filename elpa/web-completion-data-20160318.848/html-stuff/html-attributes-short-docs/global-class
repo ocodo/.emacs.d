@@ -1,0 +1,6 @@
+Often used with CSS to style elements with common properties.
+
+This attribute is a space-separated list of the classes of the element. Classes allows CSS and Javascript to select and access specific elements via the class selectors or functions like the DOM method document.getElementsByClassName.
+
+Usage note:
+Though the specification doesn't put requirements on the name of classes, web developers are encouraged to use names that describe the semantic purpose of the element, rather to the presentation of the element (e.g., attribute to describe an attribute rather than italics, although an element of this class may be presented by italics). Semantic names remain logical even if the presentation of the page changes.

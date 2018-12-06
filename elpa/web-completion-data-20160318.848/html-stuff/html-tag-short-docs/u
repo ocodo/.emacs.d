@@ -1,0 +1,9 @@
+The HTML Underline Element (<u>) renders text with an underline, a line under the baseline of its content.
+
+In HTML5, this element represents a span of text with an unarticulated, though explicitly rendered, non-textual annotation, such as labeling the text as being a proper name in Chinese text (a Chinese proper name mark), or labeling the text as being misspelled.
+
+Usage Note: 
+As with all purely styling elements, <u> has been deprecated in HTML 4 and XHTML 1, but it has been re-introduced in HTML5 with other semantics. If you want to underline text in a non-semantic manner, you should use a <span> element, or another semantically appropriate element, and style it with the CSS text-decoration property, with the underline value.
+
+DOM interface:
+This element implements the HTMLElement interface.

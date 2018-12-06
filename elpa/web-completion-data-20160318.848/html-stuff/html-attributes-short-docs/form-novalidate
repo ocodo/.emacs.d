@@ -1,0 +1,3 @@
+no-validate [HTML5]
+
+This Boolean attribute indicates that the form is not to be validated when submitted. If this attribute is not specified (and therefore the form is validated), this default setting can be overridden by a formnovalidate attribute on a <button> or <input> element belonging to the form.

@@ -1,0 +1,5 @@
+checked [Boolean]
+
+When the value of the type attribute is radio or checkbox, the presence of this Boolean attribute indicates that the control is selected by default; otherwise it is ignored.
+
+Firefox will, unlike other browsers, by default, persist the dynamic checked state of an <input> across page loads. Use the autocomplete attribute to control this feature.

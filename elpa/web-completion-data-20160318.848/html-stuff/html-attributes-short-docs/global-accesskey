@@ -1,0 +1,9 @@
+Defines a keyboard shortcut to activate or add focus to the element.
+
+This attribute provides a hint for generating a keyboard shortcut for the current element. This attribute consists of a space-separated list of characters (one single Unicode code point). The browser should use the first one that exists on the computer keyboard layout.
+
+HTML4 Note:
+In previous versions of HTML, only one character could be specified. Also it wasn't a global attribute and could be applied only to <a>, <area>, <button>, <input>, <label>, <legend> and <textarea>.
+
+Usage note:
+The operation to activate the accesskey depends on browser and its platform.

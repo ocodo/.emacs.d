@@ -1,0 +1,1 @@
+clear clear [Deprecated since HTML4.01] [Obsolete since HTML5]\n\nIndicates where to begin the next line after the break.\n\nUsage note: \nThis attribute is obsolete in HTML5 and should not be used by authors. Use the CSS clear property instead.

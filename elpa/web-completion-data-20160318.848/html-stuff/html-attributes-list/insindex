@@ -1,0 +1,2 @@
+action action [Deprecated]\n\nThis attribute can be used in the case of needing to send query to a different URL. Action is not defined by W3C.
+prompt prompt [Deprecated]\n\nThis attribute adds its value as a prompt for text field.

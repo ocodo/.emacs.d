@@ -1,0 +1,9 @@
+The HTML <marquee> element is used to insert a scrolling area of text.
+
+Non-standard
+This feature is non-standard and is not on a standards track. Do not use it on production sites facing the Web: it will not work for every user. There may also be large incompatibilities between implementations and the behavior may change in the future.
+
+Notes:
+The marquee element is originally an IE invention.
+The marquee element is not valid according to the HTML or XHTML specifications. Page authors concerned with validation should not use this tag.
+The marquee element is implemented in Mozilla (Firefox) by using an XBL binding; see /layout/style/xbl-marquee/xbl-marquee.xml.

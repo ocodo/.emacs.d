@@ -1,0 +1,19 @@
+align align [Deprecated since HTML4.01] [Obsolete since HTML5]\n\nThe alignment of this element with respect to the surrounding context.
+allowfullscreen allowfullscreen\n\nThis attribute can be set to true if the frame is allowed to be placed into full screen mode by calling its element.mozRequestFullScreen() method. If this isn't set, the element can't be placed into full screen mode.
+frameborder frameborder [HTML4 only]\n\nThe value 1 (the default) tells the browser to draw a border between this frame and every other frame. The value 0 tells the browser not to draw a border between this frame and other frames.
+height height\n\nIndicates the height of the frame HTML5 in CSS pixels, or HTML 4.01 in pixels or as a percentage.
+longdesc longdesc [HTML4 only]\n\nA URI of a long description of the frame. Due to widespread misuse, this is not helpful for non-visual browsers.
+marginheight marginheight [HTML4 only]\n\nThe amount of space in pixels between the frame's content and its top and bottom margins.
+marginwidth marginwidth [HTML4 only]\n\nThe amount of space in pixels between the frame's content and its left and right margins.
+mozallowfullscreen
+mozapp
+mozbrowser
+name name\n\nA name for the embedded browsing context (or frame). This can be used as the value of the target attribute of an <a> or <form> element, or the formtarget attribute of an <input> or <button> element.
+remote remote [!] [Only available on Firefox OS]\n\nLoad the frame's page in a separate content process.
+sandbox
+scrolling scrolling [HTML4 only]\n\nEnumerated attribute indicating when the browser should provide a scroll bar (or other scrolling device) for the frame:\n  auto: Only when needed.\n  yes: Always provide a scroll bar.\n  no: Never provide a scoll bar.
+seamless
+src src\n\nThe URL of the page to embed.
+srcdoc
+webkitallowfullscreen
+width width\n\nIndicates the width of the frame HTML5 in CSS pixels, or HTML 4.01 in pixels or as a percentage.

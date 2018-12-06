@@ -1,0 +1,19 @@
+The HTML <br> Element (or HTML Line Break Element) produces a line break in text (carriage-return). It is useful for writing a poem or an address, where the division of lines is significant.
+
+Notes:
+Do not use <br> to increase the gap between lines of text; use the CSS margin property or the <p> element.
+
+Content categories:
+Flow content, phrasing content.
+
+Permitted content:
+None, it is an empty element.
+
+Tag omission:
+Must have a start tag, and must not have an end tag. In XHTML documents, write this element as <br />.
+
+Permitted parent elements:
+Any element that accepts phrasing content.
+
+DOM interface:
+HTMLBRElement

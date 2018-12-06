@@ -1,0 +1,16 @@
+The HTML <rp> element is used to provide fall-back parenthesis for browsers non-supporting ruby annotations. Ruby annotations are for showing pronounciation of East Asian characters, like using Japanese furigana or Taiwainese bopomofo characters. The <rp> element is used in the case of lack of <ruby> element support its content has what should be displayed in order to indicate the presence of a ruby annotation, usually parentheses.
+
+Content categories:
+None.
+
+Permitted content:
+Phrasing content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+A <ruby> element. <rp> must be positioned immediately before or after an <rt> element.
+
+DOM interface:
+HTMLElement

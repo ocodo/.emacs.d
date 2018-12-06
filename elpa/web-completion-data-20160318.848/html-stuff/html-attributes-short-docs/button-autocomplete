@@ -1,0 +1,3 @@
+autocomplete [!]
+
+The use of this attribute on a <button> is nonstandard and Firefox-specific. By default, unlike other browsers, Firefox persists the dynamic disabled state of a <button> across page loads. Setting the value of this attribute to off (i.e. autocomplete="off") disables this feature. See bug 654072.

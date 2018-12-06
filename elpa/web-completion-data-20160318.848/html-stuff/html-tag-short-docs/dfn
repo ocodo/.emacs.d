@@ -1,0 +1,26 @@
+The HTML <dfn> element (or HTML Definition Element) represents the defining instance of a term.
+
+HTML5 Usage Notes:
+The <dfn> element marks the term being defined; the definition of the term should be given by the surrounding <p>, <section> or definition list group (usually a <dt>, <dd> pair).
+The exact value of the term being defined is determined by the following rules:
+1. If the <dfn> element has a title attribute, then the term is the value of that attribute.
+2. Else, if it contains only an <abbr> element with a title attribute, then the term is the value of that attribute.
+3. Otherwise, the text content of the <dfn> element is the term being defined.
+
+Content categories:
+Flow content, phrasing content, palpable content.
+
+Permitted content:
+Phrasing content, but no <dfn> element must be a descendant.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts phrasing content.
+
+DOM interface:
+HTMLElement
+
+Notes:
+In HTML5, the title attribute has special meaning, as noted above.

@@ -1,0 +1,2 @@
+max max\n\nThis attribute describes how much work the task indicated by the progress element requires. The max attribute, if present, must have a value greater than zero and be a valid floating point number.
+value

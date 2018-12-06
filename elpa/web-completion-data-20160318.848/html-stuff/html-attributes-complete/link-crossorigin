@@ -1,0 +1,2 @@
+anonymous Cross-origin CORS requests for the element will have the omit credentials flag set.
+use-credentials Cross-origin CORS requests for the element will not have the omit credentials flag set.

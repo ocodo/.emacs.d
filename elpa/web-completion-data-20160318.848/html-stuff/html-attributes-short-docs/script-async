@@ -1,0 +1,5 @@
+async [HTML5]
+
+Set this Boolean attribute to indicate that the browser should, if possible, execute the script asynchronously. It has no effect on inline scripts (i.e., scripts that don't have the src attribute).
+
+See Browser compatibility for notes on browser support. See also Async scripts for asm.js.

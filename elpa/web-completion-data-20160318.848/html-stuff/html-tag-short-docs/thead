@@ -1,0 +1,16 @@
+The HTML Table Head Element (<thead>) defines a set of rows defining the head of the columns of the table.
+
+Content categories:
+None.
+
+Permitted content:
+Zero or more <tr> elements.
+
+Tag omission:
+The start tag is mandatory. The end tag may be omitted if the <thead> element is immediately followed by a <tbody> or <tfoot> element.
+
+Permitted parent elements:
+A <table> element. The <thead> must appear after any <caption> or <colgroup> element, even implicitly defined, but before any <tbody>, <tfoot> and <tr> element.
+
+DOM interface:
+This element implements the HTMLTableSectionElement interface.

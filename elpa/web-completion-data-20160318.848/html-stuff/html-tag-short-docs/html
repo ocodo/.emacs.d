@@ -1,0 +1,20 @@
+The HTML root element (<html>) represents the root of an HTML document. All other elements must be descendants of this element.
+
+Content categories:
+None.
+
+Permitted content:
+One <head> element, followed by one <body> element.
+  
+Tag omission:
+The start tag may be omitted if the first thing inside the <html> element is not a comment.
+The end tag may be omitted if the <html> element is not immediately followed by a comment, and it contains a <body> element either that is not empty, or whose start tag is present.
+
+Permitted parent elements:
+As the root element of a document, or wherever a subdocument fragment is allowed in a compound document.
+
+DOM interface:
+HTMLhtmlElement
+
+Notes:
+Since the <html> element is the first in a document other than comments, it is called the root element. Although this tag can be implied, or not required, with HTML, it is required to be opened and closed in XHTML.

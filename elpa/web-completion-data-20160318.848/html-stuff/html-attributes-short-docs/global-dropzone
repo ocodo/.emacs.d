@@ -1,0 +1,9 @@
+Indicates that the element accept the dropping of content on it.
+
+HTML5.
+Unimplemented.
+This enumerated attribute indicates what types of content can be dropped on an element, using the Drag and Drop API. It can have the following values:
+
+copy, which indicates that dropping will create a copy of the element that was dragged
+move, which indicates that the element that was dragged will be moved to this new location.
+link, will create a link to the dragged data.

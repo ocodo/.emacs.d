@@ -1,0 +1,16 @@
+The HTML <rt> Element embraces pronunciation of character presented in a ruby annotations, which are for showing pronunciation of East Asian characters and the <rt> element is used inside of <ruby> element.
+
+Content categories:
+None.
+
+Permitted content:
+Phrasing content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+A <ruby> element.
+
+DOM interface:
+HTMLElement

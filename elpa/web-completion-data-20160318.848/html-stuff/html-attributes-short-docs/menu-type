@@ -1,0 +1,5 @@
+type
+
+This attribute indicates the kind of menu being declared, and can be one of two values.
+  popup: The popup menu state, which represents a group of commands activated through another element. This might be through the menu attribute of a <button>, or an element with a contextmenu attribute. When nesting <menu> elements directly within one another, this is the missing value default if the parent is already in this state.
+  toolbar: The toolbar menu state, which represents a series of commands for user interaction. This is the missing value default, except where the parent element is a <menu> in the popup menu state.

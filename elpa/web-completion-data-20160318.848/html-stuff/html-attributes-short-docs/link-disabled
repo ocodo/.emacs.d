@@ -1,0 +1,11 @@
+disabled [!]
+
+This attribute is used to disable a link relationship. In conjunction with scripting, this attribute could be used to turn on and off various style sheet relationships.
+
+Note: 
+While there is no disabled attribute in the HTML standard, there is a disabled attribute on the HTMLLinkElement DOM object.
+
+The use of disabled as an HTML attribute is non-standard and only used by some browsers. Do not use it. To achieve a similar effect, use one of the following techniques:
+
+  If the disabled attribute has been added directly to the element on the page, do not include the <link> element instead;
+  Set the disabled property of the StyleSheet DOM object via scripting.

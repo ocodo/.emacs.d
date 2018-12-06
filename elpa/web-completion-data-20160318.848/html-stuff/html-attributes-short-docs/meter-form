@@ -1,0 +1,3 @@
+form
+
+This attribute associates the element with a form element that has ownership of the meter element. For example, a meter might be displaying a range corresponding to an input element of type number. This attribute is only used if the meter element is being used as a form-associated element; even then, it may be omitted if the element appears as a descendant of a form element.

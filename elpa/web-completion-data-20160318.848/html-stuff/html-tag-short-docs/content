@@ -1,0 +1,12 @@
+The HTML content element <content> is used with shadow trees as an insertion point.
+
+For more information about shadow trees, see the Shadow DOM draft specification.
+
+Content categories:
+Transparent content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+DOM interface:
+HTMLContentElement

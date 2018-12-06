@@ -1,0 +1,8 @@
+scope
+
+This enumerated attribute defines the cells that the header defined in this <th> element relates to. It may have the following values:
+  row, which means that the header relates to all cells in the row that this element belongs to;
+  col, which means that the header relates to all cells in the column that this element belongs to;
+  rowgroup, which means that the header relates to all remaining cells in the row that this element belongs to. The remaining cells are either those to the right of this element, or to his left depending of the value ofdir attribute defined on the <table> element;
+  colgroup, which means that the header relates to all remaining cells in the column that this element belongs to;
+auto

@@ -1,0 +1,21 @@
+The HTML select (<select>) element represents a control that presents a menu of options. The options within the menu are represented by <option> elements, which can be grouped by <optgroup> elements. Options can be pre-selected for the user.
+
+Content categories:
+flow content, phrasing content, interactive content, listed, labelable, resettable, and submittable form-associated element
+
+Permitted content:
+Zero or more <option> or <optgroup> elements.
+
+Tag omission:
+none, both the start tag and the end tag are mandatory
+
+Permitted parent elements:
+any element that accepts phrasing content.
+
+Notes:
+
+The content of this element is static and not editable.
+
+The following is an example of how to simulate a select list with editable options, but be warned that screen readers and assistive devices will not interpret the form correctly; this example would be invalid html if the correct elements were used:
+
+This is an example of an editable select through a <fieldset> of radioboxes and textboxes (written in pure CSS, without JavaScript), 

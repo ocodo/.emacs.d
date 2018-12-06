@@ -1,0 +1,23 @@
+Heading elements implement six levels of document headings, <h1> is the most important and <h6> is the least. A heading element briefly describes the topic of the section it introduces. Heading information may be used by user agents, for example, to construct a table of contents for a document automatically.
+
+Content categories:
+Flow content, heading content, palpable content.
+
+Permitted content:
+Phrasing content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts flow content; or as a child of an <hgroup> element.
+
+DOM interface:
+HTMLHeadingElement
+
+Notes:
+Do not use lower levels to decrease heading font size: use the CSS font-size property instead.
+
+Avoid skipping heading levels: always start from <h1>, next use <h2> and so on. Also try to have only one first level heading on a page.
+
+In HTML5, use the <section> element to define the outline of a document. Headings provide titles for sections and subsections. You can also group a heading and its content using the <div> element.

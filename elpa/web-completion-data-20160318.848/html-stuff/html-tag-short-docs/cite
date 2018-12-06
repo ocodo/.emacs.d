@@ -1,0 +1,21 @@
+The HTML <cite> Element (or HTML Citation Element) represents a reference to a creative work. It must include the title of a work, the name of the author, or a URL reference, which may be in an abbreviated form according to the conventions used for the addition of citation metadata.
+
+Usage Notes:
+
+A creative work may include a book, a paper, an essay, a poem, a score, a song, a script, a film, a TV show, a game, a sculpture, a painting, a theater production, a play, an opera, a musical, an exhibition, a legal case report, a computer program, , a web site, a web page, a blog post or comment, a forum post or comment, a tweet, a written or oral statement, etc.
+Use the cite attribute on a <blockquote> or <q> element to reference an online resource for a source.
+
+Content categories:
+Flow content, phrasing content, palpable content.
+
+Permitted content:
+Phrasing content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts phrasing content.
+
+DOM interface:
+HTMLElement Up to Gecko 1.9.2 (Firefox 4) inclusive, Firefox implements the HTMLSpanElement interface for this element.

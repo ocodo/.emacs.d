@@ -1,0 +1,24 @@
+The HTML <script> element is used to embed or reference an executable script within an HTML or XHTML document.
+
+Scripts without async or defer attributes, as well as inline scripts, are fetched and executed immediately, before the browser continues to parse the page.
+
+Content categories:
+Metadata content, Flow content, Phrasing content.
+
+Permitted content:
+Dynamic script such as text/javascript.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts metadata content, or any element that accepts phrasing content.
+
+DOM interface:
+HTMLScriptElement
+
+Async support:
+In older browsers that don't support the async attribute, parser-inserted scripts block the parser; script-inserted scripts execute asynchronously in IE and WebKit, but synchronously in Opera and pre-4.0 Firefox. In Firefox 4.0, the async DOM property defaults to true for script-created scripts, so the default behavior matches the behavior of IE and WebKit. To request script-inserted external scripts be executed in the insertion order in browsers where the document.createElement("script").async evaluates to true (such as Firefox 4.0), set .async=false on the scripts you want to maintain order. Never call document.write() from an async script. In Gecko 1.9.2, calling document.write() has an unpredictable effect. In Gecko 2.0, calling document.write() from an async script has no effect (other than printing a warning to the error console).
+
+Gecko-specific notes:
+Starting in Gecko 2.0 (Firefox 4 / Thunderbird 3.3 / SeaMonkey 2.1), inserting script elements that have been created by calling document.createElement("script") into the DOM no longer enforces execution in insertion order. This change lets Gecko properly abide by the HTML5 specification. To make script-inserted external scripts execute in their insertion order, set .async=false on them.

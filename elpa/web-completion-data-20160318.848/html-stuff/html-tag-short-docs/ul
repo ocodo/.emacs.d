@@ -1,0 +1,21 @@
+The HTML unordered list element (<ul>) represents an unordered list of items, namely a collection of items that do not have a numerical ordering, and their order in the list is meaningless. Typically, unordered-list items are displayed with a bullet, which can be of several forms, like a dot, a circle or a squared. The bullet style is not defined in the HTML description of the page, but in its associated CSS, using the list-style-type property.
+
+There is no limitation to the depth and imbrication of lists defined with the <ol> and <ul> elements.
+
+Usage note: 
+The <ol> and <ul> elements both represent a list of items. They differ in that, with the <ol> element, the order is meaningful. As a rule of thumb to determine which one to use, try changing the order of the list items; if the meaning is changed, the <ol> element should be used, otherwise you can use <ul>.
+
+Content categories:
+Flow content.
+
+Permitted content:
+zero or more <li> elements, eventually mixed with <ol> and <ul> elements.
+
+Tag omission:
+none, both the start tag and the end tag are mandatory.
+
+Permitted parent elements:
+any element that accept flowing content.
+
+DOM interface:
+This element implements the HTMLUListElement interface.

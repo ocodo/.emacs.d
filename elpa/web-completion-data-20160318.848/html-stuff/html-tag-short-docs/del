@@ -1,0 +1,16 @@
+The HTML <del> element (or HTML Deleted Text Element) represents a range of text that has been deleted from a document. This element is often (but need not be) rendered with strike-through text.
+
+Content categories:
+Phrasing content or flow content.
+
+Permitted content:
+Transparent.
+
+Tag omission:
+None, both the starting and ending tag are mandatory.
+
+Permitted parent elements:
+Any element that accepts phrasing content.
+
+DOM interface:
+HTMLModElement

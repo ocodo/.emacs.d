@@ -1,0 +1,19 @@
+The HTML <button> Element represents a clickable button.
+
+Content categories:
+Flow content, phrasing content, Interactive content, listed, labelable, and submittable form-associated element, palpable content.
+
+Permitted content:
+Phrasing content.
+
+Tag omission:
+None, both the starting and ending tag are mandatory. 
+
+Permitted parent elements:
+Any element that accepts phrasing content.
+
+DOM interface:
+HTMLButtonElement
+
+Element type:
+Inline

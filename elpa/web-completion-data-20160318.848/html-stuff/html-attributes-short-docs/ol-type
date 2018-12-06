@@ -1,0 +1,7 @@
+type
+
+Indicates the numbering type.
+The type set is used for the entire list unless a different type attribute is used within an enclosed <li> element.
+
+Note: 
+This attribute was deprecated in HTML4, but reintroduced in HTML5. Unless the value of the list number matters (e.g. in legal or technical documents where items are to be referenced by their number/letter), the CSS list-style-type property should be used instead.

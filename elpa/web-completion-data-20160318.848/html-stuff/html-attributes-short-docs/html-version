@@ -1,0 +1,3 @@
+version [Deprecated since HTML4.01] [Obsolete since HTML5]
+
+Specifies the version of the HTML Document Type Definition that governs the current document. This attribute is not needed, because it is redundant with the version information in the document type declaration.

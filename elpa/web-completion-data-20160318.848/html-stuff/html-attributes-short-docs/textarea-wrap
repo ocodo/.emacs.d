@@ -1,0 +1,7 @@
+wrap [HTML5]
+
+Indicates how the control wraps text. Possible values are:
+  hard: The browser automatically inserts line breaks (CR+LF) so that each line has no more than the width of the control; the cols attribute must be specified.
+  soft: The browser ensures that all line breaks in the value consist of a CR+LF pair, but does not insert any additional line breaks.
+
+If this attribute is not specified, soft is its default value.
