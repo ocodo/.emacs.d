@@ -1,7 +1,10 @@
 ;;; apel-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
 ;;;### (autoloads nil "alist" "alist.el" (0 0 0 0))
 ;;; Generated autoloads from alist.el
@@ -135,15 +138,15 @@ Add PATH to `load-path' if it exists under `default-load-path'
 directories and it does not exist in `load-path'.
 
 You can use following PATH styles:
-  load-path relative: \"PATH/\"
-      (it is searched from `default-load-path')
-  home directory relative: \"~/PATH/\" \"~USER/PATH/\"
-  absolute path: \"/HOO/BAR/BAZ/\"
+	load-path relative: \"PATH/\"
+			(it is searched from `default-load-path')
+	home directory relative: \"~/PATH/\" \"~USER/PATH/\"
+	absolute path: \"/HOO/BAR/BAZ/\"
 
 You can specify following OPTIONS:
-  'all-paths  search from `load-path'
-      instead of `default-load-path'
-  'append   add PATH to the last of `load-path'
+	'all-paths	search from `load-path'
+			instead of `default-load-path'
+	'append		add PATH to the last of `load-path'
 
 \(fn PATH &rest OPTIONS)" nil nil)
 
@@ -243,7 +246,7 @@ If PATHS is omitted, `load-path' is used.
 ;;;### (autoloads nil "pym" "pym.el" (0 0 0 0))
 ;;; Generated autoloads from pym.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "pym" '("subr-fboundp" "def")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "pym" '("subr-fboundp" "defalias-maybe" "defvar-maybe" "defconst-maybe" "defun-maybe" "defmacro-maybe" "defsubst-maybe" "def-edebug-spec")))
 
 ;;;***
 
@@ -280,5 +283,6 @@ If PATHS is omitted, `load-path' is used.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; apel-autoloads.el ends here
