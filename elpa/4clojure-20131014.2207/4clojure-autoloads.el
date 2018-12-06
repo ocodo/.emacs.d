@@ -1,10 +1,12 @@
 ;;; 4clojure-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "4clojure" "4clojure.el" (21843 7333 935401
-;;;;;;  0))
+;;;### (autoloads nil "4clojure" "4clojure.el" (0 0 0 0))
 ;;; Generated autoloads from 4clojure.el
 
 (autoload '4clojure-open-question "4clojure" "\
@@ -29,11 +31,14 @@ Sends the first answer to 4clojure and gets a message back
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "4clojure" '("4clojure")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; 4clojure-autoloads.el ends here
