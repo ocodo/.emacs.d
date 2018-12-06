@@ -1,9 +1,12 @@
 ;;; avy-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "avy" "avy.el" (23278 48462 0 0))
+;;;### (autoloads nil "avy" "avy.el" (0 0 0 0))
 ;;; Generated autoloads from avy.el
 
 (autoload 'avy-goto-char "avy" "\
@@ -110,12 +113,12 @@ When ARG is non-nil, do the opposite of `avy-all-windows'.
 
 (autoload 'avy-goto-subword-0 "avy" "\
 Jump to a word or subword start.
-
 The window scope is determined by `avy-all-windows' (ARG negates it).
-BEG and END narrow the scope where candidates are searched.
 
 When PREDICATE is non-nil it's a function of zero parameters that
 should return true.
+
+BEG and END narrow the scope where candidates are searched.
 
 \(fn &optional ARG PREDICATE BEG END)" t nil)
 
@@ -147,13 +150,24 @@ Otherwise, forward to `goto-line' with ARG.
 
 (autoload 'avy-goto-line-above "avy" "\
 Goto visible line above the cursor.
+OFFSET changes the distance between the closest key to the cursor and
+the cursor
+When BOTTOM-UP is non-nil, display avy candidates from top to bottom
 
-\(fn)" t nil)
+\(fn &optional OFFSET BOTTOM-UP)" t nil)
 
 (autoload 'avy-goto-line-below "avy" "\
 Goto visible line below the cursor.
+OFFSET changes the distance between the closest key to the cursor and
+the cursor
+When BOTTOM-UP is non-nil, display avy candidates from top to bottom
 
-\(fn)" t nil)
+\(fn &optional OFFSET BOTTOM-UP)" t nil)
+
+(autoload 'avy-goto-end-of-line "avy" "\
+Call `avy-goto-line' and move to the end of the line.
+
+\(fn &optional ARG)" t nil)
 
 (autoload 'avy-copy-line "avy" "\
 Copy a selected line above the current line.
@@ -237,11 +251,14 @@ The window scope is determined by `avy-all-windows' (ARG negates it).
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "avy" '("avy-")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; avy-autoloads.el ends here
