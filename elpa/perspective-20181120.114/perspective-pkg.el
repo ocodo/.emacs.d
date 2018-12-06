@@ -1,0 +1,2 @@
+;;; -*- no-byte-compile: t -*-
+(define-package "perspective" "20181120.114" "switch between named \"perspectives\" of the editor" '((cl-lib "0.5")) :commit "2c8cf56d170c3eb1fcc1a8fe41026b780e0ffead" :keywords '("workspace" "convenience" "frames") :authors '(("Natalie Weizenbaum" . "nex342@gmail.com")) :maintainer '("Natalie Weizenbaum" . "nex342@gmail.com") :url "http://github.com/nex3/perspective-el")
