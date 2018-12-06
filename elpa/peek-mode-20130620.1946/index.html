@@ -1,0 +1,52 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+  </head>
+
+  <body>
+
+
+    <iframe id="content" name="content" frameborder="0" marginheight="0" marginwidth="0" width="100%" height="100%" scrolling="auto">
+    </iframe>
+
+    <script type="text/javascript">
+      var buffer = window.location.pathname.split('/')[3];
+      var current_id = "-1";
+      $('head').append($('<title/>').text(decodeURI(buffer)));
+
+      var printIframe = function(data) {
+        var iframeJQ = $('#content');
+	var doc = iframeJQ[0].contentDocument; 
+        doc.open();
+        doc.write(data);
+        doc.close();
+      };
+
+      var updateBuffer = function(newText) {
+        var spaceIdx = newText.indexOf(' ');
+        current_id = newText.substr(0, spaceIdx);
+        var html_string = newText.substr(spaceIdx + 1);
+	printIframe(html_string);
+      };
+
+      var refresh = function() {
+        var url = "/peek/buffer/" + buffer;
+
+        var gotData = function(data) {
+          updateBuffer(data);
+          refresh();
+        };
+
+	var errorRetry = function() {
+          setTimeout(refresh, 1000);
+        };
+
+        $.get(url + '?id=' + current_id, gotData).error(errorRetry);
+      };
+
+      $(document).ready(function() {
+        refresh();
+      });
+    </script>
+  </body>
+</html>
