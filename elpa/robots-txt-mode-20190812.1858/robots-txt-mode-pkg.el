@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/robots-txt-mode-20190812.1858/robots-txt-mode.el  -*- no-byte-compile: t -*-
+(define-package "robots-txt-mode" "20190812.1858" "Major mode for editing robots.txt" 'nil :commit "8bf67285a25a6756607354d184e36583f2847e7d" :keywords '("languages" "comm" "web") :authors '(("USAMI Kenta" . "tadsan@zonu.me")) :maintainer '("USAMI Kenta" . "tadsan@zonu.me") :url "https://github.com/emacs-php/robots-txt-mode")
