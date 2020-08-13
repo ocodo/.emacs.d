@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/nvm-20200501.1414/nvm.el  -*- no-byte-compile: t -*-
+(define-package "nvm" "20200501.1414" "Manage Node versions within Emacs" '((s "1.8.0") (dash "2.4.0") (f "0.14.0") (dash-functional "2.4.0")) :commit "fc925b9afe738264cb15d5135c7426f999aeda47" :keywords '("node" "nvm") :authors '(("Johan Andersson" . "johan.rejeep@gmail.com")) :maintainer '("Johan Andersson" . "johan.rejeep@gmail.com") :url "http://github.com/rejeep/nvm.el")
