@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/yoshi-theme-20200422.208/yoshi-theme.el  -*- no-byte-compile: t -*-
+(define-package "yoshi-theme" "20200422.208" "Theme named after my cat" 'nil :commit "caa83e4475885a2c9a126630f0feec1ce2eb0c4e" :keywords '("faces") :authors '(("Tom Willemse" . "tom@ryuslash.org")) :maintainer '("Tom Willemse" . "tom@ryuslash.org") :url "http://projects.ryuslash.org/yoshi-theme/")
