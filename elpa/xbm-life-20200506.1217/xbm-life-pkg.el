@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/xbm-life-20200506.1217/xbm-life.el  -*- no-byte-compile: t -*-
+(define-package "xbm-life" "20200506.1217" "A XBM version of Conway's Game of Life" 'nil :commit "311ef62438c4ab057c054fcdda4dbfa5980759b5" :keywords '("games") :authors '(("Vasilij Schneidermann" . "mail@vasilij.de")) :maintainer '("Vasilij Schneidermann" . "mail@vasilij.de") :url "https://depp.brause.cc/xbm-life")
