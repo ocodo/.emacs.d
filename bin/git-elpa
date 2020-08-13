@@ -119,7 +119,7 @@ class GitElpa
 
   def updatable_files_from_git_status
     `git status -s |
-          grep -P -o '^( D | A |[?]{2} )elpa/.*?(\.signed$|/)' |
+          ggrep -P -o '^( D | A |[?]{2} )elpa/.*?(\.signed$|/)' |
           uniq`.split("\n")
   end
 
