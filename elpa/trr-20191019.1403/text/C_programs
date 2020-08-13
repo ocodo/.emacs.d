@@ -1,0 +1,590 @@
+/* format.c -- a text formatter for trr19
+ */
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <signal.h>
+#include <errno.h>
+
+#if defined(HAVE_STRING_H)
+#include <string.h>
+#else
+#include <strings.h>
+#endif /* HAVE_STRING_H */  
+
+int
+main(int argc, char **argv){
+  char textfile[256], formattedfile[256], lockfile[256], *tmpfname;
+  char command[256], line[1024];
+  FILE *fd, *tmpfd;
+  int i;
+
+  /* ignore signals */
+  signal(SIGHUP, SIG_IGN);
+  signal(SIGINT, SIG_IGN);
+  signal(SIGQUIT, SIG_IGN);
+  signal(SIGTERM, SIG_IGN);
+
+  strcpy(textfile, TEXT_DIR);
+  strcat(textfile, argv[1]);
+  strcpy(formattedfile, textfile);
+  strcat(formattedfile, ".formed");
+  strcpy(lockfile, textfile);
+  strcat(lockfile, ".lock");
+
+  umask(18);
+
+  /* if previous process is formatting same target text,
+     wait for that process to finish formatting. */
+  if (open(lockfile, O_CREAT|O_EXCL, 420) == -1)
+    if (errno == EEXIST){
+      i = 0;
+      while (open(lockfile, O_CREAT|O_EXCL, 420) == -1){
+	if (errno == EEXIST){
+	  sleep(1);
+	  /* if failed 20 times, then remove lockfile and exit abnormally */
+	  if (i++ == 20){
+	    unlink(lockfile);
+	    exit(1);
+	  }
+	} else{
+	  perror(lockfile);
+	  exit(1);
+	}
+      }
+      /* successfully formatted */
+      unlink(lockfile);
+      return 0;
+    } else{
+      perror(lockfile);
+      exit(1);
+    }
+  else{
+    /* format a text */
+    tmpfname = tmpnam(NULL);
+    unlink(formattedfile);
+    sprintf(command, "%s -v '^[ \t]*$' %s | %s 's/\\([.?!;]\\) *$/\\1/' | %s 's/^  *\\(.*\\)$/\\1/' > %s",
+	    GREP, textfile, SED, SED, tmpfname);
+    system(command);
+
+    tmpfd = fopen(tmpfname, "r");
+    fd = fopen(formattedfile, "w");
+
+    while(fgets(line, 1024, tmpfd))
+      fputs(line, fd);
+
+    fclose(tmpfd);
+    fclose(fd);
+    unlink(tmpfname);
+
+    /* release lock */
+    unlink(lockfile);
+    return 0;
+  }
+}
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+/* 
+ *  Person
+ */
+
+typedef struct {
+  int id;
+  double height;
+  double width;
+} Person;
+
+double person_id (Person *);
+double person_height (Person *);
+double person_width (Person *);
+
+double person_id (Person *p)
+{
+  return (double)(p->id);
+}
+double person_height (Person *p)
+{
+  return p->height;
+}
+double person_width (Person *p)
+{
+  return p->width;
+}
+double person_BMI (Person *p)
+{
+  return (p->width) * (p->width) / (p->height);
+}
+
+int is_smaller_id_than (void *p1, void *p2)
+{
+  return ((Person *)p1)->id <= ((Person *)p2)->id;
+}
+int is_smaller_weight_than (void *p1, void *p2)
+{
+  return ((Person *)p1)->width <= ((Person *)p2)->width;
+}
+int is_smaller_height_than (void *p1, void *p2)
+{
+  return ((Person *)p1)->height <= ((Person *)p2)->height;
+}
+
+/* End of Person */
+
+/*
+ * Pet
+ */
+typedef struct Pet {
+  char * kind;
+  char * name;
+  int * age;
+} Pet;
+
+typedef int compare_function (void *, void *);
+
+
+compare_function is_smaller_name_than;
+compare_function is_smaller_kind_than;
+compare_function is_smaller_age_than;
+
+int
+is_smaller_age (void *p1, void *p2)
+{
+  return (((Pet *)p1)->age <= ((Pet *)p2)->age);
+}
+
+/* end of Pet */ 
+
+//void *find_person (void **, int, int(*)(void *, void *));
+
+void *find_person (void **, int, compare_function);
+
+Person p1 = {1, 158.0, 56.9};
+Person p2 = {2, 174.0, 70.2};
+Person p3 = {3, 181.0, 76.6};
+Person p4 = {4, 151.0, 60.0};
+Person p5 = {5, 165.0, 56.7};
+
+Person *x[]  = {&p1, &p2, &p3, &p4, &p5};
+
+int
+main(void)
+{
+  Person *p;
+  
+  printf ("The shortest is %d.\n", ((Person *)find_person((void **)x, 5, is_smaller_height_than))->id);
+  printf ("The lightest is %d.\n", ((Person *)find_person((void **)x, 5, is_smaller_weight_than))->id);
+  printf ("The oldest is %d.\n", ((Person *)find_person((void **)x, 5, is_smaller_id_than))->id);
+  
+  return 0;
+}
+
+void *find_person(void **vec, int length, int (*order)(void *, void *))
+{
+  void *cand = *vec;
+  int i;
+  
+  for (i = 0; i < length; i++) {
+    void *tmp = *(vec + i);
+    if (order(tmp, cand))
+      cand = tmp;
+  }
+  return cand;
+}
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MIN_PID 1		
+#define MAX_PID	10		
+#define TRUE	(1 == 1)	
+#define FALSE	0		
+#define MAX_CLOCK 1000		
+
+typedef int boolean;		
+
+typedef enum { RUNNING, READY, /* WAITING */ FINISHED } Pstate;
+
+typedef struct {
+  int pid;			
+  Pstate state;			
+  int waiting_time;		
+  int total_execution_time;	
+  int total_required_time;	
+#ifndef ERROR
+  int start_time;
+  int finished_time;
+#endif  
+} PCB;
+
+typedef int (scheduler_compare_function)(int, int);
+
+boolean all_process_finished ();
+void dispatcher (int);
+void initialize ();
+boolean is_terminated (PCB *);
+void my_exit (PCB *);
+void print_result ();
+void set ();
+void scheduler_initialize ();
+void scheduler_set_algorithm (scheduler_compare_function);
+void scheduler ();
+void scheduler_initialize_PCB (PCB *, int, int);
+void simulator__time_goes ();
+void start ();
+void terminate_process (PCB *);
+void update (PCB *);
+
+scheduler_compare_function scheduler_FCFS;
+scheduler_compare_function scheduler_SJF;
+scheduler_compare_function scheduler_round_robin;
+scheduler_compare_function scheduler_stack_order;
+
+int allocation_history[MAX_CLOCK];	
+int current_clock;	   
+int last_pid;		   
+PCB scheduler_pcb_table[MAX_PID];
+int (*scheduler_algorithm)(int, int); 
+
+int
+main (int argc, char **argv)
+{     
+  initialize ();	
+  set();	
+  scheduler_set_algorithm(scheduler_FCFS); 
+  start();	
+  print_result ();		
+  exit (0);
+}
+
+void
+initialize ()
+{
+  current_clock = 0;		
+  scheduler_initialize();
+}
+
+void
+scheduler_set_algorithm (scheduler_compare_function compare)
+{
+  scheduler_algorithm = compare;
+}
+
+void
+set ()
+{
+  scheduler_initialize_PCB (scheduler_pcb_table + 1, 0, 10);
+  scheduler_initialize_PCB (scheduler_pcb_table + 2, 3, 8);
+}
+
+void
+start()
+{
+  while (! all_process_finished ()) 
+    {
+      scheduler ();	
+      simulator__time_goes ();		
+    }
+}
+
+void
+simulator__time_goes ()
+{
+  int i;
+
+  for (i = MIN_PID; i < last_pid; i++)
+    update (scheduler_pcb_table + i);
+  
+  current_clock++; 
+}
+
+void
+my_exit (PCB *pcb)
+{
+  terminate_process(pcb);
+}
+
+void
+print_result ()
+{
+  printf ("Elapsed time: %d\n", current_clock);
+  {
+    int i;
+    int elapsed = 0;
+
+    for (i = MIN_PID; i < last_pid; i++)
+      elapsed += scheduler_pcb_table[i].finished_time - scheduler_pcb_table[i].start_time;
+    
+    printf ("Average time: %f\n", (float) elapsed / (last_pid - 1));
+  }
+}
+
+void scheduler_initialize (scheduler_compare_function compare)
+{
+  int i;
+  scheduler_algorithm = compare;
+  last_pid = MIN_PID;
+  scheduler_pcb_table[0].state = FINISHED;
+  for (i = MIN_PID; i < MAX_PID; i++)
+    {
+      scheduler_pcb_table[i].pid = i;
+      scheduler_pcb_table[i].state = FINISHED;
+    }
+}
+
+void
+scheduler ()
+{
+  int selected;			
+  int i;
+
+  {
+    for (i = MIN_PID; i < MAX_PID; i++)
+      if (scheduler_pcb_table[i].state == RUNNING) 
+	{
+	  scheduler_pcb_table[i].state = READY; 
+	  break;			
+	}
+  }
+  {
+    for (i = MIN_PID; i < last_pid; i++) { 
+     if (scheduler_pcb_table[i].state == READY && scheduler_pcb_table[i].start_time <= current_clock) {
+	selected = i;
+	break;
+      }
+    }
+    if (i >= last_pid) return;	
+    for (i = MIN_PID; i < last_pid; i++) {
+      if (scheduler_pcb_table[i].state != READY || scheduler_pcb_table[i].start_time > current_clock)
+	continue;
+      selected = scheduler_algorithm(selected, i);
+    }
+  }
+  dispatcher (selected);
+}
+
+void
+dispatcher (int to)
+{
+  scheduler_pcb_table[to].state = RUNNING;
+  scheduler_pcb_table[to].waiting_time = 0; 
+}
+
+void
+scheduler_initialize_PCB (PCB *pcb, int start_time, int required_time)
+{
+  pcb->pid = last_pid++;    
+  pcb->state = READY;
+  pcb->waiting_time = 0;
+  pcb->total_execution_time = 0;
+  pcb->start_time = start_time;	
+  pcb->total_required_time = required_time; 
+  pcb->finished_time = -1;		
+}
+
+void
+update (PCB *pcb)
+{
+  switch (pcb->state)
+    {
+    case READY:			
+      if (pcb->start_time <= current_clock) pcb->waiting_time++; 
+      break;
+    case RUNNING:
+      if (current_clock >= MAX_CLOCK) {
+	printf("Abort due to too long simulation!\n");
+	exit(-1);
+      }
+      allocation_history[current_clock] = pcb->pid; 
+      pcb->total_execution_time++;
+      if (pcb->total_execution_time == pcb->total_required_time)
+	my_exit (pcb);	
+      break;
+    case FINISHED:
+      break;
+    }
+}
+
+boolean
+is_terminated (PCB *pcb)
+{
+  return ((pcb->start_time < current_clock) &&  pcb->state == FINISHED);
+}
+
+
+boolean
+all_process_finished ()
+{
+  int i;
+
+  for (i = MIN_PID; i < last_pid; i++)
+    if (! is_terminated (scheduler_pcb_table + i))
+      return FALSE;		
+  return TRUE;
+}
+
+void
+terminate_process (PCB *pcb)
+{
+  pcb->state = FINISHED;
+  pcb->finished_time = current_clock + 1; 
+}
+
+int
+scheduler_FCFS (int i, int j)
+{
+  return 1;
+}
+
+int
+scheduler_SJF (int i, int j)
+{
+  return 1;
+}
+
+int
+scheduler_round_robin (int i, int j)
+{
+  return 1;
+}
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <errno.h>
+
+#if defined(HAVE_STRING_H)
+#include <string.h>
+#else
+#include <strings.h>
+#endif /* HAVE_STRING_H */  
+
+#if defined(HAVE_SYS_TIME_H)
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif /* HAVE_SYS_TIME_H */
+
+#if defined(HAVE_FCNTL_H)
+#include <fcntl.h>
+#else
+#if defined(HAVE_SYS_FCNTL_H)
+#include <sys/fcntl.h>
+#else
+#include <sys/file.h>
+#endif /* HAVE_SYS_FCNTL_H */
+#endif /* HAVE_FCNTL_H */
+
+main(int argc, char **argv){
+  char scorefile[256], lockfile[256], datestr[64];
+  char line[256], savedline[256];
+  const char *user, *scores, *step, *times, *ttime, *token;
+  FILE *fd, *tmpf;
+  int score, tmpscore, i, myself, inserted;
+  long datev;
+
+  /* ignore signals */
+  signal(SIGHUP, SIG_IGN);
+  signal(SIGINT, SIG_IGN);
+  signal(SIGQUIT, SIG_IGN);
+  signal(SIGTERM, SIG_IGN);
+
+  umask(18);
+  strcpy(scorefile, RECORD_DIR);
+
+  /* create a new record file */
+  if (argc == 2){
+    strcat(scorefile, argv[1]);
+
+    if ((fd = fopen(scorefile, "w")) == NULL){
+      perror(scorefile);
+      exit(1);
+    } else
+      fclose(fd);
+    exit(0);
+  }
+
+  /* upfate high score file */
+  strcat(scorefile, argv[1]);
+  strcpy(lockfile, scorefile);
+  strcat(lockfile, ".lock");
+  user = argv[2];
+  scores = argv[3];
+  score = atoi(argv[3]);
+  step = argv[4];
+  times = argv[5];
+  ttime = argv[6];
+
+  time(&datev);
+  strftime(datestr, 63, "%y.%m.%d, %H:%M", localtime(&datev));
+
+  /* lock */
+  i = 0;
+  while (open(lockfile, O_CREAT|O_EXCL, 420) == -1){
+    if (errno == EEXIST){
+      sleep(1);
+      /* if failed 20 times, remove lockfile and exit abnormally */
+      if (i++ == 20){
+	unlink(lockfile);
+	exit(1);
+      }
+    } else
+      exit(1);
+  }
+
+  if ((fd = fopen(scorefile, "r")) == NULL){
+    perror(scorefile);
+    unlink(lockfile);
+    exit(1);
+  }
+  tmpf = tmpfile();
+  inserted = 0;
+
+  /* sorting ... */
+  while (fgets(line, 256, fd)){
+    myself = 0;
+    strcpy(savedline, line);
+    token = (char*)strtok(line, " \t");
+    if (! strcmp(user, token))
+      myself = 1;
+    token = (char*)strtok(NULL, " \t");
+    tmpscore = atoi(token);
+    if ((! inserted) && (tmpscore <= score)){
+      inserted = 1;
+      if (strlen(user) < 8)
+	fprintf(tmpf, "%s\t\t%s\t%s\t%s\t%s\t%s\n", user, scores,
+		step, times, ttime, datestr);
+      else
+	fprintf(tmpf, "%s\t%s\t%s\t%s\t%s\t%s\n", user, scores,
+		step, times, ttime, datestr);
+    }
+    if (! myself)
+      fputs(savedline, tmpf);
+  }
+  if (! inserted){
+    if (strlen(user) < 8)
+      fprintf(tmpf, "%s\t\t%s\t%s\t%s\t%s\t%s\n", user, scores,
+	      step, times, ttime, datestr);
+    else
+      fprintf(tmpf, "%s\t%s\t%s\t%s\t%s\t%s\n", user, scores,
+	      step, times, ttime, datestr);
+  }
+  rewind(tmpf);
+  fclose(fd);
+
+  if ((fd = fopen(scorefile, "w")) == NULL){
+    perror(scorefile);
+    unlink(lockfile);
+    exit(1);
+  }
+  while (fgets(line, 256, tmpf))
+    fputs(line, fd);
+
+  fclose(tmpf);
+  fclose(fd);
+
+  /* release lock */
+  unlink(lockfile);
+  return 0;
+}

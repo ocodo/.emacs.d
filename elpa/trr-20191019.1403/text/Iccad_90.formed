@@ -1,0 +1,275 @@
+Extraction of Functional Information from Combinational Circuits
+M.Ohmura, H.Yasuura, and K.Tamaru
+Department of Electronics, Kyoto University, Kyoto 606, JAPAN
+ABSTRACT
+We propose a technique of functional information extraction, which is
+the transformation of design descriptions from logic circuit level to
+functional level. It will be an important technology for design verification
+as circuit extraction from layout design. We have developed functional
+information extraction system FINES, which can deal with both logic functions
+and arithmetic functions. Our technique has paid attention to
+characteristics of functions, so we can perform function extraction
+independent of circuit structures. Some examples show that this
+technology is very useful for design verification.
+1. Introduction
+Design automation is considered as automatic transformation between
+two different levels of design descriptions. Main objects studied up to
+now are transformations from higher levels to lower levels. For example,
+automatic layout systems, which are used in practical design, transform a
+circuit design to a layout, and logic synthesizers, which have now been
+developing, transform a functional description to a logic circuit. But
+from the viewpoint of descriptive transformation between different levels,
+transformations from lower levels to higher levels may also be important.
+Actually, circuit extraction systems for layout design verification are
+realized and practically used [1]. Since we can't get rid of a feedback
+from layout design to logic design, circuit extraction is an indispensable
+technology in automatic layout.
+We propose a technique of functional information extraction, which is
+the transformation from logic circuit descriptions to functional descriptions.
+It will be an important technology for design verification as circuit
+extraction. It will be also useful for generating functional simulation
+models and test patterns. When this technique will advance, it can be used
+for automatic generation of design documents or manuals. Since the works of
+writing documents or manuals for designed circuits need many hands and
+much time, the automation of these works will become more important
+in the future.
+We have noticed the importance of functional information extraction for
+two years, and we have studied fundamental methods of function extraction
+from combinational circuits. First, we studied the extraction technique of
+logic functions from combinational circuits, and developed a
+prototype system FINES (functional information extraction system) [2].
+Then, we turned our eyes to the extraction of arithmetic functions. It is
+more useful to extract arithmetic functions for design verifications,
+functional simulations and some other applications. Because arithmetic
+formulae can more simply and compactly describe functions than logic
+formulae in many practical cases. In the past, several extraction techniques
+which paid attention to circuit structures were reported[3, 4]. On the
+contrary, we have paid attention to characteristics of functions themselves,
+and we can perform function extraction independent of circuit structures.
+In this paper, we discuss a technique to extract logic and arithmetic
+functions from combinational circuits. First, we express a fundamental
+technique for extraction of logic functions and explain the system FINES.
+Then we examine extraction of arithmetic functions based on the
+fundamental technique. A few examples are shown in the next.
+2 Fundamental Technique
+2.1 Outline
+In this paper we limit our targets to combinational circuits, because
+they are the basis of various logic circuits, and function extraction of
+combinational circuits will be the most fundamental technique in functional
+information extraction. The technique will also be useful for function
+extraction of sequential circuits.
+A combinational logic circuit includes various kinds of information.
+Some of them can be expressed in logic circuit level, but other information
+is not explicitly described in logic circuit level. Such information is
+described in functional level or architecture level using logic formulae,
+truth tables, function tables, programming-language-like statements, and
+natural languages.
+In the case of small circuits, expressions by logic formulae or truth
+tables are simple and compact. But as the number of input variables
+increases, the formulae become complicated and the size of truth tables
+grow exponentially. Furthermore, since their reduced forms can't always
+uniquely exist, the decision problem whether two expressions are functionally
+equivalent or not is difficult. Function tables are considered intermediate
+forms between logic formulae and truth tables, and have reasonable and
+understandable size. They are often used to describe functions of commercial
+IC's in their data books. In hardware description languages, a function of
+a logic circuit is represented by some formulae or statements like
+programming languages.
+Functional information extraction, discussed in this paper, is to generate
+automatically a function table from a logic circuit diagram. We assume
+we have some information about the circuit which is given by users and
+helpful for extraction of functions. It is called additional information.
+Figure 1 shows an outline of the functional information extraction. We
+use a binary decision diagram (BDD) [5] for the internal data structure.
+A BDD is considered as a modification of a truth tables, as shown in
+Figure 2, but the size is much reduced. Function tables are made from the
+reduced BDDs. In this process additional information is used to get as 
+understandable function tables as possible.
+2.2 Binary Decision Diagram [5]
+Binary decision diagrams (BDDs) are graphical representations for logic
+functions. A BDD with restrictions on the ordering of decision variables,
+proposed by R.E.Bryant, can uniquely represent a logic function by its
+reduced form. It has several advantages as follows.
+A decision problem whether two functions are equivalent or not is easily
+done.
+Most functions used in practice design can be represented in reasonable
+size.
+The time complexity of logic operations is in proportion to graph size.
+Owing these characteristics, BDDs are used in many applications such
+as symbolic simulation[6], logic optimization[7], test pattern
+generation[8], and so on.
+One of the problems of BDDs is how to order decision variables. For some
+functions, the size of the reduced BDD representing the function is
+highly sensitive this ordering. To know the ordering which gives minimum
+size of the graph is very difficult.
+2.3 Notation with Function Table
+Function tables are made from reduced BDDs. Generally, a BDD with
+less nodes is considered to be transformed to a simpler and more
+understandable function table. So it is desirable to obtain the ordering
+of variables which makes a reduced BDD with smaller number of nodes. To
+help the ordering, we use additional information which is given by users
+as a part of specification of a circuit.
+See the next function table. ("x" means "don't care".)
+This represents that if c = 0 then y = a + b, and if c = 1 then y = a & b.
+Thus it is considered that input variable c plays a role to control the
+function. We call such an input variable a control input. On the other
+hand, input variables a and b are data controlled by c, and called data inputs.
+In the practical logic design, we can often distinguish the difference
+between control inputs and data ones from specification. It is often
+pointed out that designers actually utilize the information of the difference
+of data and control inputs.
+In our experiences, when control inputs are ordered prior to data inputs,
+the reduced BDD with less nodes are obtained. If we know which are the
+control inputs among input variables, it is very helpful additional
+information finding a simple function table. Ordering of control inputs is
+more important than that of data inputs. If we know the good ordering of
+control inputs, we can reduce the time searching the best ordering. We
+sometimes know ordering of control inputs. Intuitively, the order
+corresponds to the order of significance of the inputs.
+Now, consider a reduced BDD shown in Figure 3(a), where the order of
+inputs is A, B, C, D and A and B are control inputs. Considering the
+case that each control inputs are assigned the value 0 or 1, three
+subgraphs are obtained as shown in Figure 3(b). Since these graphs
+correspond to logic functions C & D, C @ D, and C + D, a function table
+shown in Figure 3(c) is obtained.
+2.4 Functional Information Extraction System
+We have developed a prototype system of functional information extraction
+for combinational circuits based on the technique presented above.
+The inputs of this system are a logic circuit description and additional
+information. The output is an understandable function table of the
+circuit. The given description is once transformed into BDDs. If
+specification of control and data inputs and an ordering of the control
+inputs are given as additional information, only one reduced BDD is made
+and a function table is generated from it. If there is no additional
+information, all inputs are regarded as control inputs. In this case a
+truth table is made instead of a function table in the worst case.
+This system works on the Franz Lisp interpreter. As an example shown
+in Figure 4, the input and the output are expressed taking forms of list
+structure. This input form is automatically generated from data of a
+schematic design editor. A circuit in this example is a 4-bits selector.
+An input EN is the most significant control input, which decides whether
+selected data is put out or not. Two control inputs S2 and S1 select one
+of the data inputs. In this example, the CPU time to make a function table
+is about 0.08 seconds on NWS830 of SONY (CPU 68020, clock 16.6 MHz).
+3 Extraction of Arithmetic Functions
+3.1 Notation of Arithmetic Operations
+In the previous section, we presented a fundamental technique of functional
+information extraction. In that technique, we only used additional
+information on property of input variables (control inputs or data inputs)
+and significance among control inputs. There are, however, many kinds
+of structures among data inputs. For example, n data inputs representing
+an n-bits binary number have a structure where the i-th bit corresponds
+2i-1. In this section, we will discuss a technique of arithmetic function
+extraction utilizing such data structures.
+Consider the function of full adder as an example. A 1-bit full adder
+has three inputs (CI, A and B) and two outputs (F and CO). Its function
+is represented as follows, if additional information is given which
+specifies the input CI as a control input.
+As shown in this table, a merit of our technique is that we can obtain
+understandable function table by dividing the function according to the
+values of some control inputs. But this table doesn't give us any information
+about its arithmetic characteristic.
+A function table of 2-bits full adder, which has five inputs (CI, A0, A1,
+B0 and B1) and three outputs (F0, F1 and CO) is represented as follows,
+if an input CI is specified as a control input.
+This table is not as understandable as the previous table of 1-bit full
+adder. Because the logic formulae are still complicated even if we divide
+it according to the values of an input CI. Thereby it is unreasonable to
+represent a function of a full adder by logic formulae.
+We presented two function tables above, one is understandable and the
+other is complicated. But in any case, they don't give any information
+about arithmetic functions. In the first place, arithmetic functions
+should be represented by algebraic formulae, not logic formulae. If
+using algebraic formulae, the functions of both a 1-bit full adder and a
+2-bits full adder can be represented with next one function table.
+In next section, we will discuss a method to get such tables.
+3.2 Extraction of Algebraic Formulas
+We can already extract logic functions from any combinational circuits.
+We have only to transform logic functions to arithmetic functions. A
+simple solution of this problem is that we prepare logic formulae
+representing arithmetic functions and compare extracted logic formulae
+with them. One emphasized point of this method is to compare not circuit
+structures but functions. There are many circuits which realize the function
+of addition. But we can't prepare all of them. While, the function of
+addition exists only one. Consequently, we can extract same function from
+circuits of various structures which realize same operation. Thus we can
+perform function extraction independent of circuit structures.
+To realize this technique, next two points should be considered.
+Functions must be uniquely represented by some expressions.
+We must prepare some expressions for arbitrary n bits functions.
+The first point can be resolved by using BDDs instead of logic formulae.
+As mentioned in Section 2, if ordering of input variables is once fixed,
+only one reduced BDD exists.
+To resolve the second problem, we think about the representation with
+recurrence formulae. Let a 2-bits full adder consist of two sequences
+of 1-bit full adders. In this assumption, there exists a carry signal, C1,
+which propagates from the first bit to the second bit. Then next formulae
+are concluded.
+To put it plainly, we used notations C0 and C2 instead of CI and CO. In
+these representations, the following recurrence formulae are obtained.
+The reason why the function of n-bits addition can be so briefly
+expressed is that the operation can be realized by iterative structure as
+shown in Figure 5. Generally, a combinational circuit with iterative
+structure shown in Figure 5 has a logic function represented with the
+following logic formulae.
+We call such recurrence formulae an iterative form. Some logic or
+arithmetic operations are able to represented with this form. Thereby, if
+we previously store iterative forms for several operations in a database,
+we can generate BDDs for arbitrary n.
+In this technique, only stored functions can be extracted from circuits.
+It is impossible, in practice, to prepare all functions in the database.
+Consequently it is necessary to think how to deal with functions which
+are not stored in the database. Such functions are classified in two cases.
+One case is that the functions can't be represented with iterative forms,
+and the other case is that the functions have iteration but isn't stored in
+the database. There are no measures to cope with the former case under
+present conditions, while among the latter case can be dealt with. The
+functions which can be realized by the circuit structure shown in Figure 5
+belong to the latter case. In such functions, whose BDDs for Fi and Ci+1
+depend on Ci, Ai and Bi, iterative forms can be easily extracted from
+given circuit.
+Iterative forms can be interpreted more broadly. For example, the
+iterative form of multiplication is represented as follows.
+Provided that, all(arg) is a function which calculates exclusive OR of
+all elements of arguments arg, and threshold(k, arg) is a function which
+returns 1 when more than k elements of arg are 1's. In this iterative
+form, we use dummy variables, which all equal to 0s.
+4 Examples and Evaluations
+We can extract some logic and arithmetic functions using FINES. Figure 6
+shows an example of 2-bits ALU (arithmetic logic unit). From given
+circuit diagram as shown in Figure 6(a), we make a net-list automatically
+or by hand. Then, additional information shown in Figure 6(b) is given
+by users. Under the circumstances, a function table as shown in Figure
+6(c) is obtained. This is a good example of extracting simply and
+understandable function table.
+Next, we show some numerical result in Table 1. It shows the execution
+time and the number of nodes of BDDs. The number of nodes of BDDs
+is considered proportional to quantity of used memories. An example No.1
+is a selector introduced Section. No.2 is a 4-bits full adder. No.3 and
+No.4 are 2-bits and 4-bits ALU. No.5 is a 4-bits multiplier.
+Our system can deal with at most five thousand nodes of BDDs. Recently,
+an efficient technology about BDD is developing, and a technique
+which can deal with about five hundred thousand nodes of BDDs is reported
+[9]. Utilizing this technique, we can deal with much larger size of
+circuits. We expect we can perform more efficient function extraction.
+5 Conclusion
+In this paper, we proposed a basic idea of functional information
+extraction, and showed techniques for extraction of logic and arithmetic
+functions. Since we used BDDs, which can express the function of a circuit
+uniquely, we may pay attention to only the relation between inputs
+and outputs, and don't have to mind the structure or design methods of
+given circuits. In near future, this technique will be more and more
+indispensable for VLSI design. Now, our system can deal with only simple
+logic functions and a small class of iterative functions. The extraction
+of more complicated functions is very challenging problem.
+Now, we have tackled new theme, the extraction from sequential circuits.
+For synchronous sequential circuits, we hope that the function is
+described by a state transition table linked some function tables in
+each state.
+Functional information extraction is considerably new technology. There
+are few studies on it, but the necessity of this technique has been
+recognized by designers and researchers who are concerned with VLSI design.
+We believe that functional information extraction becomes a new
+basic CAD technology in the era of logic synthesis. In the future, we
+should establish a new design database, and construct an integrated design
+system which can be adopted in practical design.
