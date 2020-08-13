@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/point-stack-20200427.107/point-stack.el  -*- no-byte-compile: t -*-
+(define-package "point-stack" "20200427.107" "Back and forward navigation through buffer locations" 'nil :commit "cddcea2c91038710c245819b3cda2dd739726134" :authors '(("Matt Harrison" . "matthewharrison@gmail.com") ("Dmitry Gutov" . "dgutov@yandex.ru")) :maintainer '("Matt Harrison" . "matthewharrison@gmail.com"))
