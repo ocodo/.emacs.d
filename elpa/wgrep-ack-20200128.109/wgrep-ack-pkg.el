@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/wgrep-ack-20200128.109/wgrep-ack.el  -*- no-byte-compile: t -*-
+(define-package "wgrep-ack" "20200128.109" "Writable ack-and-a-half buffer and apply the changes to files" '((wgrep "2.1.1")) :commit "f0ef9bfa44db503cdb2f83fcfbd2fa4e2382ef1f" :keywords '("grep" "edit" "extensions") :authors '(("Masahiro Hayashi" . "mhayashi1120@gmail.com")) :maintainer '("Masahiro Hayashi" . "mhayashi1120@gmail.com") :url "http://github.com/mhayashi1120/Emacs-wgrep/raw/master/wgrep-ack.el")
