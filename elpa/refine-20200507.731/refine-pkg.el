@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/refine-20200507.731/refine.el  -*- no-byte-compile: t -*-
+(define-package "refine" "20200507.731" "interactive value editing" '((emacs "24.3") (s "1.11.0") (dash "2.12.0") (list-utils "0.4.4") (loop "1.2")) :commit "d72fa50910b86217a35bb1b7e56adea206052021" :keywords '("convenience") :authors '(("Wilfred Hughes" . "me@wilfred.me.uk")) :maintainer '("Wilfred Hughes" . "me@wilfred.me.uk"))
