@@ -6,9 +6,13 @@
 #
 # This module is used to simplify updating Emacs ELPA packages.
 #
-# In a nutshell, this script will list names of packages which have been
-# updated/added, or commit them all (each as separate commits), or
-# commit a single package update (or addition) by it's package name.
+# In a nutshell, within Emacs you would update/modify your ELPA/MELPA packages
+#
+# Then use this script to: 
+# - list names of packages which have been updated/added/deleted
+# - create commits for each package change
+#   - by all
+#   - by a single named package
 #
 # Abstract
 # ========
@@ -72,6 +76,8 @@ Emacs ELPA package commit tool
 
 This tool is designed to assist the storage of your installed ELPA packages.
 It will commit each package separately.
+
+Please note: it is assumed you are actually performing the package updates with Emacs.
 
 Usage: git-elpa [options]
 EOD
