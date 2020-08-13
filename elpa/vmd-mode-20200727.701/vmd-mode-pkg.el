@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/vmd-mode-20200727.701/vmd-mode.el  -*- no-byte-compile: t -*-
+(define-package "vmd-mode" "20200727.701" "Fast Github-flavored Markdown preview using a vmd subprocess." '((emacs "24.3")) :commit "31655a41caf006c3dd64d6e57f6c4488098f8bce" :keywords '("markdown" "preview" "live" "vmd") :authors '(("Blake Miller" . "blak3mill3r@gmail.com")) :maintainer '("Blake Miller" . "blak3mill3r@gmail.com") :url "https://github.com/blak3mill3r/vmd-mode")
