@@ -1,4 +1,6 @@
-(define-package "lua-mode" "20180323.1021" "a major-mode for editing Lua scripts" 'nil :keywords
+(define-package "lua-mode" "20200508.1316" "a major-mode for editing Lua scripts"
+  '((emacs "24.3"))
+  :commit "35b6e4c20b8b4eaf783ccc8e613d0dd06dbd165c" :keywords
   '("languages" "processes" "tools")
   :authors
   '(("2011-2013 immerrr" . "immerrr+lua@gmail.com")
