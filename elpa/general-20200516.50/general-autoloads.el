@@ -1,10 +1,12 @@
 ;;; general-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "general" "general.el" (23344 45010 127669
-;;;;;;  808000))
+;;;### (autoloads nil "general" "general.el" (0 0 0 0))
 ;;; Generated autoloads from general.el
 
 (autoload 'general-define-key "general" "\
@@ -163,6 +165,11 @@ pairs (having only one or the other is fine) marks the start of a new section.
 Each section corresponds to one use of `general-def'. This means that settings
 only apply to the keybindings that directly follow.
 
+Since positional arguments can appear at any point, unqouted symbols are always
+considered to be positional arguments (e.g. a keymap). This means that variables
+can never be used for keys with `general-defs'. Variables can still be used for
+definitions or as arguments to keywords.
+
 \(fn &rest ARGS)" nil t)
 
 (function-put 'general-defs 'lisp-indent-function 'defun)
@@ -180,20 +187,37 @@ Insert after all keys in ARGS before passing ARGS to `general-def.' \":with
 (autoload 'general-describe-keybindings "general" "\
 Show all keys that have been bound with general in an org buffer.
 Any local keybindings will be shown first followed by global keybindings.
+With a non-nil prefix ARG only show bindings in active maps.
 
-\(fn)" t nil)
+\(fn &optional ARG)" t nil)
 
 (autoload 'general-key "general" "\
 Act as KEY's definition in the current context.
 This uses an extended menu item's capability of dynamically computing a
-definition. It is recommended over `general-simulate-key' wherever possible. KEY
-should be a string given in `kbd' notation and should correspond to a single
+definition. It is recommended over `general-simulate-key' wherever possible. See
+the docstring of `general-simulate-key' and the readme for information about the
+benefits and downsides of `general-key'.
+
+KEY should be a string given in `kbd' notation and should correspond to a single
 definition (as opposed to a sequence of commands). When STATE is specified, look
 up KEY with STATE as the current evil state. When specified, DOCSTRING will be
-the menu item's name/description. ACCEPT-DEFAULT, NO-REMAP, and POSITION are
-passed to `key-binding'.
+the menu item's name/description.
 
-\(fn KEY &key STATE DOCSTRING ACCEPT-DEFAULT NO-REMAP POSITION)" nil t)
+Let can be used to bind variables around key lookup. For example:
+\(general-key \"some key\"
+  :let ((some-var some-val)))
+
+SETUP and TEARDOWN can be used to run certain functions before and after key
+lookup. For example, something similar to using :state 'emacs would be:
+\(general-key \"some key\"
+  :setup (evil-local-mode -1)
+  :teardown (evil-local-mode))
+
+ACCEPT-DEFAULT, NO-REMAP, and POSITION are passed to `key-binding'.
+
+\(fn KEY &key STATE DOCSTRING LET SETUP TEARDOWN ACCEPT-DEFAULT NO-REMAP POSITION)" nil t)
+
+(function-put 'general-key 'lisp-indent-function '1)
 
 (autoload 'general-simulate-keys "general" "\
 Deprecated. Please use `general-simulate-key' instead.
@@ -202,6 +226,15 @@ Deprecated. Please use `general-simulate-key' instead.
 
 (autoload 'general-simulate-key "general" "\
 Create and return a command that simulates KEYS in STATE and KEYMAP.
+
+`general-key' should be prefered over this whenever possible as it is simpler
+and has saner functionality in many cases because it does not rely on
+`unread-command-events' (e.g. \"C-h k\" will show the docstring of the command
+to be simulated ; see the readme for more information). The main downsides of
+`general-key' are that it cannot simulate a command followed by keys or
+subsequent commands, and which-key does not currently work well with it when
+simulating a prefix key/incomplete key sequence.
+
 KEYS should be a string given in `kbd' notation. It can also be a list of a
 single command followed by a string of the key(s) to simulate after calling that
 command. STATE should only be specified by evil users and should be a quoted
@@ -284,16 +317,22 @@ Translate keys in the keymap(s) corresponding to STATES and KEYMAPS.
 STATES should be the name of an evil state, a list of states, or nil. KEYMAPS
 should be a symbol corresponding to the keymap to make the translations in or a
 list of keymap names. Keymap and state aliases are supported (as well as 'local
-and 'global for KEYMAPS). MAPS corresponds to a list of translations (key
-replacement pairs). For example, specifying \"a\" \"b\" will bind \"a\" to
-\"b\"'s definition in the keymap. If DESTRUCTIVE is non-nil, the keymap will be
-destructively altered without creating a backup. If DESTRUCTIVE is nil, a backup
-of the keymap will be stored on the initial invocation, and future invocations
-will always look up keys in the backup keymap. On the other hand, if DESTRUCTIVE
-is non-nil, calling this function multiple times with \"a\" \"b\" \"b\" \"a\",
-for example, would continue to swap and unswap the definitions of these keys.
-This means that when DESTRUCTIVE is non-nil, all related swaps/cycles should be
-done in the same invocation.
+and 'global for KEYMAPS).
+
+MAPS corresponds to a list of translations (key replacement pairs). For example,
+specifying \"a\" \"b\" will bind \"a\" to \"b\"'s definition in the keymap.
+Specifying nil as a replacement will unbind a key.
+
+If DESTRUCTIVE is non-nil, the keymap will be destructively altered without
+creating a backup. If DESTRUCTIVE is nil, store a backup of the keymap on the
+initial invocation, and for future invocations always look up keys in the
+original/backup keymap. On the other hand, if DESTRUCTIVE is non-nil, calling
+this function multiple times with \"a\" \"b\" \"b\" \"a\", for example, would
+continue to swap and unswap the definitions of these keys. This means that when
+DESTRUCTIVE is non-nil, all related swaps/cycles should be done in the same
+invocation.
+
+If both MAPS and DESCTRUCTIVE are nil, only create the backup keymap.
 
 \(fn STATES KEYMAPS &rest MAPS &key DESTRUCTIVE &allow-other-keys)" nil nil)
 
@@ -322,9 +361,14 @@ advice.
 (autoload 'general-add-hook "general" "\
 A drop-in replacement for `add-hook'.
 Unlike `add-hook', HOOKS and FUNCTIONS can be single items or lists. APPEND and
-LOCAL are passed directly to `add-hook'.
+LOCAL are passed directly to `add-hook'. When TRANSIENT is non-nil, each
+function will remove itself from the hook it is in after it is run once. If
+TRANSIENT is a function, call it on the return value in order to determine
+whether to remove a function from the hook. For example, if TRANSIENT is
+#'identity, remove each function only if it returns non-nil. TRANSIENT could
+alternatively check something external and ignore the function's return value.
 
-\(fn HOOKS FUNCTIONS &optional APPEND LOCAL)" nil nil)
+\(fn HOOKS FUNCTIONS &optional APPEND LOCAL TRANSIENT)" nil nil)
 
 (autoload 'general-remove-hook "general" "\
 A drop-in replacement for `remove-hook'.
@@ -337,9 +381,14 @@ passed directly to `remove-hook'.
 A drop-in replacement for `advice-add'.
 SYMBOLS, WHERE, FUNCTIONS, and PROPS correspond to the arguments for
 `advice-add'. Unlike `advice-add', SYMBOLS and FUNCTIONS can be single items or
-lists.
+lists. When TRANSIENT is non-nil, each function will remove itself as advice
+after it is run once. If TRANSIENT is a function, call it on the return value in
+order to determine whether to remove a function as advice. For example, if
+TRANSIENT is #'identity, remove each function only if it returns non-nil.
+TRANSIENT could alternatively check something external and ignore the function's
+return value.
 
-\(fn SYMBOLS WHERE FUNCTIONS &optional PROPS)" nil nil)
+\(fn SYMBOLS WHERE FUNCTIONS &optional PROPS TRANSIENT)" nil nil)
  (autoload 'general-add-advice "general")
 
 (autoload 'general-advice-remove "general" "\
@@ -357,11 +406,18 @@ aliases such as `nmap' for `general-nmap'.
 
 \(fn &optional SHORT-NAMES _)" nil nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "general" '("general-")))
+
+;;;***
+
+;;;### (autoloads nil nil ("general-pkg.el") (0 0 0 0))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; general-autoloads.el ends here
