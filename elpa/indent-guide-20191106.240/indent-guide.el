@@ -18,7 +18,8 @@
 
 ;; Author: zk_phi
 ;; URL: http://hins11.yu-yake.com/
-;; Package-Version: 20170221.327
+;; Package-Version: 20191106.240
+;; Package-Commit: 7fc710748f9e5a086acfe77970f117df89ee9749
 ;; Version: 2.3.1
 
 ;;; Commentary:
@@ -107,13 +108,13 @@
 
 (defcustom indent-guide-delay nil
   "When a positive number, rendering guide lines is delayed DELAY
-  seconds."
+seconds."
   :type 'number
   :group 'indent-guide)
 
 (defcustom indent-guide-threshold -1
   "Guide lines are drawn only when the column number is over this
-  value."
+value."
   :type 'number
   :group 'indent-guide)
 
