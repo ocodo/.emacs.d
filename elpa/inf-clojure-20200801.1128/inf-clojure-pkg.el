@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/inf-clojure-20200801.1128/inf-clojure.el  -*- no-byte-compile: t -*-
+(define-package "inf-clojure" "20200801.1128" "Run an external Clojure process in an Emacs buffer" '((emacs "24.4") (clojure-mode "5.11")) :commit "2c8e46b584be71fe1a585c9072da86382710dc59" :keywords '("processes" "clojure") :url "http://github.com/clojure-emacs/inf-clojure")

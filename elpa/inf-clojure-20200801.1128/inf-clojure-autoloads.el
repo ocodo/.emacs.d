@@ -12,6 +12,11 @@
 (autoload 'inf-clojure-minor-mode "inf-clojure" "\
 Minor mode for interacting with the inferior Clojure process buffer.
 
+If called interactively, enable Inf-Clojure minor mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 The following commands are available:
 
 \\{inf-clojure-minor-mode-map}
@@ -20,13 +25,21 @@ The following commands are available:
 
 (autoload 'inf-clojure "inf-clojure" "\
 Run an inferior Clojure process, input and output via buffer `*inf-clojure*'.
-If there is a process already running in `*inf-clojure*', just switch
-to that buffer.
-With argument, allows you to edit the CMD used to launch
-it (default is value of `inf-clojure-*-cmd').  Runs the hooks
-from `inf-clojure-mode-hook' (after the `comint-mode-hook' is
-run).
-\(Type \\[describe-mode] in the process buffer for a list of commands.)
+If there is a process already running in `*inf-clojure*', just
+switch to that buffer.
+
+CMD is a string which serves as the startup command or a cons of
+host and port.
+
+ Prompts user for repl startup command and repl type if not
+inferrable from startup command.  Uses `inf-clojure-custom-repl-type'
+and `inf-clojure-custom-startup' if those are set.
+Use a prefix to prevent using these when they
+are set.
+
+ Runs the hooks from `inf-clojure-mode-hook' (after the
+`comint-mode-hook' is run).  (Type \\[describe-mode] in the
+process buffer for a list of commands.)
 
 \(fn CMD)" t nil)
 
