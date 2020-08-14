@@ -1,16 +1,16 @@
 ;;; company-dict-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "company-dict" "company-dict.el" (23278 48403
-;;;;;;  0 0))
+;;;### (autoloads nil "company-dict" "company-dict.el" (0 0 0 0))
 ;;; Generated autoloads from company-dict.el
 
 (autoload 'company-dict-refresh "company-dict" "\
-Refresh all loaded dictionaries.
-
-\(fn)" t nil)
+Refresh all loaded dictionaries." t nil)
 
 (autoload 'company-dict "company-dict" "\
 `company-mode' backend for user-provided dictionaries. Dictionary files are lazy
@@ -18,11 +18,14 @@ loaded.
 
 \(fn COMMAND &optional ARG &rest IGNORED)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-dict" '("company-dict-")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; company-dict-autoloads.el ends here

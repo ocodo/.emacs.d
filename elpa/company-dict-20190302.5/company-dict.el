@@ -5,9 +5,10 @@
 ;; Author: Henrik Lissner <http://github/hlissner>
 ;; Maintainer: Henrik Lissner <henrik@lissner.net>
 ;; Created: June 21, 2015
-;; Modified: May 25, 2016
-;; Version: 1.2.7
-;; Package-Version: 20180216.956
+;; Modified: March 1, 2019
+;; Version: 1.2.8
+;; Package-Version: 20190302.5
+;; Package-Commit: cd7b8394f6014c57897f65d335d6b2bd65dab1f4
 ;; Keywords: company dictionary ac-source-dictionary
 ;; Homepage: https://github.com/hlissner/emacs-company-dict
 ;; Package-Requires: ((emacs "24.4") (company "0.8.12") (parent-mode "2.3"))
@@ -80,13 +81,13 @@ install and enable it yourself."
 
 (defun company-dict--relevant-dicts ()
   "Merge all dicts together into one large list."
-  (let ((dicts (append (gethash 'all company-dict-table)
-                       (gethash major-mode company-dict-table))))
-    (mapc (lambda (mode)
-            (when (and (boundp mode) (symbol-value mode))
-              (setq dicts (append dicts (gethash mode company-dict-table)))))
-          company-dict-minor-mode-list)
-    dicts))
+  (append (gethash 'all company-dict-table)
+          (gethash major-mode company-dict-table)
+          (cl-loop for mode in company-dict-minor-mode-list
+                   if (and (boundp mode)
+                           (symbol-value mode))
+                   nconc (gethash mode company-dict-table))
+          nil))
 
 (defun company-dict--init (mode)
   "Read dict files and populate dictionary."
@@ -97,12 +98,11 @@ install and enable it yourself."
       (setq file (expand-file-name (symbol-name mode) company-dict-dir)
             contents (company-dict--read-file file))
       (when (stringp contents)
-        (mapc (lambda (line)
-                (let ((l (split-string (string-trim-right line) "\t" t)))
-                  (push (propertize (nth 0 l) :note (nth 1 l) :meta (nth 2 l))
-                        result)))
-              (split-string contents "\n" t))
-        (puthash mode result company-dict-table)))
+        (puthash mode
+                 (cl-loop for line in (split-string contents "\n" t)
+                          for (label note meta) = (split-string (string-trim-right line) "\t" t)
+                          collect (propertize label :note note :meta meta))
+                 company-dict-table)))
     result))
 
 (defun company-dict--annotation (data)
