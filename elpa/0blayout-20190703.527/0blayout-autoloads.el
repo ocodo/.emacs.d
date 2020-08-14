@@ -24,6 +24,11 @@ for a description of this minor mode.")
 (autoload '0blayout-mode "0blayout" "\
 Handle layouts with ease
 
+If called interactively, enable 0blayout mode if ARG is positive,
+and disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it if
+ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "0blayout" '("0blayout-")))

@@ -4,7 +4,8 @@
 
 ;; Author: Elis "etu" Axelsson
 ;; URL: https://github.com/etu/0blayout
-;; Package-Version: 20161008.607
+;; Package-Commit: fd9a8f353dbd45b4628b5f84b8d8c2525ebf571d
+;; Package-Version: 20190703.527
 ;; Package-X-Original-Version: 20160918.0
 ;; Version: 1.0.2
 ;; Keywords: convenience, window-management
@@ -50,13 +51,15 @@
 ;;; Code:
 
 (defgroup 0blayout nil
-  "Configuration settings for 0blayout-mode.")
+  "Configuration settings for 0blayout-mode."
+  :group 'convenience)
 
 (defvar 0blayout-alist ()
   "List of the currently defined layouts.")
 
 (defcustom 0blayout-default "default"
   "Name of default layout used."
+  :type 'string
   :group '0blayout)
 
 (defvar 0blayout-keys-map '(("C-c" . 0blayout-new)
