@@ -1,4 +1,4 @@
-;; Copyright (C) 2015, 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
 ;; Author:   Jonathan Hayase <PythonNut@gmail.com>
 ;; URL:      https://github.com/dgutov/diff-hl
@@ -38,7 +38,7 @@
   "The idle delay in seconds before highlighting is updated."
   :type 'number)
 
-(defvar diff-hl-flydiff-modified-tick 0)
+(defvar diff-hl-flydiff-modified-tick nil)
 (defvar diff-hl-flydiff-timer nil)
 (make-variable-buffer-local 'diff-hl-flydiff-modified-tick)
 
@@ -124,7 +124,7 @@ the user should be returned."
 This requires the external program `diff' to be in your `exec-path'."
   (interactive)
   (vc-ensure-vc-buffer)
-  (setq diff-hl-flydiff-modified-tick (buffer-modified-tick))
+  (setq diff-hl-flydiff-modified-tick (buffer-chars-modified-tick))
   (save-current-buffer
     (let* ((temporary-file-directory
             (if (file-directory-p "/dev/shm/")
@@ -132,14 +132,16 @@ This requires the external program `diff' to be in your `exec-path'."
               temporary-file-directory))
            (rev (diff-hl-flydiff-create-revision
                  file
-                 (diff-hl-flydiff/working-revision file))))
+                 (or diff-hl-reference-revision
+                     (diff-hl-flydiff/working-revision file)))))
+      ;; FIXME: When against staging, do it differently!
       (diff-no-select rev (current-buffer) "-U 0 --strip-trailing-cr" 'noasync
                       (get-buffer-create " *diff-hl-diff*")))))
 
 (defun diff-hl-flydiff-update ()
   (unless (or
            (not diff-hl-mode)
-           (= diff-hl-flydiff-modified-tick (buffer-modified-tick))
+           (eq diff-hl-flydiff-modified-tick (buffer-chars-modified-tick))
            (not buffer-file-name)
            (not (file-exists-p buffer-file-name))
            (file-remote-p default-directory))

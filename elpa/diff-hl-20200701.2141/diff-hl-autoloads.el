@@ -12,12 +12,20 @@
 (autoload 'diff-hl-mode "diff-hl" "\
 Toggle VC diff highlighting.
 
+If called interactively, enable Diff-Hl mode if ARG is positive,
+and disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it if
+ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (autoload 'turn-on-diff-hl-mode "diff-hl" "\
-Turn on `diff-hl-mode' or `diff-hl-dir-mode' in a buffer if appropriate.
+Turn on `diff-hl-mode' or `diff-hl-dir-mode' in a buffer if appropriate." nil nil)
 
-\(fn)" nil nil)
+(autoload 'diff-hl--global-turn-on "diff-hl" "\
+Call `turn-on-diff-hl-mode' if the current major mode is applicable." nil nil)
+
+(put 'global-diff-hl-mode 'globalized-minor-mode t)
 
 (defvar global-diff-hl-mode nil "\
 Non-nil if Global Diff-Hl mode is enabled.
@@ -36,7 +44,7 @@ otherwise, disable it.  If called from Lisp, enable the mode if
 ARG is omitted or nil.
 
 Diff-Hl mode is enabled in all buffers where
-`turn-on-diff-hl-mode' would do it.
+`diff-hl--global-turn-on' would do it.
 See `diff-hl-mode' for more information on Diff-Hl mode.
 
 \(fn &optional ARG)" t nil)
@@ -54,7 +62,14 @@ Most useful with backends that support rewriting local commits,
 and most importantly, 'amending' the most recent one.
 Currently only supports Git, Mercurial and Bazaar.
 
+If called interactively, enable Diff-Hl-Amend mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
+
+(put 'global-diff-hl-amend-mode 'globalized-minor-mode t)
 
 (defvar global-diff-hl-amend-mode nil "\
 Non-nil if Global Diff-Hl-Amend mode is enabled.
@@ -78,7 +93,7 @@ See `diff-hl-amend-mode' for more information on Diff-Hl-Amend mode.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "diff-hl-amend" '("turn-on-diff-hl-amend-mode" "diff-hl-amend-setup")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "diff-hl-amend" '("diff-hl-amend-setup" "turn-on-diff-hl-amend-mode")))
 
 ;;;***
 
@@ -88,12 +103,14 @@ See `diff-hl-amend-mode' for more information on Diff-Hl-Amend mode.
 (autoload 'diff-hl-dired-mode "diff-hl-dired" "\
 Toggle VC diff highlighting on the side of a Dired window.
 
+If called interactively, enable Diff-Hl-Dired mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
-(autoload 'diff-hl-dired-mode-unless-remote "diff-hl-dired" "\
-
-
-\(fn)" nil nil)
+(autoload 'diff-hl-dired-mode-unless-remote "diff-hl-dired" nil nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "diff-hl-dired" '("diff-hl-dired-")))
 
@@ -117,6 +134,11 @@ or call the function `diff-hl-flydiff-mode'.")
 Perform highlighting on-the-fly.
 This is a global minor mode.  It alters how `diff-hl-mode' works.
 
+If called interactively, enable Diff-Hl-Flydiff mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "diff-hl-flydiff" '("diff-hl-flydiff")))
@@ -139,6 +161,11 @@ or call the function `diff-hl-margin-mode'.")
 
 (autoload 'diff-hl-margin-mode "diff-hl-margin" "\
 Toggle displaying `diff-hl-mode' highlights on the margin.
+
+If called interactively, enable Diff-Hl-Margin mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
