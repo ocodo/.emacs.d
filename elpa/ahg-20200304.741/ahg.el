@@ -1,10 +1,11 @@
 ;;; ahg.el --- Alberto's Emacs interface for Mercurial (Hg)
 
-;; Copyright (C) 2008-2016 Alberto Griggio
+;; Copyright (C) 2008-2020 Alberto Griggio
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20181120.1301
+;; Package-Version: 20200304.741
+;; Package-Commit: 0ece48646ef7a8c813005934cc13f984b9998707
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -1580,7 +1581,7 @@ do nothing."
                              (format "first(%s,%s)" firstrev (abs limit))))
                       ((if is-revset (> limit 0) (< limit 0))
                        (setq firstrev
-                             (format "last(0:%s,%s)" firstarg-to-save
+                             (format "last(%s,%s)" firstrev
                                      (abs limit)))))
                 (if reverse firstrev (format "reverse(%s)" firstrev))))
             nil)
@@ -1978,6 +1979,13 @@ a prefix argument, prompts also for EXTRA-FLAGS."
         (interactive)
           (let* ((r1 (ahg-log-revision-at-point t))
                  (r2 (ahg-first-parent-of-rev r1))
+                 (fn (ahg-log-filename-at-point (point) t)))
+            (ahg-diff r2 r1 (list fn)))))
+    (define-key map "D"
+      (lambda (rev)
+        (interactive "sEnter revision to compare against: ")
+          (let* ((r1 (ahg-log-revision-at-point t))
+                 (r2 rev)
                  (fn (ahg-log-filename-at-point (point) t)))
             (ahg-diff r2 r1 (list fn)))))
     (define-key map "e"
@@ -2635,7 +2643,7 @@ used.
         (ahg-generic-command
          "log" 
          (append
-          (list "--template" "{rev} {desc|firstline))}\\n" relfile)
+          (list "--template" "{rev} {desc|firstline}\\n" relfile)
           (when rev (list "-r" (concat rev ":0" ))))
          (lambda (process status)
            (if (string= status "finished\n")
