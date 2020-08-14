@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/digitalocean-20190607.726/digitalocean.el  -*- no-byte-compile: t -*-
+(define-package "digitalocean" "20190607.726" "Create and manipulate digitalocean droplets" '((request "2.5") (emacs "24.4")) :commit "6c32d3593286e2a62d9afab0057c829407b0d1e8" :keywords '("processes" "tools") :authors '(("Oliver Marks" . "oly@digitaloctave.com")) :maintainer '("Oliver Marks" . "oly@digitaloctave.com") :url "https://github.com/olymk2/emacs-digitalocean")

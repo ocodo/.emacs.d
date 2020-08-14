@@ -4,7 +4,8 @@
 
 ;; Author: Oliver Marks <oly@digitaloctave.com>
 ;; URL: https://github.com/olymk2/emacs-digitalocean
-;; Package-Version: 20180603.225
+;; Package-Version: 20190607.726
+;; Package-Commit: 6c32d3593286e2a62d9afab0057c829407b0d1e8
 ;; Keywords: Processes tools
 ;; Version: 0.1
 ;; Created 27 May 2018
@@ -443,7 +444,7 @@ Given MSG and RES response match the root key MAIN show KEY values."
           (digitalocean-fetch-droplets) 'droplets 'name 'id)))
    "power_on"))
 
-;;;###autoload (autoload 'digitalocean-droplet-destroy)
+;;;###autoload
 (defun digitalocean-droplet-destroy ()
   "Destroy the selected droplet."
   (interactive)

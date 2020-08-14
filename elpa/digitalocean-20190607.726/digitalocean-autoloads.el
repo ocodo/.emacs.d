@@ -10,35 +10,25 @@
 ;;; Generated autoloads from digitalocean.el
 
 (autoload 'digitalocean-droplet-open-shell "digitalocean" "\
-Open a shell for selected droplet.
-
-\(fn)" t nil)
+Open a shell for selected droplet." t nil)
 
 (autoload 'digitalocean-droplet-snapshot "digitalocean" "\
-Create a snapshot of the selected droplet.
-
-\(fn)" t nil)
+Create a snapshot of the selected droplet." t nil)
 
 (autoload 'digitalocean-droplet-restart "digitalocean" "\
-Restart the selected droplet.
-
-\(fn)" t nil)
+Restart the selected droplet." t nil)
 
 (autoload 'digitalocean-droplet-shutdown "digitalocean" "\
-Shutdown the selected droplet.
-
-\(fn)" t nil)
+Shutdown the selected droplet." t nil)
 
 (autoload 'digitalocean-droplet-startup "digitalocean" "\
-Start the selected droplet.
+Start the selected droplet." t nil)
 
-\(fn)" t nil)
- (autoload 'digitalocean-droplet-destroy)
+(autoload 'digitalocean-droplet-destroy "digitalocean" "\
+Destroy the selected droplet." t nil)
 
 (autoload 'digitalocean-droplet-simple-create "digitalocean" "\
-Create a droplet quickly using minimum inputs.
-
-\(fn)" t nil)
+Create a droplet quickly using minimum inputs." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "digitalocean" '("digitalocean-")))
 
