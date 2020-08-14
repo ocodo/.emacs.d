@@ -2,9 +2,10 @@
 
 ;; Author: Philippe Vaucher <philippe.vaucher@gmail.com>
 ;; URL: https://github.com/Silex/elmacro
-;; Package-Version: 20180422.2321
+;; Package-Version: 20191208.1057
+;; Package-Commit: ba4086ef241dadfc2b1ce1bcfa56e12dbb89ef58
 ;; Keywords: macro, elisp, convenience
-;; Version: 1.1.0
+;; Version: 1.1.1
 ;; Package-Requires: ((s "1.11.0") (dash "2.13.0"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -92,6 +93,8 @@ This will be used as arguments for `replace-regexp-in-string'."
       (setq commands (funcall it commands)))
     commands))
 
+(defvar pp-escape-newlines)
+
 (defun elmacro-pp-to-string (object)
   "Like `pp-to-string', but make sure all options are set like desired.
 
@@ -136,7 +139,8 @@ Also handles nil as parameter for defuns."
   "Turn special objects into usable objects."
   (--map (let ((str (elmacro-pp-to-string it)))
            (--each elmacro-special-objects
-             (setq str (eval `(replace-regexp-in-string ,@it str))))
+             (-let (((regex rep) it))
+               (setq str (replace-regexp-in-string regex rep str))))
            (condition-case nil
                (car (read-from-string (s-replace "'(" "`(" str)))
              (error `(ignore ,str))))
