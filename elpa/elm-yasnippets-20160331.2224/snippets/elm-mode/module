@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# name: module
-# key: module
-# expand-env: ((yas-indent-line 'fixed))
-# --
-module $1 ($2) where
-
-$0

@@ -1,6 +1,0 @@
-# -*- mode: snippet -*-
-# name: import
-# key: import
-# expand-env: ((yas-indent-line 'fixed))
-# --
-import $1 exposing ($0)
