@@ -1,10 +1,13 @@
 ;;; groovy-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "groovy-electric" "groovy-electric.el" (23344
-;;;;;;  44996 335345 871000))
+;;;### (autoloads nil "groovy-electric" "groovy-electric.el" (0 0
+;;;;;;  0 0))
 ;;; Generated autoloads from groovy-electric.el
 
 (autoload 'groovy-electric-mode "groovy-electric" "\
@@ -13,6 +16,11 @@ With no argument, this command toggles the mode.  Non-null prefix
 argument turns on the mode.  Null prefix argument turns off the
 mode.
 
+If called interactively, enable Groovy-Electric mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 When Groovy Electric mode is enabled, simple, double and back
 quotes as well as braces are paired auto-magically. Expansion
 does not occur inside comments and strings. Note that you must
@@ -20,10 +28,11 @@ have Font Lock enabled. ${ } is expanded when in a GString
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "groovy-electric" '("groovy-electric-")))
+
 ;;;***
 
-;;;### (autoloads nil "groovy-mode" "groovy-mode.el" (23344 44996
-;;;;;;  335345 871000))
+;;;### (autoloads nil "groovy-mode" "groovy-mode.el" (0 0 0 0))
 ;;; Generated autoloads from groovy-mode.el
 
 (add-to-list 'auto-mode-alist '("\\.g\\(?:ant\\|roovy\\|radle\\)\\'" . groovy-mode))
@@ -43,16 +52,15 @@ Key bindings:
 
 \(fn)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "groovy-mode" '("groovy-")))
+
 ;;;***
 
-;;;### (autoloads nil "inf-groovy" "inf-groovy.el" (23344 44996 335345
-;;;;;;  871000))
+;;;### (autoloads nil "inf-groovy" "inf-groovy.el" (0 0 0 0))
 ;;; Generated autoloads from inf-groovy.el
 
 (autoload 'inf-groovy-keys "inf-groovy" "\
-Set local key defs for inf-groovy in groovy-mode
-
-\(fn)" nil nil)
+Set local key defs for inf-groovy in groovy-mode" nil nil)
 
 (autoload 'inferior-groovy-mode "inf-groovy" "\
 Major mode for interacting with an inferior groovy (groovysh) process.
@@ -87,9 +95,7 @@ Tab indents for groovy; with argument, shifts rest
 C-M-q does Tab on each line starting within following expression.
 Paragraphs are separated only by blank lines.  # start comments.
 If you accidentally suspend your process, use \\[comint-continue-subjob]
-to continue it.
-
-\(fn)" t nil)
+to continue it." t nil)
 
 (autoload 'run-groovy "inf-groovy" "\
 Run an inferior Groovy process, input and output via buffer *groovy*.
@@ -105,10 +111,11 @@ process buffer for a list of commands.
 
 (eval-after-load 'groovy-mode (lambda nil (add-hook 'groovy-mode-hook 'inf-groovy-keys)))
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "inf-groovy" '("groovy" "inf" "remove-in-string" "switch-to-groovy")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("groovy-mode-pkg.el") (23344 44996 339345
-;;;;;;  965000))
+;;;### (autoloads nil nil ("groovy-mode-pkg.el") (0 0 0 0))
 
 ;;;***
 
@@ -116,5 +123,6 @@ process buffer for a list of commands.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; groovy-mode-autoloads.el ends here

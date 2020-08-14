@@ -163,10 +163,10 @@
 ;; vars
 (defvar groovy-imenu-regexp
   (list ;; FIXME: removed `groovy-function-regexp', now is using a function.
-        ;;(list "Functions" groovy-function-regexp 2)
-        (list "Classes" groovy-class-regexp 2)
-        (list "Interfaces" groovy-interface-regexp 1)
-        (list "Closures" "def[ \t]+\\([a-zA-Z_][a-zA-Z0-9_]*\\)[ \t]*=[ \t]*{" 1))
+   ;;(list "Functions" groovy-function-regexp 2)
+   (list "Classes" groovy-class-regexp 2)
+   (list "Interfaces" groovy-interface-regexp 1)
+   (list "Closures" "def[ \t]+\\([a-zA-Z_][a-zA-Z0-9_]*\\)[ \t]*=[ \t]*{" 1))
   "Imenu expression for Groovy.")
 
 
@@ -334,15 +334,15 @@
   (rx (or "++" "--")))
 
 (defun groovy-special-variable-search (limit)
-  "Search for text marked with `groovy-special-variable' to LIMIT."
+  "Search for text marked with `groovy-special-variable' up to LIMIT."
   (groovy-special-prop-search limit 'groovy-special-variable))
 
 (defun groovy-function-name-search (limit)
-  "Search for text marked with `groovy-special-variable' to LIMIT."
+  "Search for text marked with `groovy-special-variable' up to LIMIT."
   (groovy-special-prop-search limit 'groovy-function-name))
 
 (defun groovy-special-prop-search (limit prop-name)
-  "Search until to LIMIT for PROP-NAME text-property."
+  "Search up to LIMIT for text property PROP-NAME."
   (let* ((pos (point))
          (chg (next-single-property-change pos prop-name nil limit)))
     (when (and chg (> chg pos))
@@ -351,7 +351,7 @@
         (set-match-data v)
         (or v (groovy-special-prop-search limit prop-name))))))
 
-(defun groovy--travel-parameritized-types ()
+(defun groovy--travel-parameterized-types ()
   "Pass over <Foo<Bar>> when searching declarations."
   (let ((count 1)
         (found t))
@@ -385,7 +385,7 @@
   (remove-text-properties (point)
                           (or limit (point-max))
                           '(groovy-special-variable nil
-                            groovy-function-name nil))
+                                                    groovy-function-name nil))
   (let ((pos (point))
         (case-fold-search nil)
         (match (re-search-forward groovy-declaration-regexp limit t)))
@@ -395,7 +395,7 @@
            (not (groovy--comment-p (point)))
            (let ((match-s (s-trim (match-string 0))))
              (when (s-ends-with-p "<" match-s)
-               (groovy--travel-parameritized-types))
+               (groovy--travel-parameterized-types))
              (let ((var-match
                     (re-search-forward
                      (rx-to-string `(seq point (* space)
@@ -536,7 +536,7 @@ of the form /foo/)."
                   (or bol
                       (or "+" "-" "=" "+=" "-=" "==" "!="
                           "<" "<=" ">" ">=" "&&" "||" "?" "?:" ":"
-                          "=~" "==~" "<=>" "(" "~"))
+                          "=~" "==~" "<=>" "(" "~" ","))
                   (0+ whitespace)
                   "/"
                   eol)
@@ -663,7 +663,7 @@ dollar-slashy-quoted strings."
       (or ,@token-list)
       (0+ space)
       line-end))
-    str))
+   str))
 
 (defun groovy--ends-with-infix-p (str)
   "Does STR end with an infix operator?"
@@ -674,7 +674,12 @@ dollar-slashy-quoted strings."
      "==" "!=" "<" "<=" ">" ">=" "<<=" ">>=" ">>>=" "&=" "^=" "|="
      "&&" "||"
      "&" "|" "^" "<<" "<<<" ">>" ">>>"
-     "?" "?:" ":"
+     "?" "?:"
+     ;; Kludge: require a space before :. This enables us to
+     ;; distinguish labels from ternary calls. Strictly speaking,
+     ;; Groovy does not require a space before :, instead it seems to
+     ;; look for a preceding ?.
+     " :"
      "=~" "==~"
      "<=>" "<>"
      "in" "as")
@@ -749,6 +754,71 @@ Then this function returns (\"def\" \"if\" \"switch\")."
         (setq syntax (syntax-ppss (point)))))
     paren-depth))
 
+(defun groovy--extract-line-without-comments ()
+  "Extracts the part of the current line that is not a comment."
+  (let (code-text
+        (start-pos (line-beginning-position))
+        (end-pos (line-end-position)))
+    ;; Unless this line is already inside a multiline comment,
+    ;; use parse-partial-sexp to get the part of the line not
+    ;; a part of a comment.
+    (unless (groovy--comment-p start-pos)
+      (save-excursion
+        (parse-partial-sexp start-pos end-pos nil nil nil t)
+        (setq code-text (buffer-substring start-pos (point)))
+
+        ;; Unless we went all the way to the end of the line, we
+        ;; encountered a comment delimiter //, /* or #. Remove this delimiter.
+        (unless (= (point) end-pos)
+          (let ((delims '("//" "/*" "#")))
+            (setq code-text (replace-regexp-in-string
+                             (rx-to-string `(seq (or ,@delims) line-end)) "" code-text))))))
+
+    ;; Return the part of the line that isn't a comment (may be nil).
+    code-text))
+
+(defun groovy--backwards-to-prev-code-line ()
+  "Move point to the previous non-comment line, and return its contents."
+  (catch 'done
+    (let (code-text)
+      (while t
+        ;; Move backwards one line, or throw 'done if we're at the
+        ;; beginning of the buffer.
+        (unless (zerop (forward-line -1))
+          (throw 'done nil))
+
+        ;; Get the part of the line that isn't in a comment.
+        ;; If this isn't just white space, return it as a code line.
+        (setq code-text (groovy--extract-line-without-comments))
+        (unless (s-blank-str-p code-text)
+          (throw 'done code-text))))))
+
+(defun groovy--line-ends-with-incomplete-block-statement-p ()
+  "Return t if the current line ends with an incomplete block
+statement, without an open curly brace."
+  (unless (groovy--in-string-p)
+    (save-excursion
+      (end-of-line)
+      ;; Search backwards until we are no longer in a comment.
+      (while (and (not (bolp)) (groovy--comment-p (point)))
+        (re-search-backward "/[/*]" (line-beginning-position) t))
+      (unless (groovy--comment-p (point))
+        (skip-chars-backward (rx blank))
+        ;; We should be at the end of the actual code line. We are looking
+        ;; for a line that ends with either if|while|for followed by
+        ;; (condition), or a lone else.
+        (if (eq (char-before) ?\))
+            (when (condition-case nil (progn (backward-sexp) t) (scan-error nil))
+              (skip-chars-backward (rx blank))
+              (string-match (rx symbol-start (group (or "if" "for" "while")) line-end)
+                            (buffer-substring-no-properties (line-beginning-position) (point))))
+          (string-match (rx symbol-start "else" line-end)
+                        (buffer-substring-no-properties (line-beginning-position) (point))))))))
+
+(defun groovy--trim-current-line ()
+  "Return the current code line trimmed and without comments."
+  (s-trim (groovy--remove-comments (groovy--current-line))))
+
 (defun groovy-indent-line ()
   "Indent the current line according to the number of parentheses."
   (interactive)
@@ -813,31 +883,54 @@ Then this function returns (\"def\" \"if\" \"switch\")."
 
      ;; Indent according to the number of parens.
      (t
-      (let ((indent-level current-paren-depth)
-            prev-line
-            end-slashy-string)
-        ;; If the previous line ended `foo +` then this line should be
-        ;; indented one more level.
+      (let ((indent-level current-paren-depth))
+        ;; If the previous line ended with an arithmetic operator like
+        ;; `foo +`, then this line should be indented one more level.
         (save-excursion
-          ;; Try to go back one line.
-          (when (zerop (forward-line -1))
-            ;; Ignore the previous line if it's a comment or end slashy-string
-            (let ((line-end (line-end-position)))
-              (unless (groovy--comment-p line-end)
-                (setq prev-line (buffer-substring (point) (line-end-position))))
-              ;; check if the last thing is a slashy-string end
-              (setq end-slashy-string (and
-                                       (eq (char-before line-end) ?/)
-                                       (groovy--in-string-at-p (- line-end 1)))))))
-        (when (and prev-line
+          (let* ((prev-line (groovy--backwards-to-prev-code-line))
+                 (line-end (line-end-position))
+                 ;; Check if the last thing is a slashy-string end, so we
+                 ;; distinguish a string `/foo bar/` from arithmetic `x /`.
+                 (end-slashy-string (and
+                                     prev-line
+                                     (eq (char-before line-end) ?/)
+                                     (groovy--in-string-at-p (- line-end 1)))))
+            (when (and
+                   prev-line
                    (not end-slashy-string)
                    (not (s-matches-p groovy--case-regexp prev-line))
                    (or (groovy--ends-with-infix-p prev-line)
                        (and (groovy--ends-with-comma-p prev-line)
                             (not (memq current-paren-character (list ?\[ ?\()))
                             (not has-closing-paren))))
-          (setq indent-level (1+ indent-level)))
+              (setq indent-level (1+ indent-level)))))
 
+        ;; If the previous lines are block statements (if, for, while, else)
+        ;; without the optional curly brace and without a body, then indent
+        ;; for each block.
+        (save-excursion
+          (let (next-line)
+            (while
+                (and
+                 (setq line-after (groovy--trim-current-line))
+                 (groovy--backwards-to-prev-code-line)
+                 
+                 ;; Handle the special case of a chain of if-else statements, e.g.
+                 ;;   if (x) foo()
+                 ;;   else if (y) bar()
+                 ;;   else baz()
+                 (progn
+                   (while
+                       (let ((cur-line (groovy--trim-current-line)))
+                         (and (s-starts-with-p "else" line-after)
+                              (string-match (rx line-start (optional "else" (+ blank)) "if" symbol-end) cur-line)
+                              (groovy--backwards-to-prev-code-line)
+                              (setq line-after cur-line))))
+                   t)
+                 
+                 (groovy--line-ends-with-incomplete-block-statement-p))
+              (setq indent-level (1+ indent-level)))))
+        
         ;; If this line is .methodCall() then we should indent one
         ;; more level.
         (when (s-starts-with-p "." current-line)
@@ -851,7 +944,14 @@ Then this function returns (\"def\" \"if\" \"switch\")."
               (switch-count 0))
           (dolist (block-symbol blocks)
             (when (equal block-symbol "switch")
-              (setq switch-count (1+ switch-count))))
+              (setq switch-count (1+ switch-count)))
+            ;; Ensure we indent closures by one extra level.
+            ;;
+            ;; [1, 2, 3]
+            ;;     .findAll { // <- indented
+            (when (s-starts-with-p "." block-symbol)
+              (setq indent-level (1+ indent-level))))
+
           (when (> switch-count 0)
             (setq indent-level (+ indent-level switch-count))
             ;; The `case foo:' line should be indented less than the body.
@@ -882,7 +982,7 @@ Key bindings:
   ;; if `groovy-highlight-assignments' add to keyword search.
   (when groovy-highlight-assignments
     (add-to-list 'groovy-font-lock-keywords
-          '(groovy-variable-assignment-search 1 font-lock-variable-name-face) t))
+                 '(groovy-variable-assignment-search 1 font-lock-variable-name-face) t))
   (set (make-local-variable 'font-lock-defaults)
        '(groovy-font-lock-keywords))
 
