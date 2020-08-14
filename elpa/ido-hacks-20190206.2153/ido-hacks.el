@@ -6,7 +6,8 @@
 ;; Author: Andreas Politz
 ;; Maintainer: Scott Jaderholm <jaderholm@gmail.com>
 ;; Version: 0.1
-;; Package-Version: 20150331.1209
+;; Package-Version: 20190206.2153
+;; Package-Commit: d2153a3e8d23436ee07ecae2a106f434361a10c5
 ;; Keywords: convenience
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -297,7 +298,7 @@ is minibuffer. (Stolen from icomplete.)"
     (if (and ido-use-faces comps)
         (let* ((fn (ido-name (car comps)))
                (ln (length fn)))
-          (setq first (format "%s" fn))
+          (setq first (copy-sequence fn))
           (put-text-property 0 ln 'face
                              (if (= (length comps) 1)
                                  (if ido-incomplete-regexp
