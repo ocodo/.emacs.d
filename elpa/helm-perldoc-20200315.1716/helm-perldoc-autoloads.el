@@ -9,30 +9,20 @@
 ;;;### (autoloads nil "helm-perldoc" "helm-perldoc.el" (0 0 0 0))
 ;;; Generated autoloads from helm-perldoc.el
 
-(autoload 'helm-perldoc:carton-setup "helm-perldoc" "\
+(autoload 'helm-perldoc:carton-setup "helm-perldoc" nil t nil)
 
+(autoload 'helm-perldoc:clear-carton-path "helm-perldoc" nil t nil)
 
-\(fn)" t nil)
+(autoload 'helm-perldoc:setup "helm-perldoc" nil t nil)
 
-(autoload 'helm-perldoc:clear-carton-path "helm-perldoc" "\
-
-
-\(fn)" t nil)
-
-(autoload 'helm-perldoc:setup "helm-perldoc" "\
-
-
-\(fn)" t nil)
-
-(autoload 'helm-perldoc:history "helm-perldoc" "\
-
-
-\(fn)" t nil)
+(autoload 'helm-perldoc:history "helm-perldoc" nil t nil)
 
 (autoload 'helm-perldoc "helm-perldoc" "\
 
 
-\(fn)" t nil)
+\(fn &optional INPUT)" t nil)
+
+(autoload 'helm-perldoc-at-point "helm-perldoc" nil t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-perldoc" '("helm-perldoc:" "with-perl5lib")))
 
