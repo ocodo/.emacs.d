@@ -1,12 +1,13 @@
 ;;; easy-hugo.el --- Write blogs made with hugo by markdown or org-mode -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2018 by Masashı Mıyaura
+;; Copyright (C) 2017-2020 by Masashi Miyaura
 
-;; Author: Masashı Mıyaura
+;; Author: Masashi Miyaura
 ;; URL: https://github.com/masasam/emacs-easy-hugo
-;; Package-Version: 20181202.831
-;; Version: 3.8.37
-;; Package-Requires: ((emacs "24.4") (popup "0.5.3"))
+;; Package-Version: 20200811.842
+;; Package-Commit: cc4ba71c07dd8b3a66c996e7b31fa7e3e9870ce2
+;; Version: 3.9.47
+;; Package-Requires: ((emacs "25.1") (popup "0.5.3") (request "0.3.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -31,6 +32,8 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'url)
+(require 'request)
 
 (defgroup easy-hugo nil
   "Writing blogs made with hugo."
@@ -50,8 +53,23 @@
   :group 'easy-hugo
   :type 'string)
 
+(defcustom easy-hugo-server-flags ""
+  "Additional flags to pass to hugo server."
+  :group 'easy-hugo
+  :type 'string)
+
+(defcustom easy-hugo-rsync-flags "-rtpl"
+  "Additional flags for rsync."
+  :group 'easy-hugo
+  :type 'string)
+
+(defcustom easy-hugo-server-value ""
+  "Additional value to pass to hugo server."
+  :group 'easy-hugo
+  :type 'string)
+
 (defcustom easy-hugo-preview-url "http://localhost:1313/"
-  "Preview url of easy-hugo."
+  "Preview url of `easy-hugo'."
   :group 'easy-hugo
   :type 'string)
 
@@ -106,12 +124,17 @@
   :type 'string)
 
 (defcustom easy-hugo-no-help nil
-  "No help flg of easy-hugo."
+  "No help flg of `easy-hugo'."
+  :group 'easy-hugo
+  :type 'integer)
+
+(defcustom easy-hugo-emacspeak nil
+  "Emacspeak flg of `easy-hugo'."
   :group 'easy-hugo
   :type 'integer)
 
 (defcustom easy-hugo-additional-help nil
-  "Additional help flg of easy-hugo."
+  "Additional help flg of `easy-hugo'."
   :group 'easy-hugo
   :type 'integer)
 
@@ -215,33 +238,39 @@ Because only two are supported by hugo."
 			       ,easy-hugo-html-extension))
 
 (defface easy-hugo-help-face
-  '((((class color) (background light))
-     (:bold t :foreground "#82c600" :background "#f0f8ff"))
+  `((((class color) (background light))
+     ,@(and (>= emacs-major-version 27) '(:extend t))
+     :bold t
+     :foreground "#82c600"
+     :background "#f0f8ff")
     (((class color) (background dark))
-     (:bold t :foreground "#82c600" :background "#2f4f4f")))
+     ,@(and (>= emacs-major-version 27) '(:extend t))
+     :bold t
+     :foreground "#82c600"
+     :background "#2f4f4f"))
   "Definition of help color."
   :group 'easy-hugo-faces)
 
 (defvar easy-hugo--mode-buffer nil
-  "Main buffer of easy-hugo.")
+  "Main buffer of `easy-hugo'.")
 
 (defvar easy-hugo--cursor nil
-  "Cursor of easy-hugo.")
+  "Cursor of `easy-hugo'.")
 
 (defvar easy-hugo--line nil
-  "Line of easy-hugo.")
+  "Line of `easy-hugo'.")
 
 (defvar easy-hugo--sort-time-flg 1
-  "Sort time flg of easy-hugo.")
+  "Sort time flg of `easy-hugo'.")
 
 (defvar easy-hugo--sort-char-flg nil
-  "Sort char flg of easy-hugo.")
+  "Sort char flg of `easy-hugo'.")
 
 (defvar easy-hugo--sort-publishday-flg nil
-  "Sort publishtime flg of easy-hugo.")
+  "Sort publishtime flg of `easy-hugo'.")
 
 (defvar easy-hugo--refresh nil
-  "Refresh flg of easy-hugo.")
+  "Refresh flg of `easy-hugo'.")
 
 (defvar easy-hugo--current-blog 0
   "Current blog number.")
@@ -298,57 +327,57 @@ Because only two are supported by hugo."
 
 (defconst easy-hugo--default-github-deploy-script
   "deploy.sh"
-  "Default easy-hugo github-deploy-script.")
+  "Default `easy-hugo' github-deploy-script.")
 
 (defconst easy-hugo--default-image-directory
   "images"
-  "Default easy-hugo image-directory.")
+  "Default `easy-hugo' image-directory.")
 
 (defconst easy-hugo--default-picture-directory
   "~"
-  "Default easy-hugo picture-directory.")
+  "Default `easy-hugo' picture-directory.")
 
 (defconst easy-hugo--default-publish-chmod
   "Du=rwx,Dgo=rx,Fu=rw,Fog=r"
-  "Default easy-hugo publish-chmod.")
+  "Default `easy-hugo' publish-chmod.")
 
 (defconst easy-hugo--default-previewtime
   300
-  "Default easy-hugo previewtime.")
+  "Default `easy-hugo' previewtime.")
 
 (defconst easy-hugo--default-preview-url
   "http://localhost:1313/"
-  "Default easy-hugo preview-url.")
+  "Default `easy-hugo' preview-url.")
 
 (defconst easy-hugo--default-sort-default-char
   nil
-  "Default easy-hugo sort-default-char.")
+  "Default `easy-hugo' sort-default-char.")
 
 (defconst easy-hugo--default-asciidoc-extension
   "ad"
-  "Default easy-hugo asciidoc-extension.")
+  "Default `easy-hugo' asciidoc-extension.")
 
 (defconst easy-hugo--default-html-extension
   "html"
-  "Default easy-hugo html-extension.")
+  "Default `easy-hugo' html-extension.")
 
 (defconst easy-hugo--default-markdown-extension
   "md"
-  "Default easy-hugo markdown-extension.")
+  "Default `easy-hugo' markdown-extension.")
 
 (defconst easy-hugo--default-postdir
   "content/post"
-  "Default easy-hugo-postdir.")
+  "Default `easy-hugo-postdir'.")
 
 (defconst easy-hugo--default-ext
   easy-hugo-default-ext
-  "Default easy-hugo default-ext.")
+  "Default `easy-hugo' default-ext.")
 
 (defconst easy-hugo--buffer-name "*Easy-hugo*"
-  "Buffer name of easy-hugo.")
+  "Buffer name of `easy-hugo'.")
 
 (defconst easy-hugo--forward-char 20
-  "Forward-char of easy-hugo.")
+  "Forward-char of `easy-hugo'.")
 
 (defmacro easy-hugo-with-env (&rest body)
   "Evaluate BODY with `default-directory' set to `easy-hugo-basedir'.
@@ -395,6 +424,17 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
       (magit-status-internal easy-hugo-basedir)
     (error "'magit' is not installed")))
 
+(defun easy-hugo-emacspeak-filename ()
+  "Read filename with emacspeak."
+  (cl-declare (special emacspeak-speak-last-spoken-word-position))
+  (let ((filename (substring (thing-at-point 'line) easy-hugo--forward-char -1))
+        (personality (dtk-get-style)))
+    (cond
+     (filename
+      (dtk-speak (propertize filename 'personality personality))
+      (setq emacspeak-speak-last-spoken-word-position (point)))
+     (t (emacspeak-speak-line)))))
+
 ;;;###autoload
 (defun easy-hugo-image ()
   "Generate image link."
@@ -406,22 +446,23 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
       (error "%s does not exist" (expand-file-name
 				  easy-hugo-image-directory
 				  (expand-file-name "static" easy-hugo-basedir))))
-    (let ((file (read-file-name "Image file: " nil
-				(expand-file-name
+    (let ((insert-default-directory nil))
+      (let ((file (read-file-name "Image file: " nil
+				  (expand-file-name
+				   easy-hugo-image-directory
+				   (expand-file-name "static" easy-hugo-basedir))
+				  t
+				  (expand-file-name
+				   easy-hugo-image-directory
+				   (expand-file-name "static" easy-hugo-basedir)))))
+	(insert (concat (format "{{< figure src=\"%s%s\""
+				easy-hugo-url
+				(concat
+				 "/"
 				 easy-hugo-image-directory
-				 (expand-file-name "static" easy-hugo-basedir))
-				t
-				(expand-file-name
-				 easy-hugo-image-directory
-				 (expand-file-name "static" easy-hugo-basedir)))))
-      (insert (concat (format "<img src=\"%s%s\""
-			      easy-hugo-url
-			      (concat
-			       "/"
-			       easy-hugo-image-directory
-			       "/"
-			       (file-name-nondirectory file)))
-		      " alt=\"\" width=\"100%\"/>"))))))
+				 "/"
+				 (file-name-nondirectory file)))
+			" alt=\"\" >}}")))))))
 
 ;;;###autoload
 (defun easy-hugo-figure ()
@@ -434,22 +475,23 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
       (error "%s does not exist" (expand-file-name
 				  easy-hugo-image-directory
 				  (expand-file-name "static" easy-hugo-basedir))))
-    (let ((file (read-file-name "Image file: " nil
-				(expand-file-name
+    (let ((insert-default-directory nil))
+      (let ((file (read-file-name "Image file: " nil
+				  (expand-file-name
+				   easy-hugo-image-directory
+				   (expand-file-name "static" easy-hugo-basedir))
+				  t
+				  (expand-file-name
+				   easy-hugo-image-directory
+				   (expand-file-name "static" easy-hugo-basedir)))))
+	(insert (concat (format "{{< figure src=\"%s%s\""
+				easy-hugo-url
+				(concat
+				 "/"
 				 easy-hugo-image-directory
-				 (expand-file-name "static" easy-hugo-basedir))
-				t
-				(expand-file-name
-				 easy-hugo-image-directory
-				 (expand-file-name "static" easy-hugo-basedir)))))
-      (insert (concat (format "{{< figure src=\"%s%s\""
-			      easy-hugo-url
-			      (concat
-			       "/"
-			       easy-hugo-image-directory
-			       "/"
-			       (file-name-nondirectory file)))
-		      "  title=\"\" >}}"))))))
+				 "/"
+				 (file-name-nondirectory file)))
+			" title=\"\" >}}")))))))
 
 ;;;###autoload
 (defun easy-hugo-put-image ()
@@ -457,29 +499,30 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
   (interactive
    (easy-hugo-with-env
     (unless (file-directory-p (expand-file-name
-			       easy-hugo-image-directory
-			       (expand-file-name "static" easy-hugo-basedir)))
+                               easy-hugo-image-directory
+                               (expand-file-name "static" easy-hugo-basedir)))
       (error "%s does not exist" (expand-file-name
-				  easy-hugo-image-directory
-				  (expand-file-name "static" easy-hugo-basedir))))
-    (let* ((file (read-file-name "Image file: " nil
-				 (expand-file-name easy-hugo-default-picture-directory)
-				 t
-				 (expand-file-name easy-hugo-default-picture-directory)))
-	   (putfile (expand-file-name
-		     (file-name-nondirectory file)
-		     (expand-file-name easy-hugo-image-directory "static"))))
-      (when (file-exists-p putfile)
-	(error "%s already exists!" putfile))
-      (copy-file file putfile)
-      (insert (concat (format "<img src=\"%s%s\""
-			      easy-hugo-url
-			      (concat
-			       "/"
-			       easy-hugo-image-directory
-			       "/"
-			       (file-name-nondirectory file)))
-		      " alt=\"\" width=\"100%\"/>"))))))
+                                  easy-hugo-image-directory
+                                  (expand-file-name "static" easy-hugo-basedir))))
+    (let ((insert-default-directory nil))
+      (let* ((file (read-file-name "Image file: " nil
+				   (expand-file-name easy-hugo-default-picture-directory)
+				   t
+				   (expand-file-name easy-hugo-default-picture-directory)))
+	     (putfile (expand-file-name
+		       (file-name-nondirectory file)
+		       (expand-file-name easy-hugo-image-directory "static"))))
+	(when (file-exists-p putfile)
+	  (error "%s already exists!" putfile))
+	(copy-file file putfile)
+	(insert (concat (format "{{< figure src=\"%s%s\""
+				easy-hugo-url
+				(concat
+				 "/"
+				 easy-hugo-image-directory
+				 "/"
+				 (file-name-nondirectory file)))
+			" alt=\"\" >}}")))))))
 
 ;;;###autoload
 (defun easy-hugo-put-figure ()
@@ -492,24 +535,41 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
       (error "%s does not exist" (expand-file-name
                                   easy-hugo-image-directory
                                   (expand-file-name "static" easy-hugo-basedir))))
-    (let* ((file (read-file-name "Image file: " nil
-				 (expand-file-name easy-hugo-default-picture-directory)
-				 t
-				 (expand-file-name easy-hugo-default-picture-directory)))
-	   (putfile (expand-file-name
-		     (file-name-nondirectory file)
-		     (expand-file-name easy-hugo-image-directory "static"))))
-      (when (file-exists-p putfile)
-	(error "%s already exists!" putfile))
-      (copy-file file putfile)
-      (insert (concat (format "{{< figure src=\"%s%s\""
-                              easy-hugo-url
-                              (concat
-                               "/"
-                               easy-hugo-image-directory
-                               "/"
-                               (file-name-nondirectory file)))
-                      "  title=\"\" >}}"))))))
+    (let ((insert-default-directory nil))
+      (let* ((file (read-file-name "Image file: " nil
+				   (expand-file-name easy-hugo-default-picture-directory)
+				   t
+				   (expand-file-name easy-hugo-default-picture-directory)))
+	     (putfile (expand-file-name
+		       (file-name-nondirectory file)
+		       (expand-file-name easy-hugo-image-directory "static"))))
+	(when (file-exists-p putfile)
+	  (error "%s already exists!" putfile))
+	(copy-file file putfile)
+	(insert (concat (format "{{< figure src=\"%s%s\""
+				easy-hugo-url
+				(concat
+				 "/"
+				 easy-hugo-image-directory
+				 "/"
+				 (file-name-nondirectory file)))
+			" title=\"\" >}}")))))))
+
+(defun easy-hugo--request-image (url file)
+  "Resuest image from URL and save file at the location of FILE."
+  (request
+   url
+   :parser 'buffer-string
+   :success
+   (cl-function (lambda (&key data &allow-other-keys)
+		  (when data
+		    (with-current-buffer (get-buffer-create "*request image*")
+		      (erase-buffer)
+		      (insert data)
+		      (write-file file)))))
+   :error
+   (cl-function (lambda (&rest args &key error-thrown &allow-other-keys)
+		  (message "Got error: %S" error-thrown)))))
 
 ;;;###autoload
 (defun easy-hugo-pull-image ()
@@ -534,15 +594,15 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
 				nil)))
       (when (file-exists-p (file-truename file))
 	(error "%s already exists!" (file-truename file)))
-      (url-copy-file url file t)
-      (insert (concat (format "<img src=\"%s%s\""
-			      easy-hugo-url
-			      (concat
-			       "/"
-			       easy-hugo-image-directory
-			       "/"
-			       (file-name-nondirectory file)))
-		      " alt=\"\" width=\"100%\"/>"))))))
+      (easy-hugo--request-image url file)
+      (insert (concat (format "{{< figure src=\"%s%s\""
+                              easy-hugo-url
+                              (concat
+                               "/"
+                               easy-hugo-image-directory
+                               "/"
+                               (file-name-nondirectory file)))
+                      " alt=\"\" >}}"))))))
 
 ;;;###autoload
 (defun easy-hugo-pull-figure ()
@@ -567,7 +627,7 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
 				nil)))
       (when (file-exists-p (file-truename file))
 	(error "%s already exists!" (file-truename file)))
-      (url-copy-file url file t)
+      (easy-hugo--request-image url file)
       (insert (concat (format "{{< figure src=\"%s%s\""
                               easy-hugo-url
                               (concat
@@ -624,7 +684,7 @@ Automatically select the deployment destination from init.el."
 			    nil
 			    "*hugo-rsync*"
 			    t
-			    "-rtpl"
+			    easy-hugo-rsync-flags
 			    (concat "--chmod=" easy-hugo-publish-chmod)
 			    "--delete"
 			    easy-hugo-rsync-delete-directory
@@ -688,7 +748,7 @@ Automatically select the deployment destination from init.el."
 			     nil
 			     "*hugo-rsync*"
 			     t
-			     "-rtpl"
+			     easy-hugo-rsync-flags
 			     (concat "--chmod=" easy-hugo-publish-chmod)
 			     "--delete"
 			     easy-hugo-rsync-delete-directory
@@ -866,9 +926,9 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
        (if (<= 0.25 (easy-hugo--version))
 	   (setq easy-hugo--server-process
 		 (start-process "hugo-server"
-				easy-hugo--preview-buffer easy-hugo-bin "server" "--navigateToChanged"))
+				easy-hugo--preview-buffer easy-hugo-bin "server" "--navigateToChanged" easy-hugo-server-flags easy-hugo-server-value))
 	 (setq easy-hugo--server-process
-	       (start-process "hugo-server" easy-hugo--preview-buffer easy-hugo-bin "server")))
+	       (start-process "hugo-server" easy-hugo--preview-buffer easy-hugo-bin "server" easy-hugo-server-flags easy-hugo-server-value)))
        (while easy-hugo--preview-loop
 	 (if (equal (easy-hugo--preview-status easy-hugo-preview-url) "200")
 	     (progn
@@ -1273,7 +1333,7 @@ to the server."
 
 ;;;###autoload
 (defun easy-hugo-ag ()
-  "Search for blog article with counsel-ag or helm-ag."
+  "Search for blog article with `counsel-ag' or `helm-ag'."
   (interactive)
   (easy-hugo-with-env
    (if (and (require 'counsel nil t) (not easy-hugo-helm-ag))
@@ -1315,7 +1375,7 @@ P .. Publish clever   C .. Deploy GCS    a .. Search with ag   H .. GitHub timer
 < .. Previous blog    > .. Next blog     , .. Pre postdir      . .. Next postdir
 F .. Full help [tab]  W .. AWS S3 timer  / .. Select postdir   q .. Quit easy-hugo
 "))
-  "Help of easy-hugo."
+  "Help of `easy-hugo'."
   :group 'easy-hugo
   :type 'string)
 
@@ -1330,7 +1390,7 @@ article which you wrote should appear here.
 Enjoy!
 
 "
-  "Help of easy-hugo first time.")
+  "Help of `easy-hugo' first time.")
 
 (defcustom easy-hugo-add-help
   (if (null easy-hugo-sort-default-char)
@@ -1340,7 +1400,7 @@ k .. Previous-line    j .. Next line     h .. backward-char    l .. forward-char
 m .. X s3-timer       i .. X GCS timer   I .. GCS timer        V .. View other window
 - .. Pre postdir      + .. Next postdir  w .. Write post       o .. Open other window
 J .. Jump blog        e .. Edit file     B .. Firebase deploy  ! .. X firebase timer
-L .. firebase timer   S .. Sort char     M .. Magit status     ? .. Describe-mode
+L .. Firebase timer   S .. Sort char     M .. Magit status     ? .. Describe-mode
 ")
     (progn
       "O .. Open basedir     r .. Refresh       b .. X github timer   t .. X publish-timer
@@ -1348,9 +1408,9 @@ k .. Previous-line    j .. Next line     h .. backward-char    l .. forward-char
 m .. X s3-timer       i .. X GCS timer   I .. GCS timer        V .. View other window
 - .. Pre postdir      + .. Next postdir  w .. Write post       o .. Open other window
 J .. Jump blog        e .. Edit file     B .. Firebase deploy  ! .. X firebase timer
-L .. firebase timer   S .. Sort time     M .. Magit status     ? .. Describe-mode
+L .. Firebase timer   S .. Sort time     M .. Magit status     ? .. Describe-mode
 "))
-  "Add help of easy-hugo."
+  "Add help of `easy-hugo'."
   :group 'easy-hugo
   :type 'string)
 
@@ -1427,7 +1487,7 @@ L .. firebase timer   S .. Sort time     M .. Magit status     ? .. Describe-mod
     (define-key map "<" 'easy-hugo-previous-blog)
     (define-key map ">" 'easy-hugo-next-blog)
     map)
-  "Keymap for easy-hugo major mode.")
+  "Keymap for `easy-hugo' major mode.")
 
 (define-derived-mode easy-hugo-mode special-mode "Easy-hugo"
   "Major mode for easy hugo.")
@@ -1643,7 +1703,9 @@ Optional prefix ARG says how many lines to move; default is one line."
   (interactive)
   (goto-char (point-min))
   (forward-line (- easy-hugo--unmovable-line 1))
-  (forward-char easy-hugo--forward-char))
+  (forward-char easy-hugo--forward-char)
+  (when easy-hugo-emacspeak
+    (easy-hugo-emacspeak-filename)))
 
 (defun easy-hugo-backward-word (&optional arg)
   "Easy-hugo backward-word.
@@ -1666,7 +1728,9 @@ Optional prefix ARG says how many lines to move; default is one line."
 	      (not (if (and arg (< arg 0)) (bobp) (eobp))))
     (forward-char (if (and arg (< arg 0)) -1 1)))
   (beginning-of-line)
-  (forward-char easy-hugo--forward-char))
+  (forward-char easy-hugo--forward-char)
+  (when easy-hugo-emacspeak
+    (easy-hugo-emacspeak-filename)))
 
 (defun easy-hugo-previous-line (arg)
   "Move up lines then position at filename.
@@ -2187,7 +2251,7 @@ output directories whose names match REGEXP."
     (nconc result (nreverse files))))
 
 (defun easy-hugo-draft-list ()
-  "Drafts list mode of easy-hugo."
+  "Drafts list mode of `easy-hugo'."
   (easy-hugo-with-env
    (when (> 0.25 (easy-hugo--version))
      (error "'List draft' requires hugo 0.25 or higher"))
@@ -2288,7 +2352,9 @@ output directories whose names match REGEXP."
 	   (beginning-of-line)
 	   (forward-char easy-hugo--forward-char))
        (forward-char easy-hugo--forward-char))
-     (easy-hugo-mode))))
+     (easy-hugo-mode)
+     (when easy-hugo-emacspeak
+       (easy-hugo-emacspeak-filename)))))
 
 ;;;###autoload
 (defun easy-hugo ()
@@ -2387,7 +2453,9 @@ output directories whose names match REGEXP."
 	       (beginning-of-line)
 	       (forward-char easy-hugo--forward-char))
 	   (forward-char easy-hugo--forward-char))
-	 (easy-hugo-mode))))))
+	 (easy-hugo-mode)
+	 (when easy-hugo-emacspeak
+	   (easy-hugo-emacspeak-filename)))))))
 
 (provide 'easy-hugo)
 
