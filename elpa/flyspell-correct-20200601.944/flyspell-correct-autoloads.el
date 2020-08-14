@@ -12,9 +12,7 @@
 
 (autoload 'flyspell-correct-at-point "flyspell-correct" "\
 Correct word before point using `flyspell-correct-interface'.
-Adapted from `flyspell-correct-word-before-point'.
-
-\(fn)" t nil)
+Adapted from `flyspell-correct-word-before-point'." t nil)
 
 (autoload 'flyspell-correct-previous "flyspell-correct" "\
 Correct the first misspelled word that occurs before POSITION.
@@ -37,15 +35,13 @@ misspelled words in the buffer.
 \(fn POSITION)" t nil)
 
 (autoload 'flyspell-correct-wrapper "flyspell-correct" "\
-Correct spelling error in a dwim fashion based on ARG.
+Correct spelling error in a dwim fashion based on universal argument.
 
 - One \\[universal-argument] enables rapid mode.
 - Two \\[universal-argument]'s changes direction of spelling
   errors search.
 - Three \\[universal-argument]'s changes direction of spelling
-  errors search and enables rapid mode.
-
-\(fn ARG)" t nil)
+  errors search and enables rapid mode." t nil)
 
 (autoload 'flyspell-correct-move "flyspell-correct" "\
 Correct the first misspelled word that occurs before POSITION.
@@ -61,6 +57,11 @@ until all errors in buffer have been addressed.
 
 (autoload 'flyspell-correct-auto-mode "flyspell-correct" "\
 Minor mode for automatically correcting word at point.
+
+If called interactively, enable Flyspell-Correct-Auto mode if ARG
+is positive, and disable it if ARG is zero or negative.  If
+called from Lisp, also enable the mode if ARG is omitted or nil,
+and toggle it if ARG is `toggle'; disable the mode otherwise.
 
 Take my advice and don't use this functionality unless you find
 `flyspell-correct-previous' function useless for your purposes.
