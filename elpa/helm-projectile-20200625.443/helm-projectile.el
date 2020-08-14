@@ -1,14 +1,15 @@
 ;;; helm-projectile.el --- Helm integration for Projectile         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2016 Bozhidar Batsov
+;; Copyright (C) 2011-2020 Bozhidar Batsov
 
 ;; Author: Bozhidar Batsov
 ;; URL: https://github.com/bbatsov/helm-projectile
-;; Package-Version: 20180418.2223
+;; Package-Version: 20200625.443
+;; Package-Commit: 2f3a2a03d6cb9419c25b432637aa11c8d2f9f3b7
 ;; Created: 2011-31-07
 ;; Keywords: project, convenience
-;; Version: 0.14.0
-;; Package-Requires: ((helm "1.9.9") (projectile "0.14.0") (cl-lib "0.3"))
+;; Version: 1.1.0-snapshot
+;; Package-Requires: ((helm "1.9.9") (projectile "2.2.0") (cl-lib "0.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -51,7 +52,7 @@
 (require 'helm-files)
 
 (declare-function eshell "eshell")
-(declare-function helm-do-ag "helm-ag")
+(declare-function helm-do-ag "ext:helm-ag")
 (declare-function dired-get-filename "dired")
 (defvar helm-ag-base-command)
 
@@ -688,9 +689,10 @@ Meant to be added to `helm-cleanup-hook', from which it removes
 (defvar helm-source-projectile-recentf-list
   (helm-build-sync-source "Projectile recent files"
     :candidates (lambda ()
-                  (with-helm-current-buffer
-                    (helm-projectile--files-display-real (projectile-recentf-files)
-                                                         (projectile-project-root))))
+                  (when (projectile-project-p)
+                   (with-helm-current-buffer
+                     (helm-projectile--files-display-real (projectile-recentf-files)
+                                                          (projectile-project-root)))))
     :fuzzy-match helm-projectile-fuzzy-match
     :keymap helm-projectile-find-file-map
     :help-message 'helm-ff-help-message
@@ -707,6 +709,23 @@ Meant to be added to `helm-cleanup-hook', from which it removes
 (defvar helm-source-projectile-directories-and-dired-list
   '(helm-source-projectile-dired-files-list
     helm-source-projectile-directories-list))
+
+(defcustom helm-projectile-git-grep-command
+  "git --no-pager grep --no-color -n%c -e %p -- %f"
+  "Command to execute when performing `helm-grep' inside a projectile git project.
+See documentation of `helm-grep-default-command' for the format."
+  :type 'string
+  :group 'helm-projectile
+  )
+
+(defcustom helm-projectile-grep-command
+  "grep -a -r %e -n%cH -e %p %f ."
+  "Command to execute when performing `helm-grep' outside a projectile git project.
+See documentation of `helm-grep-default-command' for the format."
+  :type 'string
+  :group 'helm-projectile
+  )
+
 
 (defcustom helm-projectile-sources-list
   '(helm-source-projectile-buffers-list
@@ -791,7 +810,6 @@ Other file extensions can be customized with the variable `projectile-other-file
   (interactive "P")
   (let* ((project-root (projectile-project-root))
          (other-files (projectile-get-other-files (buffer-file-name)
-                                                  (projectile-current-project-files)
                                                   flex-matching)))
     (if other-files
         (if (= (length other-files) 1)
@@ -853,8 +871,8 @@ If it is nil, or ack/ack-grep not found then use default grep command."
          (helm-grep-default-command (if use-ack-p
                                         (concat ack-executable " -H --no-group --no-color " ack-ignored-pattern " %p %f")
                                       (if (and projectile-use-git-grep (eq (projectile-project-vcs) 'git))
-                                          "git --no-pager grep --no-color -n%c -e %p -- %f"
-                                        "grep -a -r %e -n%cH -e %p %f .")))
+                                          helm-projectile-git-grep-command
+                                        helm-projectile-grep-command)))
          (helm-grep-default-recurse-command helm-grep-default-command))
 
     (setq helm-source-grep
@@ -946,7 +964,7 @@ DIR is the project root, if not set then current directory is used"
                                        (concat "--ignore " i))
                                      (append grep-find-ignored-files grep-find-ignored-directories (cadr (projectile-parse-dirconfig-file)))
                                      " "))
-                 (helm-ag-base-command (concat helm-ag-base-command " " ignored))
+                 (helm-ag-base-command (concat helm-ag-base-command " " ignored " " options))
                  (current-prefix-arg nil))
             (helm-do-ag (projectile-project-root) (car (projectile-parse-dirconfig-file))))
         (error "You're not in a project"))
@@ -956,6 +974,36 @@ DIR is the project root, if not set then current directory is used"
             (package-install 'helm-ag)
             (helm-projectile-ag options))
         (error (error "`helm-ag' is not available.  Is MELPA in your `package-archives'?"))))))
+
+;; Declare/define these to satisfy the byte compiler
+(defvar helm-rg-prepend-file-name-line-at-top-of-matches)
+(defvar helm-rg-include-file-on-every-match-line)
+(declare-function helm-rg "ext:helm-rg")
+
+(defun helm-projectile-rg--region-selection ()
+  (when helm-projectile-set-input-automatically
+    (if (region-active-p)
+        (buffer-substring-no-properties (region-beginning) (region-end))
+      (helm-rg--get-thing-at-pt))))
+
+;;;###autoload
+(defun helm-projectile-rg ()
+  "Projectile version of `helm-rg'."
+  (interactive)
+  (if (require 'helm-rg nil t)
+      (if (projectile-project-p)
+          (let ((helm-rg-prepend-file-name-line-at-top-of-matches nil)
+                (helm-rg-include-file-on-every-match-line t))
+            (let ((default-directory (projectile-project-root)))
+              (helm-rg (helm-projectile-rg--region-selection)
+                       nil)))
+        (error "You're not in a project"))
+    (when (yes-or-no-p "`helm-rg' is not installed. Install? ")
+      (condition-case nil
+          (progn
+            (package-install 'helm-rg)
+            (helm-projectile-rg))
+        (error "`helm-rg' is not available.  Is MELPA in your `package-archives'?")))))
 
 (defun helm-projectile-commander-bindings ()
   (def-projectile-commander-method ?a
@@ -1012,6 +1060,7 @@ DIR is the project root, if not set then current directory is used"
         (define-key projectile-mode-map [remap projectile-grep] #'helm-projectile-grep)
         (define-key projectile-mode-map [remap projectile-ack] #'helm-projectile-ack)
         (define-key projectile-mode-map [remap projectile-ag] #'helm-projectile-ag)
+        (define-key projectile-mode-map [remap projectile-ripgrep] #'helm-projectile-rg)
         (define-key projectile-mode-map [remap projectile-browse-dirty-projects] #'helm-projectile-browse-dirty-projects)
         (helm-projectile-commander-bindings))
     (progn
@@ -1027,6 +1076,7 @@ DIR is the project root, if not set then current directory is used"
       (define-key projectile-mode-map [remap projectile-switch-to-buffer] nil)
       (define-key projectile-mode-map [remap projectile-grep] nil)
       (define-key projectile-mode-map [remap projectile-ag] nil)
+      (define-key projectile-mode-map [remap projectile-ripgrep] nil)
       (define-key projectile-mode-map [remap projectile-browse-dirty-projects] nil)
       (projectile-commander-bindings))))
 
