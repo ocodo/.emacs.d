@@ -4,7 +4,8 @@
 
 ;; Author: Rustem Muslimov <r.muslimov@gmail.com>
 ;; Keywords: jenkins, convenience
-;; Package-Version: 20170721.236
+;; Package-Version: 20200524.2016
+;; Package-Commit: bd06cdc57c0cb9217d773eeba06ecc998f10033b
 ;; Package-Requires: ((dash "2.12") (emacs "24.3") (json "1.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -43,6 +44,7 @@
 (defvar jenkins-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "b") 'jenkins--call-build-job-from-main-screen)
+    (define-key map (kbd "r") 'jenkins--call-rebuild-job-from-main-screen)
     (define-key map (kbd "v") 'jenkins--visit-job-from-main-screen)
     (define-key map (kbd "RET") 'jenkins-enter-job)
     map)
@@ -53,10 +55,17 @@
     (define-key keymap (kbd "1") 'jenkins-job-details-toggle)
     (define-key keymap (kbd "g") 'jenkins--refresh-job-from-job-screen)
     (define-key keymap (kbd "b") 'jenkins--call-build-job-from-job-screen)
+    (define-key keymap (kbd "r") 'jenkins--call-rebuild-job-from-job-screen)
     (define-key keymap (kbd "v") 'jenkins--visit-job-from-job-screen)
     (define-key keymap (kbd "$") 'jenkins--show-console-output-from-job-screen)
     keymap)
   "Jenkins jobs status mode keymap.")
+
+(defvar jenkins-console-output-mode-map
+  (let ((keymap (make-sparse-keymap)))
+    (define-key keymap (kbd "q") 'kill-this-buffer)
+    keymap)
+  "Jenkins jobs console output mode keymap.")
 
 (defgroup jenkins nil
   "Interact with a Jenkins CI server."
@@ -255,7 +264,7 @@
      ,(concat
        "Basic "
        (base64-encode-string
-        (concat jenkins-username ":" jenkins-api-token))))))
+        (concat jenkins-username ":" jenkins-api-token) t)))))
 
 (defun jenkins--retrieve-page-as-json (url)
   "Shortcut for jenkins api URL to return valid json."
@@ -342,10 +351,13 @@
         (console-buffer (get-buffer-create (format "*jenkins-console-%s-%s*" jobname build)))
         (url (format "%sjob/%s/%s/consoleText" (get-jenkins-url) jobname build)))
     (with-current-buffer console-buffer
+      (read-only-mode -1)    ; make sure buffer is writable
       (erase-buffer)
       (with-current-buffer (url-retrieve-synchronously url)
+
         (copy-to-buffer console-buffer (point-min) (point-max))))
-    (pop-to-buffer console-buffer)))
+    (pop-to-buffer console-buffer)
+    (jenkins-console-output-mode)))
 
 (defun jenkins--visit-job-from-main-screen ()
   "Open browser for current job."
@@ -387,6 +399,11 @@
   ;; buffer defaults
   (setq-local jenkins-local-jobname jobname))
 
+(define-derived-mode jenkins-console-output-mode special-mode "jenkins-console-output"
+  "Mode for viewing jenkins console output"
+  ;; make buffer readonly
+  (read-only-mode))
+
 (defun jenkins-job-render (jobname)
   "Render details buffer for JOBNAME."
   (setq buffer-read-only nil)
@@ -422,6 +439,15 @@
       (with-current-buffer (url-retrieve-synchronously build-url)
         (message (format "Building %s job started!" jobname))))))
 
+(defun jenkins-job-call-rebuild (jobname)
+  "Call jenkins build JOBNAME function."
+  (let ((url-request-extra-headers (jenkins--get-auth-headers))
+        (url-request-method "GET")
+        (build-url (format "%sjob/%s/lastCompletedBuild/rebuild/" (get-jenkins-url) jobname)))
+    (when (y-or-n-p (format "Ready to rebuild %s?" jobname))
+      (with-current-buffer (url-retrieve-synchronously build-url)
+        (message (format "Building %s job started!" jobname))))))
+
 (defun jenkins--call-build-job-from-main-screen ()
   "Build job from main screen."
   (interactive)
@@ -431,6 +457,16 @@
   "Call building job from job details in jenkins."
   (interactive)
   (jenkins-job-call-build jenkins-local-jobname))
+
+(defun jenkins--call-rebuild-job-from-main-screen ()
+  "rebuild job from main screen."
+  (interactive)
+  (jenkins-job-call-rebuild (tabulated-list-get-id)))
+
+(defun jenkins--call-rebuild-job-from-job-screen ()
+  "Call rebuilding job from job details in jenkins."
+  (interactive)
+  (jenkins-job-call-rebuild jenkins-local-jobname))
 
 (defun jenkins--refresh-job-from-job-screen ()
   "Refresh the current job"
@@ -477,8 +513,12 @@
                    builds)))))
      "\nBuild now! "
      (propertize ";; (press b to Build)\n" 'font-lock-face 'italic)
+     "Rebuild last run! "
+     (propertize ";; (press r to Rebuild)\n" 'font-lock-face 'italic)
      "View job's page "
      (propertize ";; (press v to open browser)\n" 'font-lock-face 'italic)
+     "View job's console output"
+     (propertize ";; (press $ to open a new buffer with the text log)\n" 'font-lock-face 'italic)
      )))
 
 ;;;###autoload
