@@ -1,9 +1,11 @@
 ;;; haxe-mode.el --- An Emacs major mode for Haxe
 
-;;; Author: Jens Peter Secher
-;;; URL: http://people.debian.org/~jps/misc/haxe-mode.el
-;; Version: 20131004.1742
-;;; X-Original-Version: 0.3.1
+;; Author: Jens Peter Secher (original)
+;; Maintainer: Jen-Chieh Shen <jcs090218@gmail.com>
+;; URL: https://github.com/elpa-host/haxe-mode
+;; Package-Version: 20200204.1015
+;; Package-Commit: 9449b2b8bc733faa130d3ab68b97ac1ae1db3bff
+;; Version: 0.3.2
 
 ;;; Commentary:
 
@@ -44,6 +46,7 @@
 ;;    0.2.2 - Recognise keyword override.
 ;;    0.3.0 - Switched to GPLv3 license because that is what cc-mode is using.
 ;;    0.3.1 - Fix compile problem with emacs23.
+;;    0.3.2 - Fix autoload issue.
 ;;
 
 ;;; Usage:
@@ -67,7 +70,7 @@
 ;;              (setq fill-column 80)
 ;;              (local-set-key [(return)] 'newline-and-indent))))
 
-
+
 ;;; Code:
 
 (require 'cc-mode)
@@ -193,8 +196,8 @@
 (c-lang-defconst c-typeless-decl-kwds
   haxe (append '( "function" "var" )
                (c-lang-const c-class-decl-kwds)
-	       (c-lang-const c-brace-list-decl-kwds)))
-  
+           (c-lang-const c-brace-list-decl-kwds)))
+
 ;; Definition modifiers.
 (c-lang-defconst c-modifier-kwds
   haxe '( "private" "public" "static" "override" "inline"))
@@ -295,11 +298,14 @@
              '("^\\([^: ]+\\):\\([0-9]+\\): characters \\([0-9]+\\)-[0-9]+ : "
                1 2 3))
 
+
 (defcustom haxe-mode-hook nil
   "*Hook called by `haxe-mode'."
   :type 'hook
   :group 'c)
 
+
+;;;###autoload
 (defun haxe-mode ()
   "Major mode for editing Haxe code.
 

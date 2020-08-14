@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/haxe-mode-20200204.1015/haxe-mode.el  -*- no-byte-compile: t -*-
+(define-package "haxe-mode" "20200204.1015" "An Emacs major mode for Haxe" 'nil :commit "9449b2b8bc733faa130d3ab68b97ac1ae1db3bff" :authors '(("Jens Peter Secher (original)")) :maintainer '("Jen-Chieh Shen" . "jcs090218@gmail.com") :url "https://github.com/elpa-host/haxe-mode")
