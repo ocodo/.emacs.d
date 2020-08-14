@@ -126,6 +126,7 @@
    `(org-date ((t (:background "#fdfdfd" :foreground "slate blue" :underline t))))
    `(org-done ((t (:foreground "cornsilk4" :strike-through t :weight normal))))
    `(org-habit-alert-face ((((background dark)) (:background "gold" :foreground "red3"))))
+   `(org-habit-overdue-future-face((t (:foreground "light cyan"))))
    `(org-headline-done ((((class color) (min-colors 16) (background dark) (supports :strike-through t :foreground "gray71")) nil) (((class color) (min-colors 16) (background light)) (:foreground "dim gray" :strike-through t))))
    `(org-hide ((t (:foreground "gray96"))))
    `(outline-1 ((t (:foreground "medium blue" :inherit nil))))
