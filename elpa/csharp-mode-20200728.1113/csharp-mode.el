@@ -2,10 +2,11 @@
 
 ;; Author     : Dylan R. E. Moonfire (original)
 ;; Maintainer : Jostein Kjønigsen <jostein@gmail.com>
-;; Created    : Feburary 2005
+;; Created    : February 2005
 ;; Modified   : 2018
 ;; Version    : 0.9.2
-;; Package-Version: 20181011.718
+;; Package-Version: 20200728.1113
+;; Package-Commit: 48851778e0f01a2b0395e054e418a1d8a1687a06
 ;; Keywords   : c# languages oop mode
 ;; X-URL      : https://github.com/josteink/csharp-mode
 ;; Last-saved : 2018-Jul-08
@@ -120,7 +121,7 @@
 ;;
 ;;   Method names with a preceding attribute are not fontified.
 ;;
-;;   The symbol followng #if is not fontified.  It should be treated like
+;;   The symbol following #if is not fontified.  It should be treated like
 ;;   define and get font-lock-variable-name-face .
 ;;
 ;;   This code doesn't seem to work when you compile it, then
@@ -178,7 +179,7 @@
 ;;            compiled.
 ;;    0.6.0 - Added the c-filter-ops patch for 5.31.1 which made that
 ;;            function in cc-langs.el unavailable.
-;;          - Added a csharp-lineup-region for indention #region and
+;;          - Added a csharp-lineup-region for indentation #region and
 ;;            #endregion block differently.
 ;;    0.7.0 - Added autoload so update-directory-autoloads works
 ;;            (Thank you, Nikolaj Schumacher)
@@ -557,6 +558,10 @@ to work properly with code that includes attributes."
        (t nil))
       )))
 
+(defun csharp--at-lambda-header ()
+  "Determines if there is lambda header at point"
+  (or (looking-at "([[:alnum:][:space:]_,]*)[ \t\n]*=>[ \t\n]*{")
+      (looking-at "[[:alnum:]_]+[ \t\n]*=>[ \t\n]*{")))
 
 ;; ==================================================================
 ;; end of csharp-mode utility and feature defuns
@@ -885,7 +890,7 @@ to work properly with code that includes attributes."
                                     (eq (char-after) ?{) ;; open curly
                                     ;; is square parenthesis block? - start
                                     (let* ((start (point)) ;; used to hold our position, so that we know that
-                                           (end))          ;; our code isn't stuck trying to look for a non-existant sexp.
+                                           (end))          ;; our code isn't stuck trying to look for a non-existent sexp.
                                       (and (eq (char-after) 91) ;; open square
                                            (while (and (eq (char-after) 91)
                                                        (not (eq start end)))
@@ -1270,7 +1275,7 @@ Currently handled:
 ;; instead of create one.
 (c-lang-defconst c-type-modifier-kwds
   ;; EMCA-344, S?
-  csharp '("readonly" "const" "volatile" "new" "unsafe"))
+  csharp '("readonly" "const" "volatile" "new"))
 
 
 ;; Tue, 20 Apr 2010  16:02
@@ -1325,7 +1330,7 @@ Currently handled:
   csharp '("public" "partial" "private" "const" "abstract" "sealed"
            "protected" "ref" "out" "static" "virtual"
            "implicit" "explicit" "fixed"
-           "override" "params" "internal" "async" "extern"))
+           "override" "params" "internal" "async" "extern" "unsafe"))
 
 
 ;; Thu, 22 Apr 2010  23:02
@@ -1364,7 +1369,7 @@ This regexp is assumed to not match any non-operator identifier."
 ;; Statement keywords followed directly by a substatement.
 ;; catch is not one of them, because catch has a paren (typically).
 (c-lang-defconst c-block-stmt-1-kwds
-  csharp '("do" "else" "try" "finally" "unsafe"))
+  csharp '("do" "else" "try" "finally"))
 
 
 ;; Statement keywords followed by a paren sexp and then by a substatement.
@@ -1385,7 +1390,7 @@ This regexp is assumed to not match any non-operator identifier."
 
 ;; Constant keywords
 (c-lang-defconst c-constant-kwds
-  csharp '("true" "false" "null"))
+  csharp '("true" "false" "null" "value"))
 
 ;; Keywords that start "primary expressions."
 (c-lang-defconst c-primary-expr-kwds
@@ -1395,6 +1400,12 @@ This regexp is assumed to not match any non-operator identifier."
 ;; works properly.
 (c-lang-defconst c-other-block-decl-kwds
   csharp '("namespace"))
+
+(c-lang-defconst c-ref-list-kwds
+  csharp nil)
+
+(c-lang-defconst c-other-decl-kwds
+  csharp nil)
 
 (c-lang-defconst c-other-kwds
   csharp '("sizeof" "typeof" "is" "as" "yield"
@@ -1800,7 +1811,7 @@ to the beginning of the prior namespace."
 (defconst csharp--imenu-expression
   (let* ((single-space                   "[ \t\n\r\f\v]")
          (optional-space                 (concat single-space "*"))
-         (bol                            "^[ \t]*") ;; BOL shouldnt accept lineshift.
+         (bol                            "^[ \t]*") ;; BOL shouldn't accept lineshift.
          (space                          (concat single-space "+"))
          (access-modifier (regexp-opt '( "public" "private" "protected" "internal"
                                          "static" "sealed" "partial" "override" "virtual"
@@ -1934,7 +1945,7 @@ to the beginning of the prior namespace."
                         type
                         "\\)"
                         optional-space "{" optional-space
-                        ;; unless we are super-specific and expect the accesors,
+                        ;; unless we are super-specific and expect the accessors,
                         ;; lots of weird things gets slurped into the name.
                         ;; including the accessors themselves.
                         (regexp-opt '("get" "set"))
@@ -1947,7 +1958,7 @@ to the beginning of the prior namespace."
                         type
                         "\\)"
                         optional-space "{" optional-space
-                        ;; unless we are super-specific and expect the accesors,
+                        ;; unless we are super-specific and expect the accessors,
                         ;; lots of weird things gets slurped into the name.
                         ;; including the accessors themselves.
                         (regexp-opt '("get" "set"))
@@ -1981,7 +1992,7 @@ to the beginning of the prior namespace."
                         "\\]"
                         "\\)"
                         optional-space "{" optional-space
-                        ;; unless we are super-specific and expect the accesors,
+                        ;; unless we are super-specific and expect the accessors,
                         ;; lots of weird things gets slurped into the name.
                         ;; including the accessors themselves.
                         (regexp-opt '("get" "set"))) 1)
@@ -2161,7 +2172,7 @@ This is done by modifying the contents of `RESULT' in place."
         (setf (cdr item) (csharp--imenu-sort (cdr item)))))
 
     ;; sort main list
-    ;; (Enums always sort last though, because they dont have
+    ;; (Enums always sort last though, because they don't have
     ;; sub-menus)
     (csharp--imenu-sort result)))
 
@@ -2550,7 +2561,8 @@ are the string substitutions (see `format')."
                          (> (point) closest-lim))
                   (not (bobp))
                   (progn (backward-char)
-                         (looking-at "[\]\).]\\|\w\\|\\s_"))
+                         (or (looking-at "[\]\).]\\|\w\\|\\s_")
+                             (looking-at ">")))
                   (c-safe (forward-char)
                           (goto-char (scan-sexps (point) -1))))
 
@@ -2613,7 +2625,10 @@ are the string substitutions (see `format')."
                             'maybe)
                       (setq passed-paren (char-after))
                       'maybe)
-                  'maybe))))
+                  'maybe)
+
+                (if (csharp--at-lambda-header)
+                    (cons 'inexpr (point))))))
 
       (if (eq res 'maybe)
           (when (and c-recognize-paren-inexpr-blocks
@@ -2928,14 +2943,14 @@ Otherwise run `c-inside-bracelist-p'."
                                    (brace-list-close      . 0)
                                    (brace-list-entry      . 0)
                                    (brace-list-intro      . +)
-                                   (brace-list-open       . +)
+                                   (brace-list-open       . 0)
                                    (c                     . c-lineup-C-comments)
                                    (case-label            . +)
                                    (catch-clause          . 0)
                                    (class-close           . 0)
                                    (class-open            . 0)
                                    (comment-intro         . c-lineup-comment)
-                                   (cpp-macro             . 0)
+                                   (cpp-macro             . [0])
                                    (cpp-macro-cont        . c-lineup-dont-change)
                                    (defun-block-intro     . +)
                                    (defun-close           . 0)
@@ -2947,7 +2962,7 @@ Otherwise run `c-inside-bracelist-p'."
                                    (friend                . 0)
                                    (func-decl-cont        . +)
                                    (inclass               . +)
-                                   (inexpr-class          . +)
+                                   (inexpr-class          . 0)
                                    (inexpr-statement      . 0)
                                    (inextern-lang         . +)
                                    (inher-cont            . c-lineup-multi-inher)
