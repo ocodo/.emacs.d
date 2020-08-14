@@ -1,10 +1,11 @@
-;;; keymap-utils.el --- keymap utilities
+;;; keymap-utils.el --- keymap utilities          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2018  Jonas Bernoulli
+;; Copyright (C) 2008-2020  Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Package-Requires: ((cl-lib "0.3"))
-;; Package-Version: 20180318.1537
+;; Package-Version: 20200413.1858
+;; Package-Commit: 195e0ca5b1b9967faf94a3e5a634d8975b796705
 ;; Homepage: https://github.com/tarsius/keymap-utils
 ;; Keywords: convenience, extensions
 
@@ -92,8 +93,8 @@ in KEYMAP's parent keymap."
   "In KEYMAP's parent keymap, look up key sequence KEY.
 Return the definition.
 
-Unlike `lookup-key' (which see) this only conciders bindings made in
-KEYMAP's parent keymap and recursivly all parent keymaps of keymaps
+Unlike `lookup-key' (which see) this only considers bindings made in
+KEYMAP's parent keymap and recursively all parent keymaps of keymaps
 events in KEYMAP are bound to."
   (lookup-key (kmu--collect-parmaps keymap) key accept-default))
 
@@ -105,7 +106,7 @@ the parent keymap of any keymap a key in KEYMAP is bound to."
   (cl-labels ((strip-keymap
                (keymap)
                (set-keymap-parent keymap nil)
-               (cl-loop for key being the key-code of keymap
+               (cl-loop for _key being the key-code of keymap
                         using (key-binding binding) do
                         (and (keymapp binding)
                              (not (kmu-prefix-command-p binding))
@@ -144,47 +145,43 @@ Interactively also show the variable in the echo area."
     mapvar))
 
 (defun kmu-keymap-variable (keymap &rest exclude)
-  "Return a symbol whose value is KEYMAP.
+  "Return a dynamically-bound symbol whose value is KEYMAP.
 
 Comparison is done with `eq'.  If there are multiple variables
 whose value is KEYMAP it is undefined which is returned.
 
 Ignore symbols listed in optional EXCLUDE.  Use this to prevent a
 symbol from being returned which is dynamically bound to KEYMAP."
-  (when (keymapp keymap)
-    (setq exclude (append '(keymap --match-- --symbol--) exclude))
-    (let (--match--)
-      (cl-do-symbols (--symbol--)
-        (and (not (memq --symbol-- exclude))
-             (boundp --symbol--)
-             (eq (symbol-value --symbol--) keymap)
-             (setq --match-- --symbol--)
-             (cl-return nil)))
-      --match--)))
+  (and (keymapp keymap)
+       (catch 'found
+         (mapatoms (lambda (sym)
+                     (and (not (memq sym exclude))
+                          (boundp sym)
+                          (eq (symbol-value sym) keymap)
+                          (throw 'found sym)))))))
 
 (defun kmu-keymap-prefix-command (keymap)
-  "Return a symbol whose function definition is KEYMAP.
+  "Return a dynamically-bound symbol whose function definition is KEYMAP.
 
 Comparison is done with `eq'.  If there are multiple symbols
 whose function definition is KEYMAP it is undefined which is
 returned."
-  (when (keymapp keymap)
-    (let (--match--)
-      (cl-do-symbols (--symbol--)
-        (and (fboundp --symbol--)
-             (eq (symbol-function --symbol--) keymap)
-             (setq --match-- --symbol--)
-             (cl-return nil)))
-      --match--)))
+  (and (keymapp keymap)
+       (catch 'found
+         (mapatoms (lambda (sym)
+                     (and (fboundp sym)
+                          (eq (symbol-function sym) keymap)
+                          (throw 'found sym)))))))
 
 (defun kmu-keymap-parent (keymap &optional need-symbol &rest exclude)
   "Return the parent keymap of KEYMAP.
 
-If a variable exists whose value is KEYMAP's parent keymap return
-that.  Otherwise if KEYMAP does not have a parent keymap return
-nil.  Otherwise if KEYMAP has a parent keymap but no variable is
-bound to it return the parent keymap, unless optional NEED-SYMBOL
-is non-nil in which case nil is returned.
+If a dynamically-bound variable exists whose value is KEYMAP's
+parent keymap return that.  Otherwise if KEYMAP does not have
+a parent keymap return nil.  Otherwise if KEYMAP has a parent
+keymap but no variable is bound to it return the parent keymap,
+unless optional NEED-SYMBOL is non-nil in which case nil is
+returned.
 
 Comparison is done with `eq'.  If there are multiple variables
 whose value is the keymap it is undefined which is returned.
@@ -192,10 +189,10 @@ whose value is the keymap it is undefined which is returned.
 Ignore symbols listed in optional EXCLUDE.  Use this to prevent
 a symbol from being returned which is dynamically bound to the
 parent keymap."
-  (let ((--parmap-- (keymap-parent keymap)))
-    (when --parmap--
-      (or (apply #'kmu-keymap-variable --parmap-- '--parmap-- exclude)
-          (unless need-symbol --parmap--)))))
+  (let ((parent (keymap-parent keymap)))
+    (and parent
+         (or (apply #'kmu-keymap-variable parent exclude)
+             (and (not need-symbol) parent)))))
 
 (defun kmu-mapvar-list (&optional exclude-prefix-commands)
   "Return a list of all keymap variables.
@@ -204,8 +201,8 @@ If optional EXCLUDE-PREFIX-COMMANDS is non-nil exclude all
 variables whose variable definition is also the function
 definition of a prefix command."
   (let ((prefix-commands
-         (when exclude-prefix-commands
-           (kmu-prefix-command-list))))
+         (and exclude-prefix-commands
+              (kmu-prefix-command-list))))
     (cl-loop for symbol being the symbols
              when (kmu-keymap-variable-p symbol)
              when (not (memq symbol prefix-commands))
@@ -240,9 +237,9 @@ For an approximate inverse of this, see `kmu-parse-key-description'."
              (not (consp (cdr last))))
         ;; Handle character ranges.
         (progn
-          (setq keys   (append keys nil)
-                prefix (vconcat prefix (butlast keys))
-                keys   (car (last keys)))
+          (setq keys   (append keys nil))
+          (setq prefix (vconcat prefix (butlast keys)))
+          (setq keys   (car (last keys)))
           (concat (and prefix (> (length prefix) 1)
                        (concat (kmu-key-description prefix) " "))
                   (kmu-key-description (vector (car keys))) ".."
@@ -378,7 +375,7 @@ string like \"?\C-a\"."
 
 (defun kmu-remove-key (keymap key)
   "In KEYMAP, remove key sequence KEY.
-Make the event KEY truely undefined in KEYMAP by removing the
+Make the event KEY truly undefined in KEYMAP by removing the
 respective element of KEYMAP (or a sub-keymap) as opposed to
 merely setting its binding to nil.
 
