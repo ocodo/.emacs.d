@@ -10,9 +10,7 @@
 ;;; Generated autoloads from avy-zap.el
 
 (autoload 'avy-zap-to-char "avy-zap" "\
-Zap to char using `avy'.
-
-\(fn)" t nil)
+Zap to char using `avy'." t nil)
 
 (autoload 'avy-zap-to-char-dwim "avy-zap" "\
 Without PREFIX, call `avy-zap-to-char'.
@@ -21,9 +19,7 @@ With PREFIX, call `zap-to-char'.
 \(fn &optional PREFIX)" t nil)
 
 (autoload 'avy-zap-up-to-char "avy-zap" "\
-Zap up to char using `avy'.
-
-\(fn)" t nil)
+Zap up to char using `avy'." t nil)
 
 (autoload 'avy-zap-up-to-char-dwim "avy-zap" "\
 Without PREFIX, call `avy-zap-up-to-char'.

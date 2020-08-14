@@ -4,7 +4,8 @@
 
 ;; Author: Junpeng Qiu <qjpchmail@gmail.com>
 ;; URL: https://github.com/cute-jumper/avy-zap
-;; Package-Version: 20160921.2144
+;; Package-Version: 20190801.329
+;; Package-Commit: 7c8d1f40e43d03e2f6c1696bfa547526528ce8cb
 ;; Package-Requires: ((avy "0.2.0"))
 ;; Keywords: extensions
 
@@ -154,6 +155,9 @@
 (defvar avy-zap-function 'kill-region
   "The function used for zapping to char.")
 
+(defconst avy-zap--function-list '(kill-region delete-region)
+  "List of valid `avy-zap-function' values.")
+
 (defvar avy-zap-dwim-prefer-avy t
   "Whether the default dwim behavior of `avy-zap' should use `avy' or not.")
 
@@ -183,18 +187,13 @@ Otherwise, don't rebind."
     (avy-zap--flet-if
         avy-zap-forward-only
         (window-start (&optional window) (point))
-      (if (or (equal avy-zap-function 'kill-region)
-              (equal avy-zap-function 'delete-region))
-          (and (numberp (call-interactively 'avy-goto-char))
-               (funcall avy-zap-function start
-                        (progn
-                          (when (avy-zap--xor
-                                 (<= start (point))
-                                 zap-up-to-char-p)
-                            (forward-char))
-                          (point))))
-        (error "Unknown value for `avy-zap-function'!\
- Please choose between `kill-region' and `delete-region'")))))
+      (if (member avy-zap-function avy-zap--function-list)
+	  (when (call-interactively 'avy-goto-char)
+	    (and (avy-zap--xor (<= start (point)) zap-up-to-char-p)
+		 (forward-char))
+	    (funcall avy-zap-function start (point)))
+        (error "Invalid `avy-zap-function' value `%s' is not in the valid list: %s"
+	       avy-zap-function avy-zap--function-list)))))
 
 ;;;###autoload
 (defun avy-zap-to-char ()
