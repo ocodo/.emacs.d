@@ -1,6 +1,6 @@
 ;;; ivy-overlay.el --- Overlay display functions for Ivy  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2018  Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Keywords: convenience
@@ -16,7 +16,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -26,9 +26,14 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'subr-x))
+
 (defface ivy-cursor
-  '((t (:background "black"
-        :foreground "white")))
+  '((((class color) (background light))
+     :background "black" :foreground "white")
+    (((class color) (background dark))
+     :background "white" :foreground "black"))
   "Cursor face for inline completion."
   :group 'ivy-faces)
 
@@ -60,6 +65,8 @@ Lines are truncated to the window width."
   (when (fboundp 'company-abort)
     (company-abort)))
 
+(defvar ivy-height)
+
 (defun ivy-overlay-show-after (str)
   "Display STR in an overlay at point.
 
@@ -69,6 +76,9 @@ Then attach the overlay to the character before point."
       (progn
         (move-overlay ivy-overlay-at (1- (point)) (line-end-position))
         (overlay-put ivy-overlay-at 'invisible nil))
+    (let ((available-height (- (window-height) (count-lines (window-start) (point)) 1)))
+      (unless (>= available-height ivy-height)
+        (recenter (- (window-height) ivy-height 2))))
     (setq ivy-overlay-at (make-overlay (1- (point)) (line-end-position)))
     ;; Specify face to avoid clashing with other overlays.
     (overlay-put ivy-overlay-at 'face 'default)
@@ -77,27 +87,24 @@ Then attach the overlay to the character before point."
   (overlay-put ivy-overlay-at 'after-string ""))
 
 (declare-function org-current-level "org")
+(declare-function org-at-heading-p "org")
 (defvar org-indent-indentation-per-level)
 (defvar ivy-height)
 (defvar ivy-last)
 (defvar ivy-text)
 (defvar ivy-completion-beg)
-(declare-function ivy-add-face-text-property "ivy")
 (declare-function ivy--get-window "ivy")
 (declare-function ivy-state-current "ivy")
 (declare-function ivy-state-window "ivy")
-(declare-function ivy--remove-prefix "ivy")
 
-(defun ivy-overlay-impossible-p (str)
+(defun ivy-overlay-impossible-p (_str)
   (or
    (and (eq major-mode 'org-mode)
         (plist-get (text-properties-at (point)) 'src-block))
-   (<= (window-height) (+ ivy-height 3))
+   (<= (window-height) (+ ivy-height 2))
    (= (point) (point-min))
    (< (- (+ (window-width) (window-hscroll)) (current-column))
-      (apply #'max
-             (mapcar #'string-width
-                     (split-string str "\n"))))))
+      30)))
 
 (defun ivy-display-function-overlay (str)
   "Called from the minibuffer, display STR in an overlay in Ivy window.
@@ -109,37 +116,39 @@ Hide the minibuffer contents and cursor."
         (save-excursion
           (forward-line 1)
           (insert str)))
-    (ivy-add-face-text-property (minibuffer-prompt-end) (point-max)
-                                '(:foreground "white"))
-    (let ((cursor-pos (1+ (- (point) (minibuffer-prompt-end))))
-          (ivy-window (ivy--get-window ivy-last)))
+    (add-face-text-property (minibuffer-prompt-end) (point-max)
+                            '(:foreground "white"))
+    (setq cursor-type nil)
+    (with-selected-window (ivy--get-window ivy-last)
+      (when cursor-type
+        (setq ivy--old-cursor-type cursor-type))
       (setq cursor-type nil)
-      (with-selected-window ivy-window
-        (when cursor-type
-          (setq ivy--old-cursor-type cursor-type))
-        (setq cursor-type nil)
-        (let ((overlay-str
-               (apply
-                #'concat
-                (buffer-substring (max (point-min) (1- (point))) (point))
-                ivy-text
-                (and (eolp) " ")
-                (buffer-substring (point) (line-end-position))
-                (and (> (length str) 0)
-                     (list "\n"
-                           (ivy-left-pad
-                            (ivy--remove-prefix "\n" str)
-                            (+ (if (and (eq major-mode 'org-mode)
-                                        (bound-and-true-p org-indent-mode))
-                                   (* org-indent-indentation-per-level
-                                      (org-current-level))
-                                 0)
-                               (save-excursion
-                                 (goto-char ivy-completion-beg)
-                                 (current-column)))))))))
-          (ivy-add-face-text-property cursor-pos (1+ cursor-pos)
-                                      'ivy-cursor overlay-str t)
-          (ivy-overlay-show-after overlay-str))))))
+      (let ((overlay-str
+             (apply
+              #'concat
+              (buffer-substring (max (point-min) (1- (point))) (point))
+              ivy-text
+              (and (eolp) " ")
+              (buffer-substring (point) (line-end-position))
+              (and (> (length str) 0)
+                   (list "\n"
+                         (ivy-left-pad
+                          (string-remove-prefix "\n" str)
+                          (+
+                           (if (and (eq major-mode 'org-mode)
+                                    (bound-and-true-p org-indent-mode))
+                               (if (org-at-heading-p)
+                                   (1- (org-current-level))
+                                 (* org-indent-indentation-per-level (or (org-current-level) 1)))
+                             0)
+                           (save-excursion
+                             (when ivy-completion-beg
+                               (goto-char ivy-completion-beg))
+                             (current-column)))))))))
+        (let ((cursor-offset (1+ (length ivy-text))))
+          (add-face-text-property cursor-offset (1+ cursor-offset)
+                                  'ivy-cursor t overlay-str))
+        (ivy-overlay-show-after overlay-str)))))
 
 (provide 'ivy-overlay)
 

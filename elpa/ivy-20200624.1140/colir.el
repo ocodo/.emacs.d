@@ -1,6 +1,6 @@
 ;;; colir.el --- Color blending library -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2017  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 
@@ -17,16 +17,17 @@
 ;; GNU General Public License for more details.
 
 ;; For a full copy of the GNU General Public License
-;; see <http://www.gnu.org/licenses/>.
+;; see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; This package solves the problem of adding a face with a background
 ;; to text which may already have a background.  In all conflicting
 ;; areas, instead of choosing either the original or the new
 ;; background face, their blended sum is used.
 ;;
-;; The blend mode functions are taken from http://en.wikipedia.org/wiki/Blend_modes.
+;; The blend mode functions are taken from URL
+;; `https://en.wikipedia.org/wiki/Blend_modes'.
 
 ;;; Code:
 
@@ -36,9 +37,10 @@
 (defcustom colir-compose-method #'colir-compose-alpha
   "Select a method to compose two color channels."
   :group 'ivy
-  :type '(radio (function-item colir-compose-alpha)
-                (function-item colir-compose-overlay)
-                (function-item colir-compose-soft-light)))
+  :type '(radio
+          (function-item colir-compose-alpha)
+          (function-item colir-compose-overlay)
+          (function-item colir-compose-soft-light)))
 
 (defun colir-compose-soft-light (a b)
   "Compose A and B channels."
