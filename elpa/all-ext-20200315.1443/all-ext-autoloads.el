@@ -9,7 +9,7 @@
 ;;;### (autoloads nil "all-ext" "all-ext.el" (0 0 0 0))
 ;;; Generated autoloads from all-ext.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "all-ext" '("all-" "mc/edit-lines-in-all" "kill-All-buffer-maybe")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "all-ext" '("all-" "mc/edit-lines-in-all")))
 
 ;;;***
 
