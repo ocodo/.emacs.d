@@ -1,3 +1,27 @@
+2020-07-06  João Távora  <joaotavora@gmail.com>
+
+	Merge commit 'b2c449c0d5aad67eeee9857e7fd7710f985084ec'
+
+2019-03-17  João Távora  <joaotavora@gmail.com>
+
+	Update packages/ack from upstream
+
+	Merge subtree commit 'acaef4fe537dacc258e3c17865a6c538bd630ee7'
+
+2019-03-15  João Távora  <joaotavora@gmail.com>
+
+	Update packages/ack from upstream
+
+	Merge subtree commit 'bc671ba2422abf6efa85db931381ff3deef3c7a5'
+
+2016-07-11  Paul Eggert	 <eggert@cs.ucla.edu>
+
+	Fix some quoting problems in doc strings
+
+	Most of these are minor issues involving, e.g., quoting `like this' 
+	instead of 'like this'.	 A few involve escaping ` and ' with a preceding
+	\= when the characters should not be turned into curved single quotes.
+
 2015-09-12  Leo Liu  <sdl.web@gmail.com>
 
 	Merge ack master from github.com:leoliu/ack-el
@@ -68,8 +92,8 @@
 
 2012-10-08  Chong Yidong  <cyd@gnu.org>
 
-	Convert packages/ack/README.rst to a package.el compatible README. 
-	Tweak the description of the ack package in packages/ack/ack-pkg.el.
+	Convert packages/ack/README.rst to a package.el compatible README. Tweak
+	the description of the ack package in packages/ack/ack-pkg.el.
 
 2012-10-04  Leo Liu  <sdl.web@gmail.com>
 

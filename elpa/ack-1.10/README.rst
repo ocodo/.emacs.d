@@ -1,26 +1,29 @@
 ==============================================================
- Emacs Interface to `Ack <http://beyondgrep.com>`_-like Tools
+ The Simple Emacs Interface to `Ack <http://beyondgrep.com>`_-like Tools
 ==============================================================
  
-This package brings the full power of `ack <http://beyondgrep.com>`_
-to `emacs <http://www.gnu.org/software/emacs>`_ by allowing you to run
-it seamlessly with its large set of options. Ack-like tools such as
-`the silver searcher <https://github.com/ggreer/the_silver_searcher>`_
-and ``git/hg/bzr grep`` are well supported too.
+This package integrates `ack <http://beyondgrep.com>`_ and its large
+set of options with `emacs <http://www.gnu.org/software/emacs>`_.  The
+resulting ``*ack*`` buffer is just like vanilla ``*grep*`` buffer but
+the results come from your tool of choice.
+
+Ack-like tools such as `the silver searcher (ag)
+<https://github.com/ggreer/the_silver_searcher>`_, `ripgrep (rg)
+<https://github.com/BurntSushi/ripgrep>`_ are well supported, as are
+``git grep``, ``hg grep``.
+
+The program guesses good defaults, but lets you give ``C-u`` to
+customize directory to search in, as well as the give special commands
+and switches.
+
+Just ``M-x ack`` or do something like ``(global-set-key (kbd "C-c
+C-g") 'ack)``.
 
 It is part of `GNU ELPA <http://elpa.gnu.org>`_ - the official package
 archive for `emacs <http://www.gnu.org/software/emacs>`_. Patches,
 feature requests and bug reports are welcome.
 
-Features
---------
-
-- Keep all features of `ack <http://beyondgrep.com>`_ and more
-- Handle colors using the standard library ``ansi-color.el``
-- Completion for ack options while reading from the minibuffer
-- Support `the silver search (ag)
-  <https://github.com/ggreer/the_silver_searcher>`_
-- Support ``git grep``, ``hg grep`` and ``bzr grep``
+Colors are handled using the standard library ``ansi-color.el``
 
 Install
 -------
@@ -58,6 +61,16 @@ key bindings may be useful:
   the minibuffer
 - ``TAB`` => completion for ack options
 
+If you use the above keybindings very often, stick the corresponding
+command names in ``ack-minibuffer-setup-hook``. The following snippet
+makes ``M-x ack`` insert a ``git|hg|bzr grep`` template if searching
+from a project root. Then it will try to insert the symbol at point.
+
+.. code-block:: lisp
+
+  (add-hook 'ack-minibuffer-setup-hook 'ack-skel-vc-grep t)
+  (add-hook 'ack-minibuffer-setup-hook 'ack-yank-symbol-at-point t)
+
 Emacs23
 -------
 
@@ -71,4 +84,4 @@ https://github.com/leoliu/ack-el/issues
 
 Contributors
 ------------
-Phillip Lord
+Phillip Lord. The original author and previous mantainer is Leo Liu.

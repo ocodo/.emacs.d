@@ -1,9 +1,12 @@
 ;;; ack-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "ack" "ack.el" (22010 16204 857140 0))
+;;;### (autoloads nil "ack" "ack.el" (0 0 0 0))
 ;;; Generated autoloads from ack.el
 
 (autoload 'ack "ack" "\
@@ -18,29 +21,28 @@ minibuffer:
 
 \(fn COMMAND-ARGS &optional DIRECTORY)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ack" '("ack-")))
+
 ;;;***
 
-;;;### (autoloads nil "pcmpl-ack" "pcmpl-ack.el" (22010 16204 865140
-;;;;;;  0))
+;;;### (autoloads nil "pcmpl-ack" "pcmpl-ack.el" (0 0 0 0))
 ;;; Generated autoloads from pcmpl-ack.el
 
 (autoload 'pcomplete/ack "pcmpl-ack" "\
 Completion for the `ack' command.
-Start an argument with '-' to complete short options and '--' for
-long options.
-
-\(fn)" nil nil)
+Start an argument with `-' to complete short options and `--' for
+long options." nil nil)
 
 (defalias 'pcomplete/ack-grep 'pcomplete/ack)
 
 (autoload 'pcomplete/ag "pcmpl-ack" "\
-Completion for the `ag' command.
+Completion for the `ag' command." nil nil)
 
-\(fn)" nil nil)
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "pcmpl-ack" '("pcmpl-ack-")))
 
 ;;;***
 
-;;;### (autoloads nil nil ("ack-pkg.el") (22010 16204 886340 75000))
+;;;### (autoloads nil nil ("ack-pkg.el") (0 0 0 0))
 
 ;;;***
 
@@ -48,5 +50,6 @@ Completion for the `ag' command.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; ack-autoloads.el ends here
