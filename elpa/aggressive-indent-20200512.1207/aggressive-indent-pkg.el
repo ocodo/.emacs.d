@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/aggressive-indent-20200512.1207/aggressive-indent.el  -*- no-byte-compile: t -*-
+(define-package "aggressive-indent" "20200512.1207" "Minor mode to aggressively keep your code always indented" '((emacs "24.1") (cl-lib "0.5")) :commit "12a64b4e5c1a1e124baa74336738b6ae1972607f" :keywords '("indent" "lisp" "maint" "tools") :authors '(("Artur Malabarba" . "emacs@endlessparentheses.com")) :maintainer '("Artur Malabarba" . "emacs@endlessparentheses.com") :url "https://github.com/Malabarba/aggressive-indent-mode")
