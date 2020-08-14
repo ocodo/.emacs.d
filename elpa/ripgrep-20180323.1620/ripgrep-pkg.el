@@ -1,2 +1,0 @@
-;;; -*- no-byte-compile: t -*-
-(define-package "ripgrep" "20180323.1620" "Front-end for ripgrep, a command line search tool" 'nil :commit "93eca9138f6d6eea1af92f476c797ce19fa573d9" :keywords '("ripgrep" "ack" "pt" "ag" "sift" "grep" "search") :authors '(("Nicolas Lamirault" . "nicolas.lamirault@gmail.com")) :maintainer '("Nicolas Lamirault" . "nicolas.lamirault@gmail.com") :url "https://github.com/nlamirault/ripgrep.el")
