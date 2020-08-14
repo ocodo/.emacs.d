@@ -1,13 +1,13 @@
 ;;; datetime.el --- Parsing, formatting and matching timestamps  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2018 Paul Pogonyshev
+;; Copyright (C) 2016-2020 Paul Pogonyshev
 
 ;; Author:     Paul Pogonyshev <pogonyshev@gmail.com>
 ;; Maintainer: Paul Pogonyshev <pogonyshev@gmail.com>
-;; Version:    0.6.1
+;; Version:    0.6.6
 ;; Keywords:   lisp, i18n
 ;; Homepage:   https://github.com/doublep/datetime
-;; Package-Requires: ((emacs "24.1") (extmap "1.0"))
+;; Package-Requires: ((emacs "24.4") (extmap "1.1.1"))
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -55,7 +55,7 @@
 
 
 ;; Internally any date-time pattern is parsed to a list of value pairs
-;; (type . details).  Type is a symbol, while details are either nil,
+;; (TYPE . DETAILS).  Type is a symbol, while details are either nil,
 ;; another symbol or a number that represents minimum number of
 ;; characters in formatted number (left padded with zeros).  The only
 ;; exception is "as-is" part: it is just a string, not a cons cell.
@@ -100,15 +100,19 @@
 ;;
 ;;   minute (NUMBER)
 ;;   second (NUMBER)
-;;   millisecond (NUMBER)
 ;;   second-fractional (NUMBER)
-;;       this is a generalization used internally: (second-fractional . 3)
-;;       means millis, (second-fractional . 6) -- micros, and so on;
+;;       parts of a second: (second-fractional . 3) means millis,
+;;       (second-fractional . 6) -- micros, and so on;
 ;;
 ;;   decimal-separator (PREFERRED)
 ;;       either dot or comma;
 ;;
-;;   timezone (?) -- currently not supported further than pattern parsing
+;;   timezone (SYMBOL)
+;;       abbreviated, full --- timezone name, as reported by Java
+;;           (abbreviated is by far more useful, as full is too
+;;           verbose for most usecases);
+;;       rfc-822, iso-8601 -- currently not supported further than
+;;           pattern parsing.
 
 
 (require 'extmap)
@@ -130,7 +134,7 @@
 ;; obviously of `java' type.
 ;;
 ;; There are many fallbacks involved to reduce size:
-;;   - for locale XX-YY value for any property defaults to that of
+;;   - for locale XX-YY value for any property defaults to that for
 ;;     locale XX;
 ;;   - `:decimal-separator' defaults to dot;
 ;;   - `:eras' and `:am-pm' default to English version;
@@ -149,11 +153,55 @@
 ;; Extracted from Java using `dev/HarvestData.java'.
 (defvar datetime--timezone-extmap (extmap-init (expand-file-name "timezone-data.extmap" datetime--directory) :weak-data t :auto-reload t))
 
+;; Extracted from Java using `dev/HarvestData.java'.
+;;
+;; Fallbacks:
+;;   - for locale XX-YY names defaults to those for locale XX;
+;;   - for locale XX names default to those in English locale;
+;;   - names themselves can be in several formats (individual values
+;;     are always strings):
+;;         FULL -- abbreviated name is taken from the English locale,
+;;                 no special for DST;
+;;         (FULL-STD . FULL-DST) -- abbreviated names are taken from the
+;;                                  English locale;
+;;         [ABBREVIATED FULL] -- no special for DST;
+;;         [ABBREVIATED-STD ABBREVIATED-DST FULL-STD FULL-DST].
+(defvar datetime--timezone-name-extmap (extmap-init (expand-file-name "timezone-name-data.extmap" datetime--directory) :weak-data t :auto-reload t))
+
 (defvar datetime--pattern-parsers '((parsed . (lambda (pattern options) pattern))
                                     (java   . datetime--parse-java-pattern)))
 
 (defvar datetime--pattern-formatters '((parsed . (lambda (parts options) parts))
                                        (java   . datetime--format-java-pattern)))
+
+(defvar datetime--last-conversion-was-in-dst nil)
+
+(defvar datetime--locale-timezone-name-lookup-cache nil)
+(defvar datetime--locale-timezone-name-lookup-cache-version 0)
+
+
+;; `datetime-list-*' must be defined here, since they are used in
+;; `defcustom' forms below.
+(defun datetime-list-locales (&optional include-variants)
+  "List all locales for which the library has information.
+If INCLUDE-VARIANTS is nil, only include “base” locales (in
+format \"xx\"), if it is t then also include “variants” in format
+\"xx-YY\".
+
+Return value is a list of symbols in no particular order; it can
+be modified freely."
+  (if include-variants
+      (extmap-keys datetime--locale-extmap)
+    (let (locales)
+      (extmap-mapc datetime--locale-extmap (lambda (locale data) (unless (plist-get data :parent) (push locale locales))))
+      locales)))
+
+(defun datetime-list-timezones ()
+  "List all timezones for which the library has information.
+
+Return value is a list of symbols in no particular order; it can
+be modified freely."
+  (extmap-keys datetime--timezone-extmap))
 
 
 (defgroup datetime nil
@@ -163,16 +211,28 @@
 (defcustom datetime-locale nil
   "Default locale for date-time formatting and parsing.
 Leave unset to let the library auto-determine it from your OS
-when necessary."
+when necessary.
+
+You can see the list of locales supported by the library by
+evaluating this form:
+
+    (prin1-to-string (sort (datetime-list-locales t) #\\='string<))"
   :group 'datetime
-  :type  'symbol)
+  ;; The only minor problem is the type won't be rebuilt if `datetime--locale-extmap' is
+  ;; autoreloaded, but oh well.
+  :type  `(choice (const nil) ,@(mapcar (lambda (locale) `(const ,locale)) (datetime-list-locales t))))
 
 (defcustom datetime-timezone nil
   "Default timezone for date-time formatting and parsing.
 Leave unset to let the library auto-determine it from your OS
-when necessary."
+when necessary.
+
+You can see the list of supported timezones by evaluating this
+form:
+
+    (prin1-to-string (sort (datetime-list-timezones) #\\='string<))"
   :group 'datetime
-  :type  'symbol)
+  :type  `(choice (const nil) ,@(mapcar (lambda (locale) `(const ,locale)) (datetime-list-timezones))))
 
 
 (defun datetime--get-locale (options)
@@ -181,7 +241,7 @@ when necessary."
         (or (when datetime-locale
               (if (extmap-contains-key datetime--locale-extmap datetime-locale)
                   datetime-locale
-                (warn "Locale `%S' (value of `datetime-locale' variable) is not known")
+                (warn "Locale `%S' (value of `datetime-locale' variable) is not known" datetime-locale)
                 nil))
             (let ((system-locale (or (getenv "LC_ALL") (getenv "LC_TIME") (getenv "LANG")))
                   as-symbol)
@@ -200,7 +260,7 @@ when necessary."
         (or (when datetime-timezone
               (if (extmap-contains-key datetime--timezone-extmap datetime-timezone)
                   datetime-timezone
-                (warn "Timezone `%S' (value of `datetime-timezone' variable) is not known")
+                (warn "Timezone `%S' (value of `datetime-timezone' variable) is not known" datetime-timezone)
                 nil))
             (datetime--determine-system-timezone))
       (or timezone 'UTC))))
@@ -213,17 +273,22 @@ when necessary."
     (let ((system-timezone (intern (or (pcase system-type
                                          ((or `gnu `gnu/linux `gnu/kfreebsd)
                                           (or ;; For Debian-based distros.
-                                             (when (file-exists-p "/etc/timezone")
-                                               (condition-case nil
-                                                   (with-temp-buffer
-                                                     (insert-file-contents-literally "/etc/timezone")
-                                                     (when (looking-at "\\S-+")
-                                                       (match-string-no-properties 0)))
-                                                 (error)))
-                                             ;; Freedesktop standard (?).
-                                             (let ((locatime (file-symlink-p "/etc/localtime")))
-                                               (when (and locatime (string-match "/usr/share/zoneinfo/\\(.+\\)" locatime))
-                                                 (match-string-no-properties 1 locatime))))))
+                                              (when (file-exists-p "/etc/timezone")
+                                                (condition-case nil
+                                                    (with-temp-buffer
+                                                      (insert-file-contents-literally "/etc/timezone")
+                                                      (when (looking-at "\\S-+")
+                                                        (match-string-no-properties 0)))
+                                                  (error)))
+                                              ;; Freedesktop standard (?).
+                                              (let ((localtime (file-symlink-p "/etc/localtime")))
+                                                (when (and localtime (string-match "/usr/share/zoneinfo/\\(.+\\)" localtime))
+                                                  (match-string-no-properties 1 localtime)))))
+                                         ;; FIXME: On Windows we could (probably) use "tzutil /g" command to get
+                                         ;;        timezone identifier, but then it still needs to be mapped to what we
+                                         ;;        have in `timezone-data.extmap' (i.e. Java format)...  So, currently
+                                         ;;        Windows users have to set `datetime-timezone' manually.
+                                         )
                                        (cadr (current-time-zone))
                                        "?"))))
       (if (extmap-contains-key datetime--timezone-extmap system-timezone)
@@ -249,7 +314,7 @@ when necessary."
 (defmacro datetime--extend-as-is-part (parts text)
   `(let ((text ,text))
      (if (stringp (car ,parts))
-         (setcar parts (concat (car ,parts) text))
+         (setf (car parts) (concat (car ,parts) text))
        (push text ,parts))))
 
 
@@ -306,26 +371,29 @@ when necessary."
                        (?e (if (<= num-repetitions 2)
                                (cons 'weekday num-repetitions)
                              (cons 'weekday-context-name (if (>= num-repetitions 4) 'full 'abbreviated))))
-                       (?w (cons 'week-in-year     num-repetitions))
-                       (?W (cons 'week-in-month    num-repetitions))
-                       (?D (cons 'day-in-year      num-repetitions))
-                       (?d (cons 'day-in-month     num-repetitions))
-                       (?F (cons 'weekday-in-month num-repetitions))
-                       (?u (cons 'weekday          num-repetitions))
-                       (?H (cons 'hour-0-23        num-repetitions))
-                       (?k (cons 'hour-1-24        num-repetitions))
-                       (?K (cons 'hour-am-pm-0-11  num-repetitions))
-                       (?h (cons 'hour-am-pm-1-12  num-repetitions))
-                       (?m (cons 'minute           num-repetitions))
-                       (?s (cons 'second           num-repetitions))
-                       (?S (cons (if (plist-get options :second-fractional-extension) 'second-fractional 'millisecond)
-                                 num-repetitions))
-                       (?z (cons 'timezone         'general))
-                       (?Z (cons 'timezone         'rfc-822))
-                       (?X (cons 'timezone         'iso-8601))
+                       (?w (cons 'week-in-year      num-repetitions))
+                       (?W (cons 'week-in-month     num-repetitions))
+                       (?D (cons 'day-in-year       num-repetitions))
+                       (?d (cons 'day-in-month      num-repetitions))
+                       (?F (cons 'weekday-in-month  num-repetitions))
+                       (?u (cons 'weekday           num-repetitions))
+                       (?H (cons 'hour-0-23         num-repetitions))
+                       (?k (cons 'hour-1-24         num-repetitions))
+                       (?K (cons 'hour-am-pm-0-11   num-repetitions))
+                       (?h (cons 'hour-am-pm-1-12   num-repetitions))
+                       (?m (cons 'minute            num-repetitions))
+                       (?s (cons 'second            num-repetitions))
+                       (?S (cons 'second-fractional num-repetitions))
+                       (?z (cons 'timezone          (if (>= num-repetitions 4) 'full 'abbreviated)))
+                       (?Z (cons 'timezone          'rfc-822))
+                       (?X (cons 'timezone          'iso-8601))
                        (_
                         (error "Illegal pattern character `%c'" character)))
                      parts))
+              ;; FIXME: Optional pattern sections are currently treated the same as
+              ;;        mandatory (brackets are just discarded).  May want to treat them
+              ;;        as optional at least for parsing purposes later.
+              ((or (= character ?\[) (= character ?\])))
               (t
                (if (and (or (= character ?.) (= character ?,))
                         (plist-get options :any-decimal-separator)
@@ -336,6 +404,7 @@ when necessary."
     (nreverse parts)))
 
 (defun datetime--format-java-pattern (parts options)
+  (ignore options)
   (let ((case-fold-search nil)
         strings)
     (dolist (part parts)
@@ -383,10 +452,7 @@ when necessary."
                           (`minute            (cons ?m details))
                           (`second            (cons ?s details))
                           (`decimal-separator details)
-                          (`millisecond       (cons ?S details))
-                          (`second-fractional (if (plist-get options :second-fractional-extension)
-                                                  (cons ?S details)
-                                                (error "`second-fractional' extension is not enabled")))
+                          (`second-fractional (cons ?S details))
                           (`am-pm             "a")
                           (_                  (error "Unexpected part type %s" type)))))
           (push (cond ((integerp string)
@@ -444,6 +510,9 @@ when necessary."
 (defsubst datetime--digits-format (num-repetitions)
   (if (> num-repetitions 1) (format "%%0%dd" num-repetitions) "%d"))
 
+(defsubst datetime--format-escape-string (string)
+  (replace-regexp-in-string "%" "%%" string t t))
+
 (defun datetime-float-formatter (type pattern &rest options)
   "Return a function that formats date-time expressed as a float.
 The returned function accepts single argument---a floating-point
@@ -480,7 +549,7 @@ to this function.
          format-arguments)
     (dolist (part (datetime--parse-pattern type pattern options))
       (if (stringp part)
-          (push (replace-regexp-in-string "%" "%%" part t t) format-parts)
+          (push (datetime--format-escape-string part) format-parts)
         (let ((type    (car part))
               (details (cdr part)))
           (pcase type
@@ -500,7 +569,7 @@ to this function.
                      (error "Formatting `%s' is currently not implemented" type))
                    format-arguments)
              (when (eq details 'always-two-digits)
-               (setcar format-arguments `(mod ,(car format-arguments) 100))))
+               (setf (car format-arguments) `(mod ,(car format-arguments) 100))))
             (`year-for-week
              (error "Formatting `%s' is currently not implemented" type))
             (`month
@@ -564,13 +633,24 @@ to this function.
              (setq need-time t)
              (push (datetime--digits-format details) format-parts)
              (push `(mod time 60) format-arguments))
-            ((or `millisecond `second-fractional)
+            (`second-fractional
              (setq need-time t)
              (push (datetime--digits-format details) format-parts)
-             (let ((scale (if (eq type 'millisecond) 1000 (expt 10 details))))
+             (let ((scale (expt 10 details)))
                (push `(mod (* time ,scale) ,scale) format-arguments)))
             (`timezone
-             (signal 'datetime-unsupported-timezone nil))
+             (pcase details
+               ((or `abbreviated `full)
+                (let* ((name     (datetime-locale-timezone-name locale timezone nil (eq details 'full)))
+                       (dst-name (pcase timezone-data
+                                   (`(,_constant-offset) name)
+                                   (_ (datetime-locale-timezone-name locale timezone t (eq details 'full))))))
+                  (if (string= name dst-name)
+                      (push (datetime--format-escape-string name) format-parts)
+                    (push "%s" format-parts)
+                    (push `(if datetime--last-conversion-was-in-dst ,dst-name ,name) format-arguments))))
+               (_
+                (signal 'datetime-unsupported-timezone details))))
             (_ (error "Unexpected value %s" type))))))
     ;; 400 is the size of Gregorian calendar leap year loop.
     (let* ((days-in-400-years datetime--gregorian-days-in-400-years)
@@ -650,8 +730,12 @@ to this function.
               (while (and (>= offset-in-year (car year-transitions))
                           (setq offset           (cadr year-transitions)
                                 year-transitions (cddr year-transitions))))))
+          ;; Floating-point offset is our internal mark of a transition to DST.  Its value
+          ;; is really an integer anyway.
+          (setf datetime--last-conversion-was-in-dst (floatp offset))
           (+ date-time offset))
       ;; Offset before the very first transition.
+      (setf datetime--last-conversion-was-in-dst nil)
       (+ date-time (car (aref all-year-transitions 0))))))
 
 ;; 146097 is the value of `datetime--gregorian-days-in-400-years'.
@@ -671,34 +755,44 @@ to this function.
          (num-years            (length all-year-transitions))
          transitions)
     (when (>= year-offset num-years)
-      (setcar (cdr timezone-data) (setq all-year-transitions (vconcat all-year-transitions (make-vector (max (1+ (- year-offset num-years)) (/ num-years 2) 10) nil)))))
+      (setf (cadr timezone-data) (setq all-year-transitions (vconcat all-year-transitions (make-vector (max (1+ (- year-offset num-years)) (/ num-years 2) 10) nil)))))
     (let ((year      (+ (nth 2 timezone-data) year-offset))
-          (year-base (+ (nth 0 timezone-data) (* year-offset datetime--average-seconds-in-year))))
-      (dolist (rule (nth 3 timezone-data))
-        (let* ((month           (plist-get rule :month))
-               (day-of-month    (plist-get rule :day-of-month))
-               (effective-month (if (< day-of-month 0) month (1- month)))
-               (day-of-week     (plist-get rule :day-of-week))
-               (year-day        (+ (aref datetime--gregorian-cumulative-month-days effective-month)
-                                   (if (and (>= effective-month 2) (datetime--gregorian-leap-year-p year)) 1 0)
-                                   day-of-month -1))
-               (offset-before   (plist-get rule :before)))
-          (unless transitions
-            (push offset-before transitions))
-          (when day-of-week
-            (let ((current-weekday (% (+ year-day (aref datetime--gregorian-first-day-of-year (mod year 400))) 7)))
-              (setq year-day (if (< day-of-month 0) (- year-day (mod (- day-of-week current-weekday) 7)) (+ year-day (mod (- day-of-week current-weekday) 7))))))
-          (when (plist-get rule :end-of-day)
-            (setq year-day (1+ year-day)))
-          (push (- (+ (datetime--start-of-day year year-day) (plist-get rule :time))
-                   (pcase (plist-get rule :time-definition)
-                     (`utc      0)
-                     (`standard (plist-get rule :standard-offset))
-                     (`wall     offset-before)
-                     (type      (error "Unhandled time definition type `%s'" type)))
-                   year-base)
-                transitions)
-          (push (plist-get rule :after) transitions))))
+          (year-base (+ (nth 0 timezone-data) (* year-offset datetime--average-seconds-in-year)))
+          (rules     (nth 3 timezone-data)))
+      (if rules
+          (dolist (rule rules)
+            (let* ((month           (plist-get rule :month))
+                   (day-of-month    (plist-get rule :day-of-month))
+                   (effective-month (if (< day-of-month 0) month (1- month)))
+                   (day-of-week     (plist-get rule :day-of-week))
+                   (year-day        (+ (aref datetime--gregorian-cumulative-month-days effective-month)
+                                       (if (and (>= effective-month 2) (datetime--gregorian-leap-year-p year)) 1 0)
+                                       day-of-month -1))
+                   (offset-before   (plist-get rule :before)))
+              (unless transitions
+                (push offset-before transitions))
+              (when day-of-week
+                (let ((current-weekday (% (+ year-day (aref datetime--gregorian-first-day-of-year (mod year 400))) 7)))
+                  (setq year-day (if (< day-of-month 0) (- year-day (mod (- day-of-week current-weekday) 7)) (+ year-day (mod (- day-of-week current-weekday) 7))))))
+              (when (plist-get rule :end-of-day)
+                (setq year-day (1+ year-day)))
+              (push (round (- (+ (datetime--start-of-day year year-day) (plist-get rule :time))
+                              (pcase (plist-get rule :time-definition)
+                                (`utc      0)
+                                (`standard (plist-get rule :standard-offset))
+                                (`wall     offset-before)
+                                (type      (error "Unhandled time definition type `%s'" type)))
+                              year-base))
+                    transitions)
+              (let ((after (plist-get rule :after)))
+                ;; Mark transitions to DST by making offset a float.
+                (push (if (plist-get rule :dst) (float after) after) transitions))))
+        ;; No transition rules.  Take the offset after the last historical transition.
+        (let ((k (length all-year-transitions)))
+          (while (null transitions)
+            (let ((historic-transitions (aref all-year-transitions (setf k (1- k)))))
+              (when historic-transitions
+                (setf transitions `(,(car (last historic-transitions))))))))))
     (aset all-year-transitions year-offset (nreverse transitions))))
 
 
@@ -931,8 +1025,6 @@ unless specified otherwise.
                                                    (push part-index second-part-indices))
                                                   59)
                           (`decimal-separator    (rx (or "." ",")))
-                          (`millisecond          (push (cons part-index 1000.0) second-fractional-part-indices)
-                                                 (rx (any "0-9") (any "0-9") (any "0-9")))
                           (`second-fractional    (push (cons part-index (expt 10.0 details)) second-fractional-part-indices)
                                                  (apply #'concat (make-list details (rx (any "0-9")))))
                           (`timezone
@@ -1264,7 +1356,7 @@ specified otherwise.
                           (`minute               59)
                           (`second               59)
                           (`decimal-separator    (rx (or "." ",")))
-                          ((or `millisecond `second-fractional)
+                          (`second-fractional
                            (apply #'concat (make-list details (rx (any "0-9")))))
                           (`timezone
                            (signal 'datetime-unsupported-timezone nil))
@@ -1306,18 +1398,16 @@ perform several transformations on the same pattern.
 
 Options can be a list of the following keyword arguments:
 
-  :second-fractional-extension
-
-    In Java patterns any number of \"S\" stands for milliseconds.
-    With this extension they are instead interpreted according to
-    how many \"S\" there is, e.g. \"SSSSSS\" means microseconds.
-
   :any-decimal-separator
 
     Treat a decimal dot or comma in pattern between seconds and
     milli- or microseconds (etc.) as a placeholder for _any_
     decimal separator and also accept commas in this place.  This
-    only works if TO is \\='parsed."
+    only works if TO is \\='parsed.
+
+  :second-fractional-extension
+
+    Obsolete since 0.6.6: this is now always enabled."
   (datetime--format-pattern to (datetime--parse-pattern from pattern options) options))
 
 
@@ -1359,7 +1449,7 @@ options can affect result of this function."
 OPTIONS are passed to `datetime-recode-pattern'.  Currently no
 options can affect result of this function."
   (datetime--pattern-includes-p type pattern options
-                                am-pm hour-0-23 hour-1-24 hour-am-pm-0-11 hour-am-pm-1-12 minute second millisecond second-fractional))
+                                am-pm hour-0-23 hour-1-24 hour-am-pm-0-11 hour-am-pm-1-12 minute second second-fractional))
 
 (defun datetime-pattern-includes-era-p (type pattern &rest options)
   "Determine if PATTERN includes the date era.
@@ -1429,23 +1519,21 @@ options can affect result of this function."
 
 OPTIONS are passed to `datetime-recode-pattern'.  Currently no
 options can affect result of this function."
-  (datetime--pattern-includes-p type pattern options millisecond second-fractional))
+  (datetime--pattern-includes-p type pattern options second-fractional))
 
 (define-obsolete-function-alias 'datetime-pattern-includes-millisecond-p 'datetime-pattern-includes-second-fractionals-p)
 
 (defun datetime-pattern-num-second-fractionals (type pattern &rest options)
-  "Determine if PATTERN includes fractions of seconds.
-
-OPTIONS are passed to `datetime-recode-pattern'.  At least
-`:second-fractional-extension' can affect result of this
-function."
+  "Determine number of second fractional digits in the PATTERN.
+E.g. if PATTERN includes milliseconds, result will be 3, for
+microseconds it will be 6 and so on.  OPTIONS are passed to
+`datetime-recode-pattern'."
   (let ((parts           (datetime--parse-pattern type pattern options))
         (num-fractionals 0))
     (while parts
       (let ((part (pop parts)))
         (when (consp part)
           (pcase (car part)
-            (`millisecond       (setq num-fractionals (max num-fractionals 3)))
             (`second-fractional (setq num-fractionals (max num-fractionals (cdr part))))))))
     num-fractionals))
 
@@ -1455,28 +1543,6 @@ function."
 OPTIONS are passed to `datetime-recode-pattern'.  Currently no
 options can affect result of this function."
   (datetime--pattern-includes-p type pattern options timezone))
-
-
-(defun datetime-list-locales (&optional include-variants)
-  "List all locales for which the library has information.
-If INCLUDE-VARIANTS is nil, only include “base” locales (in
-format \"xx\"), if it is t then also include “variants” in format
-\"xx-YY\".
-
-Return value is a list of symbols in no particular order; it can
-be modified freely."
-  (if include-variants
-      (extmap-keys datetime--locale-extmap)
-    (let (locales)
-      (extmap-mapc datetime--locale-extmap (lambda (locale data) (unless (plist-get data :parent) (push locale locales))))
-      locales)))
-
-(defun datetime-list-timezones ()
-  "List all timezones for which the library has information.
-
-Return value is a list of symbols in no particular order; it can
-be modified freely."
-  (extmap-keys datetime--timezone-extmap))
 
 
 (defsubst datetime--do-get-locale-pattern (patterns variant)
@@ -1511,20 +1577,30 @@ Returned pattern is always of type \\\='java.
 
 This function exists not just for completeness: while in most
 cases the result is just corresponding date and time patterns
-separated by a space, for a few locales it is different."
+separated by a space, for quite a few locales it is different."
   (unless date-variant
     (setq date-variant :medium))
   (unless time-variant
     (setq time-variant date-variant))
-  (let* ((date-time-pattern-rule (or (datetime-locale-field locale :date-time-pattern-rule) '(t . " ")))
-         (separator              (cdr date-time-pattern-rule))
-         (date-part              (datetime-locale-date-pattern locale date-variant))
-         (time-part              (datetime-locale-time-pattern locale time-variant)))
-    (unless (stringp separator)
-      (setq separator (cdr (assoc (list date-variant time-variant) separator))))
-    (if (car date-time-pattern-rule)
-        (concat date-part separator time-part)
-      (concat time-part separator date-part))))
+  ;; Some ugly parsing of compressed data follows; see the harvesting tool.
+  (let* ((date-part              (datetime-locale-date-pattern locale date-variant))
+         (time-part              (datetime-locale-time-pattern locale time-variant))
+         (date-time-pattern-rule (or (datetime-locale-field locale :date-time-pattern-rule) '(t . " ")))
+         (date-part-first        (car date-time-pattern-rule))
+         constant-strings)
+    (if (consp date-part-first)
+        (let ((style-data (cdr (assoc (list date-variant time-variant) date-time-pattern-rule))))
+          (setq date-part-first  (car style-data)
+                constant-strings (cdr style-data)))
+      (unless (stringp (setq constant-strings (cdr date-time-pattern-rule)))
+        (setq constant-strings (cdr (assoc (list date-variant time-variant) constant-strings)))))
+    (if (stringp constant-strings)
+        (if date-part-first
+            (concat date-part constant-strings time-part)
+          (concat time-part constant-strings date-part))
+      (if date-part-first
+          (concat (nth 0 constant-strings) date-part (nth 1 constant-strings) time-part (nth 2 constant-strings))
+        (concat (nth 0 constant-strings) time-part (nth 1 constant-strings) date-part (nth 2 constant-strings))))))
 
 
 (defconst datetime--english-eras  ["BC" "AD"])
@@ -1566,19 +1642,66 @@ Supported fields:
           (:eras              datetime--english-eras)
           (:am-pm             datetime--english-am-pm)))))
 
+(defun datetime-locale-timezone-name (locale timezone dst &optional full)
+  "Get name of TIMEZONE in given LOCALE.
+For timezones that don't have daylight saving time, parameter DST
+is ignored.
+
+By default, abbreviated name (like \"UTC\") suitable for use in
+date-time strings is returned.  However, if FULL is non-nil, a
+non-abbreviated name (e.g. \"Coordinated Universal Time\") is
+returned instead."
+  ;; See `datetime--timezone-name-extmap' for description of fallbacks.
+  (let ((names (plist-get (extmap-get datetime--timezone-name-extmap locale t) timezone)))
+    (cond ((vectorp names)
+           (aref names (if (= (length names) 4)
+                           (+ (if full 2 0) (if dst 1 0))
+                         (if full 1 0))))
+          ((consp names)
+           (if full
+               (if dst (cdr names) (car names))
+             (datetime-locale-timezone-name 'en timezone dst)))
+          ((stringp names)
+           (if full
+               names
+             (datetime-locale-timezone-name 'en timezone nil)))
+          (t
+           (let ((locale-data (extmap-get datetime--locale-extmap locale t)))
+             (when locale-data
+               (datetime-locale-timezone-name (or (plist-get locale-data :parent) 'en) timezone dst full)))))))
+
 
 (defun datetime-locale-database-version ()
   "Return locale database version, a simple integer.
 This version will be incremented each time locale database of the
 package is updated.  It can be used e.g. to invalidate caches you
-create based on locales `datetime' knows about."
-  1)
+create based on locales `datetime' knows about.
+
+Note that this database doesn't include timezone names.  See
+`datetime-timezone-name-database-version'."
+  4)
 
 (defun datetime-timezone-database-version ()
   "Return timezone database version, a simple integer.
 This version will be incremented each time timezone database of the
 package is updated.  It can be used e.g. to invalidate caches you
-create based on timezone `datetime' knows about and their rules."
+create based on timezones `datetime' knows about and their rules.
+
+Locale-specific timezone names are contained in a different
+database.  See `datetime-timezone-name-database-version'."
+  5)
+
+(defun datetime-timezone-name-database-version ()
+  "Return timezone name database version, a simple integer.
+This version will be incremented each time timezone name database
+of the package is updated.  It can be used e.g. to invalidate
+caches.
+
+This database includes only locale-specific timezone names.
+Other locale-specific data as well as locale-independent data
+about timezones is contained in different databases.  See
+`datetime-locale-database-version' and
+`datetime-timezone-database-version'."
   1)
 
 
