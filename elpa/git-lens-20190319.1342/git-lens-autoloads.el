@@ -10,9 +10,7 @@
 ;;; Generated autoloads from git-lens.el
 
 (autoload 'git-lens "git-lens" "\
-Start git lens.
-
-\(fn)" t nil)
+Start git lens." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "git-lens" '("git-lens-")))
 
