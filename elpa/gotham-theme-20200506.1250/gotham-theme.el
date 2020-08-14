@@ -1,10 +1,11 @@
 ;;; gotham-theme.el --- A very dark Emacs color theme.
 
-;; Copyright (C) 2014-2017 Vasilij Schneidermann <v.schneidermann@gmail.com>
+;; Copyright (C) 2014 Vasilij Schneidermann <mail@vasilij.de>
 
-;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
-;; URL: https://github.com/wasamasa/gotham-theme
-;; Package-Version: 20171013.1216
+;; Author: Vasilij Schneidermann <mail@vasilij.de>
+;; URL: https://depp.brause.cc/gotham-theme
+;; Package-Version: 20200506.1250
+;; Package-Commit: 0e5965f897c8c976d6b2ca2471dec0dec9b29bbb
 ;; Version: 1.1.8
 
 ;; This file is NOT part of GNU Emacs.
@@ -130,8 +131,6 @@ depending on DISPLAY for keys which are either :foreground or
    (region :foreground unspecified :background base3)
    (secondary-selection :foreground unspecified :background violet)
    (linum :foreground base4 :background base1)
-   (line-number :foreground base4 :background base1)
-   (line-number-current-line :inherit highlight)
    (fringe :foreground base6 :background base1)
    (vertical-border :foreground base4)
    (tooltip :foreground base6 :background base0)
@@ -976,17 +975,6 @@ depending on DISPLAY for keys which are either :foreground or
    (rainbow-delimiters-depth-8-face :foreground violet)
    (rainbow-delimiters-depth-9-face :foreground red)
    (rainbow-delimiters-unmatched-face :foreground base2 :background base6)
-
-   ;; realgud
-   (realgud-overlay-arrow1         :foreground green)
-   (realgud-overlay-arrow2         :foreground yellow)
-   (realgud-overlay-arrow3         :foreground orange)
-   (realgud-bp-enabled-face        :inherit error)
-   (realgud-bp-disabled-face       :inherit secondary-selection)
-   (realgud-bp-line-enabled-face   :foreground red)
-   (realgud-bp-line-disabled-face  :inherit secondary-selection)
-   (realgud-line-number            :foreground base5)
-   (realgud-backtrace-number       :inherit realgud-line-number :weight bold)
 
    ;; rst-mode
    (rst-level-1 :background base2)
