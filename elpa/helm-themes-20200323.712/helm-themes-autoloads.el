@@ -10,9 +10,7 @@
 ;;; Generated autoloads from helm-themes.el
 
 (autoload 'helm-themes "helm-themes" "\
-Theme selection with helm interface
-
-\(fn)" t nil)
+Theme selection with helm interface." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-themes" '("helm-themes-")))
 
