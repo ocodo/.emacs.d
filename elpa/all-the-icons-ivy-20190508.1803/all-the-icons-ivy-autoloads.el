@@ -11,11 +11,9 @@
 ;;; Generated autoloads from all-the-icons-ivy.el
 
 (autoload 'all-the-icons-ivy-setup "all-the-icons-ivy" "\
-Set ivy's display transformers to show relevant icons next to the candidates.
+Set ivy's display transformers to show relevant icons next to the candidates." nil nil)
 
-\(fn)" nil nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "all-the-icons-ivy" '("all-the-icons-ivy-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "all-the-icons-ivy" '("all-the-icons-")))
 
 ;;;***
 
