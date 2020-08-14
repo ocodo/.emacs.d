@@ -1,12 +1,13 @@
 ;;; go-playground.el --- Local Golang playground for short snippets.
 
-;; Copyright (C) 2015-2018  Alexander I.Grafov (axel)
+;; Copyright (C) 2015-2019  Alexander I.Grafov
 
-;; Author: Alexander I.Grafov (axel) <grafov@gmail.com>
+;; Author: Alexander I.Grafov <grafov@gmail.com>
 ;; URL: https://github.com/grafov/go-playground
-;; Package-Version: 20181103.1846
+;; Package-Version: 20190625.1855
+;; Package-Commit: 508294fbc22b22b37f587b2dbc8f3a48a16a07a6
 ;; Keywords: tools, golang
-;; Version: 1.4
+;; Version: 1.6.1
 ;; Package-Requires: ((emacs "24") (go-mode "1.4.0") (gotest "0.13.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -77,14 +78,15 @@ By default confirmation required."
   "A place for playing with golang code and export it in short snippets."
   :init-value nil
   :lighter "Play(Go)"
-  :keymap '(([C-return] . go-playground-exec)))
+  :keymap '(([C-return] . go-playground-exec)
+			([M-return] . :cmd)))
 
 (defun go-playground-snippet-file-name(&optional snippet-name)
   (let ((file-name (cond (snippet-name)
-                         (go-playground-ask-file-name
-                          (read-string "Go Playground filename: "))
-                         ("snippet"))))
-    (concat (go-playground-snippet-unique-dir file-name) "/" file-name ".go")))
+						 (go-playground-ask-file-name
+						  (read-string "Go Playground filename: "))
+						 ("snippet"))))
+	(concat (go-playground-snippet-unique-dir file-name) "/" file-name ".go")))
 
 ;
 (defun go-playground-save-and-run ()
@@ -101,12 +103,22 @@ By default confirmation required."
 		(make-local-variable 'compile-command)
 		(compile (concat go-command " " go-playground-go-command-args)))))
 
+(defun go-playground-cmd (cmd)
+  "Save the buffer then apply custom compile command from
+minibuffer to the files or buffer."
+  (interactive "scompile command: ")
+  (if (go-playground-inside)
+	  (progn
+		(save-buffer t)
+		(make-local-variable 'compile-command)
+		(compile cmd))))
+
 ;;;###autoload
 (defun go-playground ()
   "Run playground for Go language in a new buffer."
   (interactive)
   (let ((snippet-file-name (go-playground-snippet-file-name)))
-    (switch-to-buffer (create-file-buffer snippet-file-name))
+	(switch-to-buffer (create-file-buffer snippet-file-name))
 	(go-playground-insert-template-head "snippet of code")
 (insert "package main
 
@@ -118,10 +130,10 @@ func main() {
 	fmt.Println(\"Results:\")
 }
 ")
-    (backward-char 3)
-    (go-mode)
-    (go-playground-mode)
-    (set-visited-file-name snippet-file-name t)))
+	(backward-char 3)
+	(go-mode)
+	(go-playground-mode)
+	(set-visited-file-name snippet-file-name t)))
 
 (defun go-playground-insert-template-head (description)
   (insert "// -*- mode:go;mode:go-playground -*-
@@ -129,6 +141,7 @@ func main() {
 
 // === Go Playground ===
 // Execute the snippet with Ctl-Return
+// Provide custom arguments to compile with Alt-Return
 // Remove the snippet completely with its dir and all files M-x `go-playground-rm`
 
 "))
@@ -137,7 +150,7 @@ func main() {
   "Remove files of the current snippet together with directory of this snippet."
   (interactive)
   (if (go-playground-inside)
-      (if (or (not go-playground-confirm-deletion)
+	  (if (or (not go-playground-confirm-deletion)
 			  (y-or-n-p (format "Do you want delete whole snippet dir %s? "
 								(file-name-directory (buffer-file-name)))))
 		  (progn
@@ -149,7 +162,7 @@ func main() {
 
 ;;;###autoload
 (defun go-playground-remove-current-snippet ()
-    "Obsoleted by `go-playground-rm'."
+	"Obsoleted by `go-playground-rm'."
   (interactive)
   (go-playground-rm))
 
@@ -159,20 +172,20 @@ func main() {
 Tries to look for a URL at point."
   (interactive (list (read-from-minibuffer "Playground URL: " (ffap-url-p (ffap-string-at-point 'url)))))
   (with-current-buffer
-      (let ((url-request-method "GET") url-request-data url-request-extra-headers)
-        (url-retrieve-synchronously (concat url ".go")))
-    (let* ((snippet-file-name (go-playground-snippet-file-name)) (buffer (create-file-buffer snippet-file-name)))
-      (goto-char (point-min))
-      (re-search-forward "\n\n")
-      (copy-to-buffer buffer (point) (point-max))
-      (kill-buffer)
-      (with-current-buffer buffer
+	  (let ((url-request-method "GET") url-request-data url-request-extra-headers)
+		(url-retrieve-synchronously (concat url ".go")))
+	(let* ((snippet-file-name (go-playground-snippet-file-name)) (buffer (create-file-buffer snippet-file-name)))
+	  (goto-char (point-min))
+	  (re-search-forward "\n\n")
+	  (copy-to-buffer buffer (point) (point-max))
+	  (kill-buffer)
+	  (with-current-buffer buffer
 		(goto-char (point-min))
 		(go-playground-insert-template-head (concat url " imported"))
 		(go-mode)
 		(go-playground-mode)
 		(set-visited-file-name snippet-file-name t)
-        (switch-to-buffer buffer)))))
+		(switch-to-buffer buffer)))))
 
 (defun go-playground-upload ()
   "Upload the current buffer to play.golang.org and return the short URL of the playground."
@@ -185,10 +198,10 @@ Tries to look for a URL at point."
 (defun go-playground-snippet-unique-dir (prefix)
   "Get unique directory under GOPATH/`go-playground-basedir`."
   (let ((dir-name (concat go-playground-basedir "/"
-                          (if (and prefix go-playground-ask-file-name) (concat prefix "-"))
-                          (time-stamp-string "at-%:y-%02m-%02d-%02H%02M%02S"))))
-    (make-directory dir-name t)
-    dir-name))
+						  (if (and prefix go-playground-ask-file-name) (concat prefix "-"))
+						  (time-stamp-string "at-%:y-%02m-%02d-%02H%02M%02S"))))
+	(make-directory dir-name t)
+	dir-name))
 
 (defun go-playground-inside ()
   "Is the current buffer is valid go-playground buffer."

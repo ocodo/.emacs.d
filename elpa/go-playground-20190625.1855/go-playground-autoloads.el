@@ -10,14 +10,10 @@
 ;;; Generated autoloads from go-playground.el
 
 (autoload 'go-playground "go-playground" "\
-Run playground for Go language in a new buffer.
-
-\(fn)" t nil)
+Run playground for Go language in a new buffer." t nil)
 
 (autoload 'go-playground-remove-current-snippet "go-playground" "\
-Obsoleted by `go-playground-rm'.
-
-\(fn)" t nil)
+Obsoleted by `go-playground-rm'." t nil)
 
 (autoload 'go-playground-download "go-playground" "\
 Download a paste from the play.golang.org and insert it in a new local playground buffer.
