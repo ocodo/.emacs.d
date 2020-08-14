@@ -11,9 +11,7 @@
 
 (autoload 'counsel-tramp "counsel-tramp" "\
 Open your ~/.ssh/config with counsel interface.
-You can connect your server with tramp
-
-\(fn)" t nil)
+You can connect your server with tramp" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "counsel-tramp" '("counsel-tramp-")))
 
