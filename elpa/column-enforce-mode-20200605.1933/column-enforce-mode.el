@@ -6,7 +6,8 @@
 ;; Maintainer:
 ;; Created: Fri Oct 11 12:14:25 2013 (-0400)
 ;; Version: 1.0.4
-;; Package-Version: 20171030.1200
+;; Package-Version: 20200605.1933
+;; Package-Commit: 14a7622f2268890e33536ccd29510024d51ee96f
 ;; Package-Requires: ()
 ;; Last-Updated: Sun Dec  8 20:23:51 2013 (-0500)
 ;;           By: Jordon Biondo
@@ -234,7 +235,7 @@ mark text that extends beyond `column-enforce-column' with the \
             (let ((new-ov (make-overlay (point)
                                         (point-at-eol)
                                         nil t t)))
-              (overlay-put new-ov 'face 'column-enforce-face)
+              (overlay-put new-ov 'face column-enforce-face)
               (overlay-put new-ov 'is-cem-ov t)))
         (forward-line 1)))))
 

@@ -1,10 +1,13 @@
 ;;; column-enforce-mode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
 ;;;### (autoloads nil "column-enforce-mode" "column-enforce-mode.el"
-;;;;;;  (23064 61846 830787 386000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from column-enforce-mode.el
 
 (autoload 'column-enforce-n "column-enforce-mode" "\
@@ -25,11 +28,18 @@ Create an interactive function to enforce an N-column-rule.
 (autoload 'column-enforce-mode "column-enforce-mode" "\
 Minor mode for highlighting text that extends beyond a certain column.
 
+If called interactively, enable Column-Enforce mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 Variable `column-enforce-column' decides which column to start warning at.
  Default is 80
 Variable `column-enforce-face' decides how to display the warnings
 
 \(fn &optional ARG)" t nil)
+
+(put 'global-column-enforce-mode 'globalized-minor-mode t)
 
 (defvar global-column-enforce-mode nil "\
 Non-nil if Global Column-Enforce mode is enabled.
@@ -53,11 +63,14 @@ See `column-enforce-mode' for more information on Column-Enforce mode.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "column-enforce-mode" '("column-enforce-")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; column-enforce-mode-autoloads.el ends here
