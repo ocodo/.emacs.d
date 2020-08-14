@@ -10,24 +10,16 @@
 ;;; Generated autoloads from helm-eww.el
 
 (autoload 'helm-eww-buffers "helm-eww" "\
-Preconfigured `helm' to list EWW buffers.
-
-\(fn)" t nil)
+Preconfigured `helm' to list EWW buffers." t nil)
 
 (autoload 'helm-eww-bookmarks "helm-eww" "\
-Preconfigured `helm' to list EWW bookmarks.
-
-\(fn)" t nil)
+Preconfigured `helm' to list EWW bookmarks." t nil)
 
 (autoload 'helm-eww-history "helm-eww" "\
-Preconfigured `helm' to list EWW history.
-
-\(fn)" t nil)
+Preconfigured `helm' to list EWW history." t nil)
 
 (autoload 'helm-eww "helm-eww" "\
-Preconfigured `helm' to list all EWW sources.
-
-\(fn)" t nil)
+Preconfigured `helm' to list all EWW sources." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-eww" '("helm-eww-")))
 

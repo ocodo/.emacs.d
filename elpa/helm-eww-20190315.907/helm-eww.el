@@ -1,11 +1,12 @@
 ;;; helm-eww.el --- Helm UI wrapper for EWW. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018 Pierre Neidhardt <mail@ambrevar.xyz>
+;; Copyright (C) 2018, 2019 Pierre Neidhardt <mail@ambrevar.xyz>
 
 ;; Author: Pierre Neidhardt <mail@ambrevar.xyz>
 ;; URL: https://github.com/emacs-helm/helm-eww
-;; Package-Version: 20180827.836
-;; Version: 1.0
+;; Package-Version: 20190315.907
+;; Package-Commit: 76ba59fda8dd6f32a1bc7c6df0b43c6f76169911
+;; Version: 1.2
 ;; Package-Requires: ((emacs "24.4") (helm "2.8.6") (seq "1.8"))
 ;; Keywords: helm, packages
 
@@ -30,6 +31,7 @@
 (require 'helm-buffers)
 (require 'helm-utils)
 (require 'eww)
+(require 'thingatpt)
 
 (defvar helm-eww-buffer-max-length 51
   "Max length of EWW buffer names before truncating.
@@ -66,20 +68,25 @@ It won't shrink under `helm-eww-buffer-max-length'."
         (helm-force-update)))))
 (put 'helm-eww-toggle-buffers-details 'helm-only t)
 
-(defun helm-eww-new-buffer (url)
+(defun helm-eww-new-buffer (&optional url)
   "Fetch URL and render the page in a new buffer.
 If the input doesn't look like an URL or a domain name, the
 word(s) will be searched for via `eww-search-prefix'."
-  (let ((b (generate-new-buffer "*eww*")))
-    (with-current-buffer b
-      (eww-mode)
-      (eww url))
+  (let ((b (generate-new-buffer "*eww*"))
+        (url-at-point (thing-at-point-url-at-point)))
+    (save-window-excursion
+      (with-current-buffer b
+        (eww-mode)
+        (eww (or (and url (not (string= "" url)) url)
+                 url-at-point
+                 ""))))
     b))
 
 (defun helm-eww-switch-buffers (_candidate)
   "Open marked URL(s) in EWW.
 If more than one URL is marked, or with prefix argument, open in
 new buffer."
+  (interactive)
   (let ((c (helm-marked-candidates)))
     (if (and (= 1 (length c))
              (null helm-current-prefix-arg))
@@ -89,11 +96,13 @@ new buffer."
 
 (defun helm-eww-switch-other-window (_candidate)
   "Open marked URL(s) in other windows."
+  (interactive)
   (helm-window-show-buffers (mapcar 'helm-eww-new-buffer (helm-marked-candidates)) t))
 (put 'helm-eww-switch-other-window 'helm-only t)
 
 (defun helm-eww-switch-other-frame (candidate)
   "Open URL of marked CANDIDATE in other frame."
+  (interactive)
   (switch-to-buffer-other-frame (helm-eww-new-buffer candidate)))
 (put 'helm-eww-switch-other-frame 'helm-only t)
 
@@ -205,13 +214,14 @@ Each candidate is a list of (URL TITLE)."
                              (funcall helm-fuzzy-matching-highlight-fn url))
                            url))))
 
-(defun helm-eww-bookmarks-delete (_candidate)
+(defun helm-eww-bookmarks-delete (&optional _candidate)
   "Delete all bookmarks with the URLs of the marked candidates."
+  (interactive)
   (dolist (c (helm-marked-candidates))
     (setq eww-bookmarks (seq-remove (lambda (b) (string= (plist-get b :url) c))
                                     eww-bookmarks)))
   (eww-write-bookmarks))
-(put 'helm-eww-bookmarks-kill 'helm-only t)
+(put 'helm-eww-bookmarks-delete 'helm-only t)
 
 (defun helm-eww-bookmarks-build-source ()
   "Build source for EWW bookmarks.
@@ -302,8 +312,12 @@ See `helm-eww-bookmarks' for more details."
 
 
 (defvar helm-eww-new
-  (helm-build-dummy-source "Open new page"
-    :action (helm-make-actions "Open new page" 'helm-eww-new-buffer)))
+  (helm-build-dummy-source "Open new page (empty for URL at point)"
+    :action (helm-make-actions
+             "Open new page" 'helm-eww-new-buffer
+             "Open new page externally" 'helm-eww-browser-with-external-browser
+             "Open new page in new window" 'helm-eww-switch-other-window
+             "Open new page in new frame" 'helm-eww-switch-other-frame)))
 
 ;; All in one.
 ;;;###autoload
