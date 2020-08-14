@@ -10,10 +10,7 @@
 ;;;;;;  0 0 0))
 ;;; Generated autoloads from helm-bundle-show.el
 
-(autoload 'helm-bundle-show "helm-bundle-show" "\
-
-
-\(fn)" t nil)
+(autoload 'helm-bundle-show "helm-bundle-show" nil t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-bundle-show" '("helm-bundle-show-")))
 

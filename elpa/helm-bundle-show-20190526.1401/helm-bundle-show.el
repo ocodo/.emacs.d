@@ -1,12 +1,13 @@
-;;; helm-bundle-show.el --- bundle show with helm interface -*- lexical-binding: t; -*-
+;;; helm-bundle-show.el --- Bundle show with helm interface -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015 by Takashi Masuda
 
 ;; Author: Takashi Masuda <masutaka.net@gmail.com>
 ;; URL: https://github.com/masutaka/emacs-helm-bundle-show
-;; Package-Version: 20151221.1230
-;; Version: 1.1.5
-;; Package-Requires: ((helm "1.8.0"))
+;; Package-Version: 20190526.1401
+;; Package-Commit: 70f1ca7d1847c7d5cd5a3e488562cd4a295b809f
+;; Version: 1.1.6
+;; Package-Requires: ((emacs "24") (helm "1.8.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
