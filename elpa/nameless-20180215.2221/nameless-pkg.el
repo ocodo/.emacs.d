@@ -1,2 +1,0 @@
-;;; -*- no-byte-compile: t -*-
-(define-package "nameless" "20180215.2221" "Hide package namespace in your emacs-lisp code" '((emacs "24.4")) :commit "3cd4ade5433c8e2041dfff9d9624d9e676d9c5ee" :keywords '("convenience" "lisp") :authors '(("Artur Malabarba" . "emacs@endlessparentheses.com")) :maintainer '("Artur Malabarba" . "emacs@endlessparentheses.com") :url "https://github.com/Malabarba/nameless")
