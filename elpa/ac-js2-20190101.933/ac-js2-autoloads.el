@@ -12,14 +12,10 @@
 (autoload 'ac-js2-expand-function "ac-js2" "\
 Expand the function definition left of point.
 Expansion will only occur for candidates whose documentation
-string contain a function prototype.
-
-\(fn)" t nil)
+string contain a function prototype." t nil)
 
 (autoload 'ac-js2-completion-function "ac-js2" "\
-Function for `completions-at-point'.
-
-\(fn)" nil nil)
+Function for `completions-at-point'." nil nil)
 
 (autoload 'ac-js2-company "ac-js2" "\
 
@@ -29,12 +25,15 @@ Function for `completions-at-point'.
 (autoload 'ac-js2-jump-to-definition "ac-js2" "\
 Jump to the definition of an object's property, variable or function.
 Navigation to a property definend in an Object literal isn't
-implemented.
-
-\(fn)" t nil)
+implemented." t nil)
 
 (autoload 'ac-js2-mode "ac-js2" "\
 A minor mode that provides auto-completion and navigation for Js2-mode.
+
+If called interactively, enable Ac-Js2 mode if ARG is positive,
+and disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it if
+ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
