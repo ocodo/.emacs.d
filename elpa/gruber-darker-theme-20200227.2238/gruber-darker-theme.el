@@ -5,7 +5,8 @@
 
 ;; Author: Alexey Kutepov <reximkut@gmail.com>
 ;; URL: http://github.com/rexim/gruber-darker-theme
-;; Package-Version: 20170719.2229
+;; Package-Version: 20200227.2238
+;; Package-Commit: 7f95ce96079eb22b9214435ed25c5af98f60b482
 ;; Version: 0.6
 
 ;; Permission is hereby granted, free of charge, to any person
@@ -58,7 +59,8 @@
       (gruber-darker-yellow    "#ffdd33")
       (gruber-darker-brown     "#cc8c3c")
       (gruber-darker-quartz    "#95a99f")
-      (gruber-darker-niagara-1 "#5f627f")
+      (gruber-darker-niagara-2 "#303540")
+      (gruber-darker-niagara-1 "#565f73")
       (gruber-darker-niagara   "#96a6c8")
       (gruber-darker-wisteria  "#9e95c7")
       )
@@ -68,6 +70,15 @@
 
   (custom-theme-set-faces
    'gruber-darker
+
+   ;; Agda2
+   `(agda2-highlight-datatype-face ((t (:foreground ,gruber-darker-quartz))))
+   `(agda2-highlight-primitive-type-face ((t (:foreground ,gruber-darker-quartz))))
+   `(agda2-highlight-function-face ((t (:foreground ,gruber-darker-niagara))))
+   `(agda2-highlight-keyword-face ((t ,(list :foreground gruber-darker-yellow
+                                             :bold t))))
+   `(agda2-highlight-inductive-constructor-face ((t (:foreground ,gruber-darker-green))))
+   `(agda2-highlight-number-face ((t (:foreground ,gruber-darker-wisteria))))
 
    ;; AUCTeX
    `(font-latex-bold-face ((t (:foreground ,gruber-darker-quartz :bold t))))
@@ -366,6 +377,9 @@
    `(company-scrollbar-bg ((t (:background ,gruber-darker-bg+2))))
    `(company-preview ((t (:background ,gruber-darker-green))))
    `(company-preview-common ((t (:foreground ,gruber-darker-green :background ,gruber-darker-bg-1))))
+
+   ;;;;; Proof General
+   `(proof-locked-face ((t (:background ,gruber-darker-niagara-2))))
    ))
 
 ;;;###autoload
