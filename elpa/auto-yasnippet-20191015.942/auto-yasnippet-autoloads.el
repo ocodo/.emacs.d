@@ -16,35 +16,29 @@ You can still have as many instances of this mirror as you want.
 It's less flexible than `aya-create', but faster.
 It uses a different marker, which is `aya-marker-one-line'.
 You can use it to quickly generate one-liners such as
-menu.add_item(spamspamspam, \"spamspamspam\")
-
-\(fn)" t nil)
+menu.add_item(spamspamspam, \"spamspamspam\")" t nil)
 
 (autoload 'aya-create "auto-yasnippet" "\
-Works on either the current line, or, if `mark-active', the current region.
-Removes `aya-marker' prefixes,
-writes the corresponding snippet to `aya-current',
-with words prefixed by `aya-marker' as fields, and mirrors properly set up.
+Create a snippet from the text between BEG and END.
+When the bounds are not given, use either the current region or line.
 
-\(fn)" t nil)
+Remove `aya-marker' prefixes, write the corresponding snippet to
+`aya-current', with words prefixed by `aya-marker' as fields, and
+mirrors properly set up.
+
+\(fn &optional BEG END)" t nil)
 
 (autoload 'aya-expand "auto-yasnippet" "\
-Insert the last yasnippet created by `aya-create'.
-
-\(fn)" t nil)
+Insert the last yasnippet created by `aya-create'." t nil)
 
 (autoload 'aya-open-line "auto-yasnippet" "\
 Call `open-line', unless there are abbrevs or snippets at point.
 In that case expand them.  If there's a snippet expansion in progress,
-move to the next field.  Call `open-line' if nothing else applies.
-
-\(fn)" t nil)
+move to the next field.  Call `open-line' if nothing else applies." t nil)
 
 (autoload 'aya-yank-snippet "auto-yasnippet" "\
 Insert current snippet at point.
-To save a snippet permanently, create an empty file and call this.
-
-\(fn)" t nil)
+To save a snippet permanently, create an empty file and call this." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "auto-yasnippet" '("aya-")))
 

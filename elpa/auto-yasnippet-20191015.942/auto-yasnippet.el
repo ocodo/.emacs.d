@@ -2,9 +2,10 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/auto-yasnippet
-;; Package-Version: 20181124.1638
+;; Package-Version: 20191015.942
+;; Package-Commit: db9e0dd4335b2202cd5dac95bbbc87a1032d9bbe
 ;; Version: 0.3
-;; Package-Requires: ((yasnippet "0.8.0"))
+;; Package-Requires: ((yasnippet "0.13.0"))
 
 ;; This file is not part of GNU Emacs
 
@@ -109,6 +110,10 @@
   "If non-nil `aya-create' creates snippets matching mixed cases."
   :type 'boolean)
 
+(defcustom aya-trim-one-line nil
+  "If non-nil one-line snippets will begin from the first non-space character."
+  :type 'boolean)
+
 (defvar aya-current ""
   "Used as snippet body, when `aya-expand' is called.")
 
@@ -187,7 +192,7 @@ You can use it to quickly generate one-liners such as
 menu.add_item(spamspamspam, \"spamspamspam\")"
   (interactive)
   (when aya-marker-one-line
-    (let* ((beg (line-beginning-position))
+    (let* ((beg (aya--beginning-of-line))
            (end (line-end-position))
            (line (buffer-substring-no-properties beg (point)))
            (re (regexp-quote aya-marker-one-line)))
@@ -233,20 +238,38 @@ menu.add_item(spamspamspam, \"spamspamspam\")"
       (push (substring str start) res))
     (nreverse res)))
 
+(defun aya--beginning-of-line ()
+  "Return the beginning of the line.
+If `aya-trim-one-line' is non-nil return the position of the first
+non-space character.  Otherwise just return the position of the first
+character in the current line."
+  (if aya-trim-one-line
+      (save-excursion
+        (move-beginning-of-line nil)
+        (re-search-forward "[\t ]*")
+        (point))
+    (line-beginning-position)))
+
 ;;;###autoload
-(defun aya-create ()
-  "Works on either the current line, or, if `mark-active', the current region.
-Removes `aya-marker' prefixes,
-writes the corresponding snippet to `aya-current',
-with words prefixed by `aya-marker' as fields, and mirrors properly set up."
+(defun aya-create (&optional beg end)
+  "Create a snippet from the text between BEG and END.
+When the bounds are not given, use either the current region or line.
+
+Remove `aya-marker' prefixes, write the corresponding snippet to
+`aya-current', with words prefixed by `aya-marker' as fields, and
+mirrors properly set up."
   (interactive)
   (unless (aya-create-one-line)
-    (let* ((beg (if (region-active-p)
-                    (region-beginning)
-                  (line-beginning-position)))
-           (end (if (region-active-p)
-                    (region-end)
-                  (line-end-position)))
+    (let* ((beg (cond (beg)
+                      ((region-active-p)
+                       (region-beginning))
+                      (t
+                       (aya--beginning-of-line))))
+           (end (cond (end)
+                      ((region-active-p)
+                       (region-end))
+                      (t
+                       (line-end-position))))
            (str (buffer-substring-no-properties beg end))
            (case-fold-search nil)
            (res (aya--parse str)))
@@ -327,14 +350,13 @@ move to the next field.  Call `open-line' if nothing else applies."
         ((progn
            (unless yas-global-mode
              (yas-global-mode 1))
-           (yas--snippets-at-point))
+           (yas-active-snippets))
          (yas-next-field-or-maybe-expand))
         ((ignore-errors
            (setq aya-invokation-point (point))
            (setq aya-invokation-buffer (current-buffer))
            (setq aya-tab-position (- (point) (line-beginning-position)))
-           (let ((yas-fallback-behavior 'return-nil))
-             (yas-expand))))
+           (yas-expand)))
         ((and (fboundp 'tiny-expand)
               (funcall 'tiny-expand)))
         (t
