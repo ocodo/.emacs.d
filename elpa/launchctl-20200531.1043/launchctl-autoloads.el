@@ -10,9 +10,7 @@
 ;;; Generated autoloads from launchctl.el
 
 (autoload 'launchctl "launchctl" "\
-Launchctl - major mode for managing Launchd services on Mac OS X.  This is the entry point.
-
-\(fn)" t nil)
+Launchctl - major mode for managing Launchd services on Mac OS X.  This is the entry point." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "launchctl" '("launchctl-")))
 

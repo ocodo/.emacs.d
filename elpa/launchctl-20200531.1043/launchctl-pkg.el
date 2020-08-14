@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/launchctl-20200531.1043/launchctl.el  -*- no-byte-compile: t -*-
+(define-package "launchctl" "20200531.1043" "Interface to launchctl on Mac OS X." '((emacs "24.1")) :commit "96886b7e64d15ffd3319c8b4b04310ccdc648576" :keywords '("tools" "convenience") :authors '(("Peking Duck <github.com/pekingduck>")) :maintainer '("Peking Duck <github.com/pekingduck>") :url "http://github.com/pekingduck/launchctl-el")
