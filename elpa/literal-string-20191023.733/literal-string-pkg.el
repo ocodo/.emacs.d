@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/literal-string-20191023.733/literal-string.el  -*- no-byte-compile: t -*-
+(define-package "literal-string" "20191023.733" "edit string literals in a dedicated buffer" '((emacs "25") (edit-indirect "0.1.5")) :commit "afffa86e626798ee9f9188ea3be2d5ee6ad17c39" :keywords '("lisp" "tools" "docs") :authors '(("Joost Diepenmaat" . "joost@zeekat.nl")) :maintainer '("Joost Diepenmaat" . "joost@zeekat.nl") :url "https://github.com/joodie/literal-string-mode/")
