@@ -15,17 +15,13 @@
 \(fn $DEPTH)" t nil)
 
 (autoload 'helm-css-scss-move-and-echo-next-selector "helm-css-scss" "\
-
-
-\(fn)" t nil)
+Move and echo next selector." t nil)
 
 (autoload 'helm-css-scss-move-and-echo-previous-selector "helm-css-scss" "\
-
-
-\(fn)" t nil)
+Move and echo previous selector." t nil)
 
 (autoload 'helm-css-scss "helm-css-scss" "\
-
+CSS/SCSS/LESS coding faster and easier than ever.
 
 \(fn &optional $QUERY)" t nil)
 
