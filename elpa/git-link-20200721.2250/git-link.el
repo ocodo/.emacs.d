@@ -1,12 +1,13 @@
 ;;; git-link.el --- Get the GitHub/Bitbucket/GitLab URL for a buffer location -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2017 Skye Shaw and others
+;; Copyright (C) 2013-2020 Skye Shaw and others
 ;; Author: Skye Shaw <skye.shaw@gmail.com>
-;; Version: 0.6.0
-;; Package-Version: 20180423.1929
-;; Keywords: git, vc, github, bitbucket, gitlab, convenience
+;; Version: 0.8.0
+;; Package-Version: 20200721.2250
+;; Package-Commit: cbaf7033edad8d4712b6e7dc11cad979c6a002de
+;; Keywords: git, vc, github, bitbucket, gitlab, sourcehut, convenience
 ;; URL: http://github.com/sshaw/git-link
-;; Package-Requires: ((cl-lib "0.6.1"))
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -36,6 +37,35 @@
 
 ;;; Change Log:
 
+;; 2020-07-21 - v0.8.0
+;; * Add `-' prefix argument to git-link to generate links without line numbers
+;; * Add git-link-use-single-line-number
+;; * Fix sourcehut's git-link handler
+;;
+;; 2020-03-31 - v0.7.6
+;; * Adapt to changes in Azure interface (Issue #65, thanks Roey Darwish Dror)
+;;
+;; 2019-08-28 - v0.7.5
+;; * Add support for Azure DevOps (Issue #62, thanks Roey Darwish Dror)
+;;
+;; 2019-08-16 - v0.7.4
+;; * Add support for Magit-Blob buffers (Issue #61, thanks Miciah Dashiel Butler Masters)
+;;
+;; 2019-03-09 - v0.7.3
+;; * Add support for sourcehut
+;;
+;; 2018-10-30 - v0.7.2
+;; * Fix suffix stripping on remote path only if it ends in .git (Issue #58, thanks Marko Crnic)
+;;
+;; 2018-07-08 - v0.7.1
+;; * Add support for vc-revision-other-window files (Issue #54)
+;;
+;; 2018-06-07 - v0.7.0
+;; * Add support for Tramp (Issue #49, thanks Jürgen Hötzel)
+;; * Fix various compiler warnings
+;; * Fix differences between url-path-and-query across Emacs versions
+;; * Require Emacs 24.3
+;;
 ;; 2018-04-23 - v0.6.0
 ;; * Fix parsing of remotes with auth info (Issue #51)
 ;; * Removed remote regex in favor of url-parse
@@ -109,6 +139,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'dired)
 (require 'thingatpt)
 (require 'url-util)
 (require 'url-parse)
@@ -125,10 +156,12 @@
 
 (defcustom git-link-default-remote nil
   "Name of the remote to link to."
+  :type 'string
   :group 'git-link)
 
 (defcustom git-link-default-branch nil
   "Name of the branch to link to."
+  :type 'string
   :group 'git-link)
 
 (defcustom git-link-open-in-browser nil
@@ -141,11 +174,23 @@
   :type 'boolean
   :group 'git-link)
 
+(defcustom git-link-use-single-line-number t
+  "If t a link to a single line will always contain the line number.
+If nil line numbers will only be added when a selection contains
+more than 1 line.
+
+Note that `git-link' can exclude line numbers on a per invocation basis.
+See its docs."
+  :type 'boolean
+  :group 'git-link)
+
 (defcustom git-link-remote-alist
-  '(("github" git-link-github)
+  '(("git.sr.ht" git-link-github)
+    ("github" git-link-github)
     ("bitbucket" git-link-bitbucket)
     ("gitorious" git-link-gitorious)
-    ("gitlab" git-link-gitlab))
+    ("gitlab" git-link-gitlab)
+    ("visualstudio\\|azure" git-link-azure))
   "Alist of host names and functions creating file links for those.
 Each element looks like (REGEXP FUNCTION) where REGEXP is used to
 match the remote's host name and FUNCTION is used to generate a link
@@ -157,10 +202,12 @@ As an example, \"gitlab\" will match with both \"gitlab.com\" and
   :group 'git-link)
 
 (defcustom git-link-commit-remote-alist
-  '(("github" git-link-commit-github)
+  '(("git.sr.ht" git-link-commit-github)
+    ("github" git-link-commit-github)
     ("bitbucket" git-link-commit-bitbucket)
     ("gitorious" git-link-commit-gitorious)
-    ("gitlab" git-link-commit-github))
+    ("gitlab" git-link-commit-github)
+    ("visualstudio\\|azure" git-link-commit-azure))
   "Alist of host names and functions creating commit links for those.
 Each element looks like (REGEXP FUNCTION) where REGEXP is used to
 match the remote's host name and FUNCTION is used to generate a link
@@ -172,7 +219,15 @@ As an example, \"gitlab\" will match with both \"gitlab.com\" and
   :group 'git-link)
 
 (defun git-link--exec(&rest args)
-  (ignore-errors (apply 'process-lines `("git" ,@(when args args)))))
+  (ignore-errors
+    (with-temp-buffer
+      (when (zerop (apply #'process-file "git" nil (current-buffer) nil args))
+        (goto-char (point-min))
+        (cl-loop until (eobp)
+                 collect (buffer-substring-no-properties
+                          (line-beginning-position)
+                          (line-end-position))
+                 do (forward-line 1))))))
 
 (defun git-link--get-config (name)
   (car (git-link--exec "config" "--get" name)))
@@ -184,15 +239,21 @@ As an example, \"gitlab\" will match with both \"gitlab.com\" and
   (car (git-link--exec "--no-pager" "log" "-n1" "--pretty=format:%H")))
 
 (defun git-link--commit ()
-  (if (git-link--using-git-timemachine)
-      (car git-timemachine-revision)
-    (git-link--last-commit)))
+  (cond
+   ((git-link--using-git-timemachine)
+    (car git-timemachine-revision))
+   ((git-link--using-magit-blob-mode)
+    magit-buffer-revision)
+   (t (git-link--last-commit))))
 
 (defun git-link--current-branch ()
   (car (git-link--exec "symbolic-ref" "--short" "HEAD")))
 
 (defun git-link--repo-root ()
-  (car (git-link--exec "rev-parse" "--show-toplevel")))
+  (let ((dir (car (git-link--exec "rev-parse" "--show-toplevel"))))
+    (if (file-remote-p default-directory)
+	(concat (file-remote-p default-directory) dir)
+      dir)))
 
 (defun git-link--remote-url (name)
   (git-link--get-config (format "remote.%s.url" name)))
@@ -203,6 +264,8 @@ As an example, \"gitlab\" will match with both \"gitlab.com\" and
 (defun git-link--branch ()
   (or (git-link--get-config "git-link.branch")
       git-link-default-branch
+      (when (git-link--using-magit-blob-mode)
+        (magit-rev-branch magit-buffer-revision))
       (git-link--current-branch)))
 
 (defun git-link--remote ()
@@ -226,7 +289,7 @@ As an example, \"gitlab\" will match with both \"gitlab.com\" and
   "For an ALIST whose `car' (a regexp) matches STR, return cadr.
 
 The ALIST consists of (REGEXP FN) list elements.
-Valid ALISTs are `git-link-commit-remote-alist',`git-link-commit-alist'.
+Valid ALISTs are `git-link-remote-alist',`git-link-commit-remote-alist'.
 
 For the first ALIST element whose REGEXP matches with STR, FN is
 returned.
@@ -239,18 +302,27 @@ Return nil,
                         (string-match-p (car lst) str))
                       alist))))
 
+(defun git-link--parse-vc-revision (filename)
+"If FILENAME appears to be from `vc-revision-other-window'
+return (FILENAME . REVISION) otherwise nil."
+  (when (and (string-match "\\(.+\\)\\.~\\([^~]+\\)~$" filename)
+             (file-exists-p (match-string 1 filename)))
+    (cons (match-string 1 filename)
+          (match-string 2 filename))))
+
 (defun git-link--relative-filename ()
   (let* ((filename (buffer-file-name))
 	 (dir      (git-link--repo-root)))
 
-    (when (and (null filename)
-               (or (eq major-mode 'dired-mode)
-                   (and
-                    (string-match-p "^magit-" (symbol-name major-mode))
-                    (functionp 'magit-file-at-point))))
-
-      (setq filename (or (dired-file-name-at-point)
-                         (magit-file-at-point))))
+    (when (null filename)
+      (cond
+       ((eq major-mode 'dired-mode)
+        (setq filename (dired-file-name-at-point)))
+       ((git-link--using-magit-blob-mode)
+        (setq filename magit-buffer-file-name))
+       ((and (string-match-p "^magit-" (symbol-name major-mode))
+             (fboundp 'magit-file-at-point))
+        (setq filename (magit-file-at-point)))))
 
     (if (and dir filename
              ;; Make sure filename is not above dir, e.g. "/foo/repo-root/.."
@@ -265,13 +337,19 @@ Return nil,
       (setq url (concat "ssh://" url)))
 
     (setq url  (url-generic-parse-url url)
-          path (car (url-path-and-query url))
+          ;; Normalize path.
+          ;; If none, will nil on Emacs < 25. Later versions return "".
+          path (or (car (url-path-and-query url)) "")
           host (url-host url))
 
     (when host
-
-      (when (and path (not (string= "/" path)))
-        (setq path (substring (file-name-sans-extension path) 1)))
+      (when (and (not (string= "/" path))
+                 (not (string= ""  path)))
+        (setq path (substring
+                    (if (string-match "\\.git\\'" path)
+                        (file-name-sans-extension path)
+                      path)
+                    1)))
 
       ;; Fix-up scp style URLs
       (when (string-match ":" host)
@@ -279,11 +357,29 @@ Return nil,
           (setq host (car parts)
                 path (concat (cadr parts) "/" path))))
 
+      ;; Fix-up Azure SSH URLs
+      (when (string= "ssh.dev.azure.com" host)
+        (setq host "dev.azure.com")
+        (setq path (replace-regexp-in-string
+                    "v3/\\([^/]+\\)/\\([^/]+\\)/\\([^/]+\\)"
+                    "\\1/\\2/_git/\\3"
+                    path)))
+      (when (string= "vs-ssh.visualstudio.com" host)
+        (setq host (concat (url-user url) ".visualstudio.com"))
+        (setq path (replace-regexp-in-string
+                    (concat "^v3/" (url-user url) "/\\([^/]+\\)/")
+                    "\\1/_git/"
+                    path)))
+
+
       (list host path))))
 
 (defun git-link--using-git-timemachine ()
   (and (boundp 'git-timemachine-revision)
        git-timemachine-revision))
+
+(defun git-link--using-magit-blob-mode ()
+  (bound-and-true-p magit-blob-mode))
 
 (defun git-link--read-remote ()
   (let ((remotes (git-link--remotes))
@@ -355,11 +451,28 @@ Return nil,
                                 (format "L%s-L%s" start end)
                               (format "L%s" start)))))))
 
+(defun git-link-azure (hostname dirname filename branch commit start end)
+  (format "https://%s/%s?path=%%2F%s&version=%s&line=%s&lineEnd=%s&lineStartColumn=1&lineEndColumn=9999&lineStyle=plain"
+	  hostname
+	  dirname
+      filename
+      (concat "G" (if branch "B" "C") (or branch commit))
+      (or start "")
+      (or end start "")))
+
 (defun git-link-commit-github (hostname dirname commit)
   (format "https://%s/%s/commit/%s"
 	  hostname
 	  dirname
 	  commit))
+
+(defun git-link-commit-azure (hostname dirname commit)
+  (format "https://%s/%s/commit/%s"
+	  hostname
+	  dirname
+
+      ;; Azure only supports full 32 characters SHA
+      (car (git-link--exec "rev-parse" commit))))
 
 (defun git-link-gitorious (hostname dirname filename _branch commit start _end)
   (format "https://%s/%s/source/%s:%s#L%s"
@@ -381,7 +494,7 @@ Return nil,
           hostname
           dirname
           commit
-          (if (string-blank-p (file-name-nondirectory filename))
+          (if (string= "" (file-name-nondirectory filename))
               filename
             (concat filename
                     "#"
@@ -407,14 +520,25 @@ Return nil,
 (defun git-link (remote start end)
   "Create a URL representing the current buffer's location in its
 GitHub/Bitbucket/GitLab/... repository at the current line number
-or active region. The URL will be added to the kill ring. If
-`git-link-open-in-browser' is non-`nil' also call `browse-url'.
+or active region. The URL will be added to the kill ring.  If
+`git-link-open-in-browser' is non-nil also call `browse-url'.
 
-With a prefix argument prompt for the remote's name.
+With a prefix argument of - generate a link without line number(s).
+Also see `git-link-use-single-line-number'.
+
+With any other prefix argument prompt for the remote's name.
 Defaults to \"origin\"."
-  (interactive (let* ((remote (git-link--select-remote))
-                      (region (when buffer-file-name (git-link--get-region))))
-                 (list remote (car region) (cadr region))))
+  (interactive
+   (if (equal '- current-prefix-arg)
+       (list (git-link--remote) nil nil)
+     (let* ((remote (git-link--select-remote))
+            (region (when (or buffer-file-name (git-link--using-magit-blob-mode))
+                      (git-link--get-region))))
+
+       (if (and (null git-link-use-single-line-number) (null (cadr region)))
+           (list remote nil nil)
+         (list remote (car region) (cadr region))))))
+
   (let (filename branch commit handler remote-info (remote-url (git-link--remote-url remote)))
     (if (null remote-url)
         (message "Remote `%s' not found" remote)
@@ -432,17 +556,26 @@ Defaults to \"origin\"."
             ((not (functionp handler))
              (message "No handler found for %s" (car remote-info)))
             ;; TODO: null ret val
-            ((git-link--new
-              (funcall handler
-                       (car remote-info)
-                       (cadr remote-info)
-                       filename
-                       (if (or (git-link--using-git-timemachine) git-link-use-commit)
-                           nil
-                         (url-hexify-string branch))
-                       commit
-                       start
-                       end)))))))
+            (t
+             (let ((vc-revison (git-link--parse-vc-revision filename)))
+               (when vc-revison
+                 (setq filename (car vc-revison)
+                       commit   (cdr vc-revison)))
+
+               (git-link--new
+                (funcall handler
+                         (car remote-info)
+                         (cadr remote-info)
+                         filename
+                         (if (or (git-link--using-git-timemachine)
+                                 (git-link--using-magit-blob-mode)
+                                 vc-revison
+                                 git-link-use-commit)
+                             nil
+                           (url-hexify-string branch))
+                         commit
+                         start
+                         end))))))))
 
 ;;;###autoload
 (defun git-link-commit (remote)
