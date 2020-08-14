@@ -1,9 +1,0 @@
-# -*- mode: snippet -*-
-# contributer: Yusuke Tsutsumi <tsutsumi.yusuke@gmail.com>
-# name: method
-# key: method
-# description: snippet for struct method
-# --
-func (${1:s *Struct}) ${2:MethodName}(${3:arguments}) ${4:ReturnType} {
-	$0
-}

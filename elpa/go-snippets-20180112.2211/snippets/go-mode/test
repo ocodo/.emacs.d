@@ -1,9 +1,0 @@
-# -*- mode: snippet -*-
-# contributer: Yusuke Tsutsumi <tsutsumi.yusuke@gmail.com>
-# name: test {}
-# key: test
-# description: add a test method
-# --
-func Test${1:Feature}(t *testing.T) {
-	$0
-}
