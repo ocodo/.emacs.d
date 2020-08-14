@@ -5,9 +5,10 @@
 ;; Filename: ido-completing-read+.el
 ;; Author: Ryan Thompson
 ;; Created: Sat Apr  4 13:41:20 2015 (-0700)
-;; Version: 4.11
-;; Package-Version: 20180628.244
-;; Package-Requires: ((emacs "24.4") (cl-lib "0.5") (s "0.1") (memoize "1.1"))
+;; Version: 4.13
+;; Package-Version: 20200520.1535
+;; Package-Commit: b9ca2566b867464c25b720e2148d240961c110e7
+;; Package-Requires: ((emacs "24.4") (seq "0.5") (cl-lib "0.5") (memoize "1.1"))
 ;; URL: https://github.com/DarwinAwardWinner/ido-completing-read-plus
 ;; Keywords: ido, completion, convenience
 
@@ -78,17 +79,18 @@
 ;;
 ;;; Code:
 
-(defconst ido-completing-read+-version "4.11"
+(defconst ido-completing-read+-version "4.13"
   "Currently running version of ido-completing-read+.
 
 Note that when you update ido-completing-read+, this variable may
 not be updated until you restart Emacs.")
 
+(require 'nadvice)
 (require 'ido)
+(require 'seq)
 (require 'minibuf-eldef)
 (require 'cl-lib)
 (require 'cus-edit)
-(require 's)
 
 ;; Optional dependency, only needed for optimization
 (require 'memoize nil t)
@@ -109,6 +111,10 @@ Debug info is printed to the *Messages* buffer."
   :group 'ido-completing-read-plus)
 
 (defsubst ido-cr+--debug-message (format-string &rest args)
+  "Emit a debug message for ido-cr+.
+
+This only has an effect when `ido-cr+-debug-mode' is non-nil.
+Arguments are identical to `message'."
   (when ido-cr+-debug-mode
     (apply #'message (concat "ido-completing-read+: " format-string) args)))
 
@@ -119,7 +125,7 @@ Debug info is printed to the *Messages* buffer."
 ;; ido.el.
 
 (defmacro define-ido-internal-var (symbol &optional initvalue docstring)
-  "Declare and initialize an ido internal variable.
+  "Declare and initialize SYMBOL an ido internal variable.
 
 This is used to suppress byte-compilation warnings about
 reference to free variables when ido-cr+ attempts to access
@@ -155,7 +161,7 @@ using it, so the initial value shouldn't matter.")))
   "Minibuffer depth of the most recent ido-cr+ activation.
 
 If this equals the current minibuffer depth, then the minibuffer
-is currently being used by ido-cr+, and ido-cr+ feature will be
+is currently being used by ido-cr+, and ido-cr+ features will be
 active. Otherwise, something else is using the minibuffer and
 ido-cr+ features will be deactivated to avoid interfering with
 the other command.
@@ -195,7 +201,7 @@ dynamically.")
   "Idle timer for updating dynamic completion list.")
 
 (defvar ido-cr+-exhibit-pending nil
-  "This is non-nil after calling `ido-tidy' until the next call to `ido-exhibit'.
+  "This is non-nil between calling `ido-tidy' and `ido-exhibit'.
 
 Typically this is non-nil while any command is running and nil at all
 other times, since those two functions are in `pre-command-hook'
@@ -231,6 +237,30 @@ Each element is a cons cell of (REMOVEP . TEXT), where REMOVEP is
 the prefix argument to `ido-restrict-to-matches' and TEXT is the
 pattern used to restrict.")
 
+(defvar ido-cr+-need-bug27807-workaround
+  (cl-letf*
+      ((ido-exit ido-exit)
+       ((symbol-function 'read-from-minibuffer)
+        (lambda (_prompt &optional initial-contents &rest _remaining-args)
+          (setq ido-exit 'takeprompt) ; Emulate pressing C-j in ido
+          (if (consp initial-contents)
+              (substring (car initial-contents) 0 (1- (cdr initial-contents)))
+            initial-contents)))
+       ;; Need to get the unadvised original of `ido-completing-read'
+       ;; because the advice is autoloaded, so calling it while
+       ;; loading the package will trigger a recursive load.
+       ((symbol-function 'ido-completing-read)
+        (advice--cd*r (symbol-function 'ido-completing-read)))
+       (input-before-point
+        (ido-completing-read "Pick: " '("aaa" "aab" "aac") nil nil '("aa" . 1))))
+    ;; If an initial position of 1 yields a 0-length string, then this
+    ;; Emacs does not have the bug fix and requires the workaround.
+    (= (length input-before-point) 0))
+  "If non-nil, enable the workaround for Emacs bug #27807.
+
+This variable is normally set when ido-cr+ is loaded, and should
+not need to be modified by users.")
+
 (defgroup ido-completing-read-plus nil
   "Extra features and compatibility for `ido-completing-read'."
   :group 'ido)
@@ -249,7 +279,7 @@ pattern used to restrict.")
               ido-ubiquitous-completing-read))
       'completing-read-default
     completing-read-function)
-  "Alternate completing-read function to use when ido is not wanted.
+  "Alternate `completing-read-function' to use when ido is not wanted.
 
 This will be used for functions that are incompatible with ido
 or if ido cannot handle the completion arguments. It will also be
@@ -282,6 +312,7 @@ disable fallback based on collection size, set this to nil."
 (defcustom ido-cr+-function-blacklist
   '(read-file-name-internal
     read-buffer
+    internal-complete-buffer
     ;; https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues/60
     todo-add-category
     ;; Gnus already supports ido on its own
@@ -297,7 +328,13 @@ disable fallback based on collection size, set this to nil."
     ;; https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues/44
     tmm-prompt
     ;; https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues/156
-    org-tags-completion-function)
+    org-tags-completion-function
+    ;; https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues/159
+    ffap-read-file-or-url
+    ffap-read-file-or-url-internal
+    ;; https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues/161
+    sly-read-symbol-name
+    )
   "Functions & commands for which ido-cr+ should be disabled.
 
 Each entry can be either a symbol or a string. A symbol means to
@@ -402,8 +439,10 @@ https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues"
 (define-error 'ido-cr+-fallback "ido-cr+-fallback")
 
 (defsubst ido-cr+--explain-fallback (arg)
-  ;; This function accepts a string, or an ido-cr+-fallback
-  ;; signal.
+  "Emit a debug message explaining the reason for falling back.
+
+ARG can be a string or an ido-cr+-fallback signal. In the latter
+case, the DATA part of the signal is used as the message."
   (when ido-cr+-debug-mode
     (when (and (listp arg)
                (eq (car arg) 'ido-cr+-fallback))
@@ -413,11 +452,11 @@ https://github.com/DarwinAwardWinner/ido-completing-read-plus/issues"
 
 ;;;###autoload
 (defsubst ido-cr+-active ()
-  "Returns non-nil if ido-cr+ is currently using the minibuffer."
+  "Return non-nil if ido-cr+ is currently using the minibuffer."
   (>= ido-cr+-minibuffer-depth (minibuffer-depth)))
 
 (defun ido-cr+--called-from-completing-read ()
-  "Returns non-nil if the most recent call to ido-cr+ was from `completing-read'."
+  "Return non-nil if the most recent call to ido-cr+ was from `completing-read'."
   (equal (cadr (backtrace-frame 1 'ido-completing-read+))
          'completing-read))
 
@@ -430,7 +469,9 @@ how the matching is done.
 
 This is declared as macro only in order to extract the variable
 name used for the second argument so it can be used in a debug
-message. It should be called as if it were a normal function."
+message. It should be called as if it were a normal function. The
+optional 3rd argument LIST-NAME can be used to provide this
+information manually if it is known."
   (when (null list-name)
     (if (symbolp fun-list)
         (setq list-name (symbol-name fun-list))
@@ -481,14 +522,16 @@ See `ido-cr+-function-whitelist'."
 (defun ido-completing-read+ (prompt collection &optional predicate
                                     require-match initial-input
                                     hist def inherit-input-method)
-  "ido-based method for reading from the minibuffer with completion.
+  "Ido-based method for reading from the minibuffer with completion.
 
 See `completing-read' for the meaning of the arguments.
 
 This function is a wrapper for `ido-completing-read' designed to
 be used as the value of `completing-read-function'. Importantly,
 it detects edge cases that ido cannot handle and uses normal
-completion for them."
+completion for them.
+
+See `completing-read' for the meaning of the arguments."
   (let* (;; Save the original arguments in case we need to do the
          ;; fallback
          (ido-cr+-orig-completing-read-args
@@ -690,10 +733,10 @@ completion for them."
             (signal 'ido-cr+-fallback
                     '("ido cannot handle the empty string as an option when `ido-enable-dot-prefix' is non-nil; see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=26997")))
 
-          ;; Fix ido handling of cons-style INITIAL-INPUT. TODO add a
-          ;; version check after this bug is fixed:
-          ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27807
-          (when (consp initial-input)
+          ;; Fix ido's broken handling of cons-style INITIAL-INPUT on
+          ;; Emacsen older than 27. See Emacs bug #27807.
+          (when (and (consp initial-input)
+                     ido-cr+-need-bug27807-workaround)
             ;; `completing-read' uses 0-based index while
             ;; `read-from-minibuffer' uses 1-based index.
             (cl-incf (cdr initial-input)))
@@ -808,10 +851,12 @@ called through ido-cr+."
             #'ido-select-text@ido-cr+-fix-require-match)
 
 (defun ido-tidy@ido-cr+-set-exhibit-pending (&rest _args)
+  "Advice to manage the value of `ido-cr+-exhibit-pending'."
   (setq ido-cr+-exhibit-pending t))
 (advice-add 'ido-tidy :after 'ido-tidy@ido-cr+-set-exhibit-pending)
 
 (defun ido-exhibit@ido-cr+-clear-exhibit-pending (&rest _args)
+  "Advice to manage the value of `ido-cr+-exhibit-pending'."
   (setq ido-cr+-exhibit-pending nil))
 (advice-add 'ido-exhibit :before 'ido-exhibit@ido-cr+-clear-exhibit-pending)
 
@@ -838,7 +883,7 @@ not a function, this is equivalent to
      for i from 0 upto (length string)
      append (funcall
              ido-cr+-all-completions-memoized
-             (s-left i string)
+             (substring string 0 i)
              collection
              predicate)
      into completion-list
@@ -883,7 +928,7 @@ result."
      filtered-collection)))
 
 (defun ido-cr+-cyclicp (x)
-  "Returns non-nill if X is a list containing a circular reference."
+  "Return non-nill if X is a list containing a circular reference."
   (cl-loop
    for tortoise on x
    for hare on (cdr x) by #'cddr
@@ -903,7 +948,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
       ;; If current `ido-text' is equal to or a prefix of the previous
       ;; one, a dynamic update is not needed.
       (when (or (null ido-cr+-last-dynamic-update-text)
-                (not (s-prefix? ido-text ido-cr+-last-dynamic-update-text)))
+                (not (string-prefix-p ido-text ido-cr+-last-dynamic-update-text)))
         (ido-cr+--debug-message "Doing a dynamic update because `ido-text' changed from %S to %S"
                                 ido-cr+-last-dynamic-update-text ido-text)
         (setq ido-cr+-last-dynamic-update-text ido-text)
@@ -918,7 +963,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
                      ;; If `ido-text' is a prefix of `first-match', then we
                      ;; only need to check `first-match'
                      ((and first-match
-                           (s-prefix? ido-text first-match))
+                           (string-prefix-p ido-text first-match))
                       (list first-match))
                      ;; Otherwise we need to check both
                      (t
@@ -998,7 +1043,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
                                  #'ido-cr+-update-dynamic-collection)))))
 
 (defun ido-cr+-minibuffer-setup ()
-  "set up minibuffer `post-command-hook' for ido-cr+ "
+  "Set up minibuffer `post-command-hook' for ido-cr+."
   (when (ido-cr+-active)
     (add-hook 'post-command-hook
               'ido-cr+-schedule-dynamic-collection-update)))
@@ -1030,7 +1075,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
 ;; dynamically-added completions are also properly restricted.
 (defun ido-restrict-to-matches@ido-cr+-record-restriction
     (&optional removep)
-  "Record the restriction criterion for ido-cr+"
+  "Record the restriction criterion for ido-cr+."
   (ido-cr+--debug-message "Appending restriction %S to `ido-cr+-active-restrictions'"
                           (cons removep ido-text))
   (add-to-list 'ido-cr+-active-restrictions (cons removep ido-text) t))
@@ -1041,7 +1086,7 @@ This has no effect unless `ido-cr+-dynamic-collection' is non-nil."
 ;; default when the input is empty and the empty string is the
 ;; selected choice
 (defun minibuf-eldef-update-minibuffer@ido-cr+-compat (orig-fun &rest args)
-  "This advice allows minibuffer-electric-default-mode to work with ido-cr+."
+  "This advice allows `minibuffer-electric-default-mode' to work with ido-cr+."
   (if (ido-cr+-active)
       (unless (eq minibuf-eldef-showing-default-in-prompt
                   (and (string= (car ido-cur-list) "")
@@ -1077,9 +1122,9 @@ when ido completion is or is not used by customizing
 
 This variable has 3 possible values, with the following meanings:
 
-  `t': Auto-update the blacklist
+  t: Auto-update the blacklist
   `notify': Notify you about updates but do not apply them
-  `nil': Ignore all blacklist updates
+  nil: Ignore all blacklist updates
 
 Ido-cr+ comes with a default blacklist for commands that are
 known to be incompatible with ido completion. New versions of
@@ -1088,19 +1133,18 @@ incompatible commands are discovered. However, customizing your
 own overrides would normally prevent you from receiving these
 updates, since Emacs will not overwrite your customizations.
 
-To resolve this problem, you can set this variable to `t', and
-then ido-cr+ can automatically add any new built-in overrides
-whenever it is updated. (Actually, the update will happen the
-next time Emacs is restarted after the update.) This allows you
-to add your own overrides but still receive updates to the
-default set.
+To resolve this problem, you can set this variable to t, and then
+ido-cr+ can automatically add any new built-in overrides whenever
+it is updated. (Actually, the update will happen the next time
+Emacs is restarted after the update.) This allows you to add your
+own overrides but still receive updates to the default set.
 
 If you want ido-cr+ to just notify you about new default
 overrides instead of adding them itself, set this variable to
 `notify'. If you don't want this auto-update behavior at all, set
-it to `nil'.
+it to nil.
 
-(Note that having this option enabled effectively prevents you
+\(Note that having this option enabled effectively prevents you
 from removing any of the built-in default blacklist entries,
 since they will simply be re-added the next time Emacs starts.)"
   :type '(choice :tag "When new overrides are available:"
@@ -1125,6 +1169,9 @@ information.
 If SAVE is non-nil, also save the new blacklist to the user's
 Custom file (but only if it was already customized beforehand).
 When called interactively, a prefix argument triggers a save.
+
+Unless QUIET is non-nil, this function produces messages indicating
+all changes that were made.
 
 When called from Lisp code, this function returns non-nil if the
 blacklist was modified."
@@ -1180,7 +1227,7 @@ blacklist was modified."
              (new-entries (cl-set-difference defval curval :test #'equal)))
         (if new-entries
             (if (eq ido-cr+-auto-update-blacklist 'notify)
-                (display-warning 'ido-completing-read+ "There are %s new blacklist entries available. Use `M-x ido-cr+-update-blacklist' to install them. (See `ido-cr+-auto-update-blacklist' for more information.)")
+                (display-warning 'ido-completing-read+ (format "There are %s new blacklist entries available. Use `M-x ido-cr+-update-blacklist' to install them. (See `ido-cr+-auto-update-blacklist' for more information.)" (length new-entries)))
               (ido-cr+--debug-message "Initiating blacklist update.")
               (ido-cr+-update-blacklist t))
           (ido-cr+--debug-message "No blacklist updates available.")))

@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/ido-completing-read+-20200520.1535/ido-completing-read+.el  -*- no-byte-compile: t -*-
+(define-package "ido-completing-read+" "20200520.1535" "A completing-read-function using ido" '((emacs "24.4") (seq "0.5") (cl-lib "0.5") (memoize "1.1")) :commit "b9ca2566b867464c25b720e2148d240961c110e7" :keywords '("ido" "completion" "convenience") :authors '(("Ryan Thompson")) :maintainer '("Ryan Thompson") :url "https://github.com/DarwinAwardWinner/ido-completing-read-plus")
