@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/commify-20200812.1241/commify.el  -*- no-byte-compile: t -*-
+(define-package "commify" "20200812.1241" "Toggle grouping commas in numbers" '((s "1.9.0")) :commit "92514f071c667653f146629c0aec0ab4d3b78226" :keywords '("convenience" "editing" "numbers" "grouping" "commas") :authors '(("Daniel E. Doherty" . "ded-commify@ddoherty.net")) :maintainer '("Daniel E. Doherty" . "ded-commify@ddoherty.net") :url "https://github.com/ddoherty03/commify")
