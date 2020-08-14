@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/fill-function-arguments-20190710.929/fill-function-arguments.el  -*- no-byte-compile: t -*-
+(define-package "fill-function-arguments" "20190710.929" "Convert function arguments to/from single line" '((emacs "24.4")) :commit "295d55d6056e6f79b68283f7631f6438ea8a7b5f" :keywords '("convenience") :authors '(("David Shepherd" . "davidshepherd7@gmail.com")) :maintainer '("David Shepherd" . "davidshepherd7@gmail.com") :url "https://github.com/davidshepherd7/fill-function-arguments")
