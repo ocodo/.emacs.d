@@ -4,7 +4,8 @@
 
 ;; Author: Roman Parykin <donderom@ymail.com>
 ;; URL: https://github.com/donderom/jazz-theme
-;; Package-Version: 20170411.1411
+;; Package-Version: 20200417.2042
+;; Package-Commit: b6694f09e10aa7df14836aac2f6615c32aa572dd
 ;; Version: 1.0
 
 ;; Based on zenburn-theme.el
@@ -53,7 +54,7 @@
       ;; colors with +x are lighter, colors with -x are darker
       (jazz-fg       "#c6a57b")
       (jazz-fg-1     "#c6a57b")
-      (jazz-fg+1     "#303030")
+      (jazz-fg+1     "#303030")  ;; TODO move it to bg family
 
       (jazz-bg-1     "#101010")
       (jazz-bg-05    "#151515")
@@ -96,11 +97,11 @@
       (jazz-magenta  "#7f355e"))
   (custom-theme-set-faces
    'jazz
+   ;;; Built-in
+   ;;; basic coloring
    '(button ((t (:underline t))))
    `(link ((,class (:foreground ,jazz-yellow :underline t :weight bold))))
    `(link-visited ((,class (:foreground ,jazz-yellow-2 :underline t :weight normal))))
-
-   ;;; basic coloring
    `(default ((,class (:foreground ,jazz-fg :background ,jazz-bg))))
    `(cursor ((,class (:foreground ,jazz-fg :background ,jazz-fg))))
    `(escape-glyph-face ((,class (:foreground ,jazz-red))))
@@ -109,6 +110,10 @@
                                        :background ,jazz-bg-1
                                        :box (:line-width -1 :color ,jazz-bg :style released-button)))))
    `(highlight ((,class (:background ,jazz-bg+1))))
+   `(error ((,class (:foreground ,jazz-fg :background ,jazz-red))))
+   `(success ((,class (:foreground ,jazz-green))))
+   `(warning ((,class (:foreground ,jazz-orange))))
+   `(shadow ((,class (:foreground ,jazz-cyan))))
 
    ;;; compilation
    `(compilation-column-face ((,class (:foreground ,jazz-yellow))))
@@ -181,6 +186,73 @@
 
    `(c-annotation-face ((,class (:inherit font-lock-constant-face))))
 
+   ;; line-number-mode
+   `(line-number ((,class (:foreground ,jazz-bg+2 :background ,jazz-bg-1))))
+   `(line-number-current-line ((,class (:foreground ,jazz-blue :background ,jazz-bg-1))))
+
+   ;;; Third-party (first level support)
+
+   ;; company
+   `(company-echo-common ((,class (:foreground ,jazz-red))))
+   `(company-preview ((,class (:background ,jazz-blue :foreground ,jazz-fg))))
+   `(company-preview-common ((,class (:inherit company-preview))))
+   `(company-preview-search ((,class (:inherit company-preview :background ,jazz-blue+1))))
+   `(company-scrollbar-fg ((,class (:background ,jazz-bg+1))))
+   `(company-scrollbar-bg ((,class (:background ,jazz-bg+2))))
+   `(company-template-field ((,class (:background ,jazz-yellow :foreground ,jazz-bg))))
+   `(company-tooltip ((,class (:background ,jazz-bg+1 :foreground ,jazz-fg))))
+   `(company-tooltip-annotation ((,class (:background nil :foreground ,jazz-yellow))))
+   `(company-tooltip-common ((,class (:foreground ,jazz-bg+3 :underline t))))
+   `(company-tooltip-common-selection ((,class (:background ,jazz-blue-4 :foreground ,jazz-fg :underline t))))
+   `(company-tooltip-selection ((,class (:background ,jazz-blue-4 :foreground ,jazz-fg))))
+
+   ;; flycheck
+   `(flycheck-error
+     ((((supports :underline (:style wave)))
+       (:underline (:style wave :color ,jazz-red)
+                   :inherit unspecified :foreground unspecified :background unspecified))
+      (t (:foreground ,jazz-red :weight bold :underline t))))
+   `(flycheck-info
+     ((((supports :underline (:style wave)))
+       (:underline (:style wave :color ,jazz-green)
+                   :inherit unspecified :foreground unspecified :background unspecified))
+      (t (:foreground ,jazz-red :weight bold :underline t))))
+   `(flycheck-warning
+     ((((supports :underline (:style wave)))
+       (:underline (:style wave :color ,jazz-orange)
+                   :inherit unspecified :foreground unspecified :background unspecified))
+      (t (:foreground ,jazz-orange :weight bold :underline t))))
+   `(flycheck-fringe-error ((,class (:foreground ,jazz-red :background ,jazz-bg))))
+   `(flycheck-fringe-info ((,class (:foreground ,jazz-green :background ,jazz-bg))))
+   `(flycheck-fringe-warning ((,class (:foreground ,jazz-orange :background ,jazz-bg))))
+   `(flycheck-error-list-column-number ((,class (:foreground ,jazz-cyan :background ,jazz-bg))))
+   `(flycheck-error-list-line-number ((,class (:foreground ,jazz-cyan :background ,jazz-bg))))
+   `(flycheck-error-list-filename ((,class (:foreground ,jazz-fg :background ,jazz-bg))))
+
+   ;; lsp-mode
+   `(lsp-face-semhl-deprecated ((,class (:underline (:color ,jazz-yellow :style wave)))))
+
+   ;; lsp-ui
+   `(lsp-ui-doc-header ((,class (:foreground ,jazz-cyan :background ,jazz-bg+1))))
+   `(lsp-ui-peek-filename ((,class (:foreground ,jazz-blue))))
+   `(lsp-ui-peek-header ((,class (:foreground ,jazz-bg :background ,jazz-bg+3))))
+   `(lsp-ui-peek-highlight ((,class (:foreground ,jazz-bg+1
+                                                 :distant-foreground ,jazz-fg
+                                                 :background ,jazz-fg
+                                                 :box (:line-width -1 :color ,jazz-fg)))))
+   `(lsp-ui-peek-line-number ((,class (:foreground ,jazz-bg+2))))
+   `(lsp-ui-peek-list ((,class (:background ,jazz-bg+1))))
+   `(lsp-ui-peek-peek ((,class (:background ,jazz-bg+1))))
+   `(lsp-ui-peek-selection ((,class (:foreground ,jazz-bg+1 :background ,jazz-fg))))
+   `(lsp-ui-sideline-code-action ((,class (:foreground ,jazz-cyan :background ,jazz-fg))))
+   `(lsp-ui-sideline-current-symbol ((,class (:foreground ,jazz-fg :box (:line-width -1 :color ,jazz-fg)))))
+   `(lsp-ui-sideline-symbol ((,class (:foreground ,jazz-bg+3 :box (:line-width -1 :color ,jazz-bg+3)))))
+
+   ;; typit
+   `(typit-correct-char ((,class (:foreground ,jazz-yellow))))
+   `(typit-current-word ((,class (:background ,jazz-fg+1))))
+   `(typit-statistic ((,class (:foreground ,jazz-blue))))
+
    ;;; external
 
    ;; ace-jump
@@ -221,18 +293,6 @@
    ;; cheatsheet
    `(cheatsheet-group-face ((,class (:foreground ,jazz-blue))))
    `(cheatsheet-key-face ((,class (:foreground ,jazz-yellow))))
-
-   ;; company
-   `(company-tooltip ((,class (:background ,jazz-bg+3 :foreground ,jazz-bg))))
-   `(company-tooltip-common ((,class (:foreground ,jazz-bg :underline t))))
-   `(company-tooltip-common-selection ((,class (:background ,jazz-blue-4 :foreground ,jazz-fg :underline t))))
-   `(company-tooltip-selection ((,class (:background ,jazz-blue-4 :foreground ,jazz-fg))))
-   `(company-preview ((,class (:background ,jazz-blue :foreground ,jazz-fg))))
-   `(company-preview-common ((,class (:inherit company-preview))))
-   `(company-preview-search ((,class (:inherit company-preview :background ,jazz-blue+1))))
-   `(company-scrollbar-fg ((,class (:background ,jazz-bg+1))))
-   `(company-scrollbar-bg ((,class (:background ,jazz-bg+2))))
-   `(company-tooltip-annotation ((,class (:background nil :foreground ,jazz-yellow))))
 
    ;; diff
    `(diff-added ((,class (:foreground ,jazz-green+4))))
@@ -288,20 +348,6 @@
      ((((supports :underline (:style wave)))
        (:underline (:style wave :color ,jazz-red-1) :inherit unspecified))
       (t (:foreground ,jazz-red-1 :weight bold :underline t))))
-
-   ;; flycheck
-   `(flycheck-error
-     ((((supports :underline (:style wave)))
-       (:underline (:style wave :color ,jazz-red)
-                   :inherit unspecified :foreground unspecified :background unspecified))
-      (t (:foreground ,jazz-red :weight bold :underline t))))
-   `(flycheck-fringe-error ((,class (:foreground ,jazz-red :background ,jazz-bg))))
-   `(flycheck-warning
-     ((((supports :underline (:style wave)))
-       (:underline (:style wave :color ,jazz-orange)
-                   :inherit unspecified :foreground unspecified :background unspecified))
-      (t (:foreground ,jazz-orange :weight bold :underline t))))
-   `(flycheck-fringe-warning ((,class (:foreground ,jazz-orange :background ,jazz-bg))))
 
    ;; erc
    `(erc-action-face ((,class (:inherit erc-default-face))))
