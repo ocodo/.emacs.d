@@ -1,10 +1,12 @@
 ;;; dired-filter-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "dired-filter" "dired-filter.el" (23064 61793
-;;;;;;  798920 69000))
+;;;### (autoloads nil "dired-filter" "dired-filter.el" (0 0 0 0))
 ;;; Generated autoloads from dired-filter.el
 
 (defvar dired-filter-map (let ((map (make-sparse-keymap))) (define-key map "n" 'dired-filter-by-name) (define-key map "r" 'dired-filter-by-regexp) (define-key map "." 'dired-filter-by-extension) (define-key map "h" 'dired-filter-by-dot-files) (define-key map "o" 'dired-filter-by-omit) (define-key map "g" 'dired-filter-by-garbage) (define-key map "e" 'dired-filter-by-predicate) (define-key map "f" 'dired-filter-by-file) (define-key map "d" 'dired-filter-by-directory) (define-key map "m" 'dired-filter-by-mode) (define-key map "s" 'dired-filter-by-symlink) (define-key map "x" 'dired-filter-by-executable) (define-key map "ig" 'dired-filter-by-git-ignored) (define-key map "|" 'dired-filter-or) (define-key map "!" 'dired-filter-negate) (define-key map "*" 'dired-filter-decompose) (define-key map (kbd "TAB") 'dired-filter-transpose) (define-key map "p" 'dired-filter-pop) (define-key map "/" 'dired-filter-pop-all) (define-key map "S" 'dired-filter-save-filters) (define-key map "D" 'dired-filter-delete-saved-filters) (define-key map "A" 'dired-filter-add-saved-filters) (define-key map "L" 'dired-filter-load-saved-filters) map) "\
@@ -75,27 +77,19 @@ argument from user.
  (autoload 'dired-filter-mark-by-symlink "dired-filter")
 
 (autoload 'dired-filter-transpose "dired-filter" "\
-Transpose the two top filters.
-
-\(fn)" t nil)
+Transpose the two top filters." t nil)
 
 (autoload 'dired-filter-or "dired-filter" "\
-Or the top two filters.
-
-\(fn)" t nil)
+Or the top two filters." t nil)
 
 (autoload 'dired-filter-negate "dired-filter" "\
-Logically negate the top filter.
-
-\(fn)" t nil)
+Logically negate the top filter." t nil)
 
 (autoload 'dired-filter-decompose "dired-filter" "\
 Decompose the composite filter on top of the stack.
 
 This means, if the filter is an `or' or `not' filter, pop it and
-push all its constituents back on the stack.
-
-\(fn)" t nil)
+push all its constituents back on the stack." t nil)
 
 (autoload 'dired-filter-pop "dired-filter" "\
 Remove the top filter in this buffer.
@@ -103,9 +97,7 @@ Remove the top filter in this buffer.
 \(fn &optional ARG)" t nil)
 
 (autoload 'dired-filter-pop-all "dired-filter" "\
-Remove all the filters in this buffer.
-
-\(fn)" t nil)
+Remove all the filters in this buffer." t nil)
 
 (autoload 'dired-filter-save-filters "dired-filter" "\
 Save the the FILTERS in this dired buffer under a NAME for later use.
@@ -130,6 +122,11 @@ Add to this buffer's filters filters with NAME from `dired-filter-saved-filters'
 (autoload 'dired-filter-mode "dired-filter" "\
 Toggle filtering of files in Dired.
 
+If called interactively, enable Dired-Filter mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 When you toggle the filter mode, the filter stack and all other
 state is preserved, except the display is not altered.  This
 allows you to quickly toggle the active filter without need of
@@ -137,11 +134,14 @@ popping the stack and then re-inserting the filters again.
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dired-filter" '("dired-filter")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; dired-filter-autoloads.el ends here

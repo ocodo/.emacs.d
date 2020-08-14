@@ -5,7 +5,8 @@
 ;; Author: Matúš Goljer <matus.goljer@gmail.com>
 ;; Maintainer: Matúš Goljer <matus.goljer@gmail.com>
 ;; Keywords: files
-;; Package-Version: 20180922.1107
+;; Package-Version: 20191105.1404
+;; Package-Commit: f49a8bbf95f70671a74a24f7f4de453b2686be46
 ;; Version: 0.0.2
 ;; Created: 14th February 2014
 ;; Package-requires: ((dash "2.10.0") (dired-hacks-utils "0.0.1") (f "0.17.0") (cl-lib "0.3"))
@@ -731,8 +732,14 @@ by default."
                         (point-max))
                     (dired-subdir-max)))))
     (if collapsed
-        (remove-text-properties beg end '(invisible))
-      (put-text-property beg end 'invisible t))
+        (alter-text-property
+         beg end 'invisible
+         (lambda (prop)
+           (delete 'dired-filter-group-toggle-header (-list prop))))
+      (alter-text-property
+       beg end 'invisible
+       (lambda (prop)
+         (cons 'dired-filter-group-toggle-header (-list prop)))))
     (save-excursion
       (-let [(beg . end) (bounds-of-thing-at-point 'line)] (delete-region beg end))
       (insert (dired-filter-group--make-header name (not collapsed))))))
@@ -1126,7 +1133,8 @@ Examples:
 (dired-filter-define directory
     "Toggle current view to show only directories."
   (:description "directory")
-  (or (looking-at dired-re-dir)
+  (or (and (looking-at-p dired-re-dir)
+           (not (looking-at-p dired-re-dot)))
       (and (looking-at dired-re-sym)
            (file-directory-p (dired-utils-get-filename)))))
 
@@ -1346,8 +1354,10 @@ push all its constituents back on the stack."
   (if dired-filter-group-mode
       (progn
         (dired-filter--apply)
-        (add-hook 'dired-filter-group-mode-hook 'dired-filter-add-group-imenu-generic-expression))
+        (add-hook 'dired-filter-group-mode-hook 'dired-filter-add-group-imenu-generic-expression)
+        (add-to-invisibility-spec 'dired-filter-group-toggle-header))
     (remove-hook 'dired-filter-group-mode-hook 'dired-filter-add-group-imenu-generic-expression)
+    (remove-from-invisibility-spec 'dired-filter-group-toggle-header)
     (dired-filter-remove-group-imenu-generic-expression)
     (revert-buffer)))
 
