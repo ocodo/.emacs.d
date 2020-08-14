@@ -10,13 +10,11 @@
 ;;; Generated autoloads from feature-mode.el
 
 (autoload 'feature-mode "feature-mode" "\
-Major mode for editing plain text stories
-
-\(fn)" t nil)
+Major mode for editing plain text stories" t nil)
 
 (add-to-list 'auto-mode-alist '("\\.feature\\'" . feature-mode))
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "feature-mode" '("feature-" "expand-home-shellism" "can-run-bundle" "should-run-docker-compose" "parse-gherkin-l10n" "project-file-exists" "given-when-then-wordlength" "build-keyword-matcher" "try-find-next" "load-gherkin-i10n")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "feature-mode" '("build-keyword-matcher" "can-run-bundle" "expand-home-shellism" "feature-" "given-when-then-wordlength" "load-gherkin-i10n" "parse-gherkin-l10n" "project-file-exists" "should-run-docker-compose" "try-find-next")))
 
 ;;;***
 
