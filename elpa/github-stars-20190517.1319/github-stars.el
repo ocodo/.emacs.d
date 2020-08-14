@@ -5,7 +5,8 @@
 ;; Author: Xu Chunyang <mail@xuchunyang.me>
 ;; Homepage: https://github.com/xuchunyang/github-stars.el
 ;; Package-Requires: ((emacs "25.1") (ghub "2.0.0"))
-;; Package-Version: 20181118.448
+;; Package-Version: 20190517.1319
+;; Package-Commit: a9f25ab2487c886f5d50d26693d49856bd51383b
 ;; Keywords: tools
 ;; Created: Tue, 27 Mar 2018 20:59:43 +0800
 ;; Version: 0.1
@@ -31,7 +32,7 @@
 
 (require 'ghub)
 (require 'let-alist)
-(require 'map)
+(require 'map)                          ; `map-apply'
 
 (defgroup github-stars nil
   "Browse your github stars."
@@ -89,15 +90,16 @@
 (defun github-stars ()
   "Return hash table listing github stars."
   (unless github-stars
-    (setq github-stars (make-hash-table :test #'equal))
-    (dolist (alist (ghub-get "/user/starred" nil
-                             :query '((per_page . "100"))
-                             :headers '(("Accept" .
-                                         "application/vnd.github.v3.star+json"))
-                             :unpaginate t
-                             :reader #'github-stars--read-response
-                             :auth 'github-stars))
-      (puthash (let-alist alist .owner/name) alist github-stars)))
+    (let ((response (ghub-get "/user/starred" nil
+                              :query '((per_page . "100"))
+                              :headers '(("Accept" .
+                                          "application/vnd.github.v3.star+json"))
+                              :unpaginate t
+                              :reader #'github-stars--read-response
+                              :auth 'github-stars)))
+      (setq github-stars (make-hash-table :test #'equal))
+      (dolist (alist response)
+        (puthash (let-alist alist .owner/name) alist github-stars))))
   github-stars)
 
 ;; https://emacs.stackexchange.com/questions/31448/report-duplicates-in-a-list

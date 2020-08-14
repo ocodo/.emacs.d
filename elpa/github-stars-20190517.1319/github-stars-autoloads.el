@@ -15,9 +15,7 @@ Prompt you for one of your github stars and open it in the web browser.
 \(fn OWNER/NAME)" t nil)
 
 (autoload 'github-stars-list "github-stars" "\
-Display a list of your github stars.
-
-\(fn)" t nil)
+Display a list of your github stars." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "github-stars" '("github-stars")))
 

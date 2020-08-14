@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/github-stars-20190517.1319/github-stars.el  -*- no-byte-compile: t -*-
+(define-package "github-stars" "20190517.1319" "Browse your Github Stars" '((emacs "25.1") (ghub "2.0.0")) :commit "a9f25ab2487c886f5d50d26693d49856bd51383b" :keywords '("tools") :authors '(("Xu Chunyang" . "mail@xuchunyang.me")) :maintainer '("Xu Chunyang" . "mail@xuchunyang.me") :url "https://github.com/xuchunyang/github-stars.el")
