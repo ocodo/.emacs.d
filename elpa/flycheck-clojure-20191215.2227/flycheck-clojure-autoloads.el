@@ -18,11 +18,9 @@ Return a list of parsed `flycheck-error' objects.
 \(fn VALUE CHECKER)" nil nil)
 
 (autoload 'flycheck-clojure-setup "flycheck-clojure" "\
-Setup Flycheck for Clojure.
+Setup Flycheck for Clojure." t nil)
 
-\(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flycheck-clojure" '("flycheck-clojure-" "cider-flycheck-eval")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flycheck-clojure" '("cider-flycheck-eval" "flycheck-clojure-")))
 
 ;;;***
 
