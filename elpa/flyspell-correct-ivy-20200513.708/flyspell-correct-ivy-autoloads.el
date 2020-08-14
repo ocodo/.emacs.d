@@ -15,10 +15,12 @@ Run `ivy-read' for the given CANDIDATES.
 
 List of CANDIDATES is given by flyspell for the WORD.
 
-Return a selected word to use as a replacement or a tuple
-of (command, word) to be used by `flyspell-do-correct'.
+Return result according to `flyspell-correct-interface'
+specification.
 
 \(fn CANDIDATES WORD)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flyspell-correct-ivy" '("flyspell-correct-ivy-")))
 
 ;;;***
 
