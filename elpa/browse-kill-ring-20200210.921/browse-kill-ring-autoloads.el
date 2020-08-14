@@ -14,14 +14,10 @@
 Set up M-y (`yank-pop') so that it can invoke `browse-kill-ring'.
 Normally, if M-y was not preceeded by C-y, then it has no useful
 behavior.  This function sets things up so that M-y will invoke
-`browse-kill-ring'.
-
-\(fn)" t nil)
+`browse-kill-ring'." t nil)
 
 (autoload 'browse-kill-ring "browse-kill-ring" "\
-Display items in the `kill-ring' in another buffer.
-
-\(fn)" t nil)
+Display items in the `kill-ring' in another buffer." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "browse-kill-ring" '("browse-kill-ring-")))
 

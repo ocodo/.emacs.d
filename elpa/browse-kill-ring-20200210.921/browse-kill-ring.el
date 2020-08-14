@@ -6,7 +6,8 @@
 ;; Maintainer: browse-kill-ring <browse-kill-ring@tonotdo.com>
 ;; Created: 7 Apr 2001
 ;; Version: 2.0.0
-;; Package-Version: 20171219.1908
+;; Package-Version: 20200210.921
+;; Package-Commit: 1ef72cc6accd94cd7032c02b1b2c78ae7f1d1965
 ;; URL: https://github.com/browse-kill-ring/browse-kill-ring
 ;; Keywords: convenience
 
@@ -49,9 +50,9 @@
 
 ;;; Code:
 
-(require 'cl-lib)
-(require 'cl)
-(require 'derived)
+(eval-when-compile
+  (require 'cl-lib))
+(require 'delsel)
 
 (defgroup browse-kill-ring nil
   "A package for browsing and inserting the items in `kill-ring'."
@@ -299,12 +300,12 @@ well."
   (let* ((buf (current-buffer))
         (pt (point))
         (str (browse-kill-ring-current-string buf pt)))
-    (case insert-action
+    (cl-case insert-action
       ('insert (browse-kill-ring-do-insert buf pt nil))
       ('append (browse-kill-ring-do-append-insert buf pt nil))
       ('prepend (browse-kill-ring-do-prepend-insert buf pt nil))
       (t (error "Unknown insert-action: %s" insert-action)))
-    (case post-action
+    (cl-case post-action
       ('move
         (browse-kill-ring-delete)
         (kill-new str))
@@ -388,7 +389,7 @@ of the *Kill Ring*."
         (warn "Unable to load `pulse' library")
         (setq browse-kill-ring-highlight-inserted-item 'solid)))
 
-    (case browse-kill-ring-highlight-inserted-item
+    (cl-case browse-kill-ring-highlight-inserted-item
       ((pulse t)
        (let ((pulse-delay .05) (pulse-iterations 10))
          (with-no-warnings
@@ -498,8 +499,8 @@ of the *Kill Ring*."
        ((get-text-property (point) 'browse-kill-ring-extra)
         (let ((prev (previous-single-property-change (point) 'browse-kill-ring-extra))
               (next (next-single-property-change (point) 'browse-kill-ring-extra)))
-          (when prev (incf prev))
-          (when next (incf next))
+          (when prev (cl-incf prev))
+          (when next (cl-incf next))
           (delete-region (or prev (point-min)) (or next (point-max))))))))
   (browse-kill-ring-resize-window)
   (browse-kill-ring-forward 0))
@@ -508,7 +509,7 @@ of the *Kill Ring*."
 (defun browse-kill-ring-target-overlay-at (position &optional no-error)
   "Return overlay at POSITION that has property `browse-kill-ring-target'.
 If no such overlay, raise an error unless NO-ERROR is true, in which
-case retun nil."
+case return nil."
   (let ((ovs  (overlays-at (point))))
     (catch 'browse-kill-ring-target-overlay-at
       (dolist (ov  ovs)
@@ -545,12 +546,12 @@ case retun nil."
 
 (defun browse-kill-ring-clear-highlighed-entry ()
   (when browse-kill-ring-previous-overlay
-    (assert (overlayp browse-kill-ring-previous-overlay))
+    (cl-assert (overlayp browse-kill-ring-previous-overlay))
     (overlay-put browse-kill-ring-previous-overlay 'face nil)))
 
 (defun browse-kill-ring-update-highlighed-entry-1 ()
   (let ((current-overlay (browse-kill-ring-target-overlay-at (point) t)))
-    (case current-overlay
+    (cl-case current-overlay
       ;; No overlay at point.  Just clear all current highlighting.
       ((nil) (browse-kill-ring-clear-highlighed-entry))
       ;; Still on the previous overlay.
@@ -558,7 +559,7 @@ case retun nil."
       ;; Otherwise, we've changed overlay.  Clear current
       ;; highlighting, and highlight the new overlay.
       (t
-       (assert (overlay-get current-overlay
+       (cl-assert (overlay-get current-overlay
                             'browse-kill-ring-target) t)
        (browse-kill-ring-clear-highlighed-entry)
        (setq browse-kill-ring-previous-overlay current-overlay)
@@ -573,7 +574,7 @@ case retun nil."
     (let ((o (browse-kill-ring-target-overlay-at (point) t)))
       (if (< arg 0)
           (progn
-            (incf arg)
+            (cl-incf arg)
             (when o
               (goto-char (overlay-start o))
               (setq o nil))
@@ -581,7 +582,7 @@ case retun nil."
               (goto-char (previous-overlay-change (point)))
               (setq o (browse-kill-ring-target-overlay-at (point) t))))
         (progn
-          (decf arg)
+          (cl-decf arg)
           ;; We're on a browse-kill-ring overlay, skip to the end of it.
           (when o
             (goto-char (overlay-end o))
@@ -650,7 +651,7 @@ entry."
   "Take the action specified by `browse-kill-ring-quit-action'."
   (interactive)
   (browse-kill-ring-cleanup-on-exit)
-  (case browse-kill-ring-quit-action
+  (cl-case browse-kill-ring-quit-action
     (save-and-restore
       (if (< emacs-major-version 24)
         (let (buf (current-buffer))
@@ -892,7 +893,7 @@ reselects ENTRY in the `*Kill Ring*' buffer."
   (interactive
    (list (browse-kill-ring-read-regexp
           "Display kill ring entries matching" t)))
-  (assert (eq major-mode 'browse-kill-ring-mode))
+  (cl-assert (eq major-mode 'browse-kill-ring-mode))
   (browse-kill-ring-setup (current-buffer)
                           browse-kill-ring-original-buffer
                           browse-kill-ring-original-window
@@ -926,7 +927,7 @@ reselects ENTRY in the `*Kill Ring*' buffer."
 (defun browse-kill-ring-update ()
   "Update the buffer to reflect outside changes to `kill-ring'."
   (interactive)
-  (assert (eq major-mode 'browse-kill-ring-mode))
+  (cl-assert (eq major-mode 'browse-kill-ring-mode))
   (browse-kill-ring-setup (current-buffer)
                           browse-kill-ring-original-buffer
                           browse-kill-ring-original-window)
@@ -935,7 +936,7 @@ reselects ENTRY in the `*Kill Ring*' buffer."
 (defun browse-kill-ring-preview-update-text (preview-text)
   "Update `browse-kill-ring-preview-overlay' to show `PREVIEW-TEXT`."
   ;; If preview-text is nil, replacement should be nil too.
-  (assert (overlayp browse-kill-ring-preview-overlay))
+  (cl-assert (overlayp browse-kill-ring-preview-overlay))
   (let ((replacement (when preview-text
                        (propertize preview-text 'face 'highlight))))
     (overlay-put browse-kill-ring-preview-overlay
