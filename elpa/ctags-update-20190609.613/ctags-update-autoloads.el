@@ -21,12 +21,17 @@ ctags-update in parent directory using `exuberant-ctags'.
 (autoload 'ctags-auto-update-mode "ctags-update" "\
 auto update TAGS using `exuberant-ctags' in parent directory.
 
+If called interactively, enable Ctags-Auto-Update mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (autoload 'turn-on-ctags-auto-update-mode "ctags-update" "\
-turn on `ctags-auto-update-mode'.
+turn on `ctags-auto-update-mode'." t nil)
 
-\(fn)" t nil)
+(put 'ctags-global-auto-update-mode 'globalized-minor-mode t)
 
 (defvar ctags-global-auto-update-mode nil "\
 Non-nil if Ctags-Global-Auto-Update mode is enabled.

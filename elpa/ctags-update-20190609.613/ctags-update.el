@@ -1,8 +1,9 @@
 ;;; ctags-update.el --- (auto) update TAGS in parent directory using exuberant-ctags
 
 ;; Created: 2011-10-16 13:17
-;; Version: 1.0
-;; Package-Version: 20170728.58
+;; Version: 1.1
+;; Package-Version: 20190609.613
+;; Package-Commit: 67faf248b92388442958a069263c62a345425a1b
 ;; Author: Joseph(纪秀峰)  jixiuf@gmail.com
 ;; Keywords: exuberant-ctags etags
 ;; URL: https://github.com/jixiuf/ctags-update
@@ -229,32 +230,30 @@ this return t if current buffer file name is TAGS."
   (let (tags proc)
     (setq tags (ctags-update-how-to-update (called-interactively-p 'interactive)))
     (when tags
-      (when (get-process tags)          ;process name == tags
-        (user-error "Another ctags-update process is already running"))
-
-      (when (or (called-interactively-p 'interactive)
-                (and (ctags-update-check-interval) ;updating interval reach
-                     (not (ctags-update-triggered-by-tags tags))))
-        (setq ctags-update-last-update-time (float-time (current-time)));;update time
-        (let ((orig-default-directory default-directory)
-              (default-directory (file-name-directory tags)))
-          (when (ctags-update-native-w32-p)
-            (setq default-directory orig-default-directory))
-          (cond
-           ;;with prefix `C-uC-u' save the command to kill-ring
-           ;; sometime the directory you select need root privilege
-           ;; so save the command to kill-ring,
-           ((= (prefix-numeric-value current-prefix-arg) 16)
-            (kill-new (format "cd %s && %s" (ctags-update-get-system-path default-directory)
-                              (ctags-update-get-command
-                               ctags-update-command (ctags-update-command-args tags))))
-            (message "save ctags-upate command to king-ring. (C-y) yank it back."))
-           (t (setq proc (apply 'start-process ;;
-                                tags " *ctags-update*"
-                                ctags-update-command
-                                (ctags-update-command-args tags (concat tags ".tmp"))))
-              (set-process-query-on-exit-flag proc nil)
-              (set-process-sentinel proc 'ctags-update-process-sentinel))))))))
+      (unless (get-process tags)          ;process name == tags
+        (when (or (called-interactively-p 'interactive)
+                  (and (ctags-update-check-interval) ;updating interval reach
+                       (not (ctags-update-triggered-by-tags tags))))
+          (setq ctags-update-last-update-time (float-time (current-time)));;update time
+          (let ((orig-default-directory default-directory)
+                (default-directory (file-name-directory tags)))
+            (when (ctags-update-native-w32-p)
+              (setq default-directory orig-default-directory))
+            (cond
+             ;;with prefix `C-uC-u' save the command to kill-ring
+             ;; sometime the directory you select need root privilege
+             ;; so save the command to kill-ring,
+             ((= (prefix-numeric-value current-prefix-arg) 16)
+              (kill-new (format "cd %s && %s" (ctags-update-get-system-path default-directory)
+                                (ctags-update-get-command
+                                 ctags-update-command (ctags-update-command-args tags))))
+              (message "save ctags-upate command to king-ring. (C-y) yank it back."))
+             (t (setq proc (apply 'start-process ;;
+                                  tags " *ctags-update*"
+                                  ctags-update-command
+                                  (ctags-update-command-args tags (concat tags ".tmp"))))
+                (set-process-query-on-exit-flag proc nil)
+                (set-process-sentinel proc 'ctags-update-process-sentinel)))))))))
 
 ;;;###autoload
 (define-minor-mode ctags-auto-update-mode
