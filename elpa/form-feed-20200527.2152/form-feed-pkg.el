@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/form-feed-20200527.2152/form-feed.el  -*- no-byte-compile: t -*-
+(define-package "form-feed" "20200527.2152" "Display ^L glyphs as horizontal lines" 'nil :commit "fc06255e185d32b1616bd86b69b55c1daabbe378" :keywords '("faces") :authors '(("Vasilij Schneidermann" . "mail@vasilij.de")) :maintainer '("Vasilij Schneidermann" . "mail@vasilij.de") :url "https://depp.brause.cc/form-feed")

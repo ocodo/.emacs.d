@@ -1,10 +1,11 @@
 ;;; form-feed.el --- Display ^L glyphs as horizontal lines
 
-;; Copyright (C) 2014-2016 Vasilij Schneidermann <v.schneidermann@gmail.com>
+;; Copyright (C) 2014 Vasilij Schneidermann <mail@vasilij.de>
 
-;; Author: Vasilij Schneidermann <v.schneidermann@gmail.com>
-;; URL: https://github.com/wasamasa/form-feed
-;; Package-Version: 20160102.1453
+;; Author: Vasilij Schneidermann <mail@vasilij.de>
+;; URL: https://depp.brause.cc/form-feed
+;; Package-Version: 20200527.2152
+;; Package-Commit: fc06255e185d32b1616bd86b69b55c1daabbe378
 ;; Keywords: faces
 ;; Version: 0.2.2
 
@@ -35,8 +36,7 @@
 ;;
 ;;     (add-hook 'emacs-lisp-mode-hook 'form-feed-mode)
 
-;; See the README for more info:
-;; https://github.com/wasamasa/form-feed
+;; See the README for more info: https://depp.brause.cc/form-feed
 
 ;;; Code:
 
@@ -117,16 +117,14 @@ Make sure the special properties involved get cleaned up on
 removal of the keywords via
 `form-feed-remove-font-lock-keywords'."
   (font-lock-add-keywords nil form-feed--font-lock-keywords)
-  (set (make-local-variable 'font-lock-extra-managed-props)
-       (append `(display ,@form-feed-extra-properties)
-               font-lock-extra-managed-props)))
+  (make-local-variable 'font-lock-extra-managed-props)
+  (dolist (prop `(display ,@form-feed-extra-properties))
+    (unless (memq prop font-lock-extra-managed-props)
+      (push prop font-lock-extra-managed-props))))
 
 (defun form-feed--remove-font-lock-keywords ()
   "Remove buffer-local keywords displaying page delimiter lines."
-  (font-lock-remove-keywords nil form-feed--font-lock-keywords)
-  (dolist (property (append '(display) form-feed-extra-properties))
-    (setq font-lock-extra-managed-props
-          (delq property font-lock-extra-managed-props))))
+  (font-lock-remove-keywords nil form-feed--font-lock-keywords))
 
 ;;;###autoload
 (define-minor-mode form-feed-mode

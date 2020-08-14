@@ -12,6 +12,11 @@
 (autoload 'form-feed-mode "form-feed" "\
 Toggle form-feed-mode.
 
+If called interactively, enable Form-Feed mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 This minor mode displays page delimiters which usually appear as ^L
 glyphs on a single line as horizontal lines spanning the entire
 window.
