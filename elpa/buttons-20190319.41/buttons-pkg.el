@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/buttons-20190319.41/buttons.el  -*- no-byte-compile: t -*-
+(define-package "buttons" "20190319.41" "Define and visualize hierarchies of keymaps" '((cl-lib "0.3")) :commit "a14d0c21cc30d33b57481f535f2a838d65b2032f" :keywords '("keymap" "template" "snippet") :authors '(("Ernesto Alfonso")) :maintainer '(nil . "(concat \"erjoalgo\" \"@\" \"gmail\" \".com\")") :url "http://github.com/erjoalgo/emacs-buttons")

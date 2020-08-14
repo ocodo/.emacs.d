@@ -5,7 +5,8 @@
 ;; Author: Ernesto Alfonso
 ;; Maintainer: (concat "erjoalgo" "@" "gmail" ".com")
 ;; Keywords: keymap, template, snippet
-;; Package-Version: 20181130.906
+;; Package-Version: 20190319.41
+;; Package-Commit: a14d0c21cc30d33b57481f535f2a838d65b2032f
 ;; Created: 16 Sep 2018
 ;; Package-Requires: ((cl-lib "0.3"))
 ;; URL: http://github.com/erjoalgo/emacs-buttons
@@ -26,7 +27,7 @@
 
 ;;; Commentary:
 
-;; A library and template language to define and visualize hierarchies keymaps.
+;; A library and template language to define and visualize hierarchies of keymaps.
 
 ;;; Code:
 
@@ -88,27 +89,28 @@ It should be bound at compile-time via ‘let-when'")
                   key-spec)))
     (t key-spec)))
 
-(defmacro defbuttons (kmap-sym ancestor-kmap load-after-keymap-syms keymap)
+(defmacro defbuttons (kmap-sym ancestor-kmap target-keymap-syms keymap)
   "Define a keymap KMAP-SYM.
 
    ANCESTOR-KMAP, if non-nil,is merged recursively onto
    KMAP-SYM via BUTTONS-DEFINE-KEYMAP-ONTO-KEYMAP.
 
-   LOAD-AFTER-KEYMAP-SYMS is a list of keymap symbols, bound or unbound,
+   TARGET-KEYMAP-SYMS is a list of keymap symbols, bound or unbound,
    onto which to define KMAP-SYM via BUTTONS-AFTER-SYMBOL-LOADED-FUNCTION-ALIST.
 
    KEYMAP is the keymap, for example, one defined via BUTTONS-MAKE."
+  (declare (indent 3))
   (let* ((sym-name (symbol-name kmap-sym)))
     `(progn
        (defvar ,kmap-sym nil ,(format "%s buttons map" sym-name))
        (setf ,kmap-sym ,keymap)
        ,@(when ancestor-kmap
            `((buttons-define-keymap-onto-keymap ,ancestor-kmap ,kmap-sym ',kmap-sym t)))
-       ,@(cl-loop for orig in (if (and load-after-keymap-syms
-                                       (atom load-after-keymap-syms))
-                                  (list load-after-keymap-syms)
-                                load-after-keymap-syms)
-                  as form = `(buttons-define-keymap-onto-keymap ,kmap-sym ,orig)
+       ,@(cl-loop for orig in (if (and target-keymap-syms
+                                       (atom target-keymap-syms))
+                                  (list target-keymap-syms)
+                                target-keymap-syms)
+                  as form = `(buttons-define-keymap-onto-keymap ,kmap-sym ,orig ',orig)
                   append
                   (if (boundp orig)
                       `(,form)
@@ -134,12 +136,15 @@ It should be bound at compile-time via ‘let-when'")
                             (merge cmd existing (cons (key-description keyvec) path)))
                            ((or (not no-overwrite-p) (not existing))
                             (when (and existing (keymapp existing))
-                              (warn "%s overwrites nested keymap with plain command on %s %s"
-                                    (or (symbol-name from-sym) "child")
-                                    (key-description keyvec)
-                                    (or (reverse path) "")))
+                              (warn
+                               "non-keymap `%s' overwrites keymap in `%s' on %s %s "
+                               cmd
+                               (if from-sym (symbol-name from-sym) "child")
+                               (key-description keyvec)
+                               (or (reverse path) "")))
                             (define-key to-map keyvec cmd)))))
-                      from-map)))
+                      from-map)
+                     to-map))
     (merge from-map to-map)))
 
 (defvar buttons-after-symbol-loaded-function-alist nil
@@ -176,16 +181,16 @@ It should be bound at compile-time via ‘let-when'")
                       (symbol-name (symbol-at-point)))
                     'variable-name-history)))
 
-(defun buttons-display (&optional keymap hide-command-names-p hide-command-use-count-p)
+(defun buttons-display (&optional keymap hide-command-names hide-command-use-count)
   "Visualize a keymap KEYMAP in a help buffer.
 
    Unlike the standard keymap bindings help, nested keymaps
    are visualized recursively.  This is suitable for visualizing
    BUTTONS-MAKE-defined nested keymaps.
 
-   If HIDE-COMMAND-NAMES-P is non-nil, command names are not displayed.
+   If HIDE-COMMAND-NAMES is non-nil, command names are not displayed.
 
-   If HIDE-COMMAND-USE-COUNT-P is non-nil, no attempt is made to display
+   If HIDE-COMMAND-USE-COUNT is non-nil, no attempt is made to display
    recorded command use-counts.
 
    When called with a nil keymap, or interactively with a prefix argument,
@@ -206,7 +211,7 @@ It should be bound at compile-time via ‘let-when'")
                 (remove-newlines (string)
                                  (replace-regexp-in-string "\n" "\\\\n" string))
                 (print-command (binding)
-                               (unless hide-command-names-p
+                               (unless hide-command-names
                                  (if (and (commandp binding);;not a keymap
                                           (symbolp binding);;not an anonymous lambda
                                           binding)
@@ -217,7 +222,7 @@ It should be bound at compile-time via ‘let-when'")
                                       'help-args (list binding)
                                       'button '(t))
                                    (princ (remove-newlines (prin1-to-string binding)))))
-                               (unless hide-command-use-count-p
+                               (unless hide-command-use-count
                                  (let ((use-count-width
                                         (and (symbolp binding)
                                              (< 0 (or (get binding 'use-count) 0))
@@ -241,14 +246,21 @@ It should be bound at compile-time via ‘let-when'")
                                               (print-command binding)
                                               (princ "\n")))
                                           keymap))
-                (find-keymap-symbol (keymap)
-                                    (cl-block nil
-                                      (mapatoms (lambda (sym)
-                                                  (when (and
-                                                         (not (eq sym 'keymap))
-                                                         (boundp sym)
-                                                         (eq (symbol-value sym) keymap))
-                                                    (cl-return sym))))))
+                (find-keymap-descriptor (keymap)
+                                        (or
+                                         (cl-block nil
+                                           (mapatoms (lambda (sym)
+                                                       (when (and
+                                                              (not (eq sym 'keymap))
+                                                              (boundp sym)
+                                                              (eq (symbol-value sym) keymap))
+                                                         (cl-return sym)))))
+                                         (cl-loop for (minor-mode-sym . kmap)
+                                                  in minor-mode-map-alist
+                                                  thereis
+                                                  (when (equal kmap keymap)
+                                                    (format "%s (minor-mode-map-alist)"
+                                                            minor-mode-sym)))))
                 (max-event-length (keymap)
                                   (let ((max 0))
                                     (map-keymap
@@ -263,7 +275,7 @@ It should be bound at compile-time via ‘let-when'")
           (cond
            ((null keymap) (list "(current-active-maps)" (current-active-maps)))
            ((symbolp keymap) (list (symbol-name keymap) (list (symbol-value keymap))))
-           (t (list (find-keymap-symbol keymap) (list keymap))))
+           (t (list (find-keymap-descriptor keymap) (list keymap))))
         (let ((max-event-length (cl-loop for kmap in kmaps
                                          maximize (max-event-length kmap)))
               (buffer-name (format "*%s help*" (or name "keymap")))
@@ -272,7 +284,7 @@ It should be bound at compile-time via ‘let-when'")
             (with-current-buffer
                 buffer-name
               (dolist (kmap kmaps)
-                (princ (or (find-keymap-symbol kmap) "(anonymous keymap)"))
+                (princ (or (find-keymap-descriptor kmap) "(anonymous keymap)"))
                 (add-text-properties (line-beginning-position)
                                      (line-end-position)
                                      '(face bold))
@@ -413,7 +425,7 @@ It should be bound at compile-time via ‘let-when'")
    as the USE-COUNT property of the function symbol.
    This may be useful for analysis and for making
    decisions about which bindings' key-sequence
-   lengths are worth shortening."
+   lengths are worth reducing."
   (cl-loop for form in body
            with forms = nil
            with doc = nil
