@@ -1,8 +1,10 @@
 ;;; eno.el --- Goto/copy/cut any word/symbol/line in view, similar to ace-jump/easymotion
 
 ;; Author: <e.enoson@gmail.com>
+;; License: MIT
 ;; URL: http://github.com/enoson/eno.el
-;; Package-Version: 20160110.1034
+;; Package-Version: 20191013.1239
+;; Package-Commit: c5c6193687c0bede1ddf507c430cf8b0a6d272d9
 ;; Version: 1.1
 ;; Package-requires: ((dash "2.12.1") (edit-at-point "1.0"))
 

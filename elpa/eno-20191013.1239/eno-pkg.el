@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/eno-20191013.1239/eno.el  -*- no-byte-compile: t -*-
+(define-package "eno" "20191013.1239" "Goto/copy/cut any word/symbol/line in view, similar to ace-jump/easymotion" '((dash "2.12.1") (edit-at-point "1.0")) :commit "c5c6193687c0bede1ddf507c430cf8b0a6d272d9" :authors '((nil . "<e.enoson@gmail.com>")) :maintainer '(nil . "<e.enoson@gmail.com>") :url "http://github.com/enoson/eno.el")
