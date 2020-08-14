@@ -3,7 +3,8 @@
 ;; Copyright (C) 2010 Chris Wanstrath
 
 ;; Version: 0.6.3
-;; Package-Version: 20170324.940
+;; Package-Version: 20200315.1133
+;; Package-Commit: 35a41c7d8233eac0b267d9593e67fb8b6235e134
 ;; Keywords: CoffeeScript major mode
 ;; Author: Chris Wanstrath <chris@ozmm.org>
 ;; URL: http://github.com/defunkt/coffee-mode
@@ -458,7 +459,7 @@ called `coffee-compiled-buffer-name'."
 (defvar coffee-js-reserved
   '("case" "default" "do" "function" "var" "void" "with"
     "const" "let" "debugger" "enum" "export" "import" "native"
-    "__extends" "__hasProp"))
+    "from" "as" "__extends" "__hasProp"))
 
 ;; CoffeeScript keywords.
 (defvar coffee-cs-keywords
@@ -1141,7 +1142,9 @@ comments such as the following:
            (ppss (prog2
                      (backward-char 3)
                      (syntax-ppss)
-                   (setq valid-comment-start (looking-back "^\\s-*" (line-beginning-position)))
+                   (setq valid-comment-start
+                         (and (looking-back "^\\s-*" (line-beginning-position))
+                              (looking-at-p "###[^#]")))
                    (forward-char 3)))
            (in-comment (nth 4 ppss))
            (in-string (nth 3 ppss)))
@@ -1250,6 +1253,18 @@ comments such as the following:
 
     ;; Treat slashes as paired delimiters; useful for finding regexps.
     (modify-syntax-entry ?/ "/" table)
+
+    ;; Following chars (=, +, -, ...) should be seemes as operators,
+    ;; instead of a part of a symbol
+    (modify-syntax-entry ?= "." table)
+    (modify-syntax-entry ?+ "." table)
+    (modify-syntax-entry ?- "." table)
+    (modify-syntax-entry ?* "." table)
+    (modify-syntax-entry ?& "." table)
+    (modify-syntax-entry ?% "." table)
+    (modify-syntax-entry ?| "." table)
+    (modify-syntax-entry ?> "." table)
+    (modify-syntax-entry ?< "." table)
 
     ;; single quote strings
     (modify-syntax-entry ?' "\"" table)
