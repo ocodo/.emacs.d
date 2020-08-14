@@ -1,1 +1,0 @@
-(define-package "verify-url" "20160426.528" "find out invalid urls in the buffer or region" '((cl-lib "0.5")) :url "https://github.com/lujun9972/verify-url" :keywords '("convenience" "usability" "url"))
