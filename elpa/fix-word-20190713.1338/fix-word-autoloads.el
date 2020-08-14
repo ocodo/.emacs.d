@@ -1,10 +1,12 @@
 ;;; fix-word-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "fix-word" "fix-word.el" (23138 48691 70336
-;;;;;;  149000))
+;;;### (autoloads nil "fix-word" "fix-word.el" (0 0 0 0))
 ;;; Generated autoloads from fix-word.el
 
 (autoload 'fix-word "fix-word" "\
@@ -63,11 +65,14 @@ FNC is the processing function and DOC is documentation string.
 
 (fix-word-define-command fix-word-capitalize #'capitalize "Capitalize word intelligently.")
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "fix-word" '("fix-word-")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; fix-word-autoloads.el ends here

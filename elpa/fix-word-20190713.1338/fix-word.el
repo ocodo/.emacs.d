@@ -1,11 +1,12 @@
 ;;; fix-word.el --- Convenient word transformation -*- lexical-binding: t; -*-
 ;;
-;; Copyright © 2015–2018 Mark Karpov <markkarpov92@gmail.com>
+;; Copyright © 2015–present Mark Karpov <markkarpov92@gmail.com>
 ;;
 ;; Author: Mark Karpov <markkarpov92@gmail.com>
 ;; URL: https://github.com/mrkkrp/fix-word
-;; Package-Version: 20180101.615
-;; Version: 0.1.2
+;; Package-Version: 20190713.1338
+;; Package-Commit: 46487e5279a3079730e2d7146ace7c8ad42371ac
+;; Version: 0.2.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: word, convenience
 ;;
@@ -33,6 +34,30 @@
 ;;; Code:
 
 (require 'cl-lib)
+
+(defgroup fix-word nil
+  "Convenient word transformation."
+  :group  'convenience
+  :tag    "Fix word"
+  :prefix "fix-word-"
+  :link   '(url-link :tag "GitHub" "https://github.com/mrkkrp/fix-word"))
+
+(defcustom fix-word-bounds-of-thing-function
+  #'bounds-of-thing-at-point
+  "Function to get the bounds of a thing at point.
+
+This variable lets you customize the way this package determines
+the bounds of a word."
+  :group 'fix-word
+  :type  'function)
+
+(defcustom fix-word-thing 'word
+  "The default transformation target of fix-word.
+
+This should be a symbol that can be passed as the argument to
+`bounds-of-thing-at-point' or its compatible function."
+  :group 'fix-word
+  :type 'symbol)
 
 ;;;###autoload
 (defun fix-word (fnc)
@@ -128,7 +153,9 @@ the operation that many times."
 
 (defun fix-word--transform-word (fnc)
   "Transform the word at the point with function FNC."
-  (let ((bounds (bounds-of-thing-at-point 'word)))
+  (let ((bounds (funcall (or fix-word-bounds-of-thing-function
+                             'bounds-of-thing-at-point)
+                         (or fix-word-thing 'word))))
     (when bounds
       (cl-destructuring-bind (from . to) bounds
         (let ((origin (point))
