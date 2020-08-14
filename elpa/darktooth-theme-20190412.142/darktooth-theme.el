@@ -4,7 +4,8 @@
 
 ;; Authors: Jason Milkins <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20181013.906
+;; Package-Version: 20190412.142
+;; Package-Commit: 5cc7fbfb08d2f1a33b85eac92b6450407b915119
 ;; Version: 0.3.10
 
 ;; Package-Requires: ((autothemer "0.2"))
@@ -155,9 +156,9 @@
   ;; compilation messages (also used by several other modes)
   (compilation-info                          (:foreground darktooth-neutral_green))
   (compilation-mode-line-fail                (:foreground darktooth-neutral_red))
-  (error                                     (:foreground darktooth-bright_orange :bold t))
+  (error                                     (:foreground darktooth-bright_red :bold t))
   (success                                   (:foreground darktooth-neutral_green :bold t))
-  (warning                                   (:foreground darktooth-bright_red :bold t))
+  (warning                                   (:foreground darktooth-bright_yellow :bold t))
 
   ;; Built-in syntax
   (font-lock-builtin-face                            (:foreground darktooth-bright_orange))
@@ -591,12 +592,13 @@
   (ivy-remote                                (:foreground darktooth-neutral_blue))
 
   ;; MODE SUPPORT: smerge
-  ;; TODO: smerge-base smerge-refined-changed
-  (smerge-mine                               (:background darktooth-mid_purple))
-  (smerge-other                              (:background darktooth-mid_blue))
+  (smerge-upper                              (:background darktooth-mid_purple))
+  (smerge-lower                              (:background darktooth-mid_blue))
+  (smerge-base                               (:background darktooth-dark_yellow))
   (smerge-markers                            (:background darktooth-dark0_soft))
   (smerge-refined-added                      (:background darktooth-dark_green))
   (smerge-refined-removed                    (:background darktooth-dark_red))
+  (smerge-refine-changed                     (:background nil :foreground nil))
 
   ;; MODE SUPPORT: git-gutter
   (git-gutter:added                         (:foreground darktooth-faded_green :background darktooth-muted_green ))
