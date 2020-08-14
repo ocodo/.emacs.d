@@ -1,1 +1,0 @@
-(define-package "command-log-mode" "20160412.2147" "log keyboard commands to buffer" 'nil :stars '(#("56" 0 2 (font-lock-face paradox-star-face))) :url "https://github.com/lewang/command-log-mode" :keywords '("help"))
