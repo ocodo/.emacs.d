@@ -1,10 +1,11 @@
-;;; ht.el --- The missing hash table library for Emacs
+;;; ht.el --- The missing hash table library for Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2013 Wilfred Hughes
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Version: 2.3
-;; Package-Version: 20180129.1434
+;; Package-Version: 20200217.2331
+;; Package-Commit: fff8c43f0e03d5b98deb9f988522b839ce2ca253
 ;; Keywords: hash table, hash map, hash
 ;; Package-Requires: ((dash "2.12.0"))
 
@@ -30,6 +31,7 @@
 ;;; Code:
 
 (require 'dash)
+(require 'gv)
 
 (defmacro ht (&rest pairs)
   "Create a hash table with the key-value pairs given.
@@ -95,13 +97,21 @@ user-supplied test created via `define-hash-table-test'."
 If KEY isn't present, return DEFAULT (nil if not specified)."
   (gethash key table default))
 
+;; Don't use `ht-set!' here, gv setter was assumed to return the value
+;; to be set.
+(gv-define-setter ht-get (value table key) `(puthash ,key ,value ,table))
+
 (defun ht-get* (table &rest keys)
   "Look up KEYS in nested hash tables, starting with TABLE.
 The lookup for each key should return another hash table, except
 for the final key, which may return any value."
-  (if (cdr keys)
-      (apply #'ht-get* (ht-get table (car keys)) (cdr keys))
-    (ht-get table (car keys))))
+  (while keys
+    (setf table (ht-get table (pop keys))))
+  table)
+
+(put 'ht-get* 'compiler-macro
+     (lambda (_ table &rest keys)
+       (--reduce-from `(ht-get ,acc ,it) table keys)))
 
 (defun ht-update! (table from-table)
   "Update TABLE according to every key-value pair in FROM-TABLE."
@@ -146,16 +156,17 @@ FUNCTION is called with two arguments, KEY and VALUE."
 (defmacro ht-amap (form table)
   "Anaphoric version of `ht-map'.
 For every key-value pair in TABLE, evaluate FORM with the
-variables KEY and VALUE bound."
+variables KEY and VALUE bound.  If you don't use both of
+these variables, then use `ht-map' to avoid warnings."
   `(ht-map (lambda (key value) ,form) ,table))
 
 (defun ht-keys (table)
   "Return a list of all the keys in TABLE."
-  (ht-amap key table))
+  (ht-map (lambda (key _value) key) table))
 
 (defun ht-values (table)
   "Return a list of all the values in TABLE."
-  (ht-amap value table))
+  (ht-map (lambda (_key value) value) table))
 
 (defun ht-items (table)
   "Return a list of two-element lists '(key value) from TABLE."
@@ -215,7 +226,8 @@ inverse of `ht<-alist'.  The following is not guaranteed:
 
 (defun ht-contains? (table key)
   "Return 't if TABLE contains KEY."
-  (not (eq (ht-get table key 'ht--not-found) 'ht--not-found)))
+  (let ((not-found-symbol (make-symbol "ht--not-found")))
+    (not (eq (ht-get table key not-found-symbol) not-found-symbol))))
 
 (defalias 'ht-contains-p 'ht-contains?)
 
@@ -226,6 +238,8 @@ inverse of `ht<-alist'.  The following is not guaranteed:
 (defsubst ht-empty? (table)
   "Return true if the actual number of entries in TABLE is zero."
   (zerop (ht-size table)))
+
+(defalias 'ht-empty-p 'ht-empty?)
 
 (defun ht-select (function table)
   "Return a hash table containing all entries in TABLE for which
