@@ -79,20 +79,14 @@ Insert a list of hexcolors of different brightness (val).
 \(fn HEX)" t nil)
 
 (autoload 'kurecolor-cssrgb-at-point-or-region-to-hex "kurecolor" "\
-CSS rgb color at point or region to hex rgb.
-
-\(fn)" t nil)
+CSS rgb color at point or region to hex rgb." t nil)
 
 (autoload 'kurecolor-hexcolor-at-point-or-region-to-css-rgb "kurecolor" "\
-Hex rgb color at point or region to css rgb color.
-
-\(fn)" t nil)
+Hex rgb color at point or region to css rgb color." t nil)
 
 (autoload 'kurecolor-hexcolor-at-point-or-region-to-css-rgba "kurecolor" "\
 Hex rgb color at point or region to css rgba.
-Opacity is always set to 1.0.
-
-\(fn)" t nil)
+Opacity is always set to 1.0." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "kurecolor" '("kurecolor-" "to-8bit")))
 
