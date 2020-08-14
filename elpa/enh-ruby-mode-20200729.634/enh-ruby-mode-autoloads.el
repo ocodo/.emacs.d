@@ -9,6 +9,11 @@
 ;;;### (autoloads nil "enh-ruby-mode" "enh-ruby-mode.el" (0 0 0 0))
 ;;; Generated autoloads from enh-ruby-mode.el
 
+(autoload 'enh/symbol-or-null-p "enh-ruby-mode" "\
+Return true if X is either a symbol or null. Used for defcustom safe check.
+
+\(fn X)" nil nil)
+
 (autoload 'enh-ruby-mode "enh-ruby-mode" "\
 Enhanced Major mode for editing Ruby code.
 
@@ -16,7 +21,7 @@ Enhanced Major mode for editing Ruby code.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "enh-ruby-mode" '("enh-ruby-" "erm-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "enh-ruby-mode" '("enh-ruby-" "erm-" "extra-col-%")))
 
 ;;;***
 
