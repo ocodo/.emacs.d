@@ -4,9 +4,10 @@
 
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; URL: https://github.com/Wilfred/deadgrep
-;; Package-Version: 20181021.1349
+;; Package-Version: 20200803.606
+;; Package-Commit: 9cd79e0d5dd6b77abca3e84e17d3e4e2e9aa5695
 ;; Keywords: tools
-;; Version: 0.7
+;; Version: 0.10
 ;; Package-Requires: ((emacs "25.1") (dash "2.12.0") (s "1.11.0") (spinner "1.7.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -28,7 +29,7 @@
 ;; Emacs.  This is a bespoke mode that does not rely on
 ;; compilation-mode, but tries to be a perfect fit for ripgrep.
 
-;; Install from MELPA, then `M-x ripgrep' will do a search!
+;; Install from MELPA, then `M-x deadgrep' will do a search!
 
 ;;; Code:
 
@@ -42,8 +43,13 @@
   :group 'tools
   :group 'matching)
 
-(defvar deadgrep-executable
-  (executable-find "rg"))
+(defcustom deadgrep-executable
+  "rg"
+  "The rg executable used by deadgrep.
+This will be looked up on `exec-path' if it isn't an absolute
+path to the binary."
+  :type 'string
+  :group 'deadgrep)
 
 (defvar deadgrep-max-buffers
   4
@@ -55,7 +61,21 @@ To disable cleanup entirely, set this variable to nil.")
 (defvar deadgrep-project-root-function
   #'deadgrep--project-root
   "Function called by `deadgrep' to work out the root directory
-to search from.")
+to search from.
+
+See also `deadgrep-project-root-overrides'.")
+
+(defvar deadgrep-project-root-overrides nil
+  "An alist associating project directories with the desired
+search directory.
+
+This is useful for large repos where you only want to search a
+subdirectory. It's also handy for nested repos where you want to
+search from the parent.
+
+This affects the behaviour of `deadgrep--project-root', so this
+variable has no effect if you change
+`deadgrep-project-root-function'.")
 
 (defvar deadgrep-history
   nil
@@ -101,15 +121,25 @@ overflow on our regexp matchers if we don't apply this.")
   :group 'deadgrep)
 
 (defvar-local deadgrep--search-term nil)
+;; Ensure this variable is ignored by `kill-all-local-variables' when
+;; switching between `deadgrep-mode' and `deadgrep-edit-mode'.
+(put 'deadgrep--search-term 'permanent-local t)
+
 (defvar-local deadgrep--search-type 'string)
+(put 'deadgrep--search-type 'permanent-local t)
 (defvar-local deadgrep--search-case 'smart)
+(put 'deadgrep--search-case 'permanent-local t)
 (defvar-local deadgrep--file-type 'all)
+(put 'deadgrep--file-type 'permanent-local t)
+
 (defvar-local deadgrep--context nil
   "When set, also show context of results.
 This is stored as a cons cell of integers (lines-before . lines-after).")
+(put 'deadgrep--context 'permanent-local t)
 (defvar-local deadgrep--initial-filename nil
-  "The filename of the buffer that deadgre was started from.
+  "The filename of the buffer that deadgrep was started from.
 Used to offer better default values for file options.")
+(put 'deadgrep--initial-filename 'permanent-local t)
 
 (defvar-local deadgrep--current-file nil
   "The file we're currently inserting results for.")
@@ -119,9 +149,17 @@ Used to offer better default values for file options.")
 We save the last line here, in case we need to append more text to it.")
 (defvar-local deadgrep--postpone-start nil
   "If non-nil, don't (re)start searches.")
+(defvar-local deadgrep--running nil
+  "If non-nil, a search is still running.")
 
 (defvar-local deadgrep--debug-command nil)
+(put 'deadgrep--debug-command 'permanent-local t)
 (defvar-local deadgrep--debug-first-output nil)
+(put 'deadgrep--debug-first-output 'permanent-local t)
+
+(defvar-local deadgrep--imenu-alist nil
+  "Alist that stores filename and position for each matched files.
+It is used to create `imenu' index.")
 
 (defconst deadgrep--position-column-width 5)
 
@@ -164,10 +202,12 @@ We save the last line here, in case we need to append more text to it.")
             (insert
              (propertize (concat separator "\n")
                          'face 'deadgrep-meta-face))))
-         ;; If we don't have a color code, ripgrep must be complaining
-         ;; about something (e.g. zero matches for a
-         ;; glob, or permission denied on some directories).
-         ((not (s-matches-p deadgrep--color-code line))
+         ;; If we have a warning or don't have a color code, ripgrep
+         ;; must be complaining about something (e.g. zero matches for
+         ;; a glob, or permission denied on some directories).
+         ((or
+           (s-starts-with-p "WARNING: " line)
+           (not (s-matches-p deadgrep--color-code line)))
           (when deadgrep--current-file
             (setq deadgrep--current-file nil)
             (insert "\n"))
@@ -186,17 +226,24 @@ We save the last line here, in case we need to append more text to it.")
                    (propertize formatted-line-num
                                'face 'deadgrep-meta-face
                                'deadgrep-filename filename
-                               'deadgrep-line-number line-num))
+                               'deadgrep-line-number line-num
+                               'read-only t
+                               'front-sticky t
+                               'rear-nonsticky t))
                   (pretty-filename
                    (propertize filename
                                'face 'deadgrep-filename-face
-                               'deadgrep-filename filename)))
+                               'deadgrep-filename filename
+                               'read-only t
+                               'front-sticky t)))
             (cond
              ;; This is the first file we've seen, print the heading.
              ((null deadgrep--current-file)
+              (push (cons filename (point)) deadgrep--imenu-alist)
               (insert pretty-filename "\n"))
              ;; This is a new file, print the heading with a spacer.
              ((not (equal deadgrep--current-file filename))
+              (push (cons filename (1+ (point))) deadgrep--imenu-alist)
               (insert "\n" pretty-filename "\n")))
             (setq deadgrep--current-file filename)
 
@@ -212,12 +259,16 @@ We save the last line here, in case we need to append more text to it.")
 
             (setq prev-line-num line-num))))))))
 
+(defvar deadgrep-finished-hook nil
+  "Hook run when `deadgrep' search is finished.")
+
 (defun deadgrep--process-sentinel (process output)
   "Update the deadgrep buffer associated with PROCESS as complete."
   (let ((buffer (process-buffer process))
         (finished-p (string= output "finished\n")))
     (when (buffer-live-p buffer)
       (with-current-buffer buffer
+        (setq deadgrep--running nil)
         ;; rg has terminated, so stop the spinner.
         (spinner-stop deadgrep--spinner)
 
@@ -234,6 +285,7 @@ We save the last line here, in case we need to append more text to it.")
               (goto-char (point-max))
               (insert output))))
 
+        (run-hooks 'deadgrep-finished-hook)
         (message "Deadgrep finished")))))
 
 (defun deadgrep--process-filter (process output)
@@ -306,14 +358,22 @@ color codes replaced with string properties."
    (deadgrep--propertize-hits
     (deadgrep--extract-regexp deadgrep--line-contents-regexp line))))
 
+(defun deadgrep--escape-backslash (s)
+  "Escape occurrences of backslashes in S.
+
+This differs from `regexp-quote', which outputs a regexp pattern.
+Instead, we provide a string suitable for REP in
+`replace-regexp-in-string'."
+  (s-replace "\\" "\\\\" s))
+
 (defun deadgrep--propertize-hits (line-contents)
   "Given LINE-CONTENTS from ripgrep, replace ANSI color codes
-with Emacs text properties."
+with a text face property `deadgrep-match-face'."
   (replace-regexp-in-string
    deadgrep--hit-regexp
    (lambda (s)
      (propertize
-      (match-string 1 s)
+      (deadgrep--escape-backslash (match-string 1 s))
       'face 'deadgrep-match-face))
    line-contents))
 
@@ -413,6 +473,10 @@ with Emacs text properties."
     (while (< i (length glob))
       (let* ((char (elt glob i)))
         (cond
+         ;; . matches a literal . in globs.
+         ((eq char ?.)
+          (setq result (concat result "\\."))
+          (cl-incf i))
          ;; ? matches a single char in globs.
          ((eq char ??)
           (setq result (concat result "."))
@@ -458,9 +522,15 @@ with Emacs text properties."
          (-sort (-lambda ((type1 _) (type2 _))
                   (< (length type1) (length type2))))
          ;; Prefer types with more extensions, as they tend to be more
-         ;; common languages.
+         ;; common languages (e.g. 'ocaml' over 'ml').
          (-sort (-lambda ((_ globs1) (_ globs2))
                   (< (length globs1) (length globs2))))
+         ;; But prefer elisp over lisp for .el files.
+         (-sort (-lambda ((type1 _) (type2 _))
+                  ;; Return t if we're comparing elisp with lisp, nil
+                  ;; otherwise.
+                  (and (equal type1 "lisp")
+                       (equal type2 "elisp"))))
          ;; Take the highest scoring matching.
          (-last-item))))
 
@@ -523,6 +593,7 @@ with Emacs text properties."
   'help-echo "Change base directory")
 
 (defun deadgrep--directory (_button)
+  "Prompt the user for a new search directory, then restart the search."
   (setq default-directory
         (expand-file-name
          (read-directory-name "Search files in: ")))
@@ -536,51 +607,60 @@ with Emacs text properties."
   (setq text (substring-no-properties text))
   (apply #'make-text-button text nil :type type properties))
 
-(defun deadgrep--format-command (search-term search-type case context)
-  "Return a command string that we can execute in a shell
+(defun deadgrep--arguments (search-term search-type case context)
+  "Return a list of command line arguments that we can execute in a shell
 to obtain ripgrep results."
-  (format
-   "%s --color=ansi --line-number --no-heading --with-filename %s %s %s %s -- %s ."
-   deadgrep-executable
-   (cond
-    ((eq search-type 'string)
-     "--fixed-strings")
-    ((eq search-type 'words)
-     "--fixed-strings --word-regexp")
-    ((eq search-type 'regexp)
-     "")
-    (t
-     (error "Unknown search type: %s" search-type)))
-   (cond
-    ((eq case 'smart)
-     "--smart-case")
-    ((eq case 'sensitive)
-     "--case-sensitive")
-    ((eq case 'ignore)
-     "--ignore-case")
-    (t
-     (error "Unknown case: %s" case)))
-   ;; TODO: pass this as an argument.
-   (cond
-    ((eq deadgrep--file-type 'all)
-     "")
-    ((eq (car-safe deadgrep--file-type) 'type)
-     (format "--type %s" (cdr deadgrep--file-type)))
-    ((eq (car-safe deadgrep--file-type) 'glob)
-     (format "--type-add 'custom:%s' --type custom"
-             (cdr deadgrep--file-type)))
-    (t
-     (error "Unknown file-type: %S" deadgrep--file-type)))
-   (if context
-       (format "--before-context %s --after-context %s"
-               (car context) (cdr context))
-     "")
-   (shell-quote-argument search-term)))
+  (let (args)
+    (push "--color=ansi" args)
+    (push "--line-number" args)
+    (push "--no-heading" args)
+    (push "--with-filename" args)
+
+    (cond
+     ((eq search-type 'string)
+      (push "--fixed-strings" args))
+     ((eq search-type 'words)
+      (push "--fixed-strings" args)
+      (push "--word-regexp" args))
+     ((eq search-type 'regexp))
+     (t
+      (error "Unknown search type: %s" search-type)))
+
+    (cond
+     ((eq case 'smart)
+      (push "--smart-case" args))
+     ((eq case 'sensitive)
+      (push "--case-sensitive" args))
+     ((eq case 'ignore)
+      (push "--ignore-case" args))
+     (t
+      (error "Unknown case: %s" case)))
+
+    (cond
+     ((eq deadgrep--file-type 'all))
+     ((eq (car-safe deadgrep--file-type) 'type)
+      (push (format "--type=%s" (cdr deadgrep--file-type)) args))
+     ((eq (car-safe deadgrep--file-type) 'glob)
+      (push (format "--type-add=custom:%s" (cdr deadgrep--file-type)) args)
+      (push "--type=custom" args))
+     (t
+      (error "Unknown file-type: %S" deadgrep--file-type)))
+
+    (when context
+      (push (format "--before-context=%s" (car context)) args)
+      (push (format "--after-context=%s" (cdr context)) args))
+
+    (push "--" args)
+    (push search-term args)
+    (push "." args)
+
+    (nreverse args)))
 
 (defun deadgrep--write-heading ()
   "Write the deadgrep heading with buttons reflecting the current
 search settings."
-  (let ((inhibit-read-only t))
+  (let ((start-pos (point))
+        (inhibit-read-only t))
     (insert (propertize "Search term: "
                         'face 'deadgrep-meta-face)
             (if (eq deadgrep--search-type 'regexp)
@@ -651,6 +731,9 @@ search settings."
             (deadgrep--button
              (abbreviate-file-name default-directory)
              'deadgrep-directory)
+            (if (get-text-property 0 'deadgrep-overridden default-directory)
+                (propertize " (from override)" 'face 'deadgrep-meta-face)
+              "")
             "\n"
             (propertize "Files: "
                         'face 'deadgrep-meta-face)
@@ -670,7 +753,13 @@ search settings."
             (if (eq (car-safe deadgrep--file-type) 'glob)
                 (format ":%s" (cdr deadgrep--file-type))
               "")
-            "\n\n")))
+            "\n\n")
+    (put-text-property
+     start-pos (point)
+     'read-only t)
+    (put-text-property
+     start-pos (point)
+     'front-sticky t)))
 
 ;; TODO: could we do this in the minibuffer too?
 (defun deadgrep--propertize-regexp (regexp)
@@ -732,8 +821,9 @@ Returns a copy of REGEXP with properties set."
   regexp)
 
 (defun deadgrep--buffer-name (search-term directory)
+  ;; TODO: Handle buffers already existing with this name.
   (format "*deadgrep %s %s*"
-          search-term
+          (s-truncate 30 search-term)
           (abbreviate-file-name directory)))
 
 (defun deadgrep--buffers ()
@@ -749,17 +839,22 @@ Returns a list ordered by the most recently accessed."
   "Create and initialise a search results buffer."
   (let* ((buf-name (deadgrep--buffer-name search-term directory))
          (buf (get-buffer buf-name)))
-    (unless buf
-      ;; If we need to create the buffer, ensure we don't exceed
+    (if buf
+        ;; There was already a buffer with this name. Reset its search
+        ;; state.
+        (with-current-buffer buf
+          (deadgrep--stop-and-reset))
+      ;; We need to create the buffer, ensure we don't exceed
       ;; `deadgrep-max-buffers' by killing the least recently used.
-      (when (numberp deadgrep-max-buffers)
-        (let* ((excess-buffers (-drop (1- deadgrep-max-buffers)
-                                      (deadgrep--buffers))))
-          ;; Kill buffers so we have one buffer less than the maximum
-          ;; before we create a new one.
-          (-each excess-buffers #'kill-buffer)))
+      (progn
+        (when (numberp deadgrep-max-buffers)
+          (let* ((excess-buffers (-drop (1- deadgrep-max-buffers)
+                                        (deadgrep--buffers))))
+            ;; Kill buffers so we have one buffer less than the maximum
+            ;; before we create a new one.
+            (-each excess-buffers #'kill-buffer)))
 
-      (setq buf (get-buffer-create buf-name)))
+        (setq buf (get-buffer-create buf-name))))
 
     (with-current-buffer buf
       (setq default-directory directory)
@@ -792,12 +887,105 @@ Returns a list ordered by the most recently accessed."
 
     (define-key map (kbd "n") #'deadgrep-forward)
     (define-key map (kbd "p") #'deadgrep-backward)
+    (define-key map (kbd "N") #'deadgrep-forward-match)
+    (define-key map (kbd "P") #'deadgrep-backward-match)
+    (define-key map (kbd "M-n") #'deadgrep-forward-filename)
+    (define-key map (kbd "M-p") #'deadgrep-backward-filename)
 
     map)
   "Keymap for `deadgrep-mode'.")
 
+(defvar deadgrep-edit-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET") #'deadgrep-visit-result)
+    map)
+  "Keymap for `deadgrep-edit-mode'.")
+
 (define-derived-mode deadgrep-mode special-mode
-  '("Deadgrep" (:eval (spinner-print deadgrep--spinner))))
+  '("Deadgrep" (:eval (spinner-print deadgrep--spinner)))
+  "Major mode for deadgrep results buffers."
+  (remove-hook 'after-change-functions #'deadgrep--propagate-change t))
+
+(defun deadgrep--find-file (path)
+  "Open PATH in a buffer, and return a cons cell
+\(BUF . OPENED). OPENED is nil if there was aleady a buffer for
+this path."
+  (save-match-data
+    (let* ((initial-buffers (buffer-list))
+           (opened nil)
+           ;; Skip running find-file-hook since it may prompt the user.
+           (find-file-hook nil)
+           ;; If we end up opening a buffer, don't bother with file
+           ;; variables. It prompts the user, and we discard the buffer
+           ;; afterwards anyway.
+           (enable-local-variables nil)
+           ;; Bind `auto-mode-alist' to nil, so we open the buffer in
+           ;; `fundamental-mode' if it isn't already open.
+           (auto-mode-alist nil)
+           ;; Use `find-file-noselect' so we still decode bytes from the
+           ;; underlying file.
+           (buf (save-match-data (find-file-noselect path))))
+      (unless (-contains-p initial-buffers buf)
+        (setq opened t))
+      (cons buf opened))))
+
+(defun deadgrep--propagate-change (beg end length)
+  "Repeat the last modification to the results buffer in the
+underlying file."
+  ;; We should never be called outside an edit buffer, but be
+  ;; defensive. Buggy functions in change hooks are painful.
+  (when (eq major-mode 'deadgrep-edit-mode)
+    (save-mark-and-excursion
+      (goto-char beg)
+      (-let* ((column (+ (deadgrep--current-column) length))
+              (filename (deadgrep--filename))
+              (line-number (deadgrep--line-number))
+              ((buf . opened) (deadgrep--find-file filename))
+              (inserted (buffer-substring beg end)))
+        (with-current-buffer buf
+          (save-mark-and-excursion
+            (save-restriction
+              (widen)
+              (goto-char
+               (deadgrep--buffer-position line-number column))
+              (delete-char (- length))
+              (insert inserted)))
+          ;; If we weren't visiting this file before, just save it and
+          ;; close it.
+          (when opened
+            (basic-save-buffer)
+            (kill-buffer buf)))))))
+
+(defvar deadgrep-edit-mode-hook nil)
+
+(defun deadgrep-edit-mode ()
+  "Major mode for editing the results files directly from a
+deadgrep results buffer.
+
+\\{deadgrep-edit-mode-map}"
+  (interactive)
+  (unless (eq major-mode 'deadgrep-mode)
+    (user-error "deadgrep-edit-mode only works in deadgrep result buffers"))
+  (when deadgrep--running
+    (user-error "Can't edit a results buffer until the search is finished"))
+  ;; We deliberately don't use `define-derived-mode' here because we
+  ;; want to check the previous value of `major-mode'. Initialise the
+  ;; major mode manually.
+  (delay-mode-hooks
+    (kill-all-local-variables)
+    (setq major-mode 'deadgrep-edit-mode)
+    (setq mode-name
+          '(:propertize "Deadgrep:Edit" face mode-line-emphasis))
+    (use-local-map deadgrep-edit-mode-map)
+    ;; Done major mode manual initialise (copied from `define-derived-mode').
+
+    ;; Allow editing, and propagate changes.
+    (setq buffer-read-only nil)
+    (add-hook 'after-change-functions #'deadgrep--propagate-change nil t)
+
+    (message "Now editing, use `M-x deadgrep-mode' when finished"))
+
+  (run-mode-hooks 'deadgrep-edit-mode-hook))
 
 (defun deadgrep--current-column ()
   "Get the current column position in char terms.
@@ -863,12 +1051,33 @@ buffer."
 
     (nreverse positions)))
 
+(defun deadgrep--buffer-position (line-number column-offset)
+  "Return the position equivalent to LINE-NUMBER at COLUMN-OFFSET
+in the current buffer."
+  (save-excursion
+    (save-restriction
+      (widen)
+      (goto-char (point-min))
+      (forward-line (1- line-number))
+      (forward-char column-offset)
+
+      (point))))
+
+(defun deadgrep--filename (&optional pos)
+  "Get the filename of the result at point POS.
+If POS is nil, use the beginning position of the current line."
+  (get-text-property (or pos (line-beginning-position)) 'deadgrep-filename))
+
+(defun deadgrep--line-number ()
+  "Get the filename of the result at point."
+  (get-text-property (line-beginning-position) 'deadgrep-line-number))
+
 (defun deadgrep--visit-result (open-fn)
   "Goto the search result at point."
   (interactive)
   (let* ((pos (line-beginning-position))
-         (file-name (get-text-property pos 'deadgrep-filename))
-         (line-number (get-text-property pos 'deadgrep-line-number))
+         (file-name (deadgrep--filename))
+         (line-number (deadgrep--line-number))
          (column-offset (when line-number (deadgrep--current-column)))
          (match-positions (when line-number (deadgrep--match-positions))))
     (when file-name
@@ -881,12 +1090,22 @@ buffer."
 
       (funcall open-fn file-name)
       (goto-char (point-min))
+
       (when line-number
-        (forward-line (1- line-number))
-        (forward-char column-offset)
-        (-each match-positions
-          (-lambda ((start end))
-            (deadgrep--flash-column-offsets start end)))))))
+        (-let [destination-pos (deadgrep--buffer-position
+                                line-number column-offset)]
+          ;; Put point on the position of the match, widening the
+          ;; buffer if necessary.
+          (when (or (< destination-pos (point-min))
+                    (> destination-pos (point-max)))
+            (widen))
+          (goto-char destination-pos)
+
+          ;; Temporarily highlight the parts of the line that matched
+          ;; the search term.
+          (-each match-positions
+            (-lambda ((start end))
+              (deadgrep--flash-column-offsets start end))))))))
 
 (defun deadgrep-visit-result-other-window ()
   "Goto the search result at point, opening in another window."
@@ -907,9 +1126,8 @@ Keys are interned filenames, so they compare with `eq'.")
 (defun deadgrep-toggle-file-results ()
   "Show/hide the results of the file at point."
   (interactive)
-  (let* ((pos (line-beginning-position))
-         (file-name (get-text-property pos 'deadgrep-filename))
-         (line-number (get-text-property pos 'deadgrep-line-number)))
+  (let* ((file-name (deadgrep--filename))
+         (line-number (deadgrep--line-number)))
     (when (and file-name (not line-number))
       ;; We're on a file heading.
       (if (alist-get (intern file-name) deadgrep--hidden-files)
@@ -917,8 +1135,7 @@ Keys are interned filenames, so they compare with `eq'.")
         (deadgrep--hide)))))
 
 (defun deadgrep--show ()
-  (-let* ((pos (line-beginning-position))
-          (file-name (get-text-property pos 'deadgrep-filename))
+  (-let* ((file-name (deadgrep--filename))
           ((start-pos end-pos) (alist-get (intern file-name) deadgrep--hidden-files)))
     (remove-overlays start-pos end-pos 'invisible t)
     (setf (alist-get (intern file-name) deadgrep--hidden-files)
@@ -927,8 +1144,7 @@ Keys are interned filenames, so they compare with `eq'.")
 (defun deadgrep--hide ()
   "Hide the file results immediately after point."
   (save-excursion
-    (let* ((pos (line-beginning-position))
-           (file-name (get-text-property pos 'deadgrep-filename))
+    (let* ((file-name (deadgrep--filename))
            (start-pos
             (progn
               (forward-line)
@@ -970,7 +1186,11 @@ Keys are interned filenames, so they compare with `eq'.")
 (defun deadgrep--item-p (pos)
   "Is there something at POS that we can interact with?"
   (or (button-at pos)
-      (get-text-property pos 'deadgrep-filename)))
+      (deadgrep--filename pos)))
+
+(defun deadgrep--filename-p (pos)
+  "Is there a filename at POS that we can interact with?"
+  (eq (get-text-property pos 'face) 'deadgrep-filename-face))
 
 (defun deadgrep--move (forward-p)
   "Move to the next item.
@@ -1007,47 +1227,96 @@ This will either be a button, a filename, or a search result."
 
 (defun deadgrep-forward ()
   "Move forward to the next item.
-This will either be a button, a filename, or a search result."
+This will either be a button, a filename, or a search result. See
+also `deadgrep-forward-match'."
   (interactive)
   (deadgrep--move t))
 
 (defun deadgrep-backward ()
   "Move backward to the previous item.
-This will either be a button, a filename, or a search result."
+This will either be a button, a filename, or a search result. See
+also `deadgrep-backward-match'."
   (interactive)
   (deadgrep--move nil))
+
+(defun deadgrep-forward-filename ()
+  "Move forward to the next filename."
+  (interactive)
+  (deadgrep--move-match t 'deadgrep-filename-face))
+
+(defun deadgrep-backward-filename ()
+  "Move backward to the previous filename."
+  (interactive)
+  (deadgrep--move-match nil 'deadgrep-filename-face))
+
+(defun deadgrep--move-match (forward-p face)
+  "Move point to the beginning of the next/previous match."
+  (interactive)
+  (let ((start-pos (point)))
+    ;; Move over the current match, if we were already on one.
+    (while (eq (get-text-property (point) 'face)
+               face)
+      (if forward-p (forward-char) (backward-char)))
+    (condition-case nil
+        (progn
+          ;; Move point to the next match, which may be on the same line.
+          (while (not (eq (get-text-property (point) 'face)
+                          face))
+            (if forward-p (forward-char) (backward-char)))
+          ;; Ensure point is at the beginning of the match.
+          (unless forward-p
+            (while (eq (get-text-property (point) 'face)
+                       face)
+              (backward-char))
+            (forward-char)))
+      ;; Don't move point beyond the last match. However, it's still
+      ;; useful to signal that we're at the end, so users can use this
+      ;; command with macros and terminate when it's done.
+      (beginning-of-buffer
+       (goto-char start-pos)
+       (signal 'beginning-of-buffer nil))
+      (end-of-buffer
+       (goto-char start-pos)
+       (signal 'end-of-buffer nil)))))
+
+(defun deadgrep-forward-match ()
+  "Move point forward to the beginning of next match.
+Note that a result line may contain more than one match, or zero
+matches (if the result line has been truncated)."
+  (interactive)
+  (deadgrep--move-match t 'deadgrep-match-face))
+
+(defun deadgrep-backward-match ()
+  "Move point backward to the beginning of previous match."
+  (interactive)
+  (deadgrep--move-match nil 'deadgrep-match-face))
 
 (defun deadgrep--start (search-term search-type case)
   "Start a ripgrep search."
   (setq deadgrep--spinner (spinner-create 'progress-bar t))
+  (setq deadgrep--running t)
   (spinner-start deadgrep--spinner)
-  (let* ((command (deadgrep--format-command
-                   search-term search-type case
-                   deadgrep--context))
+  (let* ((args (deadgrep--arguments
+                search-term search-type case
+                deadgrep--context))
+         (command (format "%s %s" deadgrep-executable (s-join " " args)))
          (process
-          (start-file-process-shell-command
-           (format "rg %s" search-term)
-           (current-buffer)
-           command)))
+          (apply #'start-file-process
+                 (format "rg %s" search-term)
+                 (current-buffer)
+                 deadgrep-executable
+                 args)))
     (setq deadgrep--debug-command command)
     (set-process-filter process #'deadgrep--process-filter)
     (set-process-sentinel process #'deadgrep--process-sentinel)))
 
-(defun deadgrep-restart ()
-  "Re-run ripgrep with the current search settings."
-  (interactive)
-  ;; If we haven't started yet, start the search if we've been called
-  ;; by the user.
-  (when (and deadgrep--postpone-start
-             (called-interactively-p 'interactive))
-    (setq deadgrep--postpone-start nil))
-
+(defun deadgrep--stop-and-reset ()
+  "Terminate the current search and reset any search state."
   ;; Stop the old search, so we don't carry on inserting results from
   ;; the last thing we searched for.
   (deadgrep--interrupt-process)
 
-  (let ((start-point (point))
-        (inhibit-read-only t))
+  (let ((inhibit-read-only t))
     ;; Reset UI: remove results, reset items hidden by TAB, and arrow
     ;; position.
     (erase-buffer)
@@ -1061,7 +1330,21 @@ This will either be a button, a filename, or a search result."
     (setq deadgrep--remaining-output nil)
     (setq deadgrep--current-file nil)
     (setq deadgrep--debug-first-output nil)
+    (setq deadgrep--imenu-alist nil)))
 
+(defun deadgrep-restart ()
+  "Re-run ripgrep with the current search settings."
+  (interactive)
+  ;; If we haven't started yet, start the search if we've been called
+  ;; by the user.
+  (when (and deadgrep--postpone-start
+             (called-interactively-p 'interactive))
+    (setq deadgrep--postpone-start nil))
+
+  (deadgrep--stop-and-reset)
+
+  (let ((start-point (point))
+        (inhibit-read-only t))
     (deadgrep--write-heading)
     ;; If the point was in the heading, ensure that we restore its
     ;; position.
@@ -1102,11 +1385,39 @@ for a string, offering the current word as a default."
       (push search-term deadgrep-history))
     search-term))
 
+(defun deadgrep--normalise-dirname (path)
+  "Expand PATH and ensure that it doesn't end with a slash.
+If PATH is remote path, it is not expanded."
+  (directory-file-name (if (file-remote-p path)
+                           path
+                         (let (file-name-handler-alist)
+                           (expand-file-name path)))))
+
+(defun deadgrep--lookup-override (path)
+  "If PATH is present in `deadgrep-project-root-overrides',
+return the overridden value.
+Otherwise, return PATH as is."
+  (let* ((normalised-path (deadgrep--normalise-dirname path))
+         (override
+          (-first
+           (-lambda ((original . _))
+             (equal (deadgrep--normalise-dirname original) normalised-path))
+           deadgrep-project-root-overrides)))
+    (when override
+      (setq path (cdr override))
+      (unless (stringp path)
+        (user-error "Bad override: expected a path string, but got: %S" path))
+      (setq path (propertize path 'deadgrep-overridden t)))
+    path))
+
 (defun deadgrep--project-root ()
   "Guess the project root of the given FILE-PATH."
-  (-if-let (project (project-current))
-      (cdr project)
-    default-directory))
+  (let ((root default-directory)
+        (project (project-current)))
+    (when project
+      (setq root (cdr project)))
+    (when root
+      (deadgrep--lookup-override root))))
 
 (defun deadgrep--write-postponed ()
   (let* ((inhibit-read-only t)
@@ -1117,6 +1428,11 @@ for a string, offering the current word as a default."
       (insert
        (format "Press %s to start the search."
                (key-description restart-key))))))
+
+(defun deadgrep--create-imenu-index ()
+  "Create `imenu' index for matched files."
+  (when deadgrep--imenu-alist
+    (list (cons "Files" (reverse deadgrep--imenu-alist)))))
 
 ;;;###autoload
 (defun deadgrep (search-term)
@@ -1139,8 +1455,9 @@ don't actually start the search."
         (setq prev-search-type deadgrep--search-type)
         (setq prev-search-case deadgrep--search-case)))
 
-    (switch-to-buffer buf)
+    (switch-to-buffer-other-window buf)
 
+    (setq imenu-create-index-function #'deadgrep--create-imenu-index)
     (setq next-error-function #'deadgrep-next-error)
 
     ;; If we have previous search settings, apply them to our new
@@ -1189,6 +1506,9 @@ This is intended for use with `next-error-function', which see."
 (defun deadgrep-debug ()
   "Show a buffer with some debug information about the current search."
   (interactive)
+  (unless (eq major-mode 'deadgrep-mode)
+    (user-error "deadgrep-debug should be run in a deadgrep results buffer"))
+
   (let ((command deadgrep--debug-command)
         (output deadgrep--debug-first-output)
         (buf (get-buffer-create "*deadgrep debug*"))
@@ -1206,6 +1526,12 @@ This is intended for use with `next-error-function', which see."
      (format "default-directory: %S\n" default-directory)
      (format "\nInitial output from ripgrep:\n%S" output)
      (format "\n\nPlease file bugs at https://github.com/Wilfred/deadgrep/issues/new"))))
+
+(defun deadgrep-kill-all-buffers ()
+  "Kill all open deadgrep buffers."
+  (interactive)
+  (dolist (buffer (deadgrep--buffers))
+    (kill-buffer buffer)))
 
 (provide 'deadgrep)
 ;;; deadgrep.el ends here
