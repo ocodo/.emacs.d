@@ -1,12 +1,13 @@
 ;;; lorem-ipsum.el --- Insert dummy pseudo Latin text.
-;; Version: 20140911.1408
 
 ;; Copyright (c) 2003 Jean-Philippe Theberge
 
 ;; Author: Jean-Philippe Theberge (jphil21@sourceforge.net)
 ;; Maintainer: Joe Schafer (joe@jschaf.com)
-;; Package-Version: 0.2
+;; Package-Version: 20190819.2042
+;; Package-X-Original-Version: 0.2
 ;; Keywords: tools, language, convenience
+;; Package-Commit: da75c155da327c7a7aedb80f5cfe409984787049
 
 ;; Special Thanks: The emacswiki users, the #emacs@freenode.net citizens
 ;;                 and Marcus Tullius Cicero
@@ -198,13 +199,13 @@ If NUM is non-nil, insert NUM sentences."
 If NUM is non-nil, insert NUM list items."
   (interactive "p")
   (if (not num)(setq num 1))
-  (if (> num 0)
-      (progn
-	(let ((para (nth (random (length lorem-ipsum-text)) lorem-ipsum-text)))
-	  (insert (concat lorem-ipsum-list-bullet
-			  (nth (random (length para)) para)
-			  lorem-ipsum-list-item-end)))
-	(lorem-ipsum-insert-list (- num 1)))
+  (when (> num 0)
+    (insert lorem-ipsum-list-beginning)
+    (dotimes (i num)
+      (let ((para (nth (random (length lorem-ipsum-text)) lorem-ipsum-text)))
+        (insert (concat lorem-ipsum-list-bullet
+                        (nth (random (length para)) para)
+                        lorem-ipsum-list-item-end))))
     (insert lorem-ipsum-list-end)))
 
 ;;;###autoload

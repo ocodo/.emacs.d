@@ -10,9 +10,7 @@
 ;;; Generated autoloads from lorem-ipsum.el
 
 (autoload 'lorem-ipsum-use-default-bindings "lorem-ipsum" "\
-Use the default keybindings of C-c l [spl].
-
-\(fn)" t nil)
+Use the default keybindings of C-c l [spl]." t nil)
 
 (autoload 'lorem-ipsum-insert-paragraphs "lorem-ipsum" "\
 Insert lorem ipsum paragraphs into buffer.
