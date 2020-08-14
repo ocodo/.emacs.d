@@ -2,12 +2,11 @@
 ;;
 ;;; Code:
 
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads (color-theme-initialize color-theme-submit color-theme-install
-;;;;;;  color-theme-compare color-theme-make-snapshot color-theme-analyze-defun
-;;;;;;  color-theme-print color-theme-install-at-point-for-current-frame
-;;;;;;  color-theme-install-at-mouse color-theme-describe color-theme-select)
-;;;;;;  "color-theme" "color-theme.el" (20838 18487 0 0))
+;;;### (autoloads nil "color-theme" "color-theme.el" (0 0 0 0))
 ;;; Generated autoloads from color-theme.el
 
 (autoload 'color-theme-select "color-theme" "\
@@ -23,9 +22,7 @@ libraries are mainly useful for color theme authors.
 Describe color theme listed at point.
 This shows the documentation of the value of text-property color-theme
 at point.  The text-property color-theme should be a color theme
-function.  See `color-themes'.
-
-\(fn)" t nil)
+function.  See `color-themes'." t nil)
 
 (autoload 'color-theme-install-at-mouse "color-theme" "\
 Install color theme clicked upon using the mouse.
@@ -37,9 +34,7 @@ First argument EVENT is used to set point.  Then
 (autoload 'color-theme-install-at-point-for-current-frame "color-theme" "\
 Install color theme at point for current frame only.
 Binds `color-theme-is-global' to nil and calls
-`color-theme-install-at-point'.
-
-\(fn)" t nil)
+`color-theme-install-at-point'." t nil)
 
 (autoload 'color-theme-print "color-theme" "\
 Print the current color theme function.
@@ -74,15 +69,11 @@ Example:
 Once you have a color-theme printed, check for missing faces.
 This is used by maintainers who receive a color-theme submission
 and want to make sure it follows the guidelines by the color-theme
-author.
-
-\(fn)" t nil)
+author." t nil)
 
 (autoload 'color-theme-make-snapshot "color-theme" "\
 Return the definition of the current color-theme.
-The function returned will recreate the color-theme in use at the moment.
-
-\(fn)" nil nil)
+The function returned will recreate the color-theme in use at the moment." nil nil)
 
 (autoload 'color-theme-compare "color-theme" "\
 Compare two color themes.
@@ -131,23 +122,19 @@ frame-parameter settings of previous color themes.
 \(fn THEME)" nil nil)
 
 (autoload 'color-theme-submit "color-theme" "\
-Submit your color-theme to the maintainer.
-
-\(fn)" t nil)
+Submit your color-theme to the maintainer." t nil)
 
 (autoload 'color-theme-initialize "color-theme" "\
-Initialize the color theme package by loading color-theme-libraries.
+Initialize the color theme package by loading color-theme-libraries." t nil)
 
-\(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads nil nil ("color-theme-pkg.el") (20838 18487 273584
-;;;;;;  0))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "color-theme" '("color-theme" "define-color-theme")))
 
 ;;;***
 
-(provide 'color-theme-autoloads)
+;;;### (autoloads nil nil ("color-theme-pkg.el") (0 0 0 0))
+
+;;;***
+
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t

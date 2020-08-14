@@ -1,16 +1,16 @@
-;;; color-theme.el --- install color themes
+;;; color-theme.el --- An OBSOLETE color-theme implementation
 
 ;; Copyright (C) 1999, 2000  Jonadab the Unsightly One <jonadab@bright.net>
 ;; Copyright (C) 2000, 2001, 2002, 2003  Alex Schroeder <alex@gnu.org>
 ;; Copyright (C) 2003, 2004, 2005, 2006  Xavier Maillard <zedek@gnu.org>
 
-;; Version: 6.6.0
+;; Version: 6.6.1
 ;; Keywords: faces
 ;; Author: Jonadab the Unsightly One <jonadab@bright.net>
 ;; Maintainer: Xavier Maillard <zedek@gnu.org>
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ColorTheme
 
-;; This file is not (YET) part of GNU Emacs.
+;; This file is not part of GNU Emacs.
 
 ;; This is free software; you can redistribute it and/or modify it under
 ;; the terms of the GNU General Public License as published by the Free
@@ -29,8 +29,21 @@
 
 ;;; Commentary:
 
-;; Please read README and BUGS files for any relevant help.
-;; Contributors (not themers) should also read HACKING file.
+;; This package is obsolete.
+
+;; Since version 22.1 Emacs has built-in support for themes.  That
+;; implementation does not derive from the implementation provided
+;; by this package.  Back when this was new we referred to the new
+;; implementation as `deftheme' themes, as opposed to `color-theme'
+;; themes.
+
+;; This package comes with a large collection of themes.  If you
+;; still use it because you want to use one of those, then you can
+;; never-the-less migrate to the "new" theme implementation.  The
+;; `color-theme-modern' package ports all themes that are bundles
+;; with `color-theme' to the `deftheme' format.  It also ports a
+;; few third-party themes.  Its documentation contains setup
+;; instructions.  Don't forget to uninstall `color-theme'.
 
 ;;; Thanks
 
@@ -45,6 +58,30 @@
 
 
 ;;; Code:
+
+(defvar color-theme-obsolete t
+  "Whether to show a warning about this package being obsolete.
+This warning is shown every time the package is loaded.  If you
+want to keep using it for some reason, then you have to set this
+variable to nil *before* the library is loaded.")
+
+(when (and (>= emacs-major-version 22) color-theme-obsolete)
+  (display-warning 'color-theme "This package is obsolete.
+
+Since version 22.1 Emacs has built-in support for themes.  That
+implementation does not derive from the implementation provided
+by this package.  Back when this was new we referred to the new
+implementation as `deftheme' themes, as opposed to `color-theme'
+themes.
+
+This package comes with a large collection of themes.  If you
+still use it because you want to use one of those, then you can
+never-the-less migrate to the \"new\" theme implementation.  The
+`color-theme-modern' package ports all themes that are bundles
+with `color-theme' to the `deftheme' format.  It also ports a
+few third-party themes.  Its documentation contains setup
+instructions.  Don't forget to uninstall `color-theme'."))
+
 (eval-when-compile
   (require 'easymenu)
   (require 'reporter)
