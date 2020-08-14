@@ -11,14 +11,10 @@
 ;;; Generated autoloads from helm-c-yasnippet.el
 
 (autoload 'helm-yas-complete "helm-c-yasnippet" "\
-List of yasnippet snippets using `helm' interface.
-
-\(fn)" t nil)
+List of yasnippet snippets using `helm' interface." t nil)
 
 (autoload 'helm-yas-visit-snippet-file "helm-c-yasnippet" "\
-List of yasnippet snippet files
-
-\(fn)" t nil)
+List of yasnippet snippet files" t nil)
 
 (autoload 'helm-yas-create-snippet-on-region "helm-c-yasnippet" "\
 Create a snippet from region.
