@@ -106,14 +106,10 @@ See also `ag-dired-regexp'.
 \(fn REGEXP)" t nil)
 
 (autoload 'ag-kill-buffers "ag" "\
-Kill all `ag-mode' buffers.
-
-\(fn)" t nil)
+Kill all `ag-mode' buffers." t nil)
 
 (autoload 'ag-kill-other-buffers "ag" "\
-Kill all `ag-mode' buffers other than the current buffer.
-
-\(fn)" t nil)
+Kill all `ag-mode' buffers other than the current buffer." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ag" '("ag-" "ag/")))
 

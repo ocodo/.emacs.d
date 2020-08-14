@@ -5,7 +5,8 @@
 ;; Author: Wilfred Hughes <me@wilfred.me.uk>
 ;; Created: 11 January 2013
 ;; Version: 0.48
-;; Package-Version: 20180225.1040
+;; Package-Version: 20190726.9
+;; Package-Commit: bd81d68466e44301505629454dfc689b6c17d94b
 ;; Package-Requires: ((dash "2.8.0") (s "1.9.0") (cl-lib "0.5"))
 ;;; Commentary:
 
@@ -213,8 +214,9 @@ different window, according to `ag-reuse-window'."
          (mapcar (lambda (item) (list "--ignore" item)) ignores)))
 
 (cl-defun ag/search (string directory
-                            &key (regexp nil) (file-regex nil) (file-type nil))
+                            &key (regexp nil) (file-regex nil) (file-type nil) (files '(".")))
   "Run ag searching for the STRING given in DIRECTORY.
+If `files` is passed, tell ag to look only on those files.
 If REGEXP is non-nil, treat STRING as a regular expression."
   (let ((default-directory (file-name-as-directory directory))
         (arguments ag-arguments)
@@ -249,7 +251,7 @@ If REGEXP is non-nil, treat STRING as a regular expression."
       (error "No such directory %s" default-directory))
     (let ((command-string
            (mapconcat #'shell-quote-argument
-                      (append (list ag-executable) arguments (list string "."))
+                      (append (list ag-executable) arguments (append `(,string) files))
                       " ")))
       ;; If we're called with a prefix, let the user modify the command before
       ;; running it. Typically this means they want to pass additional arguments.
