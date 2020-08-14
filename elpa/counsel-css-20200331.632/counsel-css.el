@@ -1,13 +1,14 @@
 ;;; counsel-css.el --- stylesheet-selector-aware swiper
 ;;
-;; Copyright (C) 2016-2018 Henrik Lissner
+;; Copyright (C) 2016-2020 Henrik Lissner
 ;;
 ;; Author: Henrik Lissner <http://github/hlissner>
 ;; Maintainer: Henrik Lissner <henrik@lissner.net>
 ;; Created: June 3, 2016
-;; Modified: March 2, 2018
-;; Version: 1.0.5
-;; Package-Version: 20180302.236
+;; Modified: March 31, 2020
+;; Version: 1.0.8
+;; Package-Version: 20200331.632
+;; Package-Commit: 6427dfcbda0d2bbd81db03f9d6b56b06c260ac02
 ;; Keywords: convenience tools counsel swiper selector css less scss
 ;; Homepage: https://github.com/hlissner/emacs-counsel-css
 ;; Package-Requires: ((emacs "24.4") (counsel "0.7.0") (cl-lib "0.5"))
@@ -36,10 +37,10 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'subr-x))
+  (require 'subr-x)
+  (require 'counsel))
 
 (declare-function ivy-read "ivy")
-(declare-function with-ivy-window "ivy")
 
 (defgroup counsel-css nil
   "An counsel backend for css/scss/less selectors."
@@ -128,8 +129,8 @@ doesn't move."
     ;; Collect multiple selector across previous lines
     ;; (i.e. "div, \n p, \n span {...}")
     (save-excursion
-      (while (string-match ",[\s\t]*$"
-                           (setq s (counsel-css--fetch-previous-line)))
+      (while (string-match-p ",[\s\t]*$"
+                             (setq s (counsel-css--fetch-previous-line)))
         ;; Skip commented selector (i.e. " // .blue,")
         (save-excursion
           (move-beginning-of-line 1)
@@ -206,9 +207,8 @@ doesn't move."
 
 ;;;###autoload
 (defun counsel-css-imenu-setup ()
-  "Set up imenu to recognize css (as well as nested scss/less selectors)."
-  (when (memq major-mode '(css-mode scss-mode less-css-mode))
-    (setq imenu-create-index-function 'counsel-css--imenu-create-index-function)))
+  "Set up imenu to recognize css/scss/less/stylus selectors."
+  (setq imenu-create-index-function #'counsel-css--imenu-create-index-function))
 
 ;;;###autoload
 (defun counsel-css ()

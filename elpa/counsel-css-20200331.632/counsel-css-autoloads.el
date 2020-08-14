@@ -10,14 +10,10 @@
 ;;; Generated autoloads from counsel-css.el
 
 (autoload 'counsel-css-imenu-setup "counsel-css" "\
-Set up imenu to recognize css (as well as nested scss/less selectors).
-
-\(fn)" nil nil)
+Set up imenu to recognize css/scss/less/stylus selectors." nil nil)
 
 (autoload 'counsel-css "counsel-css" "\
-Jump to a css selector.
-
-\(fn)" t nil)
+Jump to a css selector." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "counsel-css" '("counsel-css--")))
 
