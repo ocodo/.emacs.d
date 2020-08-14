@@ -33,9 +33,7 @@ With a prefix ARG, invalidate the cache first.
 \(fn &optional ARG)" t nil)
 
 (autoload 'counsel-projectile-switch-to-buffer "counsel-projectile" "\
-Jump to a buffer in the current project.
-
-\(fn)" t nil)
+Jump to a buffer in the current project." t nil)
 
 (autoload 'counsel-projectile-grep "counsel-projectile" "\
 Search the current project with grep.
