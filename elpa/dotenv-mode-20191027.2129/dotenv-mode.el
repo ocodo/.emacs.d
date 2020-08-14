@@ -2,8 +2,9 @@
 
 ;; Author: Preetpal S. Sohal
 ;; URL: https://github.com/preetpalS/emacs-dotenv-mode
-;; Package-Version: 20180207.1114
-;; Version: 0.2.4
+;; Package-Version: 20191027.2129
+;; Package-Commit: e3701bf739bde44f6484eb7753deadaf691b73fb
+;; Version: 0.2.5
 ;; Package-Requires: ((emacs "24.3"))
 ;; License: GNU General Public License Version 3
 
@@ -36,6 +37,12 @@
   "Major mode for editing .env files."
   :group 'languages
   :prefix "dotenv-")
+
+;; Adapted from code in ruby-mode provided with Emacs
+(defcustom dotenv-comment-column (default-value 'comment-column)
+  "Indentation column of comments."
+  :type 'integer
+  :safe 'integerp)
 
 (defvar dotenv-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -79,12 +86,20 @@
     ("\${[[:alpha:]]+[[:alnum:]_]*}" . font-lock-variable-name-face)
     ("\$([[:alpha:]]+[[:alnum:]_]*)" . font-lock-variable-name-face)))
 
+(defun dotenv-mode-variables ()
+  "Initialize buffer-local variables for `dotenv-mode'"
+  (setq-local comment-start "# ") ;; Added due to suggestion by jscheid (https://github.com/jscheid)
+  (setq-local comment-end "")
+  (setq-local comment-column dotenv-comment-column)
+  (setq-local comment-start-skip "#+ *")
+  (setq-local font-lock-defaults '((dotenv-mode-keywords))))
+
 ;;;###autoload
 (define-derived-mode dotenv-mode prog-mode ".env"
   "Major mode for `.env' files."
   :abbrev-table nil
   :syntax-table dotenv-mode-syntax-table
-  (setq-local font-lock-defaults '((dotenv-mode-keywords))))
+  (dotenv-mode-variables))
 
 ;;;###autoload
 (mapc (lambda (s) (add-to-list 'auto-mode-alist `(,s . dotenv-mode)))
