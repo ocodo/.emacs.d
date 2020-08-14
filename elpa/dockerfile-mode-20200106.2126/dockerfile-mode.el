@@ -2,7 +2,8 @@
 
 ;; Copyright (c) 2013 Spotify AB
 ;; Package-Requires: ((emacs "24") (s "1.12"))
-;; Package-Version: 20180410.936
+;; Package-Version: 20200106.2126
+;; Package-Commit: d31f7685ebc5832d957e25070a930aa42984327d
 ;; Homepage: https://github.com/spotify/dockerfile-mode
 ;;
 ;; Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -43,6 +44,11 @@
   :type 'hook
   :group 'dockerfile)
 
+(defcustom dockerfile-mode-command "docker"
+  "Which binary to use to build images"
+  :group 'dockerfile
+  :type 'string)
+
 (defcustom dockerfile-use-sudo nil
   "Runs docker builder command with sudo."
   :type 'boolean
@@ -56,6 +62,17 @@ Each element of the list will be passed as a separate
   :type '(repeat string)
   :group 'dockerfile)
 
+(defface dockerfile-image-name
+  '((t (:inherit (font-lock-type-face bold))))
+  "Face to highlight the base image name after FROM instruction.")
+
+(defface dockerfile-image-alias
+  '((t (:inherit (font-lock-constant-face bold))))
+  "Face to highlight the base image alias inf FROM ... AS <alias> construct.")
+
+(defconst dockerfile--from-regex
+  (rx "from " (group (+? nonl)) (or " " eol) (? "as " (group (1+ nonl)))))
+
 (defvar dockerfile-font-lock-keywords
   `(,(cons (rx (or line-start "onbuild ")
                (group (or "from" "maintainer" "run" "cmd" "expose" "env" "arg"
@@ -63,6 +80,9 @@ Each element of the list will be passed as a separate
                           "label" "stopsignal" "shell" "healthcheck"))
                word-boundary)
            font-lock-keyword-face)
+    (,dockerfile--from-regex
+     (1 'dockerfile-image-name)
+     (2 'dockerfile-image-alias nil t))
     ,@(sh-font-lock-keywords)
     ,@(sh-font-lock-keywords-2)
     ,@(sh-font-lock-keywords-1))
@@ -71,10 +91,9 @@ Each element of the list will be passed as a separate
 (defvar dockerfile-mode-map
   (let ((map (make-sparse-keymap))
         (menu-map (make-sparse-keymap)))
-    (define-key map "\C-c\C-b" 'dockerfile-build-buffer)
-    (define-key map "\C-c\M-b" 'dockerfile-build-no-cache-buffer)
-    (define-key map "\C-c\C-z" 'dockerfile-test-function)
-    (define-key map "\C-c\C-c" 'comment-region)
+    (define-key map "\C-c\C-b" #'dockerfile-build-buffer)
+    (define-key map "\C-c\M-b" #'dockerfile-build-no-cache-buffer)
+    (define-key map "\C-c\C-c" #'comment-region)
     (define-key map [menu-bar dockerfile-mode] (cons "Dockerfile" menu-map))
     (define-key menu-map [dfc]
       '(menu-item "Comment Region" comment-region
@@ -102,6 +121,21 @@ Each element of the list will be passed as a separate
 (unless dockerfile-mode-abbrev-table
   (define-abbrev-table 'dockerfile-mode-abbrev-table ()))
 
+(defun dockerfile-indent-line-function ()
+  "Indent lines in a Dockerfile.
+
+Lines beginning with a keyword are ignored, and any others are
+indented by one `tab-width'."
+  (unless (member (get-text-property (point-at-bol) 'face)
+                  '(font-lock-comment-delimiter-face font-lock-keyword-face))
+    (save-excursion
+      (beginning-of-line)
+      (skip-chars-forward "[ \t]" (point-at-eol))
+      (unless (equal (point) (point-at-eol)) ; Ignore empty lines.
+        ;; Delete existing whitespace.
+        (delete-char (- (point-at-bol) (point)))
+        (indent-to tab-width)))))
+
 (defun dockerfile-build-arg-string ()
   "Create a --build-arg string for each element in `dockerfile-build-args'."
   (mapconcat (lambda (arg) (concat "--build-arg " (shell-quote-argument arg)))
@@ -114,6 +148,10 @@ file name.  Otherwise, uses Emacs' standard conversion function."
   (if (fboundp 'cygwin-convert-file-name-to-windows)
       (s-replace "\\" "\\\\" (cygwin-convert-file-name-to-windows file))
     (convert-standard-filename file)))
+
+(defun dockerfile-tag-string (image-name)
+  "Return a --tag shell-quoted IMAGE-NAME string or an empty string if image-name is blank."
+    (if (string= image-name "") "" (format "--tag %s " (shell-quote-argument image-name))))
 
 (defvar dockerfile-image-name nil
   "Name of the dockerfile currently being used.
@@ -131,22 +169,25 @@ This can be set in file or directory-local variables.")
 ;;;###autoload
 (defun dockerfile-build-buffer (image-name &optional no-cache)
   "Build an image called IMAGE-NAME based upon the buffer.
-If prefix arg NO-CACHE is set, don't cache the image."
+
+If prefix arg NO-CACHE is set, don't cache the image.
+The build string will be of the format:
+`sudo docker build --no-cache --tag IMAGE-NAME --build-args arg1.. -f filename directory`"
+
   (interactive (list (dockerfile-read-image-name) prefix-arg))
   (save-buffer)
-  (if (stringp image-name)
-      (compilation-start
-       (format
-        "%sdocker build %s -t %s %s -f %s %s"
-        (if dockerfile-use-sudo "sudo " "")
-        (if no-cache "--no-cache" "")
-        (shell-quote-argument image-name)
-        (dockerfile-build-arg-string)
-        (shell-quote-argument (dockerfile-standard-filename (buffer-file-name)))
-        (shell-quote-argument (dockerfile-standard-filename default-directory)))
-       nil
-       (lambda (_) (format "*docker-build-output: %s *" image-name)))
-    (print "dockerfile-image-name must be a string, consider surrounding it with double quotes")))
+    (compilation-start
+        (format
+            "%s%s build %s %s %s -f %s %s"
+            (if dockerfile-use-sudo "sudo " "")
+            dockerfile-mode-command
+            (if no-cache "--no-cache" "")
+            (dockerfile-tag-string image-name)
+            (dockerfile-build-arg-string)
+            (shell-quote-argument (dockerfile-standard-filename (buffer-file-name)))
+            (shell-quote-argument (dockerfile-standard-filename default-directory)))
+    nil
+    (lambda (_) (format "*docker-build-output: %s *" image-name))))
 
 ;;;###autoload
 (defun dockerfile-build-no-cache-buffer (image-name)
@@ -154,12 +195,28 @@ If prefix arg NO-CACHE is set, don't cache the image."
   (interactive (list (dockerfile-read-image-name)))
   (dockerfile-build-buffer image-name t))
 
+(defun dockerfile--imenu-function ()
+  "Find the previous headline from point.
+
+Search for a FROM instruction.  If an alias is used this is
+returned, otherwise the base image name is used."
+  (when (re-search-backward dockerfile--from-regex nil t)
+    (let ((data (match-data)))
+      (when (match-string 2)
+        ;; we drop the first match group because
+        ;; imenu-generic-expression can only use one offset, so we
+        ;; normalize to `1'.
+        (set-match-data (list (nth 0 data) (nth 1 data) (nth 4 data) (nth 5 data))))
+      t)))
+
 ;;;###autoload
 (define-derived-mode dockerfile-mode prog-mode "Dockerfile"
   "A major mode to edit Dockerfiles.
 \\{dockerfile-mode-map}
 "
   (set-syntax-table dockerfile-mode-syntax-table)
+  (set (make-local-variable 'imenu-generic-expression)
+       `(("Stage" dockerfile--imenu-function 1)))
   (set (make-local-variable 'require-final-newline) mode-require-final-newline)
   (set (make-local-variable 'comment-start) "#")
   (set (make-local-variable 'comment-end) "")
@@ -167,7 +224,8 @@ If prefix arg NO-CACHE is set, don't cache the image."
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'font-lock-defaults)
        '(dockerfile-font-lock-keywords nil t))
-  (setq local-abbrev-table dockerfile-mode-abbrev-table))
+  (setq local-abbrev-table dockerfile-mode-abbrev-table)
+  (set (make-local-variable 'indent-line-function) #'dockerfile-indent-line-function))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("Dockerfile\\(?:\\..*\\)?\\'" . dockerfile-mode))
