@@ -10,6 +10,8 @@
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from green-is-the-new-black-theme.el
 
+(and load-file-name (boundp 'custom-theme-load-path) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "green-is-the-new-black-theme" '("green-is-the-new-black")))
 
 ;;;***

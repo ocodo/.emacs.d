@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/green-is-the-new-black-theme-20200529.242/green-is-the-new-black-theme.el  -*- no-byte-compile: t -*-
+(define-package "green-is-the-new-black-theme" "20200529.242" "A cool and minimalist green blackened theme engine" 'nil :commit "9b682c0000bc732e4c55e876ac968877eada0402" :keywords '("faces" "themes") :authors '(("Fred Campos" . "fred.tecnologia@gmail.com")) :maintainer '("Fred Campos" . "fred.tecnologia@gmail.com") :url "https://github.com/fredcamps/green-is-the-new-black-emacs")

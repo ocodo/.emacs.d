@@ -1,2 +1,0 @@
-;;; -*- no-byte-compile: t -*-
-(define-package "green-is-the-new-black-theme" "20180323.203" "A cool and minimalist green blackened theme engine" 'nil :commit "8a03687a2b8b55c5dc7f099086019278d505d8d8" :keywords '("faces" "themes") :authors '(("Fred Campos" . "fred.tecnologia@gmail.com")) :maintainer '("Fred Campos" . "fred.tecnologia@gmail.com") :url "https://github.com/fredcamps/green-is-the-new-black-emacs")
