@@ -15,9 +15,7 @@ find-file-in-repository will autocomplete all files in the
    current git, mercurial or other type of repository, using
    ido-find-file when available. When the current file is not
    located inside of any repository, falls back on a regular
-   find-file operation.
-
-\(fn)" t nil)
+   find-file operation." t nil)
 
 (defalias 'ffir 'find-file-in-repository)
 
