@@ -10,11 +10,9 @@
 ;;; Generated autoloads from 2048-game.el
 
 (autoload '2048-game "2048-game" "\
-Start playing 2048.
+Start playing 2048." t nil)
 
-\(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "2048-game" '("2048-" "in-bounds" "*2048-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "2048-game" '("*2048-" "2048-" "in-bounds")))
 
 ;;;***
 
