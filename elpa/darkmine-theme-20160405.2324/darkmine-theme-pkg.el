@@ -1,1 +1,0 @@
-(define-package "darkmine-theme" "20160405.2324" "Yet another emacs dark color theme." 'nil :stars '(#("5" 0 1 (font-lock-face paradox-star-face))) :url "https://github.com/pierre-lecocq/darkmine-theme")
