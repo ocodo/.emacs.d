@@ -5,7 +5,8 @@
 ;; Author: Roman Gonzalez <romanandreg@gmail.com>
 ;; Maintainer: Roman Gonzalez <romanandreg@gmail.com>
 ;; Version: 0.0.3
-;; Package-Version: 20150202.1000
+;; Package-Version: 20190116.1557
+;; Package-Commit: ac5997971972a9251f140b5542d82790ca4a43b4
 ;; Package-Requires: ((evil "1.0.9") (dash "2.10"))
 ;; Keywords: evil
 
@@ -87,11 +88,12 @@ This function is called when enabling the evil-visual-marker-mode."
              (-map
               (lambda (it)
                 (let* ((letter     (car it))
+                       (buffer     (evil-marker-get-buffer letter))
                        (marker     (cdr it))
                        (new-item   (list nil nil))
                        (new-overlay (evil-visual-mark-make-overlay marker)))
 
-                  (setf (car new-item) letter)
+                  (setf (car new-item) (cons letter buffer))
                   (setf (cdr new-item) new-overlay)
 
 
@@ -112,7 +114,7 @@ This function is called on `evil-normal-state-exit-hook.'"
 
 This function is called on `evil-normal-state-entry-hook'."
   (--each evil-visual-mark-overlay-alist
-    (evil-visual-mark-overlay-put (car it) (cdr it))))
+    (evil-visual-mark-overlay-put (car (car it)) (cdr it))))
 
 (defun evil-visual-mark-render ()
   "Render for the first time the evil mark list.
@@ -122,7 +124,7 @@ This function is called on the initialization of
   (evil-visual-mark-populate-overlay-alist)
   (when (evil-normal-state-p)
     (--each evil-visual-mark-overlay-alist
-      (evil-visual-mark-overlay-put (car it)
+      (evil-visual-mark-overlay-put (car (car it))
                                     (cdr it)))))
 
 (defun evil-visual-mark-cleanup ()
@@ -133,6 +135,18 @@ This function is called when disabling `evil-visual-mark-mode'"
     (lambda (it) (delete-overlay (cdr it))))
   (setq evil-visual-mark-overlay-alist '()))
 
+(defun evil-global-marker-char? (char)
+  (and (>= char ?A) (<= char ?Z)))
+
+(defun evil-marker-get-buffer (char)
+  (if (evil-global-marker-char? char)
+      'global
+    (current-buffer)))
+
+(defun evil-marker-get-item (char)
+  (let* ((buffer (evil-marker-get-buffer char)))
+    (assoc (cons char buffer) evil-visual-mark-overlay-alist)))
+
 (defun evil-visual-mark-update-mark (char marker)
   "Update overlay value for CHAR.
 
@@ -142,14 +156,15 @@ the result of calling that function."
              (markerp marker))
 
     (let* ((new-overlay (evil-visual-mark-make-overlay marker))
-           (old-item    (assoc char evil-visual-mark-overlay-alist))
+           (buffer      (evil-marker-get-buffer char))
+           (old-item    (evil-marker-get-item char))
            (old-overlay (and old-item (cdr old-item))))
 
       ;; update overlay state for given char
       (if old-item
           (setf (cdr old-item) new-overlay)
         (let ((new-item (list nil nil)))
-          (setf (car new-item) char)
+          (setf (car new-item) (cons char buffer))
           (setf (cdr new-item) new-overlay)
           (add-to-list 'evil-visual-mark-overlay-alist
                        new-item)))
