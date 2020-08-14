@@ -4,10 +4,11 @@
 
 ;; Author: Doug MacEachern <dougm@vmware.com>
 ;; URL: https://github.com/dougm/go-projectile
-;; Package-Version: 20170302.1705
+;; Package-Version: 20200609.131
+;; Package-Commit: ad4ca3b5695a0e31e95e3cc4ccab498f87d68303
 ;; Keywords: project, convenience
 ;; Version: 0.2.1
-;; Package-Requires: ((projectile "0.10.0") (go-mode "0") (go-eldoc "0.16") (go-rename "0") (go-guru "0"))
+;; Package-Requires: ((projectile "0.10.0") (go-mode "0") (go-eldoc "0.16") (go-rename "0") (go-guru "0") (dash "2.17.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -43,6 +44,7 @@
 (require 'go-rename)
 (require 'vc-git)
 (require 'autorevert)
+(require 'dash)
 
 (defcustom go-projectile-switch-gopath 'always
   "Specify whether GOPATH should be updated when switching projects.
@@ -64,8 +66,8 @@ current GOPATH, or 'never to leave GOPATH untouched."
   "File containing project import URL.")
 
 (defvar go-projectile-tools
-  '((gocode    . "github.com/nsf/gocode")
-    (golint    . "github.com/golang/lint/golint")
+  '((gocode    . "github.com/mdempsky/gocode")
+    (golint    . "golang.org/x/lint/golint")
     (godef     . "github.com/rogpeppe/godef")
     (errcheck  . "github.com/kisielk/errcheck")
     (godoc     . "golang.org/x/tools/cmd/godoc")
@@ -178,11 +180,10 @@ PATH defaults to GOPATH via getenv, used to determine if buffer is in current GO
 
 (defun go-projectile-set-local-keys ()
   "Set local Projectile key bindings for Go projects."
-  (dolist (map '(("W" go-projectile-rewrite)
-                 ("w" go-rename)
-                 ("N" go-projectile-get)
-                 ("G" go-projectile-git-grep)))
-    (local-set-key (kbd (concat projectile-keymap-prefix " " (car map))) (nth 1 map))))
+  (define-key projectile-command-map (kbd "W") 'go-projectile-rewrite)
+  (define-key projectile-command-map (kbd "w") 'go-rename)
+  (define-key projectile-command-map (kbd "N") 'go-projectile-get)
+  (define-key projectile-command-map (kbd "G") 'go-projectile-git-grep))
 
 (defun go-projectile-mode ()
   "Hook for `go-mode-hook' to set Go projectile related key bindings."
@@ -194,7 +195,7 @@ PATH defaults to GOPATH via getenv, used to determine if buffer is in current GO
   ;; (projectile-project-type) could be 'go or 'make
   ;; we just check if there are any *.go files in the project, unless the `projectile-project-type' local is set.
   (when (or (eq projectile-project-type 'go)
-            (funcall projectile-go-function))
+            (funcall projectile-go-project-test-function))
     (unless (eq go-projectile-switch-gopath 'never)
       (if (eq go-projectile-switch-gopath 'always)
           (setenv "GOPATH" nil))
