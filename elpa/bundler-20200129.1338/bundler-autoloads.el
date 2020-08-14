@@ -15,19 +15,13 @@ Queries for a gem name and opens the location of the gem in dired.
 \(fn GEM-NAME)" t nil)
 
 (autoload 'bundle-console "bundler" "\
-Run an inferior Ruby process in the context of the current bundle.
-
-\(fn)" t nil)
+Run an inferior Ruby process in the context of the current bundle." t nil)
 
 (autoload 'bundle-check "bundler" "\
-Run bundle check for the current bundle.
-
-\(fn)" t nil)
+Run bundle check for the current bundle." t nil)
 
 (autoload 'bundle-install "bundler" "\
-Run bundle install for the current bundle.
-
-\(fn)" t nil)
+Run bundle install for the current bundle." t nil)
 
 (autoload 'bundle-update "bundler" "\
 Run bundle update for the current bundle.
@@ -45,19 +39,16 @@ Set BUNDLE_GEMFILE environment variable.
 \(fn &optional GEMFILE)" t nil)
 
 (autoload 'bundle-outdated "bundler" "\
-List installed gems with newer versions available.
+List installed gems with newer versions available." t nil)
 
-\(fn)" t nil)
+(autoload 'bundle-major-version "bundler" "\
+Returns the bundler major version. If no version is available it returns nil." nil nil)
 
 (autoload 'bundle-show "bundler" "\
-Shows all gems that are part of the bundle, or the path to a given gem.
-
-\(fn)" t nil)
+Shows all gems that are part of the bundle, or the path to a given gem." t nil)
 
 (autoload 'bundle-version "bundler" "\
-Prints version information.
-
-\(fn)" t nil)
+Prints version information." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "bundler" '("bundle-" "run-bundled-command")))
 
