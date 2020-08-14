@@ -12,6 +12,11 @@
 (autoload 'js2-refactor-mode "js2-refactor" "\
 Minor mode providing JavaScript refactorings.
 
+If called interactively, enable Js2-Refactor mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (autoload 'js2r-add-keybindings-with-prefix "js2-refactor" "\
@@ -84,22 +89,13 @@ Add js2r keybindings using the modifier MODIFIER.
 ;;;### (autoloads nil "js2r-vars" "js2r-vars.el" (0 0 0 0))
 ;;; Generated autoloads from js2r-vars.el
 
-(autoload 'js2r-extract-var "js2r-vars" "\
+(autoload 'js2r-extract-var "js2r-vars" nil t nil)
 
+(autoload 'js2r-extract-let "js2r-vars" nil t nil)
 
-\(fn)" t nil)
+(autoload 'js2r-extract-const "js2r-vars" nil t nil)
 
-(autoload 'js2r-extract-let "js2r-vars" "\
-
-
-\(fn)" t nil)
-
-(autoload 'js2r-extract-const "js2r-vars" "\
-
-
-\(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "js2r-vars" '("js2r-" "current-line-contents")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "js2r-vars" '("current-line-contents" "js2r-")))
 
 ;;;***
 
