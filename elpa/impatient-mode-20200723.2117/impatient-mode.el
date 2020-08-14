@@ -3,25 +3,25 @@
 ;; This is free and unencumbered software released into the public domain.
 
 ;; Author: Brian Taylor <el.wubo@gmail.com>
-;; Version: 1.0.0
+;; Version: 1.1
 ;; URL: https://github.com/netguy204/imp.el
-;; Package-Requires: ((cl-lib "0.3") (simple-httpd "1.4.0") (htmlize "1.40"))
+;; Package-Requires: ((emacs "24.3") (simple-httpd "1.5.0") (htmlize "1.40"))
 
 ;;; Commentary:
 
 ;; impatient-mode is a minor mode that publishes the live buffer
-;; through the local simple-httpd server under /imp/<buffer-name>. To
-;; unpublish a buffer, toggle impatient-mode off.
+;; through the local simple-httpd server under /imp/live/<buffer-name>/.
+;; To unpublish a buffer, toggle impatient-mode off.
 
 ;; Start the simple-httpd server (`httpd-start') and visit /imp/ on
-;; the local server. There will be a listing of all the buffers that
-;; currently have impatient-mode enabled. This is likely to be found
+;; the local server.  There will be a listing of all the buffers that
+;; currently have impatient-mode enabled.  This is likely to be found
 ;; here:
 
 ;;   http://localhost:8080/imp/
 
 ;; Except for html-mode buffers, buffers will be prettied up with
-;; htmlize before being sent to clients. This can be toggled at any
+;; htmlize before being sent to clients.  This can be toggled at any
 ;; time with `imp-toggle-htmlize'.
 
 ;; Because html-mode buffers are sent raw, you can use impatient-mode
@@ -29,8 +29,8 @@
 ;; primary motivation of this mode.
 
 ;; To receive updates the browser issues a long poll on the client
-;; waiting for the buffer to change -- server push. The response
-;; happens in an `after-change-functions' hook. Buffers that do not
+;; waiting for the buffer to change -- server push.  The response
+;; happens in an `after-change-functions' hook.  Buffers that do not
 ;; run these hooks will not be displayed live to clients.
 
 ;;; Code:
@@ -40,19 +40,25 @@
 (require 'simple-httpd)
 (require 'htmlize)
 
-(defgroup impatient-mode nil
+(defgroup impatient nil
   "Serve buffers live over HTTP."
   :group 'comm)
 
-(defvar impatient-mode-map (make-sparse-keymap)
-  "Keymap for impatient-mode.")
+(defcustom impatient-mode-delay nil
+  "The delay in seconds between a keypress and the browser reload.
+Set to nil for no delay"
+  :group 'impatient
+  :type 'boolean)
 
-(defvar impatient-mode-delay nil
-  "The delay in seconds between a keypress and the buffer being
-   reloaded in the browser.  Set to nil for no delay")
+(defcustom imp-default-user-filters '((mhtml-mode . nil)
+                                      (html-mode . nil)
+                                      (web-mode  . nil))
+  "Alist indicating which filter should be used for which modes."
+  :group 'impatient
+  :type 'sexp)
 
 (defvar-local imp--idle-timer nil
-  "A timer that goes off after impatient-mode-delay seconds of inactivity")
+  "A timer that goes off after `impatient-mode-delay' seconds of inactivity")
 
 (defvar-local imp-user-filter #'imp-htmlize-filter
   "Per buffer html-producing function by user.")
@@ -69,15 +75,13 @@
 (defvar-local imp--buffer-dirty-p nil
   "If non-nil, buffer has been modified but not sent to clients.")
 
-(defvar imp-default-user-filters
-  '((html-mode . nil)
-    (web-mode  . nil))
-  "Alist indicating which filter should be used for which modes.")
+(defvar impatient-mode-map (make-sparse-keymap)
+  "Keymap for impatient-mode.")
 
 ;;;###autoload
 (define-minor-mode impatient-mode
   "Serves the buffer live over HTTP."
-  :group 'impatient-mode
+  :group 'impatient
   :lighter " imp"
   :keymap impatient-mode-map
   (if (not impatient-mode)
@@ -91,18 +95,18 @@
 (defvar imp-shim-root (file-name-directory load-file-name)
   "Location of data files needed by impatient-mode.")
 
-(defun imp-set-user-filter (function)
-  "Sets a user-defined filter for this buffer.
+(defun imp-set-user-filter (fn)
+  "Set a FN as user-defined filter for this buffer.
 FUNCTION should accept one argument, the buffer to be filtered,
 and will be evaluated with the output buffer set as the current
 buffer."
   (interactive "aCustom filter: ")
-  (setq imp-user-filter function)
+  (setq imp-user-filter fn)
   (cl-incf imp-last-state)
   (imp--notify-clients))
 
 (defun imp-remove-user-filter ()
-  "Sets the user-defined filter for this buffer to the default."
+  "Set the user-defined filter for this buffer to the default."
   (interactive)
   (let ((lookup (assoc major-mode imp-default-user-filters)))
     (if lookup
@@ -112,9 +116,9 @@ buffer."
   (imp--notify-clients))
 
 (defun imp-htmlize-filter (buffer)
-  "Htmlization of buffers before sending to clients."
+  "Htmlize BUFFER before sending to clients."
   (let ((html-buffer (save-match-data (htmlize-buffer buffer))))
-    (insert-buffer-substring html-buffer)
+    (princ (with-current-buffer html-buffer (buffer-string)))
     (kill-buffer html-buffer)))
 
 (defun imp-toggle-htmlize ()
@@ -124,24 +128,38 @@ buffer."
       (imp-set-user-filter nil)
     (imp-set-user-filter 'imp-htmlize-filter)))
 
-(defun imp-visit-buffer ()
-  "Visit the buffer in a browser."
-  (interactive)
-  (impatient-mode)
-  (browse-url
-   (format "http://%s:%d/imp/live/%s/"
-           (system-name) httpd-port (url-hexify-string (buffer-name)))))
+(defun imp-visit-buffer (&optional arg)
+  "Visit the current buffer in a browser.
+If given a prefix ARG, visit the buffer listing instead."
+  (interactive "P")
+  (unless (process-status "httpd")
+    (httpd-start))
+  (unless impatient-mode
+    (impatient-mode))
+  (let* ((proc (get-process "httpd"))
+         (proc-info (process-contact proc t))
+         (raw-host (plist-get proc-info :host))
+         (host (if (member raw-host
+                           '(nil local "127.0.0.1" "::1" "0.0.0.0" "::"))
+                   "localhost"
+                 raw-host))
+         (local-addr (plist-get proc-info :local))
+         (port (aref local-addr (1- (length local-addr))))
+         (url (format "http://%s:%d/imp/" host port)))
+    (unless arg
+      (setq url (format "%slive/%s/" url (url-hexify-string (buffer-name)))))
+    (browse-url url)))
 
 (defun imp-buffer-enabled-p (buffer)
-  "Return t if buffer has impatient-mode enabled."
+  "Return t if BUFFER has impatient-mode enabled."
   (and buffer (with-current-buffer (get-buffer buffer) impatient-mode)))
 
 (defun imp--buffer-list ()
-  "List of all buffers with impatient-mode enabled"
+  "List of all buffers with impatient-mode enabled."
   (cl-remove-if-not 'imp-buffer-enabled-p (buffer-list)))
 
 (defun imp--should-not-cache-p (path)
-  "True if the path should be stamped with a no-cache header"
+  "True if the PATH should be stamped with a no-cache header."
   (let ((mime-type (httpd-get-mime (file-name-extension path))))
     (member mime-type '("text/css" "text/html" "text/xml"
                         "text/plain" "text/javascript"))))
@@ -175,9 +193,10 @@ buffer."
                (format "Buffer %s is private or doesn't exist." buffer-name)))
 
 (defun httpd/imp/live (proc path _query req)
-  "Serve up the shim that lets us watch a buffer change"
+  "Serve up the shim that lets us watch a buffer change."
   (let* ((index (expand-file-name "index.html" imp-shim-root))
-         (parts (cdr (split-string path "/")))
+         (decoded (url-unhex-string path))
+         (parts (cdr (split-string decoded "/")))
          (buffer-name (nth 2 parts))
          (file (httpd-clean-path (mapconcat 'identity (nthcdr 3 parts) "/")))
          (buffer (get-buffer buffer-name))
@@ -185,8 +204,8 @@ buffer."
          (buffer-dir (and buffer-file (file-name-directory buffer-file))))
 
     (cond
-     ((equal (file-name-directory path) "/imp/live/")
-      (httpd-redirect proc (concat path "/")))
+     ((equal (file-name-directory decoded) "/imp/live/")
+      (httpd-redirect proc (concat decoded "/")))
      ((not (imp-buffer-enabled-p buffer)) (imp--private proc buffer-name))
      ((and (not (string= file "./")) buffer-dir)
       (let* ((full-file-name (expand-file-name file buffer-dir))
@@ -199,7 +218,7 @@ buffer."
         (if live-buffer
             (with-temp-buffer
               (insert-buffer-substring (cl-first live-buffer))
-              (if (imp--should-not-cache-p path)
+              (if (imp--should-not-cache-p decoded)
                   (httpd-send-header proc mime-type 200
                                      :Cache-Control "no-cache")
                 (httpd-send-header proc mime-type 200
@@ -219,12 +238,13 @@ buffer."
         (user-filter imp-user-filter)
         (buffer (current-buffer)))
     (with-temp-buffer
-      (if user-filter
-          (funcall user-filter buffer)
-        (insert-buffer-substring buffer))
-      (httpd-send-header proc "text/html" 200
-                         :Cache-Control "no-cache"
-                         :X-Imp-Count id))))
+      (let ((standard-output (current-buffer)))
+        (if user-filter
+            (funcall user-filter buffer)
+          (insert-buffer-substring buffer))
+        (httpd-send-header proc "text/html" 200
+                           :Cache-Control "no-cache"
+                           :X-Imp-Count id)))))
 
 (defun imp--send-state-ignore-errors (proc)
   (condition-case _
@@ -274,7 +294,7 @@ buffer."
     (imp--update-buffer)))
 
 (defun imp--after-timeout ()
-  "Executes after impatient-mode-delay seconds of idleness"
+  "Execute after `impatient-mode-delay' seconds of idleness."
   (when imp--buffer-dirty-p
     (imp--update-buffer))
   (imp--start-idle-timer))
@@ -285,7 +305,7 @@ buffer."
   (cl-incf imp-last-state)
   ;; notify our clients
   (imp--notify-clients)
-  ;; notify any clients that we're in the imp-related-files list for
+  ;; notify any clients that we're in the `imp-related-files' list for
   (let ((buffer-file (buffer-file-name (current-buffer))))
     (dolist (buffer (imp--buffer-list))
       (with-current-buffer buffer
@@ -294,7 +314,8 @@ buffer."
 
 (defun httpd/imp/buffer (proc path query &rest _)
   "Servlet that accepts long poll requests."
-  (let* ((buffer-name (file-name-nondirectory path))
+  (let* ((decoded (url-unhex-string path))
+         (buffer-name (file-name-nondirectory decoded))
          (buffer (get-buffer buffer-name))
          (req-last-id (string-to-number (or (cadr (assoc "id" query)) "0"))))
     (if (imp-buffer-enabled-p buffer)
