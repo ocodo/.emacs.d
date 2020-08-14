@@ -1,12 +1,14 @@
-;;; git-messenger.el --- Pop up last commit information of current line -*- lexical-binding: t -*-
+;;; git-messenger.el --- Popup last commit of current line -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017 by Syohei YOSHIDA
+;; Copyright (C) 2017-2020 by Syohei YOSHIDA and Neil Okamoto
 
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
-;; URL: https://github.com/syohex/emacs-git-messenger
-;; Package-Version: 20170102.440
+;; Maintainer: Neil Okamoto
+;; URL: https://github.com/emacsorphanage/git-messenger
+;; Package-Version: 20200321.2337
+;; Package-Commit: 2d64e62e33be9f881ebb019afc183caac9c62eda
 ;; Version: 0.18
-;; Package-Requires: ((emacs "24.3") (popup "0.5.0"))
+;; Package-Requires: ((emacs "24.3") (popup "0.5.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -25,7 +27,7 @@
 
 ;; This package provides a function called git-messenger:popup-message
 ;; that when called will pop-up the last git commit message for the
-;; current line. This uses the git-blame tool internally.
+;; current line.  This uses the git-blame tool internally.
 ;;
 ;; Example usage:
 ;;   (require 'git-messenger)
@@ -44,19 +46,19 @@
   :group 'vc)
 
 (defcustom git-messenger:show-detail nil
-  "Pop up commit ID and author name too"
+  "Pop up commit ID and author name too."
   :type 'boolean)
 
 (defcustom git-messenger:before-popup-hook nil
-  "Hook run before popup commit message. This hook is taken popup-ed message"
+  "Hook run before popup commit message.  This hook is taken popup-ed message."
   :type 'hook)
 
 (defcustom git-messenger:after-popup-hook nil
-  "Hook run after popup commit message. This hook is taken popup-ed message"
+  "Hook run after popup commit message.  This hook is taken popup-ed message."
   :type 'hook)
 
 (defcustom git-messenger:popup-buffer-hook nil
-  "Hook run after popup buffer(popup diff, popup show etc)"
+  "Hook run after popup buffer (popup diff, popup show etc)."
   :type 'hook)
 
 (defcustom git-messenger:handled-backends '(git svn hg)
@@ -66,7 +68,7 @@ file is under that sort of version control."
   :type '(repeat symbol))
 
 (defcustom git-messenger:use-magit-popup nil
-  "Use magit-show-commit instead pop-to-buffer"
+  "Use `magit-show-commit` instead `pop-to-buffer`."
   :type 'boolean)
 
 (defvar git-messenger:last-message nil
@@ -187,7 +189,7 @@ and menus.")
         (hg (git-messenger:hg-commit-message commit-id))))))
 
 (defun git-messenger:commit-date (commit-id)
-  (let ((args (list "--no-pager" "show" "--pretty=%cd" commit-id)))
+  (let ((args (list "--no-pager" "show" "--pretty=%ad" commit-id)))
     (with-temp-buffer
       (unless (zerop (git-messenger:execute-command 'git args t))
         (error "Failed 'git show'"))
@@ -210,8 +212,8 @@ and menus.")
            (format "commit : %s \nAuthor : %s\nDate   : %s \n%s"
                    (substring commit-id 0 8) author date message)))
     (hg (let ((date (git-messenger:hg-commit-date commit-id)))
-           (format "commit : %s \nAuthor : %s\nDate   : %s \n%s"
-                   commit-id author date message)))
+          (format "commit : %s \nAuthor : %s\nDate   : %s \n%s"
+                  commit-id author date message)))
     (svn (with-temp-buffer
            (insert message)
            (goto-char (point-min))
@@ -236,14 +238,14 @@ and menus.")
   (throw 'git-messenger-loop t))
 
 (defun git-messenger:copy-message ()
-  "Copy current displayed commit message to kill-ring."
+  "Copy current displayed commit message to the kill ring`."
   (interactive)
   (when git-messenger:last-message
     (kill-new git-messenger:last-message))
   (git-messenger:popup-close))
 
 (defun git-messenger:copy-commit-id ()
-  "Copy current displayed commit id to kill-ring."
+  "Copy current displayed commit id to the kill ring."
   (interactive)
   (when git-messenger:last-commit-id
     (kill-new git-messenger:last-commit-id))
@@ -291,8 +293,8 @@ and menus.")
            (git-messenger:popup-common 'git args)))
     (svn (git-messenger:popup-svn-show))
     (hg (let ((args (list "log" "--stat" "-r"
-                           git-messenger:last-commit-id)))
-           (git-messenger:popup-common 'hg args)))))
+                          git-messenger:last-commit-id)))
+          (git-messenger:popup-common 'hg args)))))
 
 (defun git-messenger:popup-show-verbose ()
   (interactive)
@@ -302,8 +304,8 @@ and menus.")
            (git-messenger:popup-common 'git args)))
     (svn (error "'svn' does not support `popup-show-verbose'"))
     (hg (let ((args (list "log" "-p" "--stat" "-r"
-                           git-messenger:last-commit-id)))
-           (git-messenger:popup-common 'hg args)))))
+                          git-messenger:last-commit-id)))
+          (git-messenger:popup-common 'hg args)))))
 
 (defvar git-messenger-map
   (let ((map (make-sparse-keymap)))
@@ -316,7 +318,7 @@ and menus.")
     (define-key map (kbd "M-w") 'git-messenger:copy-message)
     (define-key map (kbd ",") 'git-messenger:show-parent)
     map)
-  "Key mappings of git-messenger. This is enabled when commit message is popup-ed.")
+  "Key mappings of git-messenger.  This is enabled when commit message is popup-ed.")
 
 (defun git-messenger:find-vcs ()
   (let ((longest 0)
@@ -353,10 +355,12 @@ and menus.")
                (let* ((func (car fp))
                       (desc (cdr fp))
                       (key (git-messenger:function-to-key func)))
-                 (when (and git-messenger:use-magit-popup (eq func 'git-messenger:popup-show))
+                 (when (and git-messenger:use-magit-popup
+                            (eq func 'git-messenger:popup-show))
                    (setq desc "magit-show-commit"))
                  (unless (and git-messenger:use-magit-popup
-                              (memq func '(git-messenger:popup-show-verbose git-messenger:popup-diff)))
+                              (memq func '(git-messenger:popup-show-verbose
+                                           git-messenger:popup-diff)))
                    (format "[%s]%s " key desc))))
              git-messenger:func-prompt ""))
 
@@ -366,16 +370,21 @@ and menus.")
     (cl-case git-messenger:vcs
       (git (with-temp-buffer
              (unless (zerop (process-file "git" nil t nil
-                                          "blame" "--increment" git-messenger:last-commit-id "--" file))
+                                          "blame" "--increment"
+                                          git-messenger:last-commit-id "--" file))
                (error "No parent commit ID"))
              (goto-char (point-min))
-             (when (re-search-forward (concat "^" git-messenger:last-commit-id) nil t)
+             (when (re-search-forward
+                    (concat "^" git-messenger:last-commit-id)
+                    nil t)
                (when (re-search-forward "previous \\(\\S-+\\)" nil t)
                  (let ((parent (match-string-no-properties 1)))
                    (setq git-messenger:last-commit-id parent
-                         git-messenger:last-message (git-messenger:commit-message 'git parent)))))
+                         git-messenger:last-message (git-messenger:commit-message
+                                                     'git parent)))))
              (throw 'git-messenger-loop nil)))
-      (otherwise (error "%s does not support for getting parent commit ID" git-messenger:vcs)))))
+      (otherwise (error "%s does not support for getting parent commit ID"
+                        git-messenger:vcs)))))
 
 ;;;###autoload
 (defun git-messenger:popup-message ()
@@ -404,7 +413,9 @@ and menus.")
         (let ((menu (popup-tip git-messenger:last-message :nowait t)))
           (unwind-protect
               (setq finish (catch 'git-messenger-loop
-                             (popup-menu-event-loop menu git-messenger-map 'popup-menu-fallback
+                             (popup-menu-event-loop menu
+                                                    git-messenger-map
+                                                    'popup-menu-fallback
                                                     :prompt (git-messenger:prompt))
                              t))
             (popup-delete menu)))))
@@ -415,6 +426,7 @@ and menus.")
 ;; Local Variables:
 ;; coding: utf-8
 ;; indent-tabs-mode: nil
+;; fill-column: 85
 ;; End:
 
 ;;; git-messenger.el ends here

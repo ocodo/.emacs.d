@@ -9,10 +9,7 @@
 ;;;### (autoloads nil "git-messenger" "git-messenger.el" (0 0 0 0))
 ;;; Generated autoloads from git-messenger.el
 
-(autoload 'git-messenger:popup-message "git-messenger" "\
-
-
-\(fn)" t nil)
+(autoload 'git-messenger:popup-message "git-messenger" nil t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "git-messenger" '("git-messenger")))
 
