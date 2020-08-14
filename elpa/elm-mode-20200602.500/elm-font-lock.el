@@ -115,6 +115,7 @@ To disable this highlighting, set this to nil."
     (modify-syntax-entry ?\}  "){4nb" st)
     (modify-syntax-entry ?-  ". 123" st)
     (modify-syntax-entry ?\n ">" st)
+    (modify-syntax-entry ?. "_" st)
 
     (modify-syntax-entry ?\" "\"\"" st)
     (modify-syntax-entry ?\\ "\\" st)
@@ -198,7 +199,7 @@ Also highlights opening brackets without a matching bracket."
               elm--font-lock-operators)
         nil nil))
 
-(defun turn-on-elm-font-lock ()
+(defun elm--font-lock-enable ()
   "Turn on Elm font lock."
   (setq font-lock-multiline t)
   (set-syntax-table elm--syntax-table)

@@ -4,8 +4,9 @@
 ;; Copyright (C) 2015, 2016  Bogdan Popa
 
 ;; Author: Joseph Collard
-;; Package-Requires: ((f "0.17") (let-alist "1.0.5") (seq "2.2") (s "1.7.0") (emacs "24.4") (dash "2.13.0"))
+;; Package-Requires: ((f "0.17") (s "1.7.0") (emacs "25.1") (dash "2.13.0") (reformatter "0.3"))
 ;; URL: https://github.com/jcollard/elm-mode
+;; Package-Version: 0-snapshot
 
 ;; This file is not part of GNU Emacs.
 
@@ -23,6 +24,11 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; Provides a major mode for editing Elm source code, and working with
+;; common core and third-party Elm tools including the compiler, repl,
+;; elm-format and more.
+
 ;;; Code:
 (require 'elm-tags)
 (require 'elm-format)
@@ -107,11 +113,8 @@ Find the roots of this function in the c-awk-mode."
     (elm-sort-imports))
   (when elm-tags-on-save
     (elm-mode-generate-tags))
-  (when elm-format-on-save
-    (elm-mode-format-buffer))
   (when (or elm-sort-imports-on-save
-            elm-tags-on-save
-            elm-format-on-save)
+            elm-tags-on-save)
     (let ((before-save-hook '())
           (after-save-hook '()))
       (basic-save-buffer))))
@@ -120,12 +123,10 @@ Find the roots of this function in the c-awk-mode."
   (let ((map (make-keymap)))
     (define-key map (kbd "C-c C-f") 'elm-mode-format-buffer)
     (define-key map (kbd "C-c M-t") 'elm-mode-generate-tags)
-    (define-key map (kbd "M-.") 'elm-mode-goto-tag-at-point)
-    (define-key map (kbd "M-,") 'pop-tag-mark)
     (define-key map (kbd "C-c C-l") 'elm-repl-load)
     (define-key map (kbd "C-c C-p") 'elm-repl-push)
     (define-key map (kbd "C-c C-e") 'elm-repl-push-decl)
-    (define-key map (kbd "C-c C-z") 'run-elm-interactive)
+    (define-key map (kbd "C-c C-z") 'elm-interactive)
     (define-key map (kbd "C-c C-a") 'elm-compile-add-annotations)
     (define-key map (kbd "C-c C-r") 'elm-compile-clean-imports)
     (define-key map (kbd "C-c C-c") 'elm-compile-buffer)
@@ -156,15 +157,18 @@ Find the roots of this function in the c-awk-mode."
   (setq-local comment-start "--")
   (setq-local comment-end "")
   (setq-local imenu-create-index-function #'elm-imenu-create-index)
-  (setq-local paragraph-separate "\\(\r\t\n\\|-}\\)$")
+  (setq-local paragraph-start (concat " *{-\\| *-- |\\|" page-delimiter))
+  (setq-local paragraph-separate (concat " *$\\| *\\({-\\|-}\\) *$\\|" page-delimiter))
   (setq-local beginning-of-defun-function #'elm-beginning-of-defun)
   (setq-local end-of-defun-function #'elm-end-of-defun)
 
   (add-function :before-until (local 'eldoc-documentation-function) #'elm-eldoc)
 
+  (when elm-format-on-save
+    (elm-format-on-save-mode))
   (add-hook 'after-save-hook #'elm-mode-after-save-handler nil t)
 
-  (turn-on-elm-font-lock))
+  (elm--font-lock-enable))
 
 ;; We enable intelligent indenting, but users can remove this from the
 ;; hook if they prefer.

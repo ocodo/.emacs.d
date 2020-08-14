@@ -46,12 +46,12 @@
 (defvar elm-interactive--current-project nil)
 (defvar elm-interactive--process-name "elm")
 (defvar elm-interactive--buffer-name "*elm*")
-(defvar elm-reactor--process-name "elm-reactor")
 (defvar elm-reactor--buffer-name "*elm-reactor*")
 
-(defcustom elm-interactive-command "elm-repl"
-  "The Elm REPL command."
-  :type '(string)
+(defcustom elm-interactive-command '("elm" "repl")
+  "The Elm REPL command.
+For Elm 0.18 and earlier, set this to '(\"elm-repl\")."
+  :type '(repeat string)
   :group 'elm)
 
 (defcustom elm-interactive-arguments '()
@@ -60,16 +60,17 @@
   :group 'elm)
 
 (defvar elm-interactive-prompt-regexp "^[>|] "
-  "Prompt for `run-elm-interactive'.")
+  "Prompt for `elm-interactive'.")
 
-(defcustom elm-reactor-command "elm-reactor"
-  "The Elm Reactor command."
-  :type '(string)
+(defcustom elm-reactor-command '("elm" "reactor")
+  "The Elm Reactor command.
+For Elm 0.18 and earlier, set this to '(\"elm-reactor\")."
+  :type '(repeat string)
   :group 'elm)
 
-(defcustom elm-reactor-port "8000"
+(defcustom elm-reactor-port 8000
   "The Elm Reactor port."
-  :type '(string)
+  :type '(integer)
   :group 'elm)
 
 (defcustom elm-reactor-address "127.0.0.1"
@@ -77,20 +78,22 @@
   :type '(string)
   :group 'elm)
 
-(defcustom elm-reactor-arguments `("-p" ,elm-reactor-port "-a" ,elm-reactor-address)
-  "Command line arguments to pass to the Elm Reactor command."
+(defcustom elm-reactor-arguments `((:eval (format "--port=%s" elm-reactor-port)))
+  "Command line arguments to pass to the Elm Reactor command.
+Args are expanded using `elm--expand-args'."
   :type '(repeat string)
   :group 'elm)
 
 (defvar elm-compile--buffer-name "*elm-make*")
 
-(defcustom elm-compile-command "elm-make"
+(defcustom elm-compile-command '("elm" "make")
   "The Elm compilation command."
-  :type '(string)
+  :type '(repeat string)
   :group 'elm)
 
-(defcustom elm-compile-arguments '("--yes" "--warn" "--output=elm.js")
-  "Command line arguments to pass to the Elm compilation command."
+(defcustom elm-compile-arguments '("--output=elm.js")
+  "Command line arguments to pass to the Elm compilation command.
+For Elm 0.18 and earlier, set this to '(\"--yes\" \"--warn\" \"--output=elm.js\")."
   :type '(repeat string)
   :group 'elm)
 
@@ -129,9 +132,10 @@
 
 (defvar elm-package-buffer-name "*elm-package*")
 
-(defcustom elm-package-command "elm-package"
-  "The Elm package command."
-  :type '(string)
+(defcustom elm-package-command '("elm" "package")
+  "The Elm package command.
+For Elm 0.18 and earler, set this to '(\"elm-package\")."
+  :type '(repeat string)
   :group 'elm)
 
 (defcustom elm-package-arguments '("install" "--yes")
@@ -249,7 +253,7 @@ Stolen from ‘haskell-mode’."
 
 ;;;###autoload
 (define-derived-mode elm-interactive-mode comint-mode "Elm Interactive"
-  "Major mode for `run-elm-interactive'.
+  "Major mode for `elm-interactive'.
 
 \\{elm-interactive-mode-map}"
 
@@ -259,31 +263,28 @@ Stolen from ‘haskell-mode’."
 
   (add-hook 'comint-output-filter-functions #'elm-interactive--spot-prompt nil t)
 
-  (turn-on-elm-font-lock))
+  (elm--font-lock-enable))
 
 ;;;###autoload
-(defun run-elm-interactive ()
+(defun elm-interactive ()
   "Run an inferior instance of `elm-repl' inside Emacs."
   (interactive)
   (elm-interactive-kill-current-session)
   (let* ((default-directory (elm--find-dependency-file-path))
-         (buffer (comint-check-proc elm-interactive--process-name))
-         (origin (point-marker)))
+         (origin (point-marker))
+         (cmd (append (elm--ensure-list elm-interactive-command) elm-interactive-arguments)))
 
     (setq elm-interactive--current-project default-directory)
-
-    (pop-to-buffer
-     (if (or buffer (not (derived-mode-p 'elm-interactive-mode))
-             (comint-check-proc (current-buffer)))
-         (get-buffer-create (or buffer elm-interactive--buffer-name))
-       (current-buffer)))
-
-    (unless buffer
+    (let ((buffer (get-buffer-create elm-interactive--buffer-name)))
       (apply #'make-comint-in-buffer elm-interactive--process-name buffer
-             elm-interactive-command nil elm-interactive-arguments)
-      (elm-interactive-mode))
+             (car cmd) nil (cdr cmd))
+      (with-current-buffer buffer
+        (elm-interactive-mode)
+        (setq-local elm-repl--origin origin))
+      (pop-to-buffer buffer))))
 
-    (setq-local elm-repl--origin origin)))
+;;;###autoload
+(define-obsolete-function-alias 'run-elm-interactive 'elm-interactive "2020-04")
 
 (defun elm-repl-return-to-origin ()
   "Jump back to the location from which we last jumped to the repl."
@@ -303,7 +304,7 @@ of the file specified."
   (interactive)
   (save-buffer)
   (let ((import-statement (elm--build-import-statement)))
-    (run-elm-interactive)
+    (elm-interactive)
     (elm-interactive--send-command ":reset\n")
     (elm-interactive--send-command import-statement)))
 
@@ -313,7 +314,7 @@ of the file specified."
   (interactive "r")
   (let* ((to-push (buffer-substring-no-properties beg end))
          (lines (split-string (s-trim-right to-push) "\n")))
-    (run-elm-interactive)
+    (elm-interactive)
     (dolist (line lines)
       (elm-interactive--send-command (concat line " \\\n")))
     (elm-interactive--send-command "\n")))
@@ -323,32 +324,56 @@ of the file specified."
   "Push the current top level declaration to the REPL."
   (interactive)
   (let ((lines (elm--get-decl)))
-    (run-elm-interactive)
+    (elm-interactive)
     (dolist (line lines)
       (elm-interactive--send-command (concat line " \\\n")))
     (elm-interactive--send-command "\n")))
 
+(defun elm--ensure-list (v)
+  "Return V if it is a list, otherwise a single-element list containing V."
+  (if (consp v)
+      v
+    (list v)))
+
+(defun elm--expand-args (args)
+  "Expand any `(:eval ...)' entries in ARGS by evaluating them."
+  (mapcar (lambda (arg)
+            (pcase arg
+              (`(:eval ,sexp) (eval sexp))
+              (_ arg)))
+          args))
 
 ;;; Reactor:
 ;;;###autoload
-(defun run-elm-reactor ()
+(defun elm-reactor ()
   "Run the Elm reactor process."
   (interactive)
   (let ((default-directory (elm--find-dependency-file-path))
-        (process (get-process elm-reactor--process-name)))
+        (cmd (elm--expand-args (append (elm--ensure-list elm-reactor-command) elm-reactor-arguments))))
+    (with-current-buffer (get-buffer-create elm-reactor--buffer-name)
+      (comint-mode)
+      (ansi-color-for-comint-mode-on)
+      (let ((proc (get-buffer-process (current-buffer))))
+        (if (and proc (process-live-p proc))
+            (progn
+              (message "Restarting elm-reactor")
+              (delete-process proc))
+          (message "Starting elm-reactor")))
 
-    (when process
-      (delete-process process))
+      (let ((proc (apply #'start-process "elm reactor" elm-reactor--buffer-name
+                         (car cmd) (cdr cmd))))
+        (when proc
+          (set-process-filter proc 'comint-output-filter))))))
 
-    (apply #'start-process elm-reactor--process-name elm-reactor--buffer-name
-           elm-reactor-command elm-reactor-arguments)))
+;;;###autoload
+(define-obsolete-function-alias 'run-elm-reactor 'elm-reactor "2020-04")
 
 (defun elm-reactor--browse (path &optional debug)
   "Open (reactor-relative) PATH in browser with optional DEBUG.
 
 Runs `elm-reactor' first."
-  (run-elm-reactor)
-  (browse-url (concat "http://" elm-reactor-address ":" elm-reactor-port "/" path (when debug "?debug"))))
+  (elm-reactor)
+  (browse-url (format "http://localhost:%s/%s%s" elm-reactor-port path (if debug "?debug" ""))))
 
 ;;;###autoload
 (defun elm-preview-buffer (debug)
@@ -374,13 +399,13 @@ Runs `elm-reactor' first."
              (append (cl-remove-if (apply-partially #'string-prefix-p "--output=") elm-compile-arguments)
                      (list (concat "--output=" (expand-file-name output))))
            elm-compile-arguments)))
-    (concat elm-compile-command " "
-            (mapconcat 'shell-quote-argument
-                       (append (list file)
-                               elm-compile-arguments
-                               (when json
-                                 (list "--report=json")))
-                       " "))))
+    (s-join " "
+            (append (elm--ensure-list elm-compile-command)
+                    (mapcar 'shell-quote-argument
+                            (append (list file)
+                                    elm-compile-arguments
+                                    (when json
+                                      (list "--report=json"))))))))
 
 (defun elm-compile--filter ()
   "Filter function for compilation output."
@@ -563,15 +588,18 @@ Each is captured as a group.")
 (defun elm-package--get-marked-install-commands ()
   "Get a list of the commands required to install the marked packages."
   (-map (lambda (package)
-          (concat elm-package-command " " (s-join " " elm-package-arguments) " " package))
+          (s-join " " (append (elm--ensure-list elm-package-command) elm-package-arguments (list package))))
         (elm-package--get-marked-packages)))
 
 (defun elm-package--read-dependencies ()
   "Read the current package's dependencies."
   (setq elm-package--working-dir (elm--find-dependency-file-path))
   (let-alist (elm--read-dependency-file)
-    (setq elm-package--dependencies (-map (lambda (dep) (symbol-name (car dep)))
-                                          .dependencies))))
+    (setq elm-package--dependencies
+          (-map (lambda (dep) (symbol-name (car dep)))
+                (if (consp .dependencies.direct)
+                    (append .dependencies.direct .dependencies.indirect)
+                  .dependencies)))))
 
 (defun elm-package--read-json (uri)
   "Read a JSON file from a URI."
@@ -595,22 +623,18 @@ Each is captured as a group.")
 (defun elm-package-refresh-package (package version)
   "Refresh the cache for PACKAGE with VERSION."
   (let ((documentation-uri
-         (elm-package--build-uri "packages" package version "documentation.json")))
+         (elm-package--build-uri "packages" package version "docs.json")))
     (setq elm-package--cache
           (cons `(,package . ,(elm-package--read-json documentation-uri))
                 elm-package--cache))))
 
 (defun elm-package-latest-version (package)
   "Get the latest version of PACKAGE."
-  (let ((package (-find (lambda (p)
-                          (let-alist p
-                            (equal .name package)))
-                        elm-package--contents)))
-
-    (if (not package)
+  (let ((entry (assoc (intern-soft package) elm-package--contents)))
+    (if (not entry)
         (error "Package not found")
-      (let-alist package
-        (elt .versions 0)))))
+      (let ((versions (cdr entry)))
+        (elt versions 0)))))
 
 (defun elm-package--ensure-cached (package)
   "Ensure that PACKAGE has been cached."
@@ -803,6 +827,43 @@ EXPOSING"
           name
         (concat (or .as module-name) suffix)))))
 
+;;;###autoload
+(defun elm-expose-at-point ()
+  "Exposes identifier at point."
+  (interactive)
+  (save-excursion
+    ;; If already at the beginning of defun then
+    ;; elm-beginning-of-defun will go to previous defun.  Thus we go
+    ;; to the beginning of next defun and come back to make sure we
+    ;; will arrive at correct place.
+    (elm-end-of-defun)
+    (elm-beginning-of-defun)
+    (let* (case-fold-search
+           (expose (cond
+                    ((looking-at (rx "type" (+ space) "alias" (+ space)))
+                     (goto-char (match-end 0))
+                     (word-at-point))
+                    ((looking-at (rx "type" (+ space)))
+                     (goto-char (match-end 0))
+                     (concat (word-at-point)
+                             (if (y-or-n-p "Expose constructors? ")
+                                 "(..)"
+                               "")))
+                    ((or (looking-at (rx (or "port" "module" "import") (+ space)))
+                         (null (word-at-point)))
+                     (user-error "No identifier at point"))
+                    (t (word-at-point)))))
+      (goto-char (point-min))
+      (if (re-search-forward (rx bol "module" (+ (or space))
+                                 upper (* (or word (syntax symbol)))
+                                 (+ (any space ?\n)) "exposing" (+ (any space ?\n)) "(")
+                             nil t)
+          (progn
+            (goto-char (match-end 0))
+            (insert expose)
+            (when (looking-at (rx (* (any space ?\n)) word))
+              (insert ", ")))
+        (error "Couldn't find module declaration")))))
 
 (defun elm-documentation--show (documentation)
   "Show DOCUMENTATION in a help buffer."
@@ -886,7 +947,7 @@ EXPOSING"
 (defun elm-oracle--function-at-point ()
   "Get the name of the function at point."
   (save-excursion
-    (skip-chars-forward "[A-Za-z0-9_.']")
+    (skip-chars-forward "A-Za-z0-9_.'")
     (let* ((_ (re-search-backward elm-oracle--pattern nil t))
            (beg (1+ (match-beginning 0)))
            (end (match-end 0))
@@ -955,7 +1016,7 @@ elm-specific `completion-at-point' function."
                #'elm-oracle-completion-at-point-function))
 
 (defvar ac-sources)
-(defvar ac-source-elm
+(defvar elm-ac-source
   `((candidates . (elm-oracle--get-completions ac-prefix t))
     (prefix . ,elm-oracle--pattern)))
 
@@ -963,25 +1024,28 @@ elm-specific `completion-at-point' function."
 (defun elm-oracle-setup-ac ()
   "Set up auto-complete support.
 Add this function to your `elm-mode-hook'."
-  (add-to-list 'ac-sources 'ac-source-elm))
+  (add-to-list 'ac-sources 'elm-ac-source))
 
 
 (declare-function company-begin-backend "company")
 (declare-function company-doc-buffer "company")
 
 ;;;###autoload
-(defun company-elm (command &optional arg &rest ignored)
+(defun elm-company (command &optional arg &rest ignored)
   "Provide completion info according to COMMAND and ARG.  IGNORED is not used."
   (interactive (list 'interactive))
   (when (derived-mode-p 'elm-mode)
     (cl-case command
-      (interactive (company-begin-backend 'company-elm))
+      (interactive (company-begin-backend 'elm-company))
       (sorted t)
       (prefix (elm-oracle--completion-prefix-at-point))
       (doc-buffer (elm-company--docbuffer arg))
       (candidates (cons :async (apply-partially #'elm-company--candidates arg)))
       (annotation (elm-company--signature arg))
       (meta (elm-company--meta arg)))))
+
+;;;###autoload
+(define-obsolete-function-alias 'company-elm 'elm-company "2020-04")
 
 (defun elm-company--candidates (prefix &optional callback)
   "Function providing candidates for company-mode for given PREFIX.
@@ -1074,15 +1138,16 @@ Completions are in the same format as those returned by
 
 (defun elm-oracle--run (prefix &optional file)
   "Get completions for PREFIX inside FILE."
-  (let ((default-directory (elm--find-dependency-file-path))
-        (command (s-join " " (list elm-oracle-command
-                                   (shell-quote-argument file)
-                                   (shell-quote-argument prefix))))
-        (json-array-type 'list))
-    (seq-uniq
-     (json-read-from-string (shell-command-to-string command))
-     (lambda (i1 i2)
-       (string-equal (alist-get 'fullName i1) (alist-get 'fullName i2))))))
+  (when (executable-find elm-oracle-command)
+    (let ((default-directory (elm--find-dependency-file-path))
+          (command (s-join " " (list elm-oracle-command
+                                     (shell-quote-argument file)
+                                     (shell-quote-argument prefix))))
+          (json-array-type 'list))
+      (seq-uniq
+       (json-read-from-string (shell-command-to-string command))
+       (lambda (i1 i2)
+         (string-equal (alist-get 'fullName i1) (alist-get 'fullName i2)))))))
 
 ;;;###autoload
 (defun elm-test-project ()

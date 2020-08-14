@@ -6,10 +6,6 @@
 
 ;; Author: 1997-1998 Guy Lapalme <lapalme@iro.umontreal.ca>
 
-;; Keywords: indentation Elm layout-rule
-;; Version: 1.2
-;; URL: http://www.iro.umontreal.ca/~lapalme/layout/index.html
-
 ;; This file is not part of GNU Emacs.
 
 ;; This file was adapted from `haskell-indent.el'.
@@ -30,9 +26,7 @@
 ;;; Commentary:
 ;;; Code:
 (require 's)
-
-(with-no-warnings
-  (require 'cl))
+(require 'cl-lib)
 
 
 ;;; Customizations
@@ -420,7 +414,7 @@ Returns the location of the start of the comment, nil otherwise."
             (if (string-match "\\<type\\>" valname-string)
                 (elm-indent-push-pos-offset valname)
               (elm-indent-push-pos-offset valname 0)))
-        (case                           ; general case
+        (cl-case                           ; general case
             (elm-indent-find-case test)
           ;; "1.1.11"   1= vn gd rh arh
           (1 (elm-indent-push-pos valname)
@@ -469,9 +463,9 @@ Returns the location of the start of the comment, nil otherwise."
               (if last-line (elm-indent-push-pos-offset guard)))
           ;; "001100"  11= gd agd
           (11 (if (elm-indent-no-otherwise guard)
-		  (if (elm-indent-union-operator-p guard)
-		      (elm-indent-push-pos guard "| ")
-		      (elm-indent-push-pos guard "|> ")))
+                  (if (elm-indent-union-operator-p guard)
+                      (elm-indent-push-pos guard "| ")
+                    (elm-indent-push-pos guard "|> ")))
               (elm-indent-push-pos aft-guard))
           ;; "001000"  12= gd
           (12 (if (elm-indent-no-otherwise guard) (elm-indent-push-pos guard "|> "))
@@ -498,8 +492,6 @@ Returns the location of the start of the comment, nil otherwise."
          (rhs-sign (pop sep))
          (aft-rhs-sign (pop sep))
          (last-line (= end end-visible))
-         (is-where
-          (string-match "where[ \t]*" elm-indent-current-line-first-ident))
          (diff-first                 ; not a function def with the same name
           (or (null valname-string)
               (not (string= (s-trim valname-string)
@@ -527,37 +519,27 @@ Returns the location of the start of the comment, nil otherwise."
                   (elm-indent-push-pos-offset valname))))
         (if (string= elm-indent-current-line-first-ident ":")
             (if valname (elm-indent-push-pos valname))
-          (case                         ; general case
+          (cl-case                         ; general case
               (elm-indent-find-case test)
             ;; "1.1.11"   1= vn gd rh arh
-            (1 (if is-where
-                   (elm-indent-push-pos guard)
-                 (elm-indent-push-pos valname)
-                 (if diff-first (elm-indent-push-pos aft-rhs-sign))))
+            (1 (elm-indent-push-pos valname)
+               (if diff-first (elm-indent-push-pos aft-rhs-sign)))
             ;; "1.1.10"   2= vn gd rh
-            (2 (if is-where
-                   (elm-indent-push-pos guard)
-                 (elm-indent-push-pos valname)
-                 (if last-line
-                     (elm-indent-push-pos-offset guard))))
+            (2 (elm-indent-push-pos valname)
+               (if last-line
+                   (elm-indent-push-pos-offset guard)))
             ;; "1.1100"   3= vn gd agd
-            (3 (if is-where
-                   (elm-indent-push-pos-offset guard)
-                 (elm-indent-push-pos valname)
-                 (if diff-first
-                     (elm-indent-push-pos aft-guard))))
+            (3 (elm-indent-push-pos valname)
+               (if diff-first
+                   (elm-indent-push-pos aft-guard)))
             ;; "1.1000"   4= vn gd
-            (4 (if is-where
-                   (elm-indent-push-pos guard)
-                 (elm-indent-push-pos valname)
-                 (if last-line
-                     (elm-indent-push-pos-offset guard 2))))
+            (4 (elm-indent-push-pos valname)
+               (if last-line
+                   (elm-indent-push-pos-offset guard 2)))
             ;; "1.0011"   5= vn rh arh
-            (5 (if is-where
-                   (elm-indent-push-pos-offset valname)
-                 (elm-indent-push-pos valname)
-                 (if diff-first
-                     (elm-indent-push-pos aft-rhs-sign))))
+            (5 (elm-indent-push-pos valname)
+               (if diff-first
+                   (elm-indent-push-pos aft-rhs-sign)))
             ;; "1.0010"   6= vn rh
             (6 (elm-indent-push-pos valname)
                (elm-indent-push-pos valname valname-string)
@@ -569,19 +551,13 @@ Returns the location of the start of the comment, nil otherwise."
             (8 (elm-indent-push-pos valname)
                (elm-indent-push-pos-offset valname))
             ;; "001.11"   9= gd rh arh
-            (9 (if is-where
-                   (elm-indent-push-pos guard)
-                 (elm-indent-push-pos aft-rhs-sign)))
+            (9 (elm-indent-push-pos aft-rhs-sign))
             ;; "001.10"  10= gd rh
-            (10 (if is-where
-                    (elm-indent-push-pos guard)
-                  (if last-line
-                      (elm-indent-push-pos-offset guard))))
+            (10 (if last-line
+                    (elm-indent-push-pos-offset guard)))
             ;; "001100"  11= gd agd
-            (11 (if is-where
-                    (elm-indent-push-pos guard)
-                  (if (elm-indent-no-otherwise guard)
-                      (elm-indent-push-pos aft-guard))))
+            (11 (if (elm-indent-no-otherwise guard)
+                    (elm-indent-push-pos aft-guard)))
             ;; "001000"  12= gd
             (12 (if last-line (elm-indent-push-pos-offset guard 2)))
             ;; "000011"  13= rh arh
@@ -616,7 +592,7 @@ than an identifier, a guard or rhs."
       (if (and valname-string           ; special case for start keywords
                (string-match elm-indent-start-keywords-re valname-string))
           (elm-indent-push-pos-offset valname)
-        (case                           ; general case
+        (cl-case                           ; general case
             (elm-indent-find-case test)
           ;; "1.1.11"   1= vn gd rh arh
           (1 (elm-indent-push-pos aft-rhs-sign))
@@ -664,13 +640,13 @@ than an identifier, a guard or rhs."
   "Find indentation information for a value definition."
   (let ((elm-indent-info indent-info))
     (if (< start end-visible)
-        (case curr-line-type
-          (empty (elm-indent-empty start end end-visible indent-info))
-          (ident (elm-indent-ident start end end-visible indent-info))
-          (guard (elm-indent-guard start end end-visible indent-info))
-          (rhs   (elm-indent-rhs start end end-visible indent-info))
-          (comment (error "Comment indent should never happen"))
-          (other (elm-indent-other start end end-visible indent-info)))
+        (cl-case curr-line-type
+          ('empty (elm-indent-empty start end end-visible indent-info))
+          ('ident (elm-indent-ident start end end-visible indent-info))
+          ('guard (elm-indent-guard start end end-visible indent-info))
+          ('rhs   (elm-indent-rhs start end end-visible indent-info))
+          ('comment (error "Comment indent should never happen"))
+          ('other (elm-indent-other start end end-visible indent-info)))
       elm-indent-info)))
 
 (defun elm-indent-line-indentation (line-start line-end end-visible
@@ -680,7 +656,7 @@ Separate a line of program into valdefs between offside keywords
 and find indentation info for each part."
   (save-excursion
     ;; point is (already) at line-start
-    (assert (eq (point) line-start))
+    (cl-assert (eq (point) line-start))
     (let ((elm-indent-info indent-info)
           (start (or (elm-indent-in-comment line-start line-end)
                      (elm-indent-in-string line-start line-end))))
@@ -723,15 +699,13 @@ and find indentation info for each part."
               ((sep
                 (elm-indent-separate-valdef
                  (point) (line-end-position))))
-            ;; if the first ident is where or the start of a def
+            ;; if the first ident is the start of a def
             ;; keep it in a global variable
             (setq elm-indent-current-line-first-ident
-                  (if (string-match "where[ \t]*" (nth 1 sep))
-                      (nth 1 sep)
-                    (if (nth 5 sep)              ; is there a rhs-sign
-                        (if (= (char-after (nth 5 sep)) ?\:) ;is it a typdef
-                            ":" (nth 1 sep))
-                      "")))))
+                  (if (nth 5 sep)              ; is there a rhs-sign
+                      (if (= (char-after (nth 5 sep)) ?\:) ;is it a typdef
+                          ":" (nth 1 sep))
+                    ""))))
       (while contour-line               ; explore the contour points
         (setq line-start (pop contour-line))
         (goto-char line-start)
@@ -836,7 +810,7 @@ OPEN is the start position of the comment in which point is."
 (defun elm-indent-closing-keyword (start)
   (let ((open (save-excursion
                 (elm-indent-find-matching-start
-                 (case (char-after)
+                 (cl-case (char-after)
                    (?i "\\<\\(?:\\(in\\)\\|let\\)\\>")
                    (?o "\\<\\(?:\\(of\\)\\|case\\)\\>")
                    (?t "\\<\\(?:\\(then\\)\\|if\\)\\>")
@@ -1175,7 +1149,7 @@ TYPE is either 'guard or 'rhs."
               (let ((eqn (caar eqns-start)))
                 (setq lastpos (if (cdr eqns-start)
                                   (save-excursion
-                                    (goto-char (caadr eqns-start))
+                                    (goto-char (cl-caadr eqns-start))
                                     (forward-line -1)
                                     (line-end-position))
                                 end-block))
@@ -1254,13 +1228,6 @@ Invokes `elm-indent-hook' if not nil."
         (set (make-local-variable 'indent-region-function) 'elm-indent-region))
     (kill-local-variable 'indent-line-function)
     (kill-local-variable 'indent-region-function)))
-
-;;;###autoload
-(define-obsolete-function-alias 'turn-on-elm-indent 'elm-indent-mode)
-
-(defun turn-off-elm-indent ()
-  "Turn off ``intelligent'' Elm indentation mode."
-  (elm-indent-mode nil))
 
 
 (provide 'elm-indent)
