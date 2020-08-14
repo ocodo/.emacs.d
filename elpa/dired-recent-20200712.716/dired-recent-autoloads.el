@@ -10,9 +10,7 @@
 ;;; Generated autoloads from dired-recent.el
 
 (autoload 'dired-recent-open "dired-recent" "\
-Show the dired history.  See: `dired-recent-mode'.
-
-\(fn)" t nil)
+Show the dired history.  See: `dired-recent-mode'." t nil)
 
 (defvar dired-recent-mode nil "\
 Non-nil if Dired-Recent mode is enabled.
