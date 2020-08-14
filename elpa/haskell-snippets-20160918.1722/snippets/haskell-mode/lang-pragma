@@ -1,9 +1,0 @@
-# -*- mode: snippet -*-
-# key: lang
-# name: language extension pragma
-# condition: (= (length "lang") (current-column))
-# contributor: Luke Hoersten <luke@hoersten.org>
-# --
-{-# LANGUAGE `(when (boundp 'haskell-ghc-supported-extensions)
-                (cl-some #'(lambda (fn) (funcall fn "Extension: " haskell-ghc-supported-extensions))
-                      yas-prompt-functions))` #-}
