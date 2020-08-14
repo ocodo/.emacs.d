@@ -1,10 +1,7 @@
-;;; caml-autoloads.el --- automatically extracted autoloads
-;;
+;;; caml-mode-site-file.el --- Automatically extracted autoloads.
 ;;; Code:
-
-(add-to-list 'load-path (directory-file-name
-                         (or (file-name-directory #$) (car load-path))))
-
+(add-to-list 'load-path
+             (or (file-name-directory load-file-name) (car load-path)))
 
 ;;;### (autoloads nil "caml" "caml.el" (0 0 0 0))
 ;;; Generated autoloads from caml.el
@@ -87,15 +84,7 @@ the camldebug commands `cd DIR' and `directory'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("caml-compat.el" "caml-pkg.el") (0 0 0
-;;;;;;  0))
+;;;### (autoloads nil nil ("caml-compat.el") (0 0 0 0))
 
 ;;;***
 
-;; Local Variables:
-;; version-control: never
-;; no-byte-compile: t
-;; no-update-autoloads: t
-;; coding: utf-8
-;; End:
-;;; caml-autoloads.el ends here

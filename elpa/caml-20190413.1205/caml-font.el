@@ -30,11 +30,6 @@
     (set-face-foreground 'caml-font-doccomment-face "Red")
     'caml-font-doccomment-face))
 
-(unless (facep 'font-lock-preprocessor-face)
-  (defvar font-lock-preprocessor-face
-    (copy-face 'font-lock-builtin-face
-               'font-lock-preprocessor-face)))
-
 (defconst caml-font-lock-keywords
   `(
 ;modules and constructors
@@ -165,7 +160,7 @@
 ; match any char token
 (defconst caml-font-char-re
   (concat "'\\(\015\012\\|[^\\']\\|"
-          "\\(\\\\\\([\\'\"ntbr ]\\|[0-9][0-9][0-9]"
+          "\\(\\\\\\([\\'\"ntbr ]\\|[0-9][0-9][0-9]\\|o[0-3][0-7][0-7]"
                     "\\|x[0-9A-Fa-f][0-9A-Fa-f]\\)\\)\\)'")
 )
 
@@ -189,7 +184,7 @@
 ; match any sequence of non-special characters in a comment
 ; note: this is only to go faster than one character at a time
 (defconst caml-font-other-comment-re
-  "[^{(*\"'\012\015]+"
+  "[^A-Za-z_\300-\326\330-\366\370-\377{(*\"'\012\015]+"
 )
 
 ; match any sequence of non-special characters in a string
@@ -304,6 +299,8 @@
          ((looking-at caml-font-newline-re)
           (goto-char (match-end 0))
           (setq continue (caml-font-put-state (match-end 0) (cons nil depth))))
+         ((caml-font-looking-at caml-font-ident-re)
+          (goto-char (match-end 0)))
          ((caml-font-looking-at caml-font-other-comment-re)
           (goto-char (match-end 0)))
          (t
