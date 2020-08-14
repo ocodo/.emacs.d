@@ -1,12 +1,12 @@
-;;; color-theme-sanityinc-solarized.el --- A version of Ethan Schoonover's Solarized themes
+;;; color-theme-sanityinc-solarized.el --- A version of Ethan Schoonover's Solarized themes  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011-2014 Steve Purcell
 
 ;; Author: Steve Purcell <steve@sanityinc.com>
-;; Keywords: themes
-;; X-URL: http://github.com/purcell/color-theme-sanityinc-solarized
-;; URL: http://github.com/purcell/color-theme-sanityinc-solarized
-;; Version: {{VERSION}}
+;; Keywords: faces themes
+;; Homepage: https://github.com/purcell/color-theme-sanityinc-solarized
+;; Package-Requires: ((emacs "24.1") (cl-lib "0.6"))
+;; Version: 0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 
 (defgroup color-theme-sanityinc-solarized nil
   "The sanityinc solarized theme pair."
@@ -65,6 +65,7 @@
         ns-use-srgb-colorspace))
   "Indicates whether RGB triplets are treated as sRGB by the host Emacs.
 Set this to t if using the sRGB patch on OS X."
+  :type 'boolean
   :group 'color-theme-sanityinc-solarized)
 
 ;; name     sRGB      Gen RGB   256       16              8
@@ -87,6 +88,9 @@ Set this to t if using the sRGB patch on OS X."
 
 (defmacro color-theme-sanityinc-solarized--with-colors (mode &rest body)
   "Execute `BODY' in a scope with variables bound to the various solarized colors.
+
+Also sets background-mode to either 'light or 'dark, for use in
+setting `frame-background-mode'.
 
 `MODE' should be set to either 'light or 'dark."
   ;; These are the Generic RGB equivalents of the "official" sRGB hex values
@@ -111,7 +115,7 @@ Set this to t if using the sRGB patch on OS X."
           (backgrounds (list base03 base02))
           (contrast-backgrounds (list base3 base2)))
      (when (eq 'light ,mode)
-       (rotatef backgrounds contrast-backgrounds)
+       (cl-rotatef backgrounds contrast-backgrounds)
        (setq foregrounds (reverse foregrounds)))
      (let ((background (nth 0 backgrounds))
            (alt-background (nth 1 backgrounds))
@@ -119,8 +123,9 @@ Set this to t if using the sRGB patch on OS X."
            (normal (nth 1 foregrounds))
            (faint (nth 2 foregrounds))
            (faintest (nth 3 foregrounds))
-           (contrast-background (nth 1 contrast-backgrounds))
-           (class '((class color) (min-colors 89))))
+           (contrast-background (nth 0 contrast-backgrounds))
+           (class '((class color) (min-colors 89)))
+           (background-mode ,mode))
        ,@body)))
 
 (defmacro color-theme-sanityinc-solarized--face-specs ()
@@ -154,22 +159,47 @@ names to which it refers are bound."
       (font-lock-type-face (:foreground ,blue))
       (font-lock-variable-name-face (:foreground ,violet))
       (font-lock-warning-face (:weight bold :foreground ,red))
-      (shadow (:foreground ,(fourth foregrounds)))
+      (shadow (:foreground ,(cl-fourth foregrounds)))
       (success (:foreground ,green))
       (error (:foreground ,red))
       (warning (:foreground ,orange))
+
+      ;; window-divider
+      (window-divider (:foreground ,faintest))
+      (window-divider-first-pixel (:foreground ,contrast-background))
+      (window-divider-last-pixel (:foreground ,contrast-background))
+
+      ;; ace-window
+      (aw-background-face (:foreground ,contrast-background))
+      (aw-leading-char-face (:foreground ,yellow))
+
+      ;; avy
+      (avy-background-face (:foreground ,contrast-background))
+      (avy-lead-face (:foreground ,background :background ,yellow))
+      (avy-lead-face-0 (:foreground ,background :background ,blue))
+      (avy-lead-face-1 (:foreground ,background :background ,cyan))
+      (avy-lead-face-2 (:foreground ,background :background ,green))
 
       ;; Flycheck
       (flycheck-error (:underline (:style wave :color ,red)))
       (flycheck-info (:underline (:style wave :color ,cyan)))
       (flycheck-warning (:underline (:style wave :color ,yellow)))
-      (flycheck-fringe-error (:foreground ,red :background ,red))
-      (flycheck-fringe-info (:foreground ,cyan :background ,cyan))
-      (flycheck-fringe-warning (:foreground ,yellow :background ,orange))
+      (flycheck-fringe-error (:foreground ,red))
+      (flycheck-fringe-info (:foreground ,cyan))
+      (flycheck-fringe-warning (:foreground ,yellow))
+      (flycheck-color-mode-line-error-face (:foreground ,red))
+      (flycheck-color-mode-line-warning-face (:foreground ,yellow))
+      (flycheck-color-mode-line-info-face (:foreground ,cyan))
+      (flycheck-color-mode-line-running-face (:foreground ,faintest))
+      (flycheck-color-mode-line-success-face (:foreground ,green))
 
       ;; Flymake
-      (flymake-warnline (:underline (:style wave :color ,yellow) :background ,background))
-      (flymake-errline (:underline (:style wave :color ,red) :background ,background))
+      (flymake-error (:underline (:style wave :color ,red)))
+      (flymake-note (:underline (:style wave :color ,cyan)))
+      (flymake-warning (:underline (:style wave :color ,yellow)))
+
+      ;; Flyspell
+      (flyspell-incorrect (:underline (:style wave :color ,red)))
 
       ;; Clojure errors
       (clojure-test-failure-face (:background nil :inherit flymake-warnline))
@@ -211,13 +241,17 @@ names to which it refers are bound."
       ;; Search
       (match (:foreground ,blue :background ,background :inverse-video t))
       (isearch (:foreground ,yellow :background ,background :inverse-video t))
-      (isearch-lazy-highlight-face (:foreground ,cyan :background ,background :inverse-video t))
+      (lazy-highlight (:foreground ,cyan :background ,background :inverse-video t))
       (isearch-fail (:background ,background :inherit font-lock-warning-face :inverse-video t))
 
       ;; Anzu
       (anzu-mode-line (:foreground ,orange))
+      (anzu-mode-line-no-match (:foreground ,red))
       (anzu-replace-highlight (:inherit isearch-lazy-highlight-face))
       (anzu-replace-to (:inherit isearch))
+      (anzu-match-1 (:foreground ,cyan ))
+      (anzu-match-2 (:foreground ,yellow))
+      (anzu-match-3 (:foreground ,blue))
 
       ;; IDO
       (ido-subdir (:foreground ,magenta))
@@ -228,31 +262,48 @@ names to which it refers are bound."
 
       (flx-highlight-face (:inherit nil :foreground ,cyan :weight normal :underline nil))
 
+      ;; Ivy
+      (ivy-action (:foreground ,violet))
+      (ivy-confirm-face (:foreground ,green))
+      (ivy-current-match (:foreground ,yellow :inherit highlight :underline t))
+      (ivy-cursor (:background ,alt-background))
+      (ivy-match-required-face (:foreground ,red :background ,background))
+      (ivy-remote (:foreground ,orange))
+      (ivy-subdir (:foreground ,magenta))
+      (ivy-virtual (:foreground ,faintest))
+      (ivy-minibuffer-match-face-1 (:foreground ,cyan))
+      (ivy-minibuffer-match-face-2 (:foreground ,orange))
+      (ivy-minibuffer-match-face-3 (:foreground ,blue))
+      (ivy-minibuffer-match-face-4 (:foreground ,green))
+
       ;; which-function
       (which-func (:foreground ,blue :background nil :weight bold))
 
       ;; Emacs interface
-      (cursor (:background ,strong))
-      (fringe (:background ,alt-background :foreground ,normal))
-      (linum (:background ,alt-background :foreground ,green :italic nil))
-      (border (:background ,alt-background))
+      (cursor (:background ,magenta))
+      (fringe (:background ,alt-background :foreground ,faintest))
+      (linum (:background ,alt-background :foreground ,faintest :italic nil :underline nil))
+      (line-number (:background ,alt-background :foreground ,faintest))
+      (line-number-current-line (:inherit line-number :foreground ,normal :weight bold))
+      (vertical-border (:foreground ,faintest))
+      (border (:background ,alt-background :foreground ,faintest))
       (border-glyph (nil))
       (highlight (:inverse-video nil :background ,alt-background))
-      (gui-element (:background ,alt-background :foreground ,normal))
-      (mode-line (:foreground nil :background ,alt-background :weight normal
+      (gui-element (:background ,contrast-background :foreground ,normal))
+      (mode-line (:foreground ,strong :background ,alt-background :weight normal
                               :box (:line-width 1 :color ,normal)))
       (mode-line-buffer-id (:foreground ,magenta :background nil))
       (mode-line-inactive (:inherit mode-line
                                     :foreground ,faintest
                                     :background ,alt-background :weight normal
-                                    :box (:line-width 1 :color ,normal)))
-      (mode-line-emphasis (:foreground ,strong))
-      (mode-line-highlight (:foreground ,magenta :box nil :weight bold))
+                                    :box (:line-width 1 :color ,faintest)))
+      (mode-line-emphasis (:slant italic))
+      (mode-line-highlight (:foreground ,violet :box nil :weight bold))
       (minibuffer-prompt (:foreground ,blue))
-      (region (:foreground ,strong :inverse-video t))
+      (region (:background ,contrast-background :inverse-video nil))
       (secondary-selection (:background ,alt-background))
 
-      (header-line (:inherit mode-line :foreground ,magenta :background nil))
+      (header-line (:inherit mode-line-inactive :foreground ,cyan :background nil))
       (trailing-whitespace (:background ,red :underline nil))
 
       ;; Parenthesis matching (built-in)
@@ -487,6 +538,7 @@ names to which it refers are bound."
       (hl-sexp-face (:background ,alt-background))
       (highlight-symbol-face (:inherit isearch-lazy-highlight-face))
       (highlight-80+ (:background ,alt-background))
+      (symbol-overlay-temp-face (:inherit highlight))
 
       ;; Python-specific overrides
       (py-builtins-face (:foreground ,orange :weight normal))
@@ -723,7 +775,7 @@ in a scope in which the various color names to which it refers
 are bound."
   (quote
    `(((background-color . ,background)
-      (background-mode . light)
+      (background-mode . ,background-mode)
       (border-color . ,normal)
       (cursor-color . ,magenta)
       (foreground-color . ,normal)
@@ -744,6 +796,8 @@ Argument MODE: 'light or 'dark"
                (color-theme-sanityinc-solarized--face-specs))
         (custom-theme-set-variables
          ',name
+         `(frame-background-mode ',background-mode)
+         `(beacon-color ,magenta)
          `(fci-rule-color ,alt-background)
          `(vc-annotate-color-map
            '((20 . ,red)
@@ -766,6 +820,7 @@ Argument MODE: 'light or 'dark"
              (360 . ,orange)))
          `(vc-annotate-very-old-color nil)
          `(vc-annotate-background nil)
+         `(flycheck-color-mode-line-face-to-color 'mode-line-buffer-id)
          `(ansi-color-names-vector (vector ,normal ,red ,green ,yellow ,blue ,magenta ,cyan ,contrast-background))
          '(ansi-color-faces-vector [default bold shadow italic underline bold bold-italic bold])))
        (provide-theme ',name))))

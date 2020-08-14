@@ -13,14 +13,10 @@
 (when (boundp 'custom-theme-load-path) (add-to-list 'custom-theme-load-path (file-name-as-directory (file-name-directory load-file-name))))
 
 (autoload 'color-theme-sanityinc-solarized-dark "color-theme-sanityinc-solarized" "\
-Apply the dark solarized theme.
-
-\(fn)" t nil)
+Apply the dark solarized theme." t nil)
 
 (autoload 'color-theme-sanityinc-solarized-light "color-theme-sanityinc-solarized" "\
-Apply the light solarized theme.
-
-\(fn)" t nil)
+Apply the light solarized theme." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "color-theme-sanityinc-solarized" '("color-theme-sanityinc-solarized")))
 
