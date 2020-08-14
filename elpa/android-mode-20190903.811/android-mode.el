@@ -5,8 +5,9 @@
 ;; Author: R.W. van 't Veer
 ;; Created: 20 Feb 2009
 ;; Keywords: tools processes
-;; Package-Version: 20181016.709
-;; Version: 0.5.1
+;; Package-Version: 20190903.811
+;; Package-Commit: d5332e339a1f5e30559a53feffb8442ca79265d6
+;; Version: 0.5.2
 ;; URL: https://github.com/remvee/android-mode
 
 ;; Contributors:
@@ -22,6 +23,7 @@
 ;;   Haden Pike
 ;;   Camilo QS
 ;;   Jonathan Schmeling
+;;   Kawin Nikomborirak
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License
@@ -67,7 +69,7 @@ available."
   :type 'string
   :group 'android-mode)
 
-(defcustom android-mode-sdk-tool-subdirs '("tools" "platform-tools")
+(defcustom android-mode-sdk-tool-subdirs '("emulator" "tools" "platform-tools")
   "List of subdirectors in the SDK containing commandline tools."
   :type '(repeat string)
   :group 'android-mode)
@@ -87,8 +89,8 @@ sure that a corresponding entry exists in
   :group 'android-mode)
 
 (defcustom android-mode-root-file-plist '(ant "AndroidManifest.xml"
-                                          maven  "AndroidManifest.xml"
-                                          gradle "gradlew")
+                                              maven  "AndroidManifest.xml"
+                                              gradle "gradlew")
   "Plist of mapping between different builders and the file that
   signifies the root of a project that uses that builder."
   :type '(plist :key-type symbol
@@ -235,9 +237,12 @@ environment value otherwise the `android-mode-sdk-dir' variable."
 (defun android-start-exclusive-command (name command &rest args)
   "Run COMMAND named NAME with ARGS unless it's already running."
   (and (not (cl-find (intern name) android-exclusive-processes))
-       (set-process-sentinel (apply #'start-process-shell-command name name
-                                    (shell-quote-argument command)
-                                    (mapcar #'shell-quote-argument args))
+       (set-process-sentinel (start-process-shell-command name name
+                                                          (concat command
+                                                                  " "
+                                                                  (mapconcat #'shell-quote-argument
+                                                                             args
+                                                                             " ")))
                              (lambda (proc msg)
                                (when (memq (process-status proc) '(exit signal))
                                  (setq android-exclusive-processes
@@ -296,7 +301,9 @@ environment value otherwise the `android-mode-sdk-dir' variable."
   (let ((avd (or (and (not (string= android-mode-avd "")) android-mode-avd)
                  (completing-read "Android Virtual Device: " (android-list-avd)))))
     (unless (android-start-exclusive-command (concat "*android-emulator-" avd "*")
-                                             (concat (android-tool-path "emulator") " -avd " avd))
+                                             (android-tool-path "emulator")
+                                             "-avd"
+                                             avd)
       (message (concat "emulator " avd " already running")))))
 
 (defun android-start-ddms ()
@@ -543,7 +550,7 @@ logs"
 (defmacro android-defun-ant-task (task)
   `(defun ,(intern (concat "android-ant-"
                            (replace-regexp-in-string "[[:space:]]" "-" task)))
-     ()
+       ()
      ,(concat "Run 'ant " task "' in the project root directory.")
      (interactive)
      (android-ant ,task)))
@@ -558,7 +565,7 @@ logs"
 (defmacro android-defun-maven-task (task)
   `(defun ,(intern (concat "android-maven-"
                            (replace-regexp-in-string "[[:space:]:]" "-" task)))
-     ()
+       ()
      ,(concat "Run maven " task " in the project root directory.")
      (interactive)
      (android-maven ,task)))
