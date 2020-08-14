@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/homebrew-mode-20200205.224/homebrew-mode.el  -*- no-byte-compile: t -*-
+(define-package "homebrew-mode" "20200205.224" "minor mode for editing Homebrew formulae" '((emacs "24.4") (inf-ruby "2.4.0") (dash "1.2.0")) :commit "8c04b040656dc99719efd7663c10f26f74df4a47" :keywords '("homebrew" "brew" "ruby") :authors '(("Alex Dunn" . "dunn.alex@gmail.com")) :maintainer '("Alex Dunn" . "dunn.alex@gmail.com") :url "https://github.com/dunn/homebrew-mode")

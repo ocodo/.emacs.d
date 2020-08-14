@@ -1,11 +1,12 @@
 ;;; homebrew-mode.el --- minor mode for editing Homebrew formulae
 
-;; Copyright (C) 2015, 2016 Alex Dunn
+;; Copyright (C) 2020 Alex Dunn
 
 ;; Author: Alex Dunn <dunn.alex@gmail.com>
 ;; URL: https://github.com/dunn/homebrew-mode
-;; Package-Version: 20160615.1320
-;; Version: 1.3.6
+;; Package-Version: 20200205.224
+;; Package-Commit: 8c04b040656dc99719efd7663c10f26f74df4a47
+;; Version: 2.0.0
 ;; Package-Requires: ((emacs "24.4") (inf-ruby "2.4.0") (dash "1.2.0"))
 ;; Keywords: homebrew brew ruby
 ;; Prefix: homebrew
@@ -100,7 +101,7 @@
 
 ;; Version string
 
-(defconst homebrew-mode-version "1.3.6")
+(defconst homebrew-mode-version "2.0.0")
 
 ;; Custom variables
 
@@ -164,8 +165,7 @@ If you edit this variable, make sure the new value passes the formula-detection 
   :risky t)
 
 (defcustom homebrew-default-args
-  '( "--verbose"
-     "--build-from-source" )
+  '( "--verbose" )
   "Arguments passed to every invocation of `brew`."
   :group 'homebrew-mode
   :type 'list
@@ -337,19 +337,23 @@ Pop the process buffer on failure."
 (defun homebrew-brew-fetch (formula &rest args)
   "Download FORMULA, using ARGS, to the Homebrew cache, and alert when done."
   (interactive (list buffer-file-name
-                 (read-string "Arguments (default --stable) " nil nil "--stable")))
+                 (read-string "Arguments (e.g. --HEAD) " nil nil nil)))
   (message "Downloading %s ..." formula)
   (set-process-sentinel
-    (homebrew--start-process "fetch" formula (homebrew--process-args args))
-    'homebrew--async-alert))
+   (homebrew--start-process "fetch"
+                            formula
+                            (homebrew--process-args (cons "--build-from-source" args)))
+   'homebrew--async-alert))
 
 (defun homebrew-brew-install (formula &rest args)
   "Start `brew install FORMULA ARGS` in a separate buffer and open a window to that buffer."
   (interactive (list buffer-file-name
-                 (read-string "Arguments (default --stable) " nil nil "--stable")))
+                 (read-string "Arguments (e.g. --HEAD) " nil nil nil)))
   (set-process-sentinel
-    (homebrew--start-process "install" formula (homebrew--process-args args))
-    'homebrew--async-alert)
+   (homebrew--start-process "install"
+                            formula
+                            (homebrew--process-args (cons "--build-from-source" args)))
+   'homebrew--async-alert)
   ;; This is instead of `pop-to-buffer' since we don't want the install buffer activated
   (let ((install-window (if (= 1 (length (window-list)))
                             (split-window-sensibly)
@@ -362,7 +366,7 @@ Pop the process buffer on failure."
 (defun homebrew-brew-test (formula &rest args)
   "Test FORMULA  with ARGS and alert when done."
   (interactive (list buffer-file-name
-                 (read-string "Arguments (default --stable) " nil nil "--stable")))
+                 (read-string "Arguments (e.g. --HEAD) " nil nil nil)))
 
   (message "Testing %s ..." formula)
   (set-process-sentinel
@@ -380,7 +384,7 @@ Pop the process buffer on failure."
 (defun homebrew-brew-unpack (formula &rest args)
   "Download FORMULA with ARGS to the Homebrew cache, then unpack and open in a new window."
   (interactive (list buffer-file-name
-                 (read-string "Arguments (default --stable) " nil nil "--stable")))
+                 (read-string "Arguments (e.g. --HEAD) " nil nil nil)))
 
   (message "Unpacking %s ..." formula)
   (set-process-sentinel
