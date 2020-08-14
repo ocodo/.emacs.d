@@ -270,7 +270,7 @@ _v_ariable       _u_ser-option
 _h_   _l_   _o_k        _y_ank
   ^_j_^     _n_ew-copy  _r_eset
 ^^^^        _e_xchange  _u_ndo
-^^^^        ^ ^         _p_aste
+^^^^        ^ ^         _x_kill
 "
   ("h" rectangle-backward-char nil)
   ("l" rectangle-forward-char nil)
@@ -285,7 +285,7 @@ _h_   _l_   _o_k        _y_ank
   ("y" yank-rectangle nil)
   ("u" undo nil)
   ("s" string-rectangle nil)
-  ("p" kill-rectangle nil)
+  ("x" kill-rectangle nil)
   ("o" nil nil))
 
 ;; Recommended binding:
@@ -332,6 +332,13 @@ _y_: ?y? year       _q_: quit           _L__l__c_: log = ?l?"
 
 ;; Recommended binding:
 ;; (define-key org-agenda-mode-map "v" 'hydra-org-agenda-view/body)
+
+;;** Example 13: automatic columns
+(defhydra hydra-movement ()
+  ("j" next-line "down" :column "Vertical")
+  ("k" previous-line "up")
+  ("l" forward-char "forward" :column "Horizontal")
+  ("h" backward-char "back"))
 
 ;;* Helpers
 (require 'windmove)
