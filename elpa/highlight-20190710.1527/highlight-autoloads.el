@@ -1,10 +1,12 @@
 ;;; highlight-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "highlight" "highlight.el" (23166 23153 756708
-;;;;;;  957000))
+;;;### (autoloads nil "highlight" "highlight.el" (0 0 0 0))
 ;;; Generated autoloads from highlight.el
 
 (defvar hlt-auto-face-foreground nil "\
@@ -48,7 +50,7 @@ versions), not `font-lock-face' - do not change the value.")
 
 (custom-autoload 'hlt-face-prop "highlight" t)
 
-(defvar hlt-line-dups-ignore-regexp "[  ]*" "\
+(defvar hlt-line-dups-ignore-regexp "[ \11]*" "\
 Regexp to ignore leading and trailing text for duplicate lines.
 Or nil if no such text is to be ignored.
 Used by `hlt-highlight-line-dups-region' to determine whether two
@@ -143,14 +145,10 @@ erase the face represented by the Nth entry of
 \(fn START-EVENT &optional FACE-NB)" t nil)
 
 (autoload 'hlt-highlighter-mouse "highlight" "\
-Same as `hlt-highlighter', but for binding to a menu item.
-
-\(fn)" t nil)
+Same as `hlt-highlighter', but for binding to a menu item." t nil)
 
 (autoload 'hlt-eraser-mouse "highlight" "\
-Same as `hlt-eraser', but for binding to a menu item.
-
-\(fn)" t nil)
+Same as `hlt-eraser', but for binding to a menu item." t nil)
 
 (autoload 'hlt-highlight "highlight" "\
 Highlight or unhighlight.
@@ -502,7 +500,7 @@ Each set is given a different background, according to user option
 Whether leading and trailing whitespace is ignored is controlled by
 option `hlt-line-dups-ignore-regexp'.  But a prefix argument reverses
 this: if the option value is \"\" then whitespace defined by
-\"[   ]*\" is ignored, and otherwise whitespace is not ignored.
+\"[ 	]*\" is ignored, and otherwise whitespace is not ignored.
 
 \(fn &optional START END MSGP FLIP)" t nil)
 
@@ -528,9 +526,7 @@ Optional arg MSGP non-nil means display a progress message.
 (autoload 'hlt-toggle-use-overlays-flag "highlight" "\
 Toggle `hlt-use-overlays-flag'.
 If the current value is non-nil, it is set to nil.
-If the current value is nil, it is set to the last non-nil value.
-
-\(fn)" t nil)
+If the current value is nil, it is set to the last non-nil value." t nil)
 
 (defalias 'hlt-paste-props 'hlt-yank-props)
 
@@ -584,6 +580,9 @@ To use a prefix argument you must set either `isearch-allow-scroll' or
 `isearch-allow-prefix' (if available) to non-nil.  Otherwise, a prefix
 arg during Isearch exits Isearch.
 
+If invoked outside of Isearch, use the last Isearch search pattern or,
+if none, prompt for the pattern to match.
+
 \(fn &optional FACE MSGP MOUSEP BUFFERS STRING)" t nil)
 
 (autoload 'hlt-unhighlight-isearch-matches "highlight" "\
@@ -603,11 +602,14 @@ Non-interactively, FACE = nil means unhighlight all faces.
 
 \(fn &optional FACE MSGP MOUSEP BUFFERS STRING)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "highlight" '("hlt-" "menu-bar-edit-menu")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; highlight-autoloads.el ends here

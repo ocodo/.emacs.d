@@ -4,27 +4,34 @@
 ;; Description: Highlighting commands.
 ;; Author: Drew Adams
 ;; Maintainer: Drew Adams (concat "drew.adams" "@" "oracle" ".com")
-;; Copyright (C) 1995-2018, Drew Adams, all rights reserved.
+;; Copyright (C) 1995-2019, Drew Adams, all rights reserved.
 ;; Created: Wed Oct 11 15:07:46 1995
 ;; Version: 0
-;; Package-Version: 20180131.1216
+;; Package-Version: 20190710.1527
+;; Package-Commit: 9258a2b8362d737115cbd87618f947eadb140411
 ;; Package-Requires: ()
-;; Last-Updated: Tue Jan 30 07:42:53 2018 (-0800)
+;; Last-Updated: Wed Jul 10 08:19:22 2019 (-0700)
 ;;           By: dradams
-;;     Update #: 4133
+;;     Update #: 4177
 ;; URL: https://www.emacswiki.org/emacs/download/highlight.el
-;; URL (GIT mirror): https://github.com/steckerhalter/highlight.el
+;; URL (GIT mirror): https://framagit.org/steckerhalter/highlight.el
 ;; Doc URL: https://www.emacswiki.org/emacs/HighlightLibrary
 ;; Keywords: faces, help, local
 ;; Compatibility: GNU Emacs: 20.x, 21.x, 22.x, 23.x, 24.x, 25.x, 26.x
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   `apropos', `apropos+', `avoid', `easymenu', `fit-frame',
-;;   `frame-fns', `help+20', `info', `info+20', `menu-bar',
-;;   `menu-bar+', `misc-cmds', `misc-fns', `naked', `second-sel',
-;;   `strings', `thingatpt', `thingatpt+', `unaccent',
-;;   `w32browser-dlgopen', `wid-edit', `wid-edit+', `widget'.
+;;   `apropos', `apropos+', `avoid', `backquote', `bookmark',
+;;   `bookmark+', `bookmark+-1', `bookmark+-bmu', `bookmark+-key',
+;;   `bookmark+-lit', `button', `bytecomp', `cconv', `cl', `cl-lib',
+;;   `cmds-menu', `col-highlight', `crosshairs', `easymenu',
+;;   `fit-frame', `font-lock', `font-lock+', `frame-fns', `gv',
+;;   `help+', `help-fns', `help-fns+', `help-macro', `help-macro+',
+;;   `help-mode', `hl-line', `hl-line+', `info', `info+', `kmacro',
+;;   `macroexp', `menu-bar', `menu-bar+', `misc-cmds', `misc-fns',
+;;   `naked', `pp', `pp+', `radix-tree', `replace', `second-sel',
+;;   `strings', `syntax', `text-mode', `thingatpt', `thingatpt+',
+;;   `vline', `w32browser-dlgopen', `wid-edit', `wid-edit+'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -769,6 +776,24 @@
 ;;
 ;;(@* "Change log")
 ;;
+;; 2019/07/10 dadams
+;;     hlt-+/--highlight-regexp-region: Removed incrementing START in loop - useless.
+;; 2019/07/09 dadams
+;;     hlt-+/--highlight-regexp-region:
+;;       forward-char in loop only when match empty text.  Reported by Simon Katz.
+;; 2018/12/28 dadams
+;;     hlt-(un)highlight-regions: Pass zz-izones as explicit arg to zz-izone-limits.
+;; 2018/11/12 dadams
+;;     hlt-(next|previous)-highlight: Added optional arg WRAP-P.  In general, just for interactive use.
+;;                                    Use WRAP-P in while tests.
+;; 2018/10/20 dadams
+;;     hlt-highlight-isearch-matches: Fixed interactive spec: put STRING last, not first.
+;; 2018/10/19 dadams
+;;     hlt-next-highlight: Corrected wrapping.
+;; 2018/10/18 dadams
+;;     hlt-next-highlight: Do not wrap-around more than once.
+;; 2018/09/18 dadams
+;;     hlt-hide-default-face: If FACE is nil then set it to hlt-last-face (in body, not just interactive).
 ;; 2017/10/15 dadams
 ;;     Added: hlt-user-error.  Use it for user errors.
 ;;     hlt-highlighter, hlt-eraser: Better error message if drag out of window.
@@ -1289,7 +1314,9 @@ Don't forget to mention your Emacs and library versions."))
     :group 'highlight :group 'faces)
   (defcustom hlt-act-on-any-face-flag nil
     "*Non-nil means highlight actions apply to all text with a face.
-nil means that they apply only to text that has been highlighted.
+nil means they apply only to text that has been highlighted by library
+`highlight.el'.
+
 Consult the doc for particular actions, to see if they are affected by
 this option."
     :type 'boolean :group 'highlight)
@@ -1873,14 +1900,14 @@ Optional 6th arg BUFFERS is the list of buffers to highlight.
                        (if mbufs (format " in `%s'"  (buffer-name buf)) "")
                        remove-msg))))))))
 
-;; No need to use (zz-izone-limits nil nil 'ONLY-THIS-BUFFER), since `hlt-highlight-region' DTRT.
+;; No need to use (zz-izone-limits zz-izones nil 'ONLY-THIS-BUFFER), since `hlt-highlight-region' DTRT.
 (defun hlt-highlight-regions (&optional regions face msgp mousep buffers)
   "Apply `hlt-highlight-region' to each zone in `zz-izones'.
 You need library `zones.el' to use this command interactively.
 Non-interactively, REGIONS is a list of (START END) region limits.
 The other args are passed to `hlt-highlight-region'."
   (interactive (list (if (require 'zones nil t)
-                         (zz-izone-limits)
+                         (zz-izone-limits zz-izones)
                        (hlt-user-error "You need library `zones.el' to use this command interactively"))
                      nil
                      t
@@ -1888,14 +1915,14 @@ The other args are passed to `hlt-highlight-region'."
   (dolist (start+end  regions)
     (hlt-highlight-region (nth 0 start+end) (nth 1 start+end) face msgp mousep buffers)))
 
-;; No need to use (zz-izone-limits nil nil 'ONLY-THIS-BUFFER), since `hlt-unhighlight-region' DTRT.
+;; No need to use (zz-izone-limits zz-izones nil 'ONLY-THIS-BUFFER), since `hlt-unhighlight-region' DTRT.
 (defun hlt-unhighlight-regions (&optional regions face msgp mousep buffers)
   "Apply `hlt-unhighlight-region' to each zone in `zz-izones'.
 You need library `zones.el' to use this command interactively.
 Non-interactively, REGIONS is a list of (START END) region limits.
 The other args are passed to `hlt-unhighlight-region'."
   (interactive (list (if (require 'zones nil t)
-                         (zz-izone-limits)
+                         (zz-izone-limits zz-izones)
                        (hlt-user-error "You need library `zones.el' to use this command interactively"))
                      nil
                      t
@@ -2201,9 +2228,8 @@ really want to highlight up to %d chars?  "
               (goto-char start)
               (while (and (< start end)  (not (eobp))  (re-search-forward regexp end t)  (setq hits-p  t))
                 (condition-case nil
-                    (progn (forward-char 1) (setq start  (1+ (point))))
+                    (when (and hits-p  (equal (match-beginning 0) (match-end 0))) (forward-char 1))
                   (end-of-buffer (setq start  end)))
-
                 (if (and regexp-groups  (not unhighlightp))
                     (hlt-highlight-regexp-groups regexp msgp mousep)
                   (funcall (if regexp-groups
@@ -2816,7 +2842,7 @@ With a prefix argument, prompt for the highlighting face to hide,
 
 If `hlt-act-on-any-face-flag' is non-nil, then the face to be hidden
 can be any face you choose.  Otherwise, it must be a face that has
-been used for highlighting.
+been used for highlighting by library `highlight.el'.
 
 Hiding a face at some location means two things:
 1) setting its `invisible' property there, making it susceptible to
@@ -2834,12 +2860,13 @@ FACE is the face to hide. It defaults to the last highlighting face.
 START and END are the limits of the area to act on. They default to
   the region limits."
     (interactive `(,@(hlt-region-or-buffer-limits)
-                   ,(if current-prefix-arg
-                        (hlt-read-bg/face-name "Hide highlighting face: ")
+                     ,(if current-prefix-arg
+                          (hlt-read-bg/face-name "Hide highlighting face: ")
                         hlt-last-face)))
     (unless (and start  end) (let ((start-end  (hlt-region-or-buffer-limits)))
                                (setq start  (car start-end)
                                      end    (cadr start-end))))
+    (unless face (setq face  hlt-last-face))
     (hlt-listify-invisibility-spec)
     ;; Add FACE to `invisible' property throughout START...END,
     ;; whenever it is used as a highlighting face.
@@ -2886,7 +2913,7 @@ that can be added."
     orig-val)
 
   ;; Suggested binding: `C-S-n'.
-  (defun hlt-next-highlight (&optional start end face mousep backward-p no-error-p)
+  (defun hlt-next-highlight (&optional start end face mousep backward-p no-error-p wrap-p)
     "Go to the next highlight in FACE.
 Interactively:
 
@@ -2901,7 +2928,7 @@ Interactively:
 
 If `hlt-act-on-any-face-flag' is non-nil, then the target face can be
 any face you choose.  Otherwise, it must be a face that has been used
-for highlighting.
+for highlighting by library `highlight.el'.
 
 With a prefix argument, go to the next `mouse-face' property with
 FACE, not the next `face' property.
@@ -2923,14 +2950,18 @@ When called non-interactively:
  - non-nil NO-ERROR-P means do not raise an error if no highlight with
    FACE is found, and leave point at END.
 
+ - non-nil WRAP-P is generally only for interactive use.  It means if
+   the END (START, if BACKWARD-P is non-nil) limit is reached then
+   wrap around again, from START (END, if BACKWARD-P is non-nil).
+
  - Return a cons of the limits of the text starting at point that has
    property `hlt-highlight' of value FACE: (BEGIN-FACE . END-FACE), where
    BEGIN-FACE is point and END-FACE is the first position just after
    value FACE ends."
     (interactive
      `(,@(hlt-region-or-buffer-limits)
-       ,(if (not hlt-auto-faces-flag)
-            nil                         ; Use `hlt-last-face'.
+         ,(if (not hlt-auto-faces-flag)
+              nil                       ; Use `hlt-last-face'.
             (save-excursion
               (when (listp last-nonmenu-event) (mouse-set-point last-nonmenu-event))
               (let* ((face  (get-char-property (point) hlt-face-prop))
@@ -2946,7 +2977,7 @@ When called non-interactively:
                     bg/f
                   `((background-color . ,bg/f)
                     (foreground-color . ,hlt-auto-face-foreground))))))
-       ,current-prefix-arg))
+         ,current-prefix-arg nil nil t))
     (unless (and start  end) (let ((start-end  (hlt-region-or-buffer-limits)))
                                (setq start  (car start-end)
                                      end    (cadr start-end))))
@@ -2954,13 +2985,16 @@ When called non-interactively:
     (when backward-p (setq end  (prog1 start (setq start  end))))
     (let ((face-found  nil)
           (orig-point  (point))
-          (beg         start))
-      (while (and (not (if backward-p (bobp) (eobp)))
+          (pos         start)
+          loop-beg)
+
+      (while (and (or wrap-p  (not (if backward-p (bobp) (eobp))))
                   (not (equal face face-found))
-                  (not (= beg end)))
+                  (not (= pos end)))
+        (setq loop-beg  pos)
         (save-restriction
-          (narrow-to-region beg end)
-          (setq beg  (if backward-p
+          (narrow-to-region loop-beg end)
+          (setq pos  (if backward-p
                          (goto-char (previous-single-char-property-change
                                      (point) (if mousep 'mouse-face hlt-face-prop) nil (point-min)))
                        (goto-char (next-single-char-property-change
@@ -2981,9 +3015,12 @@ When called non-interactively:
                    (let ((pt-faces  (get-char-property (point) hlt-face-prop)))
                      (if (consp pt-faces) (memq face pt-faces) (equal face pt-faces))))
           (setq face-found  face))
-        (when (and (= beg end)          ; Wrap around.
-                   (if backward-p (< orig-point start) (> orig-point start)))
-          (setq beg  start) (goto-char beg)))
+        (when (and wrap-p               ; Wrap around.
+                   (= pos end)
+                   (if backward-p (<= loop-beg start) (> loop-beg start))
+                   (not (equal face face-found)))
+          (setq pos  start) (goto-char start)))
+
       (unless (or (and (equal face face-found)  (not (eq (point) orig-point)))  no-error-p)
         (goto-char orig-point)
         (hlt-user-error "No %s highlight with face `%s'" (if backward-p "previous" "next") face)))
@@ -2992,15 +3029,16 @@ When called non-interactively:
             (next-single-char-property-change (point) (if mousep 'mouse-face hlt-face-prop)
                                               nil (if backward-p start end)))))
 
+
   ;; Suggested binding: `C-S-p'.
-  (defun hlt-previous-highlight (&optional start end face mousep no-error-p)
+  (defun hlt-previous-highlight (&optional start end face mousep no-error-p wrap-p)
     "Go to the previous highlight in the last face used for highlighting.
 This is the same as `hlt-previous-highlight', except movement is backward."
-    (interactive `(,@(hlt-region-or-buffer-limits) nil ,current-prefix-arg))
+    (interactive `(,@(hlt-region-or-buffer-limits) nil ,current-prefix-arg nil t))
     (unless (and start  end) (let ((start-end  (hlt-region-or-buffer-limits)))
                                (setq start  (car start-end)
                                      end    (cadr start-end))))
-    (hlt-next-highlight start end face mousep t no-error-p))
+    (hlt-next-highlight start end face mousep t no-error-p wrap-p))
 
   (defun hlt-highlight-faces-in-buffer (start end)
     "List of highlighting faces in current buffer between START and END.
@@ -3242,10 +3280,12 @@ With a non-positive prefix arg, use `mouse-face' instead of `face'.
 
 To use a prefix argument you must set either `isearch-allow-scroll' or
 `isearch-allow-prefix' (if available) to non-nil.  Otherwise, a prefix
-arg during Isearch exits Isearch."
+arg during Isearch exits Isearch.
+
+If invoked outside of Isearch, use the last Isearch search pattern or,
+if none, prompt for the pattern to match."
   (interactive
-   (list (or isearch-string  (read-string "Highlight string: "))
-         (if (and current-prefix-arg  (>= (prefix-numeric-value current-prefix-arg) 0))
+   (list (if (and current-prefix-arg  (>= (prefix-numeric-value current-prefix-arg) 0))
              (let (fac)
                ;; This is better than the vanilla Emacs approach used for `isearch-highlight-regexp'
                ;; Because this lets you continue searching after highlighting.
@@ -3253,7 +3293,9 @@ arg during Isearch exits Isearch."
                fac)
            (if hlt-auto-faces-flag (hlt-next-face) hlt-last-face))
          t
-         (and current-prefix-arg  (<= (prefix-numeric-value current-prefix-arg) 0))))
+         (and current-prefix-arg  (<= (prefix-numeric-value current-prefix-arg) 0))
+         ()
+         (or isearch-string  (read-string "Highlight string: "))))
   (let ((bufs                   (or buffers  (and (boundp 'multi-isearch-buffer-list)
                                                   multi-isearch-buffer-list)))
         (regexp                 (cond ((functionp isearch-word) (funcall isearch-word string))
@@ -3270,7 +3312,7 @@ arg during Isearch exits Isearch."
                                                         (regexp-quote s))))
                                                   string ""))
                                       (t (regexp-quote string))))
-        (hlt-overlays-priority  1002))  ; Higher than Isearch's 1000 priority.
+        (hlt-overlays-priority  1002)) ; Higher than Isearch's 1000 priority.
     (hlt-+/--highlight-regexp-region nil nil nil regexp face msgp mousep nil bufs)))
 
 ;;;###autoload
