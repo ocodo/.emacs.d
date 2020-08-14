@@ -1,10 +1,10 @@
 ;;; ivy-yasnippet.el --- Preview yasnippets with ivy
 
-;;
 ;; Author: Michał Krzywkowski <k.michal@zoho.com>
 ;; URL: https://github.com/mkcms/ivy-yasnippet
-;; Package-Version: 20181002.1655
-;; Package-Requires: ((emacs "24") (ivy "0.10.0") (yasnippet "0.12.2") (dash "2.14.1") (cl-lib))
+;; Package-Version: 20200704.700
+;; Package-Commit: 83402d91b4eba5307f71884a72df8e11cc6a994e
+;; Package-Requires: ((emacs "24.1") (cl-lib "0.6") (ivy "0.10.0") (yasnippet "0.12.2") (dash "2.14.1"))
 ;; Version: 0.0.1
 ;; Keywords: convenience
 
@@ -24,14 +24,13 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; This package allows you to select yasnippet snippets using ivy completion.
 ;; When current selection changes in the minibuffer, the snippet contents
 ;; are temporarily expanded in the buffer.
-;;
+
 ;; To use it, call M-x ivy-yasnippet (but make sure you have enabled
 ;; `yas-minor-mode' first).
-;;
 
 ;;; Code:
 
@@ -176,7 +175,7 @@ candidate will be initially selected, unless variable
   (interactive)
   (barf-if-buffer-read-only)
   (unless yas-minor-mode
-    (error "yas-minor-mode not enabled in current buffer"))
+    (error "`yas-minor-mode' not enabled in current buffer"))
   (let* ((ivy-yasnippet--buffer (current-buffer))
 
 	 (ivy-yasnippet--region
