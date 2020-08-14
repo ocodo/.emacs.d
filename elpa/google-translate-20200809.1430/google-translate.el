@@ -5,7 +5,8 @@
 ;; Author: Oleksandr Manzyuk <manzyuk@gmail.com>
 ;; Maintainer: Andrey Tykhonov <atykhonov@gmail.com>
 ;; URL: https://github.com/atykhonov/google-translate
-;; Version: 0.11.16
+;; Package-Requires: ((emacs "24.3")(popup "0.5.8"))
+;; Version: 0.12.0
 ;; Keywords: convenience
 
 ;; Contributors:
@@ -14,6 +15,7 @@
 ;;   Chris Bilson <cbilson@pobox.com>
 ;;   Takumi Kinjo <takumi.kinjo@gmail.com>
 ;;   momomo5717 <momomo5717@gmail.com>
+;;   stardiviner <numbchild@gmail.com>
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -73,7 +75,7 @@
 ;; documentation for the `google-translate-core-ui.el' and
 ;; `google-translate-default-ui.el' packages for more info about
 ;; customization.
-;;  
+;;
 
 ;;; Code:
 

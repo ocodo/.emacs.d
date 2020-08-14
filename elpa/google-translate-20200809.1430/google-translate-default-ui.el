@@ -6,7 +6,7 @@
 ;; Author: Oleksandr Manzyuk <manzyuk@gmail.com>
 ;; Maintainer: Andrey Tykhonov <atykhonov@gmail.com>
 ;; URL: https://github.com/atykhonov/google-translate
-;; Version: 0.11.16
+;; Version: 0.12.0
 ;; Keywords: convenience
 
 ;; Contributors:
@@ -15,6 +15,7 @@
 ;;   Chris Bilson <cbilson@pobox.com>
 ;;   Takumi Kinjo <takumi.kinjo@gmail.com>
 ;;   momomo5717 <momomo5717@gmail.com>
+;;   stardiviner <numbchild@gmail.com>
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -259,11 +260,11 @@ in the reverse direction."
          (bounds nil))
     (google-translate-translate
      source-language target-language
-     (if (use-region-p)
-         (buffer-substring-no-properties (region-beginning) (region-end))
-       (or (and (setq bounds (bounds-of-thing-at-point 'word))
+     (cond ((string-equal major-mode "pdf-view-mode") (car (pdf-view-active-region-text)))
+           ((use-region-p) (buffer-substring-no-properties (region-beginning) (region-end)))
+       (t (or (and (setq bounds (bounds-of-thing-at-point 'word))
                 (buffer-substring-no-properties (car bounds) (cdr bounds)))
-           (error "No word at point."))))))
+           (error "No word at point.")))))))
 
 ;;;###autoload
 (defun google-translate-at-point (&optional override-p)
@@ -280,6 +281,76 @@ reverse direction."
   (interactive "P")
   (%google-translate-at-point override-p t))
 
+;;;###autoload
+(defun google-translate-buffer (&optional override-p reverse-p)
+  "Translate current buffer.
+
+For the meaning of OVERRIDE-P, see `google-translate-query-translate'."
+  (interactive "P")
+  (if (string-equal major-mode "pdf-view-mode")
+      (message "In PDF, select region and use google-translate-at-point")
+    (let* ((langs (google-translate-read-args override-p reverse-p))
+           (source-language (car langs))
+           (target-language (cadr langs)))
+      (google-translate-translate
+       source-language target-language
+       (if (use-region-p)
+           (buffer-substring-no-properties (region-beginning) (region-end))
+         (or (buffer-substring-no-properties (point-min) (point-max))
+             (error "Translate current buffer error.")))))))
+
+;;;###autoload
+(defun google-translate-paragraphs-overlay (&optional override-p reverse-p)
+  "Translate current buffer with paragraph by paragraph and SHOW results in overlay below paragraph.
+This command also specificly support org-mode."
+  (interactive "P")
+  (let* ((langs (google-translate-read-args override-p reverse-p))
+         (source-language (car langs))
+         (target-language (cadr langs))
+         (last-paragraph-begin 1))
+    (goto-char (point-min))
+    (while (not (equal (point) (point-max))) ; reached end of buffer
+      (if (eq major-mode 'org-mode)
+          (if (eq (car (org-element-at-point)) 'paragraph)
+              (progn
+                (org-mark-element)
+                (exchange-point-and-mark)
+                (unless (= last-paragraph-begin (region-beginning))
+                  (google-translate-translate
+                   source-language target-language
+                   (buffer-substring-no-properties (region-beginning) (region-end))
+                   'paragraph-overlay)
+                  (setq last-paragraph-begin (region-beginning)))
+                (deactivate-mark))
+            (forward-line 2))
+        (google-translate-translate
+         source-language target-language
+         (save-excursion
+           (mark-paragraph)
+           (buffer-substring-no-properties (region-beginning) (region-end)))
+         'paragraph-overlay)
+        (deactivate-mark)
+        (forward-paragraph)
+        (forward-line)))))
+
+;;;###autoload
+(defun google-translate-paragraphs-insert (&optional override-p reverse-p)
+  "Translate current buffer with paragraph by paragraph and INSERT results below paragraph.
+This command does NOT support document format like org-mode."
+  (interactive "P")
+  (let* ((langs (google-translate-read-args override-p reverse-p))
+         (source-language (car langs))
+         (target-language (cadr langs)))
+    (goto-char (point-min))
+    (while (not (equal (point) (point-max))) ; reached end of buffer
+      (google-translate-translate
+       source-language target-language
+       (save-excursion
+         (mark-paragraph)
+         (buffer-substring-no-properties (region-beginning) (region-end)))
+       'paragraph-insert)
+      (deactivate-mark)
+      (forward-line))))
 
 (provide 'google-translate-default-ui)
 

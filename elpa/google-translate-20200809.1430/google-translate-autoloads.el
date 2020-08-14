@@ -1,7 +1,18 @@
 ;;; google-translate-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
+
+;;;### (autoloads nil "google-translate-backend" "google-translate-backend.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from google-translate-backend.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "google-translate-backend" '("google-translate-backend-")))
+
+;;;***
 
 ;;;### (autoloads nil "google-translate-core" "google-translate-core.el"
 ;;;;;;  (0 0 0 0))
@@ -15,7 +26,7 @@
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from google-translate-core-ui.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "google-translate-core-ui" '("gtos" "google-translate-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "google-translate-core-ui" '("google-translate-")))
 
 ;;;***
 
@@ -77,6 +88,25 @@ reverse direction.
 
 \(fn &optional OVERRIDE-P)" t nil)
 
+(autoload 'google-translate-buffer "google-translate-default-ui" "\
+Translate current buffer.
+
+For the meaning of OVERRIDE-P, see `google-translate-query-translate'.
+
+\(fn &optional OVERRIDE-P REVERSE-P)" t nil)
+
+(autoload 'google-translate-paragraphs-overlay "google-translate-default-ui" "\
+Translate current buffer with paragraph by paragraph and SHOW results in overlay below paragraph.
+This command also specificly support org-mode.
+
+\(fn &optional OVERRIDE-P REVERSE-P)" t nil)
+
+(autoload 'google-translate-paragraphs-insert "google-translate-default-ui" "\
+Translate current buffer with paragraph by paragraph and INSERT results below paragraph.
+This command does NOT support document format like org-mode.
+
+\(fn &optional OVERRIDE-P REVERSE-P)" t nil)
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "google-translate-default-ui" '("%google-translate-" "google-translate-")))
 
 ;;;***
@@ -103,9 +133,7 @@ in the minibuffers' prompt.
 A current translation direction could be changed directly in the
 minibuffer by means of key bindings such as C-n and C-p for
 changing to the next translation direction and to the previous
-one respectively.
-
-\(fn)" t nil)
+one respectively." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "google-translate-smooth-ui" '("google-translate-")))
 
@@ -128,5 +156,6 @@ one respectively.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; google-translate-autoloads.el ends here

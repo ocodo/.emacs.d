@@ -1,11 +1,12 @@
-;;; google-translate-core-ui.el --- google translate core UI
+;;; google-translate-core-ui.el --- The google translate core UI
 
 ;; Copyright (C) 2012 Oleksandr Manzyuk <manzyuk@gmail.com>
 
 ;; Author: Oleksandr Manzyuk <manzyuk@gmail.com>
 ;; Maintainer: Andrey Tykhonov <atykhonov@gmail.com>
 ;; URL: https://github.com/atykhonov/google-translate
-;; Version: 0.11.14
+;; Package-Requires: ((emacs "24.3") (popup "0.5.8"))
+;; Version: 0.12.0
 ;; Keywords: convenience
 
 ;; Contributors:
@@ -14,6 +15,7 @@
 ;;   Chris Bilson <cbilson@pobox.com>
 ;;   Takumi Kinjo <takumi.kinjo@gmail.com>
 ;;   momomo5717 <momomo5717@gmail.com>
+;;   stardiviner <numbchild@gmail.com>
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -166,10 +168,11 @@
 ;;; Code:
 ;;
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'google-translate-core)
 (require 'ido)
-
+(require 'popup)
+(require 'color)
 
 (defvar google-translate-supported-languages-alist
   '(("Afrikaans"           . "af")
@@ -285,7 +288,7 @@ query parameter in HTTP requests.")
 (defvar google-translate-translation-listening-debug nil
   "For debug translation listening purposes.")
 
-(defstruct gtos
+(cl-defstruct gtos
   "google translate output structure contains miscellaneous
   information which intended to be outputed to the buffer, echo
   area or popup tooltip."
@@ -298,8 +301,7 @@ query parameter in HTTP requests.")
   :group 'processes)
 
 (defcustom google-translate-enable-ido-completion nil
-  "If non-NIL, use `ido-completing-read' rather than
-  `completing-read' for reading input."
+  "If non-NIL, use `ido-completing-read' rather than `completing-read' for reading input."
   :group 'google-translate-core-ui
   :type  '(choice (const :tag "No"  nil)
                   (other :tag "Yes" t)))
@@ -312,30 +314,47 @@ query parameter in HTTP requests.")
 
 (defcustom google-translate-listen-program
   (executable-find "mplayer")
-  "The program to use to listen translations. By default the
-program looks for `mplayer' in the PATH, if `mplayer' is found
-then listening function will be available and you'll see `Listen'
-button in the buffer with the translation. You can use any other
-suitable program."
+  "The program to use to listen translations.
+
+By default the program looks for `mplayer' in the PATH, if
+`mplayer' is found then listening function will be available and
+you'll see `Listen' button in the buffer with the translation.
+You can use any other suitable program."
   :group 'google-translate-core-ui
   :type '(string))
 
 (defcustom google-translate-output-destination
   nil
-  "Determines where translation output will be displayed. If
-`nil' the translation output will be displayed in the pop up
-buffer (default). If value equals to `echo-area' then translation
-outputs in the Echo Area. And in case of `popup' the translation
-outputs to the popup tooltip using `popup' package."
+  "Determines where translation output will be displayed.
+
+- If it is `nil', output to temporary pop up buffer (default).
+- `echo-area': output to the Echo Area.
+- `popup': output to the popup tooltip using `popup' package.
+- `kill-ring': the output will be added in `kill-ring'.
+- `current-buffer': the output will be inserted to current buffer.
+- `help': output to help buffer.
+- `paragraph-overlay': output in current buffer overlay paragraph by paragraph.
+- `paragraph-insert': output will be inserted in buffer paragraph by paragraph."
   :group 'google-translate-core-ui
-  :type '(symbol))
+  :type '(repeat (choice (const :tag "temporary popup buffer" nil)
+                         (const :tag "Echo Area" echo-area)
+                         (const :tag "popup tooltip using popup.el" popup)
+                         (const :tag "kill-ring" kill-ring)
+                         (const :tag "current buffer" current-buffer)
+                         (const :tag "popup Help buffer" help)
+                         (const :tag "paragraph-by-paragraph in overlay" paragraph-overlay)
+                         (const :tag "paragraph-by-paragraph inserted in buffer" paragraph-insert))))
 
 (defcustom google-translate-pop-up-buffer-set-focus
   nil
-  "Determines whether window (buffer) with translation gets focus
-when it pop ups. If `nil', it doesn't get focus and focus remains
-in the same window as was before translation. If `t',
-window (buffer with translation) gets focus.")
+  "Determines whether result window (buffer) gets focus when it pop ups.
+
+If nil, it doesn't get focus and focus remains in the same
+window as was before translation. If t, window (buffer with
+translation) gets focus.")
+
+(defcustom google-translate-display-translation-phonetic t
+  "Determines whether display phonetic transcription of the translating text.")
 
 (defcustom google-translate-listen-button-label
   "[Listen]"
@@ -374,11 +393,13 @@ window (buffer with translation) gets focus.")
   :group 'google-translate-core-ui)
 
 (defvar google-translate-input-method-auto-toggling nil
-  "When `t' the current source language is compared with the
-values from `google-translate-preferable-input-methods-alist' and
-enables appropriate input method for the minibuffer. So this
-feature may allow to avoid switching between input methods while
-translating using different languages.")
+  "When t, the current source language is compared.
+
+Compared with the values from
+`google-translate-preferable-input-methods-alist' and enables
+appropriate input method for the minibuffer. So this feature may
+allow to avoid switching between input methods while translating
+using different languages.")
 
 (defvar google-translate-preferable-input-methods-alist
   '((nil . nil))
@@ -412,15 +433,14 @@ is active.")
     (cdr (assoc language google-translate-supported-languages-alist))))
 
 (defun google-translate-language-display-name (abbreviation)
-  "Return a name suitable for use in prompts of the language whose
-abbreviation is ABBREVIATION."
+  "Return a name suitable for use in prompts of the language whose abbreviation is ABBREVIATION."
   (if (string-equal abbreviation "auto")
       "unspecified language"
     (car (rassoc abbreviation google-translate-supported-languages-alist))))
 
 (defun google-translate-paragraph (text face &optional output-format)
-  "Return TEXT as a filled paragraph into the current buffer and
-apply FACE to it. Optionally use OUTPUT-FORMAT."
+  "Return TEXT as a filled paragraph into the current buffer.
+And apply FACE to it. Optionally use OUTPUT-FORMAT."
   (let ((beg (point))
         (output-format
          (if output-format output-format "\n%s\n")))
@@ -511,25 +531,25 @@ source and target languages."
                                                                     format2)
   "Return detailed translation."
   (with-temp-buffer
-    (loop for item across detailed-translation do
-          (let ((index 0)
-                (label (aref item 0)))
-            (unless (string-equal label "")
-              (put-text-property 0 (length label)
-                                 'font-lock-face
-                                 'google-translate-translation-face
-                                 label)
-              (insert (format format1 label))
-              (loop for translation across (aref item 2) do
-                    (let ((content
-                           (format "%s (%s)"
-                                   (aref translation 0)
-                                   (mapconcat 'identity
-                                              (aref translation 1)
-                                              ", "))))
-                      (insert (format format2
-                                      (incf index)
-                                      content)))))))
+    (cl-loop for item across detailed-translation do
+             (let ((index 0)
+                   (label (aref item 0)))
+               (unless (string-equal label "")
+                 (put-text-property 0 (length label)
+                                    'font-lock-face
+                                    'google-translate-translation-face
+                                    label)
+                 (insert (format format1 label))
+                 (cl-loop for translation across (aref item 2) do
+                          (let ((content
+                                 (format "%s (%s)"
+                                         (aref translation 0)
+                                         (mapconcat 'identity
+                                                    (aref translation 1)
+                                                    ", "))))
+                            (insert (format format2
+                                            (cl-incf index)
+                                            content)))))))
     (buffer-substring (point-min) (point-max))))
 
 (defun google-translate--detailed-definition (detailed-definition definition
@@ -539,27 +559,27 @@ source and target languages."
   (with-temp-buffer
     (let ((section "DEFINITION"))
       (put-text-property 0 (length section)
-			 'font-lock-face
-			 'google-translate-translation-face
-			 section)
+                         'font-lock-face
+                         'google-translate-translation-face
+                         section)
       (insert (format "\n%s\n" section)))
-    (loop for item across detailed-definition do
-          (let ((index 0)
-                (label (aref item 0)))
-            (unless (string-equal label "")
-              (put-text-property 0 (length label)
-                                 'font-lock-face
-                                 'google-translate-translation-face
-                                 label)
-              (insert (format format1 label))
-              (loop for definition across (aref item 1) do
-                    (insert (format format2
-                                    (incf index)
-                                    (if (> (length definition) 2)
-                                        (format "%s\n    \"%s\""
-                                                (aref definition 0)
-                                                (aref definition 2))
-                                      (format "%s" (aref definition 0)))))))))
+    (cl-loop for item across detailed-definition do
+             (let ((index 0)
+                   (label (aref item 0)))
+               (unless (string-equal label "")
+                 (put-text-property 0 (length label)
+                                    'font-lock-face
+                                    'google-translate-translation-face
+                                    label)
+                 (insert (format format1 label))
+                 (cl-loop for definition across (aref item 1) do
+                          (insert (format format2
+                                          (cl-incf index)
+                                          (if (> (length definition) 2)
+                                              (format "%s\n    \"%s\""
+                                                      (aref definition 0)
+                                                      (aref definition 2))
+                                            (format "%s" (aref definition 0)))))))))
     (buffer-substring (point-min) (point-max))))
 
 (defun google-translate--suggestion (gtos)
@@ -625,22 +645,19 @@ clicked."
     (if google-translate-translation-listening-debug
         (with-current-buffer (get-buffer-create buf)
           (insert (format "Listen program: %s\r\n" google-translate-listen-program))
-          (insert (format "Listen URL: %s\r\n" (google-translate-format-listen-url text language)))
-          (call-process google-translate-listen-program nil t nil
-                        (format "%s" (google-translate-format-listen-url text language)))
+          (mapc (lambda (x) (insert (format "Listen URL: %s\r\n" x)))
+                (google-translate-format-listen-urls text language))
+          (apply 'call-process google-translate-listen-program nil t nil
+                 (google-translate-format-listen-urls text language))
           (switch-to-buffer buf))
-      (call-process google-translate-listen-program nil nil nil
-                    (format "%s" (google-translate-format-listen-url text language))))))
+      (apply 'call-process google-translate-listen-program nil nil nil
+             (google-translate-format-listen-urls text language)))))
 
 (defun google-translate-translate (source-language target-language text &optional output-destination)
   "Translate TEXT from SOURCE-LANGUAGE to TARGET-LANGUAGE.
 
-In case of `google-translate-output-destination' is nil pops up a
-buffer named *Google Translate* with available translations of
-TEXT. In case of `google-translate-output-destination' is
-`echo-area' outputs translation in the echo area. If
-`google-translate-output-destination' is `popup' outputs
-translation in the popup tooltip using `popup' package.
+About the OUTPUT-DESTINATION, check out option
+`google-translate-output-destination'.
 
 To deal with multi-line regions, sequences of white space
 are replaced with a single space. If the region contains not text, a
@@ -662,7 +679,8 @@ message is printed."
                :text text
                :text-phonetic (google-translate-json-text-phonetic json)
                :translation (google-translate-json-translation json)
-               :translation-phonetic (google-translate-json-translation-phonetic json)
+               :translation-phonetic (if google-translate-display-translation-phonetic
+                                         (google-translate-json-translation-phonetic json) "")
                :detailed-translation detailed-translation
                :detailed-definition detailed-definition
                :suggestion (when (null detailed-translation)
@@ -688,7 +706,11 @@ message is printed."
                     (google-translate-help-buffer-output-translation gtos)))))
             (help-setup-xref (list 'google-translate-translate source-language target-language text) nil)
             (with-help-window (help-buffer)
-              (funcall describe-func gtos)))))))))
+              (funcall describe-func gtos))))
+         ((equal output-destination 'paragraph-overlay)
+          (google-translate-paragraph-overlay-output-translation gtos))
+         ((equal output-destination 'paragraph-insert)
+          (google-translate-paragraph-insert-output-translation gtos)))))))
 
 (defun google-translate-popup-output-translation (gtos)
   "Output translation to the popup tooltip using `popup'
@@ -750,6 +772,30 @@ http://www.gnu.org/software/emacs/manual/html_node/elisp/The-Echo-Area.html)"
           (select-window (display-buffer buffer-name))
         (set-buffer buffer-name))
       (google-translate-buffer-insert-translation gtos))))
+
+(defun google-translate-paragraph-overlay-output-translation (gtos)
+  "Output translation below the paragraph with overlay."
+  (let ((start (save-excursion (start-of-paragraph-text) (point)))
+        (end (save-excursion (end-of-paragraph-text) (point)))
+        (below-paragraph (if (eq major-mode 'org-mode)
+                             (save-excursion (previous-line) (point))
+                           (save-excursion (end-of-paragraph-text) (forward-line) (point))))
+        (translation (gtos-translation gtos)))
+    (with-silent-modifications
+      (put-text-property
+       (1- below-paragraph) below-paragraph
+       'display (propertize
+                 (concat "\n\n" translation "\n")
+                 'face `(:background ,(color-darken-name (face-background 'default) 4)))))))
+
+(defun google-translate-paragraph-insert-output-translation (gtos)
+  "Insert translation below the paragraph with overlay."
+  (let ((start (save-excursion (start-of-paragraph-text) (point)))
+        (end (save-excursion (end-of-paragraph-text) (point)))
+        (below-paragraph (save-excursion (end-of-paragraph-text) (forward-line) (point)))
+        (translation (gtos-translation gtos)))
+    (goto-char below-paragraph)
+    (insert (concat "\n" translation "\n"))))
 
 (defun google-translate-help-buffer-output-translation (gtos)
   "Output translation to the help buffer."

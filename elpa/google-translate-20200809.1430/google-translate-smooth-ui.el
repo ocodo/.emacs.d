@@ -6,7 +6,7 @@
 ;; Author: Oleksandr Manzyuk <manzyuk@gmail.com>
 ;; Maintainer: Andrey Tykhonov <atykhonov@gmail.com>
 ;; URL: https://github.com/atykhonov/google-translate
-;; Version: 0.11.16
+;; Version: 0.12.0
 ;; Keywords: convenience
 
 ;; Contributors:
@@ -15,6 +15,7 @@
 ;;   Chris Bilson <cbilson@pobox.com>
 ;;   Takumi Kinjo <takumi.kinjo@gmail.com>
 ;;   momomo5717 <momomo5717@gmail.com>
+;;   stardiviner <numbchild@gmail.com>
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -119,7 +120,7 @@
 ;; `google-translate-core-ui' and thus it could be customized via this
 ;; package's variables. Please read documentation for the
 ;; `google-translate-core-ui' package.
-;; 
+;;
 
 ;;; Code:
 
@@ -155,6 +156,10 @@ As example, this alist could looks like the following:
 `google-translate-translation-directions-alist' variable and
 keeps current translation direction while changing translation
 directions.")
+
+(defvar google-translate-last-translation-direction nil
+  "The last used translation direction.
+Points to nth element of `google-translate-translation-directions-alist' variable.")
 
 (defvar google-translate-translation-direction-query ""
   "Temporal variable which keeps a minibuffer text while
@@ -218,7 +223,7 @@ C-n - to select next direction."
   (interactive)
   (let ((text ""))
     (setq google-translate-try-other-direction nil)
-    (setq text 
+    (setq text
           (if google-translate-input-method-auto-toggling
               (minibuffer-with-setup-hook
                   (lambda ()
@@ -249,7 +254,7 @@ C-n - to select next direction."
 
 (defun google-translate--read-from-minibuffer ()
   "Read string from minibuffer."
-  (let* ((source-language 
+  (let* ((source-language
           (google-translate--current-direction-source-language))
          (target-language
           (google-translate--current-direction-target-language))
@@ -298,15 +303,17 @@ A current translation direction could be changed directly in the
 minibuffer by means of key bindings such as C-n and C-p for
 changing to the next translation direction and to the previous
 one respectively."
-  (interactive)  
+  (interactive)
 
   (setq google-translate-translation-direction-query
         (if (use-region-p)
             (google-translate--strip-string
              (buffer-substring-no-properties (region-beginning) (region-end)))
-          (current-word t t)))
+          (unless current-prefix-arg
+            (current-word t t))))
 
-  (setq google-translate-current-translation-direction 0)
+  (setq google-translate-current-translation-direction
+        (or google-translate-last-translation-direction 0))
 
   (let* ((text (google-translate-query-translate-using-directions))
          (source-language (google-translate--current-direction-source-language))
@@ -315,7 +322,9 @@ one respectively."
       (setq source-language (google-translate-read-source-language)))
     (when (null target-language)
       (setq target-language (google-translate-read-target-language)))
-    (google-translate-translate source-language target-language text)))
+    (google-translate-translate source-language target-language text)
+    (setq google-translate-last-translation-direction
+          google-translate-current-translation-direction)))
 
 
 (provide 'google-translate-smooth-ui)
