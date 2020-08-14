@@ -42,6 +42,11 @@
 ;;  * cargo-process-fmt                - Run the optional cargo command fmt.
 ;;  * cargo-process-check              - Run the optional cargo command check.
 ;;  * cargo-process-clippy             - Run the optional cargo command clippy.
+;;  * cargo-process-add                - Run the optional cargo command add.
+;;  * cargo-process-rm                 - Run the optional cargo command rm.
+;;  * cargo-process-upgrade            - Run the optional cargo command upgrade.
+;;  * cargo-process-outdated           - Run the optional cargo command outdated.
+;;  * cargo-process-audit              - Run the optional cargo command audit.
 
 ;;
 ;;; Code:
@@ -49,97 +54,172 @@
 (require 'compile)
 (require 'button)
 (require 'rust-mode)
+(require 'markdown-mode)
 
 (defgroup cargo-process nil
   "Cargo Process group."
   :prefix "cargo-process-"
   :group 'cargo)
 
-(defcustom cargo-process--custom-path-to-bin "cargo"
+(defcustom cargo-process--custom-path-to-bin
+  (or (executable-find "cargo")
+      (expand-file-name "cargo" "~/.cargo/bin")
+      "/usr/local/bin/cargo")
   "Custom path to the cargo executable"
+  :type 'file
+  :group 'cargo-process)
+
+(defcustom cargo-process--rustc-cmd
+  (or (executable-find "rustc")
+      (expand-file-name "rustc" "~/.cargo/bin")
+      "/usr/local/bin/rustc")
+  "Custom path to the rustc executable"
   :type 'file
   :group 'cargo-process)
 
 (defcustom cargo-process--enable-rust-backtrace nil
   "Set RUST_BACKTRACE environment variable to 1 for tasks test and run"
+  :type 'boolean
   :group 'cargo-process)
 
 (defcustom cargo-process--command-flags ""
   "Flags to be added to every cargo command when run."
-  :group 'cargo-process)
+  :group 'cargo-process
+  :type 'string)
 
 (defvar cargo-process-mode-map
   (nconc (make-sparse-keymap) compilation-mode-map)
   "Keymap for Cargo major mode.")
 
+(defvar cargo-process--no-manifest-commands
+  '("New" "Init" "Search" "Fmt" "Audit")
+  "These commands should not specify a manifest file.")
+
 (defvar cargo-process-last-command nil "Command used last for repeating.")
 
 (make-variable-buffer-local 'cargo-process-last-command)
 
-(defvar cargo-process--command-bench "bench")
+(defcustom cargo-process--command-bench "bench"
+  "Subcommand used by `cargo-process-bench'."
+  :type 'string)
 
-(defvar cargo-process--command-build "build")
+(defcustom cargo-process--command-build "build"
+  "Subcommand used by `cargo-process-build'."
+  :type 'string)
 
-(defvar cargo-process--command-clean "clean")
+(defcustom cargo-process--command-clean "clean"
+  "Subcommand used by `cargo-process-clean'."
+  :type 'string)
 
-(defvar cargo-process--command-doc "doc")
+(defcustom cargo-process--command-doc "doc"
+  "Subcommand used by `cargo-process-doc'."
+  :type 'string)
 
-(defvar cargo-process--command-doc-open "doc --open")
+(defcustom cargo-process--command-doc-open "doc --open"
+  "Subcommand used by `cargo-process-doc'."
+  :type 'string)
 
-(defvar cargo-process--command-new "new")
+(defcustom cargo-process--command-new "new"
+  "Subcommand used by `cargo-process-new'."
+  :type 'string)
 
-(defvar cargo-process--command-init "init")
+(defcustom cargo-process--command-init "init"
+  "Subcommand used by `cargo-process-init'."
+  :type 'string)
 
-(defvar cargo-process--command-run "run")
+(defcustom cargo-process--command-run "run"
+  "Subcommand used by `cargo-process-run'."
+  :type 'string)
 
-(defvar cargo-process--command-run-bin "run --bin")
+(defcustom cargo-process--command-run-bin "run --bin"
+  "Subcommand used by `cargo-process-run-bin'."
+  :type 'string)
 
-(defvar cargo-process--command-run-example "run --example")
+(defcustom cargo-process--command-run-example "run --example"
+  "Subcommand used by `cargo-process-run-example'."
+  :type 'string)
 
-(defvar cargo-process--command-search "search")
+(defcustom cargo-process--command-search "search"
+  "Subcommand used by `cargo-process-search'."
+  :type 'string)
 
-(defvar cargo-process--command-test "test")
+(defcustom cargo-process--command-test "test"
+  "Subcommand used by `cargo-process-test'."
+  :type 'string)
 
-(defvar cargo-process--command-current-test "test")
+(defcustom cargo-process--command-current-test "test"
+  "Subcommand used by `cargo-process-current-test'."
+  :type 'string)
 
-(defvar cargo-process--command-current-file-tests "test")
+(defcustom cargo-process--command-current-file-tests "test"
+  "Subcommand used by `cargo-process-current-file-tests'."
+  :type 'string)
 
-(defvar cargo-process--command-update "update")
+(defcustom cargo-process--command-update "update"
+  "Subcommand used by `cargo-process-update'."
+  :type 'string)
 
-(defvar cargo-process--command-fmt "fmt")
+(defcustom cargo-process--command-fmt "fmt"
+  "Subcommand used by `cargo-process-fmt'."
+  :type 'string)
 
-(defvar cargo-process--command-check "check")
+(defcustom cargo-process--command-outdated "outdated -R"
+  "Subcommand used by `cargo-process-outdated'."
+  :type 'string)
 
-(defvar cargo-process--command-clippy "clippy")
+(defcustom cargo-process--command-check "check"
+  "Subcommand used by `cargo-process-check'."
+  :type 'string)
+
+(defcustom cargo-process--command-clippy "clippy"
+  "Subcommand used by `cargo-process-clippy'."
+  :type 'string)
+
+(defcustom cargo-process--command-add "add"
+  "Subcommand used by `cargo-process-add'."
+  :type 'string)
+
+(defcustom cargo-process--command-rm "rm"
+  "Subcommand used by `cargo-process-rm'."
+  :type 'string)
+
+(defcustom cargo-process--command-upgrade "upgrade"
+  "Subcommand used by `cargo-process-upgrade'."
+  :type 'string)
+
+(defcustom cargo-process--command-audit "audit -f"
+  "Subcommand used by `cargo-process-audit'."
+  :type 'string)
+
+(defvar cargo-process-favorite-crates nil)
 
 (defface cargo-process--ok-face
-  '((t (:foreground "#00ff00")))
+  '((t (:inherit success)))
   "Ok face"
   :group 'cargo-process)
 
 (defface cargo-process--error-face
-  '((t (:foreground "#FF0000")))
+  '((t (:inherit error)))
   "Error face"
   :group 'cargo-process)
 
 (defface cargo-process--warning-face
-  '((t (:foreground "#eeee00")))
+  '((t (:inherit warning)))
   "Warning face"
   :group 'cargo-process)
 
 (defface cargo-process--pointer-face
-  '((t (:foreground "#ff00ff")))
+  '((t (:inherit font-lock-negation-char-face)))
   "Pointer face"
   :group 'cargo-process)
 
 (defface cargo-process--standard-face
-  '((t (:foreground "#ffa500")))
+  '((t (:inherit font-lock-comment-face)))
   "Standard face"
   :group 'cargo-process)
 
 (defface cargo-process--errno-face
-  '((t :foreground "#7777ff"
-       :underline t))
+  '((t (:inherit link)))
   "Error number face"
   :group 'cargo-process)
 
@@ -148,7 +228,7 @@
 (defconst cargo-process-test-regexp "^[[:space:]]*fn[[:space:]]*"
   "Regex to find Rust unit test function.")
 
-(defconst cargo-process-test-mod-regexp "^[[:space:]]*mod[[:space:]]*\\w+[[:space:]]*{")
+(defconst cargo-process-test-mod-regexp "^[[:space:]]*mod[[:space:]]+[[:word:][:multibyte:]_][[:word:][:multibyte:]_[:digit:]]*[[:space:]]*{")
 
 (defconst cargo-process-font-lock-keywords
   '(("^error\\:?" . 'cargo-process--error-face)
@@ -177,10 +257,11 @@
                 (buffer-substring-no-properties (line-beginning-position)
                                                 (line-end-position))))
 
-(defun cargo-process--project-root ()
+(defun cargo-process--project-root (&optional extra)
   "Find the root of the current Cargo project."
   (let ((root (locate-dominating-file (or buffer-file-name default-directory) "Cargo.toml")))
-    (and root (file-truename root))))
+    (when root
+      (file-truename (concat root extra)))))
 
 (define-derived-mode cargo-process-mode compilation-mode "Cargo-Process."
   "Major mode for the Cargo process buffer."
@@ -207,23 +288,52 @@
 (defun set-rust-backtrace (command)
   "Set RUST_BACKTRACE variable depending on the COMMAND used.
 Always set to nil if cargo-process--enable-rust-backtrace is nil"
-  (when cargo-process--enable-rust-backtrace
-    (if (string-match "cargo \\(test\\|run\\)" command)
-        (setenv cargo-process--rust-backtrace "1")
-      (setenv cargo-process--rust-backtrace nil))))
+  (if (and cargo-process--enable-rust-backtrace
+           (string-match "\\(test\\|run\\)" command))
+      (setenv cargo-process--rust-backtrace "1")
+    (setenv cargo-process--rust-backtrace nil)))
 
-(defun cargo-process--start (name command &optional last-command)
-  "Start the Cargo process NAME with the cargo command COMMAND."
+(defun cargo-json-read-from-string (text)
+  "A wrapper for `json-read-from-string' with improved error reporting.
+
+This assumes that TEXT is a human readable error, which is used
+for error reporting."
+  (condition-case nil
+      (json-read-from-string text)
+    (error (user-error text))))
+
+(defun cargo-process--workspace-root ()
+  "Find the workspace root using `cargo metadata`."
+  (when (cargo-process--project-root)
+    (let* ((metadata-text (shell-command-to-string
+                           (concat (shell-quote-argument cargo-process--custom-path-to-bin)
+                                   " metadata --format-version 1 --no-deps")))
+           (metadata-json (cargo-json-read-from-string metadata-text))
+           (workspace-root (cdr (assoc 'workspace_root metadata-json))))
+      workspace-root)))
+
+(defun manifest-path-argument (name)
+  (let ((manifest-filename (cargo-process--project-root "Cargo.toml")))
+    (when (and manifest-filename
+               (not (member name cargo-process--no-manifest-commands)))
+      (concat "--manifest-path " (shell-quote-argument manifest-filename)))))
+
+(defun cargo-process--start (name command &optional last-cmd opens-external)
+  "Start the Cargo process NAME with the cargo command COMMAND.
+OPENS-EXTERNAL is non-nil if the COMMAND is expected to open an external application.
+Returns the created process."
   (set-rust-backtrace command)
   (let* ((buffer (concat "*Cargo " name "*"))
-         (cmd
-          (or last-command
-              (cargo-process--maybe-read-command
-               (mapconcat #'identity (list cargo-process--custom-path-to-bin
-                                           command
-                                           cargo-process--command-flags)
-                          " "))))
          (project-root (cargo-process--project-root))
+         (cmd
+          (or last-cmd
+              (cargo-process--maybe-read-command
+               (cargo-process--augment-cmd-for-os opens-external
+                                                  (mapconcat #'identity (list (shell-quote-argument cargo-process--custom-path-to-bin)
+                                                                              command
+                                                                              (manifest-path-argument name)
+                                                                              cargo-process--command-flags)
+                                                             " ")))))
          (default-directory (or project-root default-directory)))
     (save-some-buffers (not compilation-ask-about-save)
                        (lambda ()
@@ -231,23 +341,41 @@ Always set to nil if cargo-process--enable-rust-backtrace is nil"
                               buffer-file-name
                               (string-prefix-p project-root (file-truename buffer-file-name)))))
     (setq cargo-process-last-command (list name command cmd))
-    (compilation-start cmd 'cargo-process-mode (lambda(_) buffer))
-    (set-process-sentinel (get-buffer-process buffer) 'cargo-process--finished-sentinel)))
+    (let ((default-directory (or (cargo-process--workspace-root)
+                                 default-directory)))
+      (compilation-start cmd 'cargo-process-mode (lambda(_) buffer)))
+    (let ((process (get-buffer-process buffer)))
+      (set-process-sentinel process 'cargo-process--finished-sentinel)
+      process)))
 
 (defun cargo-process--explain-action (button)
   "Action called when the user activates Rust errno BUTTON."
   (cargo-process--explain-help (button-label button)))
 
 (defun cargo-process--explain-help (errno)
-  "Display a detailed explaination of ERRNO in the Help buffer."
-  (help-setup-xref (list #'cargo-process--explain-help errno)
-                   (called-interactively-p 'interactive))
-  (save-excursion
-    (with-help-window (help-buffer)
-      (princ (shell-command-to-string
-              (concat "rustc --explain=" errno)))
-      (with-current-buffer standard-output
-        (buffer-string)))))
+  "Display a detailed explaination of ERRNO in a markdown buffer."
+  (pop-to-buffer
+   (let ((current-window (selected-window))
+         (inhibit-message t))
+     (with-current-buffer (get-buffer-create "*rust errno*")
+       (let ((buffer-read-only nil))
+         (erase-buffer)
+         (insert (shell-command-to-string
+                  (concat cargo-process--rustc-cmd " --explain=" errno))))
+       (markdown-view-mode)
+       (setq-local markdown-fontify-code-blocks-natively t)
+       (setq-local markdown-fontify-code-block-default-mode 'rust-mode)
+       (setq-local kill-buffer-hook (lambda ()
+                                      (when (window-live-p current-window)
+                                        (select-window current-window))))
+       (setq
+        header-line-format
+        (concat (propertize " " 'display
+                            `(space :align-to (- right-fringe ,(1+ (length errno)))))
+                (propertize errno 'face 'error)))
+       (markdown-toggle-markup-hiding 1)
+       (goto-char 1)
+       (current-buffer)))))
 
 (defun cargo-process--add-errno-buttons ()
   "Turn error numbers into clickable links in Cargo process output.
@@ -256,11 +384,11 @@ Meant to be run as a `compilation-filter-hook'."
     (let ((start compilation-filter-start)
           (end (point))
           (case-fold-search nil))
-     (goto-char start)
-     (while (re-search-forward cargo-process--errno-regex end t)
-       (make-button (match-beginning 0)
-                    (match-end 0)
-                    :type 'rustc-errno)))))
+      (goto-char start)
+      (while (re-search-forward cargo-process--errno-regex end t)
+        (make-button (match-beginning 0)
+                     (match-end 0)
+                     :type 'rustc-errno)))))
 
 (defun cargo-process--get-current-test ()
   "Return the current test."
@@ -282,7 +410,7 @@ Meant to be run as a `compilation-filter-hook'."
       (let* ((line (buffer-substring-no-properties (line-beginning-position)
                                                    (line-end-position)))
              (line (string-trim-left line))
-             (lines (split-string line " "))
+             (lines (split-string line " \\|{"))
              (mod (cadr lines)))
         mod))))
 
@@ -299,6 +427,32 @@ Without the prefix argument, return DEFAULT immediately."
   (if current-prefix-arg
       (read-shell-command "Cargo command: " default)
     default))
+
+(defun cargo-process--get-dependencies (&optional manifest)
+  "Extract the list of dependencies from the
+MANIFEST (i.e. Cargo.toml)."
+  (with-current-buffer (find-file-noselect (or manifest
+                                               (cargo-process--project-root "Cargo.toml")))
+    (save-excursion
+      (let ((deps-list))
+        (widen)
+        (goto-char (point-min))
+        (search-forward "[dependencies]" nil t)
+        (while (re-search-forward "^[a-zA-Z\-\_]* *=" nil t)
+          (beginning-of-line)
+          (setq deps-list
+                (cons (thing-at-point 'sexp t) deps-list))
+          (end-of-line))
+        deps-list))))
+
+(defun cargo-process--augment-cmd-for-os (opens-external cmd)
+  "Augment the cargo CMD according to OS. OPENS-EXTERNAL is non-nil
+if the CMD is expected to open and external application."
+  (if (and opens-external
+           (not (member system-type '(windows-nt ms-dos)))
+           (executable-find "setsid"))
+      (concat "setsid -w " cmd)
+    cmd))
 
 ;;;###autoload
 (defun cargo-process-bench ()
@@ -338,7 +492,7 @@ Cargo: Build this project's and its dependencies' documentation."
 With the prefix argument, modify the command's invocation.
 Cargo: Open this project's documentation."
   (interactive)
-  (cargo-process--start "Doc" cargo-process--command-doc-open))
+  (cargo-process--start "Doc" cargo-process--command-doc-open nil t))
 
 ;;;###autoload
 (defun cargo-process-new (name &optional bin)
@@ -348,9 +502,10 @@ NAME is the name of your application.
 If BIN is t then create a binary application, otherwise a library.
 Cargo: Create a new cargo project."
   (interactive "sProject name: ")
-  (let ((bin (when (or bin
-                       (y-or-n-p "Create Bin Project? "))
-               " --bin")))
+  (let ((bin (if (or bin
+                     (y-or-n-p "Create Bin Project? "))
+                 " --bin"
+                 " --lib")))
     (cargo-process--start "New" (concat cargo-process--command-new
                                         " "
                                         name
@@ -362,14 +517,30 @@ Cargo: Create a new cargo project."
 With the prefix argument, modify the command's invocation.
 DIRECTORY is the directory you want to create a cargo project in.
 If BIN is t then create a binary application, otherwise a library.
-Cargo: Create a new cargo project in current directory."
+Cargo: Create a new cargo project in current directory.
+
+DIRECTORY is created if necessary."
   (interactive
-   (list (read-directory-name "Directory: " nil default-directory t)))
-  (let ((bin (when (or bin (y-or-n-p "Create Bin Project? ")) " --bin")))
-    (cargo-process--start "Init" (concat cargo-process--command-init
-                                         " "
-                                         directory
-                                         bin))))
+   (list (read-directory-name "Directory: " nil default-directory nil)))
+  (let* ((bin (if (or bin (y-or-n-p "Create Bin Project? "))
+                  " --bin"
+                " --lib"))
+         (process
+          (cargo-process--start "Init" (concat cargo-process--command-init
+                                               " "
+                                               directory
+                                               bin))))
+    (set-process-sentinel
+     process
+     (lambda (process event)
+       (cargo-process--open-manifest process
+                                     event
+                                     (expand-file-name "Cargo.toml" directory))))))
+
+(defun cargo-process--open-manifest (process event manifest-path)
+  "Open the manifest file when process ends."
+  (when (equal event "finished\n")
+    (find-file manifest-path)))
 
 ;;;###autoload
 (defun cargo-process-run ()
@@ -403,9 +574,19 @@ Cargo: Build and execute with --example <name>."
 With the prefix argument, modify the command's invocation.
 SEARCH-TERM is used as the search term for the Cargo registry.
 Cargo: Search registry for crates."
-  (interactive "sSearch: ")
+  (interactive
+   (list (cargo-process--read-search-term)))
   (cargo-process--start "Search"
                         (concat cargo-process--command-search " " search-term)))
+
+(defun cargo-process--read-search-term ()
+  "Prompt for a search term, using the crate name at point (if
+any) as the default if none is entered."
+  (let* ((default-search-term (and (thing-at-point-looking-at "[[:alnum:]-_]+") (match-string-no-properties 0)))
+         (default-prompt-text (if default-search-term (format " (default %s)" default-search-term) ""))
+         (search-term (read-string (format "Search%s: " default-prompt-text)
+                                   nil nil default-search-term)))
+    search-term))
 
 ;;;###autoload
 (defun cargo-process-test ()
@@ -453,6 +634,14 @@ Requires Cargo Fmt to be installed."
   (cargo-process--start "Fmt" cargo-process--command-fmt))
 
 ;;;###autoload
+(defun cargo-process-outdated ()
+  "Run the Cargo outdated command.
+With the prefix argument, modify the command's invocation.
+Requires Cargo Outdated to be installed."
+  (interactive)
+  (cargo-process--start "Outdated" cargo-process--command-outdated))
+
+;;;###autoload
 (defun cargo-process-check ()
   "Run the Cargo check command.
 With the prefix argument, modify the command's invocation.
@@ -469,6 +658,67 @@ Cargo: Clippy compile the current project.
 Requires Cargo clippy to be installed."
   (interactive)
   (cargo-process--start "Clippy" cargo-process--command-clippy))
+
+;;;###autoload
+(defun cargo-process-add (crate)
+  "Run the Cargo add command.
+With the prefix argument, modify the command's invocation.
+CRATES is the name of the crate to add.
+Cargo: This command allows you to add a dependency to a Cargo.toml manifest file."
+  (interactive (list
+                (completing-read "Crate(s) to add: " cargo-process-favorite-crates)))
+  (cargo-process--start "Add" (concat cargo-process--command-add
+                                      " "
+                                      crate)))
+
+;;;###autoload
+(defun cargo-process-audit ()
+  "Run the Cargo audit command.
+With the prefix argument, modify the command's invocation.
+Cargo: Audit checks the current project's Cargo.lock for security vulnerabilities.
+Requires Cargo Audit to be installed."
+  (interactive)
+  (cargo-process--start "Audit" (concat cargo-process--command-audit
+                                        " "
+                                        (cargo-process--project-root "Cargo.lock"))))
+
+;;;###autoload
+(defun cargo-process-rm (crate)
+  "Run the Cargo rm command.
+With the prefix argument, modify the command's invocation.
+CRATE is the name of the crate to remove.
+Cargo: Remove a dependency from a Cargo.toml manifest file."
+  (interactive
+   (list
+    (let ((deplist (cargo-process--get-dependencies)))
+      (when deplist
+        (completing-read "Crate to remove: "
+                         deplist nil t)))))
+  (if crate (cargo-process--start "Remove" (concat cargo-process--command-rm
+                                                   " "
+                                                   crate))
+    (message "No crates used in current project.")))
+
+;;;###autoload
+(defun cargo-process-upgrade (&optional all crates)
+  "Run the Cargo update command.
+With the prefix argument, modify the command's invocation.
+If ALL is t then update all crates, otherwise specify CRATES.
+Cargo: Upgrade dependencies as specified in the local manifest file"
+  (interactive)
+  (let ((deplist (cargo-process--get-dependencies)))
+    (if deplist
+        (let* ((all (when (or all
+                              (y-or-n-p "Upgrade all crates? "))
+                      "--all"))
+               (crates (when (not all)
+                         (completing-read "Crate(s) to upgrade: " deplist nil 'confirm))))
+          (cargo-process--start "Upgrade" (concat cargo-process--command-upgrade
+                                                  " "
+                                                  all
+                                                  " "
+                                                  crates)))
+      (message "No crates used in current project."))))
 
 ;;;###autoload
 (defun cargo-process-repeat ()

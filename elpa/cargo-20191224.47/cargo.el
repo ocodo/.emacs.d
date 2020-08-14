@@ -5,7 +5,7 @@
 ;; Author: Kevin W. van Rooijen <kevin.van.rooijen@attichacker.com>
 ;; Version  : 0.4.0
 ;; Keywords: tools
-;; Package-Requires: ((emacs "24.3") (rust-mode "0.2.0"))
+;; Package-Requires: ((emacs "24.3") (rust-mode "0.2.0") (markdown-mode "2.4"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -40,9 +40,14 @@
 ;;  * C-c C-c C-c - cargo-process-repeat
 ;;  * C-c C-c C-f - cargo-process-current-test
 ;;  * C-c C-c C-o - cargo-process-current-file-tests
+;;  * C-c C-c C-O - cargo-process-outdated
 ;;  * C-c C-c C-m - cargo-process-fmt
 ;;  * C-c C-c C-k - cargo-process-check
 ;;  * C-c C-c C-K - cargo-process-clippy
+;;  * C-c C-c C-a - cargo-process-add
+;;  * C-c C-c C-D - cargo-process-rm
+;;  * C-c C-c C-U - cargo-process-upgrade
+;;  * C-c C-c C-A - cargo-process-audit
 
 ;;
 ;;; Code:
@@ -59,7 +64,9 @@
 
 ;;;###autoload
 (define-minor-mode cargo-minor-mode
-  "Cargo minor mode. Used to hold keybindings for cargo-mode"
+  "Cargo minor mode. Used to hold keybindings for cargo-mode.
+
+\\{cargo-minor-mode-map}"
   nil " cargo" cargo-minor-mode-map)
 
 (define-key cargo-minor-mode-map (kbd "C-c C-c C-e") 'cargo-process-bench)
@@ -77,9 +84,14 @@
 (define-key cargo-minor-mode-map (kbd "C-c C-c C-c") 'cargo-process-repeat)
 (define-key cargo-minor-mode-map (kbd "C-c C-c C-f") 'cargo-process-current-test)
 (define-key cargo-minor-mode-map (kbd "C-c C-c C-o") 'cargo-process-current-file-tests)
+(define-key cargo-minor-mode-map (kbd "C-c C-c C-S-o") 'cargo-process-outdated)
 (define-key cargo-minor-mode-map (kbd "C-c C-c C-m") 'cargo-process-fmt)
 (define-key cargo-minor-mode-map (kbd "C-c C-c C-k") 'cargo-process-check)
 (define-key cargo-minor-mode-map (kbd "C-c C-c C-S-k") 'cargo-process-clippy)
+(define-key cargo-minor-mode-map (kbd "C-c C-c C-a") 'cargo-process-add)
+(define-key cargo-minor-mode-map (kbd "C-c C-c C-S-d") 'cargo-process-rm)
+(define-key cargo-minor-mode-map (kbd "C-c C-c C-S-u") 'cargo-process-upgrade)
+(define-key cargo-minor-mode-map (kbd "C-c C-c C-S-a") 'cargo-process-audit)
 
 (provide 'cargo)
 ;;; cargo.el ends here
