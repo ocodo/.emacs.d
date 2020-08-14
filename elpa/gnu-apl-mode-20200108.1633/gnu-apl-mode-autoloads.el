@@ -10,7 +10,7 @@
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from gnu-apl-documentation.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "gnu-apl-documentation" '("gnu-apl-" "*gnu-apl-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "gnu-apl-documentation" '("*gnu-apl-" "gnu-apl-")))
 
 ;;;***
 
@@ -26,7 +26,7 @@
 ;;;;;;  0 0))
 ;;; Generated autoloads from gnu-apl-finnapl.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "gnu-apl-finnapl" '("gnu-apl-" "*gnu-apl-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "gnu-apl-finnapl" '("*gnu-apl-" "gnu-apl-")))
 
 ;;;***
 
@@ -38,11 +38,18 @@
 
 ;;;***
 
+;;;### (autoloads nil "gnu-apl-input" "gnu-apl-input.el" (0 0 0 0))
+;;; Generated autoloads from gnu-apl-input.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "gnu-apl-input" '("gnu-apl-")))
+
+;;;***
+
 ;;;### (autoloads nil "gnu-apl-interactive" "gnu-apl-interactive.el"
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from gnu-apl-interactive.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "gnu-apl-interactive" '("gnu-apl-" "*gnu-apl-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "gnu-apl-interactive" '("*gnu-apl-" "gnu-apl-")))
 
 ;;;***
 
@@ -75,7 +82,7 @@ to ‘gnu-apl-executable’).
 ;;;;;;  0 0))
 ;;; Generated autoloads from gnu-apl-network.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "gnu-apl-network" '("gnu-apl--" "*gnu-apl-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "gnu-apl-network" '("*gnu-apl-" "gnu-apl--")))
 
 ;;;***
 
@@ -125,8 +132,7 @@ to ‘gnu-apl-executable’).
 
 ;;;***
 
-;;;### (autoloads nil nil ("gnu-apl-input.el" "gnu-apl-mode-pkg.el")
-;;;;;;  (0 0 0 0))
+;;;### (autoloads nil nil ("gnu-apl-mode-pkg.el") (0 0 0 0))
 
 ;;;***
 
