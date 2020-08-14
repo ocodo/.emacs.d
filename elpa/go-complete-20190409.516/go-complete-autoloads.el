@@ -10,9 +10,7 @@
 ;;; Generated autoloads from go-complete.el
 
 (autoload 'go-complete-at-point "go-complete" "\
-Complete go expression at point.
-
-\(fn)" t nil)
+Complete go expression at point." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "go-complete" '("go-complete-")))
 
