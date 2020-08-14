@@ -2,7 +2,8 @@
 
 ;; Author: Nicolas Lamirault <nicolas.lamirault@gmail.com>
 ;; URL: https://github.com/nlamirault/gotest.el
-;; Package-Version: 20180319.137
+;; Package-Version: 20191128.1111
+;; Package-Commit: 70f63eafda1f6a2f0a01a9320cc4d2edee9a17b2
 ;; Version: 0.14.0
 ;; Keywords: languages, go, tests
 
@@ -156,6 +157,10 @@ arguments in that order.")
     (message "Go Test finished.")))
 
 
+(defvar go-test--current-test-cache nil
+  "Store the suite and test of the last execution.")
+
+
 (defvar go-test-regexp-prefix
   "^[[:space:]]*func[[:space:]]\\(([^()]*?)\\)?[[:space:]]*\\("
   "The prefix of the go-test regular expression.")
@@ -251,10 +256,10 @@ For example, if the current buffer is `foo.go', the buffer for
 `foo_test.go' is returned."
   (if (string-match "_test\.go$" buffer-file-name)
       (current-buffer)
-    (let ((ff-always-try-to-create nil))
-      (let ((filename (ff-other-file-name)))
-        (message "File :%s" filename)
-        (find-file-noselect filename)))))
+    (let ((ff-always-try-to-create nil)
+	  (filename (ff-other-file-name)))
+      (when filename
+	(find-file-noselect filename)))))
 
 
 (defun go-test--get-current-data (prefix)
@@ -310,19 +315,21 @@ For example, if the current buffer is `foo.go', the buffer for
 (defun go-test--get-current-file-data (prefix)
   "Generate regexp to match test, benchmark or example the current buffer.
 `PREFIX' defines token to place cursor."
-  (with-current-buffer (go-test--get-current-buffer)
-    (save-excursion
-      (goto-char (point-min))
-      (if (string-match "\.go$" buffer-file-name)
-          (let ((regex
-                 (s-concat "^[[:space:]]*func[[:space:]]*\\(" prefix "[^(]+\\)"))
-                result)
-            (while
-                (re-search-forward regex nil t)
-              (let ((data (buffer-substring-no-properties
-                           (match-beginning 1) (match-end 1))))
-                (setq result (append result (list data)))))
-            (mapconcat 'identity result "|"))))))
+  (let ((buffer (go-test--get-current-buffer)))
+    (when buffer
+      (with-current-buffer buffer
+	(save-excursion
+	  (goto-char (point-min))
+	  (when (string-match "\.go$" buffer-file-name)
+            (let ((regex
+                   (s-concat "^[[:space:]]*func[[:space:]]*\\(" prefix "[^(]+\\)"))
+                  result)
+	      (while
+                  (re-search-forward regex nil t)
+		(let ((data (buffer-substring-no-properties
+                             (match-beginning 1) (match-end 1))))
+                  (setq result (append result (list data)))))
+	      (mapconcat 'identity result "|"))))))))
 
 
 (defun go-test--get-current-file-tests ()
@@ -453,18 +460,27 @@ For example, if the current buffer is `foo.go', the buffer for
 ;; ----------------------
 
 ;;;###autoload
-(defun go-test-current-test ()
+(defun go-test-current-test-cache ()
+  "Repeat the previous current test execution."
+  (interactive)
+  (go-test-current-test 'last))
+
+;;;###autoload
+(defun go-test-current-test (&optional last)
   "Launch go test on the current test."
   (interactive)
-  (cl-destructuring-bind (test-suite test-name) (go-test--get-current-test-info)
-    (let ((test-flag (if (> (length test-suite) 0) "-m " "-run "))
-          (additional-arguments (if go-test-additional-arguments-function
-                                    (funcall go-test-additional-arguments-function
-                                             test-suite test-name) "")))
-      (when test-name
-        (if (go-test--is-gb-project)
-            (go-test--gb-start (s-concat "-test.v=true -test.run=" test-name "\\$ ."))
-          (go-test--go-test (s-concat test-flag test-name additional-arguments "\\$ .")))))))
+  (unless (string-equal (symbol-name last) "last")
+    (setq go-test--current-test-cache (go-test--get-current-test-info)))
+  (when go-test--current-test-cache
+    (cl-destructuring-bind (test-suite test-name) go-test--current-test-cache
+      (let ((test-flag (if (> (length test-suite) 0) "-m " "-run "))
+            (additional-arguments (if go-test-additional-arguments-function
+                                      (funcall go-test-additional-arguments-function
+                                               test-suite test-name) "")))
+        (when test-name
+          (if (go-test--is-gb-project)
+              (go-test--gb-start (s-concat "-test.v=true -test.run=" test-name "\\$ ."))
+            (go-test--go-test (s-concat test-flag test-name "\\$ . " additional-arguments))))))))
 
 
 ;;;###autoload
