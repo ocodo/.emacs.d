@@ -16,7 +16,7 @@ List of JSON file extensions.")
 Update the `json-mode' entry of `auto-mode-alist'.
 
 FILENAMES should be a list of file as string.
-Return the new `auto-mode-alist' entry" (let* ((new-regexp (rx-to-string (\` (seq (eval (cons (quote or) (append json-mode-standard-file-ext (quote (\, filenames))))) eot)))) (new-entry (cons new-regexp (quote json-mode))) (old-entry (when (boundp (quote json-mode--auto-mode-entry)) json-mode--auto-mode-entry))) (setq auto-mode-alist (delete old-entry auto-mode-alist)) (add-to-list (quote auto-mode-alist) new-entry) new-entry))
+Return the new `auto-mode-alist' entry" (let* ((new-regexp (rx-to-string `(seq (eval (cons 'or (append json-mode-standard-file-ext ',filenames))) eot))) (new-entry (cons new-regexp 'json-mode)) (old-entry (when (boundp 'json-mode--auto-mode-entry) json-mode--auto-mode-entry))) (setq auto-mode-alist (delete old-entry auto-mode-alist)) (add-to-list 'auto-mode-alist new-entry) new-entry))
 
 (defvar json-mode-auto-mode-list '(".babelrc" ".bowerrc" "composer.lock") "\
 List of filename as string to pass for the JSON entry of
@@ -35,20 +35,15 @@ Major mode for editing JSON files
 
 \(fn)" t nil)
 
+(add-to-list 'magic-fallback-mode-alist '("^[{[]$" . json-mode))
+
 (autoload 'json-mode-show-path "json-mode" "\
-Print the path to the node at point to the minibuffer, and yank to the kill ring.
+Print the path to the node at point to the minibuffer, and yank to the kill ring." t nil)
 
-\(fn)" t nil)
-
-(autoload 'json-mode-kill-path "json-mode" "\
-
-
-\(fn)" t nil)
+(autoload 'json-mode-kill-path "json-mode" nil t nil)
 
 (autoload 'json-mode-beautify "json-mode" "\
-Beautify / pretty-print the active region (or the entire buffer if no active region).
-
-\(fn)" t nil)
+Beautify / pretty-print the active region (or the entire buffer if no active region)." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "json-mode" '("json-")))
 

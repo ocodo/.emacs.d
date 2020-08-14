@@ -4,7 +4,8 @@
 
 ;; Author: Josh Johnston
 ;; URL: https://github.com/joshwnj/json-mode
-;; Package-Version: 20180718.809
+;; Package-Version: 20190123.422
+;; Package-Commit: 0e819e519ae17a2686e0881c4ca51fa873fa9b83
 ;; Version: 1.6.0
 ;; Package-Requires: ((json-reformat "0.0.5") (json-snatcher "1.0.0"))
 
@@ -122,7 +123,8 @@ This function calls `json-mode--update-auto-mode' to change the
   (set (make-local-variable 'font-lock-defaults) '(json-font-lock-keywords-1 t)))
 
 ;; Well formatted JSON files almost always begin with “{” or “[”.
-(add-to-list 'magic-mode-alist '("^[{[]$" . json-mode))
+;;;###autoload
+(add-to-list 'magic-fallback-mode-alist '("^[{[]$" . json-mode))
 
 ;;;###autoload
 (defun json-mode-show-path ()
