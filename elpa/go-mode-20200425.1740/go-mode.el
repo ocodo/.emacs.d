@@ -8,7 +8,8 @@
 
 ;; Author: The go-mode Authors
 ;; Version: 1.5.0
-;; Package-Version: 20180327.830
+;; Package-Version: 20200425.1740
+;; Package-Commit: 734d5232455ffde088021ea5908849ac570e890f
 ;; Keywords: languages go
 ;; URL: https://github.com/dominikh/go-mode.el
 ;;
@@ -59,23 +60,25 @@ function."
                         (progn (forward-visible-line arg) (point))))))
 
 (defun go-goto-opening-parenthesis (&optional _legacy-unused)
-  "Move up one level of parentheses."
+  "Move up one level of parentheses.
+
+Return non-nil if there was a paren to move up to."
   ;; The old implementation of go-goto-opening-parenthesis had an
   ;; optional argument to speed up the function.  It didn't change the
   ;; function's outcome.
 
   ;; Silently fail if there's no matching opening parenthesis.
-  (condition-case nil
-      (backward-up-list)
-    (scan-error nil)))
+  (let ((open-char (nth 1 (syntax-ppss))))
+    (when open-char
+      (goto-char open-char))))
 
 
 (defconst go-dangling-operators-regexp "[^-]-\\|[^+]\\+\\|[/*&><.=|^]")
 (defconst go--max-dangling-operator-length 2
   "The maximum length of dangling operators.
 This must be at least the length of the longest string matched by
-‘go-dangling-operators-regexp.’, and must be updated whenever
-that constant is changed.")
+‘go-dangling-operators-regexp’ and must be updated whenever that
+constant is changed.")
 
 (defconst go-identifier-regexp "[[:word:][:multibyte:]]+")
 (defconst go-type-name-no-prefix-regexp "\\(?:[[:word:][:multibyte:]]+\\.\\)?[[:word:][:multibyte:]]+")
@@ -89,6 +92,10 @@ that constant is changed.")
                                "\\s *)\\s *\\)?\\("
                                go-identifier-regexp
                                "\\)("))
+
+(defconst go--comment-start-regexp "[[:space:]]*\\(?:/[/*]\\)")
+(defconst go--case-regexp "\\([[:space:]]*case\\([[:space:]]\\|$\\)\\)")
+(defconst go--case-or-default-regexp (concat "\\(" go--case-regexp "\\|"  "[[:space:]]*default:\\)"))
 
 (defconst go-builtins
   '("append" "cap"   "close"   "complex" "copy"
@@ -105,11 +112,7 @@ that constant is changed.")
   "All keywords in the Go language.  Used for font locking.")
 
 (defconst go-constants '("nil" "true" "false" "iota"))
-(defconst go-type-name-regexp (concat "\\(?:[*(]\\)*\\(\\(?:" go-identifier-regexp "\\.\\)?" go-identifier-regexp "\\)"))
-
-;; Maximum number of identifiers that can be highlighted as type names
-;; in one function type/declaration.
-(defconst go--font-lock-func-param-num-groups 16)
+(defconst go-type-name-regexp (concat "\\**\\(\\(?:" go-identifier-regexp "\\.\\)?" go-identifier-regexp "\\)"))
 
 (defvar go-dangling-cache)
 (defvar go-godoc-history nil)
@@ -130,6 +133,11 @@ that constant is changed.")
 
 (defcustom go-fontify-function-calls t
   "Fontify function and method calls if this is non-nil."
+  :type 'boolean
+  :group 'go)
+
+(defcustom go-fontify-variables t
+  "Fontify variable declarations if this is non-nil."
   :type 'boolean
   :group 'go)
 
@@ -184,15 +192,15 @@ a `before-save-hook'."
   :type '(repeat (list regexp (choice (repeat string) function)))
   :group 'go)
 
-(defcustom go-packages-function 'go-packages-native
+(defcustom go-packages-function 'go-packages-go-list
   "Function called by `go-packages' to determine the list of available packages.
 This is used in e.g. tab completion in `go-import-add'.
 
-This package provides two functions: `go-packages-native' uses
+This package provides two functions: `go-packages-go-list' uses
+'go list all' to determine all Go packages. `go-packages-native' uses
 elisp to find all .a files in all /pkg/ directories.
-`go-packages-go-list' uses 'go list all' to determine all Go
-packages.  `go-packages-go-list' generally produces more accurate
-results, but can be slower than `go-packages-native'."
+`go-packages-native' is obsolete as it doesn't behave correctly with
+the Go build cache or Go modules."
   :type 'function
   :package-version '(go-mode . 1.4.0)
   :group 'go)
@@ -212,23 +220,35 @@ mis-identifying them as gb projects."
   :type '(repeat function)
   :group 'go)
 
+(defcustom go-confirm-playground-uploads t
+  "Ask before uploading code to the public Go Playground.
+
+Set this to nil to upload without prompting.
+"
+  :type 'boolean
+  :group 'go)
+
 (defcustom godoc-command "go doc"
   "Which executable to use for `godoc'.
-This can either be 'godoc' or 'go doc', both as an absolute path
-or an executable in PATH."
+This can be either an absolute path or an executable in PATH."
   :type 'string
   :group 'go)
 
-(defcustom godoc-and-godef-command "godoc"
-  "Which executable to use for `godoc' in `godoc-and-godef-command'.
-Must be 'godoc' and not 'go doc' and can be an absolute path or
-an executable in PATH."
+(defcustom godoc-and-godef-command "go doc"
+  "Which executable to use for `godoc-and-godef'.
+This can be either an absolute path or an executable in PATH."
   :type 'string
   :group 'go)
 
 (defcustom godoc-use-completing-read nil
   "Provide auto-completion for godoc.
 Only really desirable when using `godoc' instead of `go doc'."
+  :type 'boolean
+  :group 'godoc)
+
+(defcustom godoc-reuse-buffer nil
+  "Reuse a single *godoc* buffer to display godoc-at-point calls.
+The default behavior is to open a separate buffer for each call."
   :type 'boolean
   :group 'godoc)
 
@@ -278,7 +298,7 @@ You can install gogetdoc with 'go get -u github.com/zmb3/gogetdoc'."
       ;; TODO: gogetdoc supports unsaved files, but not introducing
       ;; new artifical files, so this limitation will stay for now.
       (error "Cannot use gogetdoc on a buffer without a file name"))
-  (let ((posn (format "%s:#%d" (shell-quote-argument (file-truename buffer-file-name)) (1- (position-bytes point))))
+  (let ((posn (format "%s:#%d" (file-truename buffer-file-name) (1- (position-bytes point))))
         (out (godoc--get-buffer "<at point>")))
   (with-current-buffer (get-buffer-create "*go-gogetdoc-input*")
     (setq buffer-read-only nil)
@@ -393,40 +413,117 @@ For mode=set, all covered lines will have this weight."
     st)
   "Syntax table for Go mode.")
 
+(defvar go--default-face 'default
+  "A variable to refer to `default' face for use in font lock rules.")
+
+(defun go--fontify-type-switch-case-pre ()
+  "Move point to line following the end of case statement.
+
+This is used as an anchored font lock keyword PRE-MATCH-FORM. We
+expand the font lock region to include multiline type switch case
+statements."
+  (save-excursion
+    (beginning-of-line)
+    (while (or (looking-at "[[:space:]]*\\($\\|//\\)") (go--line-suffix-p ","))
+      (forward-line))
+    (when (go--line-suffix-p ":")
+      (forward-line))
+    (point)))
+
 (defun go--build-font-lock-keywords ()
   ;; we cannot use 'symbols in regexp-opt because GNU Emacs <24
   ;; doesn't understand that
   (append
-   `((go--match-func
-      ,@(mapcar (lambda (x) `(,x font-lock-type-face))
-                (number-sequence 1 go--font-lock-func-param-num-groups)))
+   `(
+     ;; Match param lists in func signatures. This uses the
+     ;; MATCH-ANCHORED format (see `font-lock-keywords' docs).
+     ;;
+     ;; Parent/anchor match. It matches the param list opening "(".
+     (go--match-param-start
+      ;; Sub-matcher that matches individual params in the param list.
+      (go--fontify-param
+       ;; Pre-match form that runs before the first sub-match.
+       (go--fontify-param-pre)
+       ;; Post-match form that runs after last sub-match.
+       (go--fontify-param-post)
+       ;; Subexp 1 is the param variable name, if any.
+       (1 ,(if go-fontify-variables 'font-lock-variable-name-face 'go--default-face))
+       ;; Subexp 2 is the param type name, if any. We set the LAXMATCH
+       ;; flag to allow optional regex groups.
+       (2 font-lock-type-face nil t)))
+
+     ;; Special case to match non-parenthesized function results. For
+     ;; example, "func(i int) string".
+     (go--match-single-func-result 1 font-lock-type-face)
+
+     ;; Match name+type pairs, such as "foo bar" in "var foo bar".
+     (go--match-ident-type-pair 2 font-lock-type-face)
+
+     ;; An anchored matcher for type switch case clauses.
+     (go--match-type-switch-case
+      (go--fontify-type-switch-case
+       (go--fontify-type-switch-case-pre)
+       nil
+       (1 font-lock-type-face)))
+
+     ;; Match variable names in var decls, constant names in const
+     ;; decls, and type names in type decls.
+     (go--match-decl
+      (1 ,(if go-fontify-variables 'font-lock-variable-name-face 'go--default-face) nil t)
+      (2 font-lock-constant-face nil t)
+      (3 font-lock-type-face nil t))
+
      (,(concat "\\_<" (regexp-opt go-mode-keywords t) "\\_>") . font-lock-keyword-face)
      (,(concat "\\(\\_<" (regexp-opt go-builtins t) "\\_>\\)[[:space:]]*(") 1 font-lock-builtin-face)
      (,(concat "\\_<" (regexp-opt go-constants t) "\\_>") . font-lock-constant-face)
-     (,go-func-regexp 1 font-lock-function-name-face)) ;; function (not method) name
+
+     ;; Function (not method) name
+     (,go-func-regexp 1 font-lock-function-name-face))
 
    (if go-fontify-function-calls
-       `((,(concat "\\(" go-identifier-regexp "\\)[[:space:]]*(") 1 font-lock-function-name-face) ;; function call/method name
-         (,(concat "[^[:word:][:multibyte:]](\\(" go-identifier-regexp "\\))[[:space:]]*(") 1 font-lock-function-name-face)) ;; bracketed function call
-     `((,go-func-meth-regexp 2 font-lock-function-name-face))) ;; method name
+       ;; Function call/method name
+       `((,(concat "\\(" go-identifier-regexp "\\)[[:space:]]*(") 1 font-lock-function-name-face)
+         ;; Bracketed function call
+         (,(concat "[^[:word:][:multibyte:]](\\(" go-identifier-regexp "\\))[[:space:]]*(") 1 font-lock-function-name-face))
+     ;; Method name
+     `((,go-func-meth-regexp 2 font-lock-function-name-face)))
 
    `(
-     ("\\(`[^`]*`\\)" 1 font-lock-multiline) ;; raw string literal, needed for font-lock-syntactic-keywords
-     (,(concat "\\_<type\\_>[[:space:]]+\\([^[:space:](]+\\)") 1 font-lock-type-face) ;; types
-     (,(concat "\\_<type\\_>[[:space:]]+" go-identifier-regexp "[[:space:]]*" go-type-name-regexp) 1 font-lock-type-face) ;; types
-     (,(concat "[^[:word:][:multibyte:]]\\[\\([[:digit:]]+\\|\\.\\.\\.\\)?\\]" go-type-name-regexp) 2 font-lock-type-face) ;; Arrays/slices
-     (,(concat "\\(" go-identifier-regexp "\\)" "{") 1 font-lock-type-face)
-     (,(concat "\\_<map\\_>\\[[^]]+\\]" go-type-name-regexp) 1 font-lock-type-face) ;; map value type
-     (,(concat "\\_<map\\_>\\[" go-type-name-regexp) 1 font-lock-type-face) ;; map key type
-     (,(concat "\\_<chan\\_>[[:space:]]*\\(?:<-[[:space:]]*\\)?" go-type-name-regexp) 1 font-lock-type-face) ;; channel type
-     (,(concat "\\_<\\(?:new\\|make\\)\\_>\\(?:[[:space:]]\\|)\\)*(" go-type-name-regexp) 1 font-lock-type-face) ;; new/make type
-     ;; TODO do we actually need this one or isn't it just a function call?
-     (,(concat "\\.\\s *(" go-type-name-regexp) 1 font-lock-type-face) ;; Type conversion
-     ;; Like the original go-mode this also marks compound literal
-     ;; fields. There, it was marked as to fix, but I grew quite
-     ;; accustomed to it, so it'll stay for now.
-     (,(concat "^[[:space:]]*\\(" go-label-regexp "\\)[[:space:]]*:\\(\\S.\\|$\\)") 1 font-lock-constant-face) ;; Labels and compound literal fields
-     (,(concat "\\_<\\(goto\\|break\\|continue\\)\\_>[[:space:]]*\\(" go-label-regexp "\\)") 2 font-lock-constant-face)))) ;; labels in goto/break/continue
+     ;; Raw string literal, needed for font-lock-syntactic-keywords
+     ("\\(`[^`]*`\\)" 1 font-lock-multiline)
+
+     ;; RHS of type alias.
+     (go--match-type-alias 2 font-lock-type-face)
+
+     ;; Arrays/slices: []<type> | [123]<type> | [some.Const]<type> | [someConst]<type> | [...]<type>
+     (,(concat "\\[\\(?:[[:digit:]]+\\|" go-qualified-identifier-regexp "\\|" go-identifier-regexp "\\|\\.\\.\\.\\)?\\]" go-type-name-regexp) 1 font-lock-type-face)
+
+     ;; Unary "!"
+     ("\\(!\\)[^=]" 1 font-lock-negation-char-face)
+
+     ;; Composite literal type
+     (,(concat go-type-name-regexp "{") 1 font-lock-type-face)
+
+     ;; Map value type
+     (,(concat "\\_<map\\_>\\[[^]]+\\]" go-type-name-regexp) 1 font-lock-type-face)
+
+     ;; Map key type
+     (,(concat "\\_<map\\_>\\[" go-type-name-regexp) 1 font-lock-type-face)
+
+     ;; Channel type
+     (,(concat "\\_<chan\\_>[[:space:]]*\\(?:<-[[:space:]]*\\)?" go-type-name-regexp) 1 font-lock-type-face)
+
+     ;; "new()"/"make()" type
+     (,(concat "\\_<\\(?:new\\|make\\)\\_>\\(?:[[:space:]]\\|)\\)*(" go-type-name-regexp) 1 font-lock-type-face)
+
+     ;; Type assertion
+     (,(concat "\\.\\s *(" go-type-name-regexp) 1 font-lock-type-face)
+
+     ;; Composite literal field names and label definitions.
+     (go--match-ident-colon 1 font-lock-constant-face)
+
+     ;; Labels in goto/break/continue
+     (,(concat "\\_<\\(?:goto\\|break\\|continue\\)\\_>[[:space:]]*\\(" go-label-regexp "\\)") 1 font-lock-constant-face))))
 
 (let ((m (define-prefix-command 'go-goto-map)))
   (define-key m "a" #'go-goto-arguments)
@@ -440,8 +537,8 @@ For mode=set, all covered lines will have this weight."
 (defvar go-mode-map
   (let ((m (make-sparse-keymap)))
     (unless (boundp 'electric-indent-chars)
-        (define-key m "}" #'go-mode-insert-and-indent)
-        (define-key m ")" #'go-mode-insert-and-indent))
+      (define-key m "}" #'go-mode-insert-and-indent)
+      (define-key m ")" #'go-mode-insert-and-indent))
     (define-key m (kbd "C-c C-a") #'go-import-add)
     (define-key m (kbd "C-c C-j") #'godef-jump)
     (define-key m (kbd "C-x 4 C-c C-j") #'godef-jump-other-window)
@@ -530,89 +627,627 @@ STOP-AT-STRING is not true, over strings."
          (point-min))))
 
 (defun go-previous-line-has-dangling-op-p ()
-  "Return non-nil if the current line is a continuation line."
-  (let* ((cur-line (line-number-at-pos))
-         (val (gethash cur-line go-dangling-cache 'nope)))
-    (if (or (go--buffer-narrowed-p) (equal val 'nope))
-        (save-excursion
-          (beginning-of-line)
-          (go--backward-irrelevant t)
-          (setq val (looking-back go-dangling-operators-regexp
-                                  (- (point) go--max-dangling-operator-length)))
-          (if (not (go--buffer-narrowed-p))
-              (puthash cur-line val go-dangling-cache))))
+  "Return non-nil if the current line is a continuation line.
+The return value is cached based on the current `line-beginning-position'."
+  (let* ((line-begin (line-beginning-position))
+         (val (gethash line-begin go-dangling-cache 'nope)))
+    (when (or (go--buffer-narrowed-p) (equal val 'nope))
+      (save-excursion
+        (go--forward-line -1)
+        (if (go--current-line-has-dangling-op-p)
+            (setq val (line-end-position))
+          (setq val nil))
+
+        (if (not (go--buffer-narrowed-p))
+            (puthash line-begin val go-dangling-cache))))
     val))
 
-(defun go--at-function-definition ()
-  "Return non-nil if point is on the opening curly brace of a
-function definition.
+(defun go--current-line-has-dangling-op-p ()
+  "Return non-nil if current line ends in a dangling operator.
+The return value is not cached."
+  (or
+   (and
+    (go--line-suffix-p go-dangling-operators-regexp)
 
-We do this by first calling (beginning-of-defun), which will take
-us to the start of *some* function.  We then look for the opening
-curly brace of that function and compare its position against the
-curly brace we are checking.  If they match, we return non-nil."
-  (if (= (char-after) ?\{)
-      (save-excursion
-        (let ((old-point (point))
-              start-nesting)
-          (beginning-of-defun)
-          (when (looking-at "func ")
-            (setq start-nesting (go-paren-level))
-            (skip-chars-forward "^{")
-            (while (> (go-paren-level) start-nesting)
-              (forward-char)
-              (skip-chars-forward "^{") 0)
-            (if (and (= (go-paren-level) start-nesting) (= old-point (point)))
-                t))))))
+    ;; "=" does not behave like a dangling operator in decl statements.
+    (not (go--line-suffix-p "\\(?:var\\|type\\|const\\)[[:space:]].*="))
 
-(defun go--indentation-for-opening-parenthesis ()
-  "Return the semantic indentation for the current opening parenthesis.
+    ;; Don't mistake "1234." for a dangling operator.
+    (not (go--line-suffix-p "[[:space:]]-?[[:digit:]][_0-9]*\\.")))
 
-If point is on an opening curly brace and said curly brace
-belongs to a function declaration, the indentation of the func
-keyword will be returned.  Otherwise the indentation of the
-current line will be returned."
+   ;; treat comma as dangling operator in certain cases
+   (and
+    (go--line-suffix-p ",")
+    (save-excursion (end-of-line) (go--commas-indent-p)))))
+
+
+(defun go--commas-indent-p ()
+  "Return non-nil if in a context where dangling commas indent next line."
+  (not (or
+        (go--open-paren-position)
+        (go--in-composite-literal-p)
+        (go--in-case-clause-list-p)
+        (go--in-struct-definition-p))))
+
+(defun go--in-case-clause-list-p ()
+  "Return non-nil if inside a multi-line case cause list.
+
+This function is only concerned with list items on lines after the
+case keyword. It returns nil for the case line itself."
   (save-excursion
-    (if (go--at-function-definition)
+    (beginning-of-line)
+    (when (not (looking-at go--case-or-default-regexp))
+      (let (saw-colon)
+        ;; optionally skip line with the colon
+        (when (go--line-suffix-p ":")
+          (setq saw-colon t)
+          (forward-line -1))
+
+        ;; go backwards while at a comment or a line ending in comma
+        (while (and
+                (or
+                 (go--boring-line-p)
+                 (go--line-suffix-p ","))
+                (not (looking-at go--case-regexp))
+                (go--forward-line -1)))
+
+        (and
+         (looking-at-p go--case-regexp)
+         ;; we weren't in case list if first line ended in colon
+         ;; and the "case" line ended in colon
+         (not (and saw-colon (looking-at ".*:[[:space:]]*$"))))))))
+
+(defun go--in-composite-literal-p ()
+  "Return non-nil if point is in a composite literal."
+  (save-excursion
+    (save-match-data
+      (and
+       (go-goto-opening-parenthesis)
+
+       ;; Opening paren-like character is a curly.
+       (eq (char-after) ?{)
+
+       (or
+        ;; Curly is preceded by non space (e.g. "Foo{"), definitely
+        ;; composite literal.
+        (zerop (skip-syntax-backward " "))
+
+        ;; Curly preceded by comma or semicolon. This is a composite
+        ;; literal with implicit type name.
+        (looking-back "[,:]" (1- (point)))
+
+        ;; If we made it to the beginning of line we are either a naked
+        ;; block or a composite literal with implicit type name. If we
+        ;; are the latter, we must be contained in another composite
+        ;; literal.
+        (and (bolp) (go--in-composite-literal-p)))))))
+
+(defun go--in-paren-with-prefix-p (paren prefix)
+  (save-excursion
+    (and
+     (go-goto-opening-parenthesis)
+     (eq (char-after) paren)
+     (skip-syntax-backward " ")
+     (> (point) (length prefix))
+     (string= prefix (buffer-substring (- (point) (length prefix)) (point))))))
+
+(defun go--in-struct-definition-p ()
+  "Return non-nil if point is inside a struct definition."
+  (go--in-paren-with-prefix-p ?{ "struct"))
+
+(defun go--in-interface-p ()
+  "Return non-nil if point is inside an interface definition."
+  (go--in-paren-with-prefix-p ?{ "interface"))
+
+
+(defun go--in-type-switch-p ()
+  "Return non-nil if point is inside a type switch statement."
+  (go--in-paren-with-prefix-p ?{ ".(type)"))
+
+(defun go--fill-prefix ()
+  "Return fill prefix for following comment paragraph."
+  (save-excursion
+    (beginning-of-line)
+
+    ;; Skip over empty lines and empty comment openers/closers.
+    (while (and
+            (or (go--empty-line-p) (go--boring-comment-p))
+            (zerop (forward-line 1))))
+
+    ;; If we are in a block comment, set prefix based on first line
+    ;; with content.
+    (if (go-in-comment-p)
         (progn
-          (beginning-of-defun)
-          (current-indentation))
-      (current-indentation))))
+          (looking-at "[[:space:]]*")
+          (match-string-no-properties 0))
+
+      ;; Else if we are looking at the start of an interesting comment, our
+      ;; prefix is the comment opener and any space following.
+      (if (looking-at (concat go--comment-start-regexp "[[:space:]]*"))
+          ;; Replace "/*" opener with spaces so following lines don't
+          ;; get "/*" prefix.
+          (replace-regexp-in-string "/\\*" "  "
+                                    (match-string-no-properties 0))))))
+
+(defun go--fill-paragraph (&rest args)
+  "Wrap fill-paragraph to set custom fill-prefix."
+  (let ((fill-prefix (go--fill-prefix))
+        (fill-paragraph-function nil))
+    (apply 'fill-paragraph args)))
+
+(defun go--empty-line-p ()
+  (looking-at "[[:space:]]*$"))
+
+(defun go--boring-comment-p ()
+  "Return non-nil if we are looking at a boring comment.
+
+A boring comment is a comment with no content. For example:
+
+////////  ; boring
+// hello
+////////  ; boring
+
+/*        ; boring
+  hello
+*/        ; boring
+"
+  (or
+   (looking-at-p "[[:space:]]*//+[[:space:]]*$")
+   (looking-at-p "[[:space:]]*\\(?:/\\*+\\|\\*/+\\)[[:space:]]*$")))
+
+(defun go--interesting-comment-p ()
+  "Return non-nil if we are looking at an interesting comment.
+
+An interesting comment is one that contains content other than
+comment starter/closer characters."
+
+  (if (go-in-comment-p)
+      (and
+       (not (go--empty-line-p))
+       (not (looking-at-p "[[:space:]]*\\*/")))
+    (and
+     (looking-at go--comment-start-regexp)
+     (not (go--boring-comment-p)))))
+
+(defun go--fill-forward-paragraph (&optional arg)
+  "forward-paragraph like function used for fill-paragraph.
+
+This function is key for making fill-paragraph do the right
+thing for comments."
+  (beginning-of-line)
+  (let* ((arg (or arg 1))
+         (single (if (> arg 0) 1 -1))
+         (done nil))
+    (while (and (not done) (not (zerop arg)))
+      ;; If we are moving backwards and aren't currently looking at a
+      ;; comment, move back one line. This is to make sure
+      ;; (go--fill-forward-paragraph -1) always works properly as the
+      ;; inverse of (go--fill-forward-paragraph 1).
+      (when (and
+             (= single -1)
+             (not (go-in-comment-p))
+             (not (looking-at-p go--comment-start-regexp)))
+        (forward-line -1))
+
+      ;; Skip empty lines and comment lines with no content.
+      (while (and
+              (or (go--empty-line-p) (go--boring-comment-p))
+              (zerop (forward-line single))))
+
+      (let (saw-comment)
+        ;; Skip comment lines that have content.
+        (while (and
+                (go--interesting-comment-p)
+                (zerop (forward-line single)))
+          (setq saw-comment t))
+
+        (if (not saw-comment)
+            (progn
+              ;; In fill-region case user may have selected a region
+              ;; with non-comments. fill-region will loop forever
+              ;; until it makes it to the end of the region, so just
+              ;; fall back to `forward-paragraph' so we make progress.
+              (when mark-active
+                (setq arg (forward-paragraph arg)))
+              (setq done t))
+          ;; If we are going backwards, back up one more line so
+          ;; we are on the line before the comment.
+          (when (= single -1)
+            (forward-line 1))
+          (cl-decf arg single))))
+    arg))
+
+
+(defun go--open-paren-position ()
+  "Return non-nil if point is between '(' and ')'.
+
+The return value is the position of the opening paren."
+  (save-excursion
+    (let ((start-paren-level (go-paren-level)))
+      (and
+       (go-goto-opening-parenthesis)
+
+       ;; opening paren-like character is actually a paren
+       (eq (char-after) ?\()
+
+       ;; point is before the closing paren
+       (< (go-paren-level) start-paren-level)
+
+       (point)))))
 
 (defun go-indentation-at-point ()
-  (save-excursion
-    (let (start-nesting)
-      (back-to-indentation)
-      (setq start-nesting (go-paren-level))
+  "Return the appropriate indentation for the current line.
 
-      (cond
-       ((go-in-string-p)
-        (current-indentation))
-       ((looking-at "[])}]")
-        (go-goto-opening-parenthesis)
-        (if (go-previous-line-has-dangling-op-p)
-            (- (current-indentation) tab-width)
-          (go--indentation-for-opening-parenthesis)))
-       ((progn (go--backward-irrelevant t)
-               (looking-back go-dangling-operators-regexp
-                             (- (point) go--max-dangling-operator-length)))
-        ;; only one nesting for all dangling operators in one operation
-        (if (go-previous-line-has-dangling-op-p)
-            (current-indentation)
-          (+ (current-indentation) tab-width)))
-       ((zerop (go-paren-level))
-        0)
-       ((progn (go-goto-opening-parenthesis) (< (go-paren-level) start-nesting))
-        (if (go-previous-line-has-dangling-op-p)
-            (current-indentation)
-          (+ (go--indentation-for-opening-parenthesis) tab-width)))
-       (t
-        (current-indentation))))))
+This function works by walking a line's characters backwards. When it
+encounters a closing paren or brace it bounces to the corresponding
+opener. If it arrives at the beginning of the line you are indenting,
+it moves to the end of the previous line if the current line is a
+continuation line, else it moves to the containing opening paren or
+brace. If it arrives at the beginning of a line other than the line
+you are indenting, it will continue to the previous dangling line if
+the line you are indenting was not a continuation line, otherwise it
+is done."
+  (save-excursion
+    (beginning-of-line)
+
+    (let (
+          ;; Beginning of our starting line.
+          (start-line (point))
+
+          ;; Whether this is our first iteration of the outer while loop.
+          (first t)
+
+          ;; Whether we start in a block (i.e. our first line is not a
+          ;; continuation line and is in an "if", "for", etc. block).
+          (in-block)
+
+          ;; Our desired indent relative to our ending line's indent.
+          (indent 0))
+
+      ;; Skip leading whitespace.
+      (skip-syntax-forward " ")
+
+      ;; Decrement indent if the first character on the line is a closer.
+      (when (or (eq (char-after) ?\)) (eq (char-after) ?}))
+        (cl-decf indent tab-width))
+
+      (while (or
+              ;; Always run the first iteration so we process empty lines.
+              first
+
+              ;; Otherwise stop if we are at the start of a line.
+              (not (bolp)))
+        (setq first nil)
+
+        (cl-case (char-before)
+
+          ;; We have found a closer (paren or brace).
+          ((?\) ?})
+           (backward-char)
+           (let ((bol (line-beginning-position)))
+
+             ;; Jump back to corresponding opener.
+             (go-goto-opening-parenthesis)
+
+             ;; Here we decrement the indent if we are closing an indented
+             ;; expression. In other words, the closer's line was indented
+             ;; relative to the opener's line, and that indent should not
+             ;; be inherited by our starting line.
+             (when (and
+                    ;; We care about dangling expressions, not child blocks.
+                    (not in-block)
+
+                    ;; Opener and closer aren't on same line.
+                    (< (point) bol)
+
+                    (go-previous-line-has-dangling-op-p)
+
+                    ;; Opener is at same paren level as start of line (ignore sub-expressions).
+                    (eq (go-paren-level) (save-excursion (beginning-of-line) (go-paren-level)))
+
+                    ;; This dangling line opened indent relative to previous dangling line.
+                    (go--continuation-line-indents-p))
+               (cl-decf indent tab-width))))
+
+          ;; Brackets don't affect indentation, so just skip them.
+          ((?\])
+           (backward-char)))
+
+        ;; Skip non-closers since we are only interested in closing parens/braces.
+        (skip-syntax-backward "^)" (line-beginning-position))
+
+        (when (go-in-string-or-comment-p)
+          (go-goto-beginning-of-string-or-comment))
+
+        ;; At the beginning of the starting line.
+        (when (= start-line (point))
+
+          ;; We are a continuation line.
+          (if (go-previous-line-has-dangling-op-p)
+              (progn
+                ;; Presume a continuation line always gets an extra indent.
+                ;; We reduce the indent after the loop, if necessary.
+                (cl-incf indent tab-width)
+
+                ;; Go to the end of the dangling line.
+                (goto-char (go-previous-line-has-dangling-op-p)))
+
+            ;; If we aren't a continuation line and we have an enclosing paren
+            ;; or brace, jump to opener and increment our indent.
+            (when (go-goto-opening-parenthesis)
+              (setq in-block (go--flow-block-p))
+              (cl-incf indent tab-width))))
+
+        ;; If we started in a child block we must follow dangling lines
+        ;; until they don't dangle anymore. This is to handle cases like:
+        ;;
+        ;; if foo ||
+        ;;      foo &&
+        ;;        foo {
+        ;;   X
+        ;;
+        ;; There can be an arbitrary number of indents, so we must go back to
+        ;; the "if" to determine the indent of "X".
+        (when (and in-block (bolp) (go-previous-line-has-dangling-op-p))
+          (goto-char (go-previous-line-has-dangling-op-p))))
+
+      ;; If our ending line is a continuation line but doesn't open
+      ;; an extra indent, reduce indent. We tentatively gave indents to all
+      ;; dangling lines and all lines inside open parens, so here we take that
+      ;; indent back.
+      ;;
+      ;;                1 +                      1 +
+      ;; ending line      1 + foo(                 1 + foo(
+      ;; starting line      1,        becomes      1,
+      ;;                  )                      )
+      ;;
+      ;;
+      ;;                1 +                     1 +
+      ;; ending line      1 +         becomes     1 +
+      ;; starting line      1                     1
+      (when (and
+             (go-previous-line-has-dangling-op-p)
+             (not (go--continuation-line-indents-p)))
+        (cl-decf indent tab-width))
+
+      ;; Apply our computed indent relative to the indent of the
+      ;; ending line, or 0 if we are at the top level.
+      (if (and
+           (= 0 (go-paren-level))
+           (not (go-previous-line-has-dangling-op-p)))
+          indent
+        (+ indent (current-indentation))))))
+
+(defconst go--operator-chars "*/%<>&\\^+\\-|=!,."
+  "Individual characters that appear in operators.
+Comma and period are included because they can be dangling operators, so
+they need to be considered by `go--continuation-line-indents-p'")
+
+(defun go--operator-precedence (op)
+  "Go operator precedence (higher binds tighter)."
+  (cl-case (intern op)
+    (\. 7) ; "." in "foo.bar", binds tightest
+    (! 6)
+    ((* / % << >> & &^) 5)
+    ((+ - | ^) 4)
+    ((== != < <= > >=) 3)
+    (&& 2)
+    (|| 1)
+    (t 0)))
+
+(defun go--flow-block-p ()
+  "Return whether looking at a { that opens a control flow block.
+
+We check for a { that is preceded by a space and is not a func
+literal opening brace."
+  (save-excursion
+    (when (and
+           (eq (char-after) ?{)
+           (not (zerop (skip-syntax-backward " "))))
+
+      (let ((eol (line-end-position))
+            (level (go-paren-level))
+            (found-func-literal))
+
+        (beginning-of-line)
+
+        ;; See if we find any "func" keywords on this line at the same paren
+        ;; level as the curly.
+        (while (and
+                (not found-func-literal)
+                (re-search-forward "\\_<func\\_>" eol t))
+          (setq found-func-literal (and
+                                    (= level (go-paren-level))
+                                    (not (go-in-string-or-comment-p)))))
+        (not found-func-literal)))))
+
+(defun go--continuation-line-indents-p ()
+  "Return non-nil if the current continuation line opens an additional indent.
+
+This function works by looking at the Go operators used on the current
+line. If all the operators bind tighter than the previous line's
+dangling operator and the current line ends in a dangling operator or
+open paren, the next line will have an additional indent.
+
+For example:
+foo ||
+  foo && // this continuation line opens another indent
+    foo
+"
+  (save-excursion
+    (let (prev-op (all-tighter t))
+
+      ;; Record the dangling operator from previous line.
+      (save-excursion
+        (goto-char (go-previous-line-has-dangling-op-p))
+        (go--end-of-line)
+        (skip-syntax-backward " ")
+        (let ((end (point)))
+          (skip-chars-backward go--operator-chars)
+          (setq prev-op (buffer-substring-no-properties (point) end))))
+
+      (beginning-of-line)
+
+      (when (or
+             ;; We can only open indent if we have a dangling operator, or
+             (go--current-line-has-dangling-op-p)
+
+             (save-excursion
+               (go--end-of-line)
+               (backward-char)
+               (or
+                ;; Line ends in a "(" or ",", or
+                (eq (char-after) ?\()
+                (eq (char-after) ?,)
+
+                ;; Line ends in a "{" that isn't a control block.
+                (and
+                 (eq (char-after) ?{)
+                 (not (go--flow-block-p))))))
+
+        (let ((prev-precedence (go--operator-precedence prev-op))
+              (start-depth (go-paren-level))
+              (line-start (line-beginning-position)))
+
+          (end-of-line)
+
+          ;; While we haven't found a looser operator and are on the starting line...
+          (while (and all-tighter (> (point) line-start))
+
+            ;; Skip over non-operator characters.
+            (skip-chars-backward (concat "^" go--operator-chars) line-start)
+
+            (let ((end (point)))
+              (cond
+               ;; Ignore sub-expressions at different paren levels.
+               ((/= (go-paren-level) start-depth)
+                (skip-syntax-backward "^()"))
+
+               ((go-in-string-or-comment-p)
+                (go-goto-beginning-of-string-or-comment))
+
+               ;; We found an operator. Check if it has lower precedence.
+               ((/= (skip-chars-backward go--operator-chars) 0)
+                (when (>=
+                       prev-precedence
+                       (go--operator-precedence (buffer-substring (point) end)))
+                  (setq all-tighter nil)))))))
+        all-tighter))))
+
+(defun go--end-of-line ()
+  "Move to the end of the code on the current line.
+Point will be left before any trailing comments. Point will be left
+after the opening backtick of multiline strings."
+  (end-of-line)
+  (let ((keep-going t))
+    (while keep-going
+      (skip-syntax-backward " ")
+      (when (looking-back "\\*/" (- (point) 2))
+        ;; back up so we are in the /* comment */
+        (backward-char))
+      (if (go-in-comment-p)
+          (go-goto-beginning-of-string-or-comment)
+        (setq keep-going nil))))
+  (when (go-in-string-p)
+    (go-goto-beginning-of-string-or-comment)
+    ;; forward one so point is after the opening "`"
+    (forward-char)))
+
+(defun go--line-suffix-p (re)
+  "Return non-nil if RE matches the end of the line starting from `point'.
+
+Trailing whitespace, trailing comments and trailing multiline strings are
+ignored."
+  (let ((start (point))
+        (end (save-excursion (go--end-of-line) (point))))
+    (when (< start end)
+      (string-match-p
+       (concat "\\(?:" re "\\)$")
+       (buffer-substring-no-properties start end)))))
+
+(defun go--boring-line-p ()
+  "Return non-nil if the current line probably doesn't impact indentation.
+
+A boring line is one that starts with a comment, is empty, is part of a
+multiline comment, or starts and ends in a multiline string."
+  (or
+   (looking-at (concat go--comment-start-regexp "\\|[[:space:]]*$"))
+   (go-in-comment-p)
+   (and (go-in-string-p) (save-excursion (end-of-line) (go-in-string-p)))))
+
+(defun go--forward-line (&optional count)
+  "Like `forward-line' but skip comments and empty lines.
+
+Return non-nil if point changed lines."
+  (let (moved)
+    (while (and
+            (zerop (forward-line count))
+            (setq moved t)
+            (go--boring-line-p))
+      (setq count (if (and count (< count 0 )) -1 1)))
+    moved))
+
+(defun go--case-comment-p (indent)
+  "Return non-nil if looking at a comment attached to a case statement.
+
+INDENT is the normal indent of this line, i.e. that of the case body."
+  (when (and
+         (> (current-indentation) 0)
+         (looking-at go--comment-start-regexp))
+
+    (let (switch-before
+          case-after
+          has-case-aligned-preceding-comment)
+
+      (save-excursion
+        ;; Search for previous case-aligned comment.
+        (while (and
+                (zerop (forward-line -1))
+                (cond
+                 ((looking-at "^[[:space:]]*$"))
+
+                 ((looking-at go--comment-start-regexp)
+                  (when (= (current-indentation) (- indent tab-width))
+                    (setq has-case-aligned-preceding-comment t))
+                  t)
+
+                 ((go-in-comment-p)))))
+
+        ;; Record if a switch (or select) precedes us.
+        (setq switch-before (looking-at "^[[:space:]]*\\(switch\\|select\\)[[:space:]]")))
+
+      ;; Record if first proceeding non-comment line is a case statement.
+      (save-excursion
+        (while (and
+                (zerop (forward-line 1))
+                (or
+                 (looking-at go--comment-start-regexp)
+                 (looking-at "^[[:space:]]*$")
+                 (go-in-comment-p))))
+
+        (setq case-after (looking-at go--case-or-default-regexp)))
+
+      (and
+       ;; a "case" statement comes after our comment
+       case-after
+
+       (or
+        ;; "switch" statement precedes us, always align with "case"
+        switch-before
+
+        ;; a preceding comment is aligned with "case", we should too
+        has-case-aligned-preceding-comment
+
+        ;; other cases are ambiguous, so if comment is currently
+        ;; aligned with "case", leave it that way
+        (= (current-indentation) (- indent tab-width)))))))
 
 (defun go-mode-indent-line ()
   (interactive)
   (let (indent
         shift-amt
+        ;; case sensitively match "case", "default", etc.
+        (case-fold-search nil)
         (pos (- (point-max) (point)))
         (point (point))
         (beg (line-beginning-position)))
@@ -620,8 +1255,17 @@ current line will be returned."
     (if (go-in-string-or-comment-p)
         (goto-char point)
       (setq indent (go-indentation-at-point))
-      (if (looking-at (concat go-label-regexp ":\\([[:space:]]*/.+\\)?$\\|case .+:\\|default:"))
-          (cl-decf indent tab-width))
+      (when (or
+             (and
+              (looking-at (concat go-label-regexp ":\\([[:space:]]*/.+\\)?$\\|" go--case-or-default-regexp))
+              ;; don't think last part of multiline case statement is a label
+              (not (go-previous-line-has-dangling-op-p))
+              (not (go--in-case-clause-list-p))
+              (not (go--in-composite-literal-p)))
+
+             ;; comment attached above a "case" statement
+             (go--case-comment-p indent))
+        (cl-decf indent tab-width))
       (setq shift-amt (- indent (current-column)))
       (if (zerop shift-amt)
           nil
@@ -677,83 +1321,348 @@ current line will be returned."
       (skip-chars-forward "^}")
       (forward-char))))
 
-(defun go--find-enclosing-parentheses (position)
-  "Return points of outermost '(' and ')' surrounding POSITION if
-such parentheses exist.
 
-If outermost '(' exists but ')' does not, it returns the next blank
-line or end-of-buffer position instead of the position of the closing
-parenthesis.
+(defvar go--fontify-param-has-name nil
+  "Whether the current params list has names.
 
-If the starting parenthesis is not found, it returns (POSITION
-POSITION)."
+This is used during fontification of function signatures.")
+
+(defvar go--fontify-param-beg nil
+  "Position of \"(\" starting param list.
+
+This is used during fontification of function signatures.")
+
+(defun go--fontify-param-pre ()
+  "Set `go--fontify-param-has-name' and `go--fontify-param-beg' appropriately.
+
+This is used as an anchored font lock keyword PRE-MATCH-FORM. We
+must set `go--fontify-param-has-name' ahead of time because you
+can't know if the param list is types only or names and types
+until you see the end. For example:
+
+// types only
+func foo(int, string) {}
+
+// names and types (don't know so until you see the \"int\").
+func foo(i, j int) {}
+"
+  (setq go--fontify-param-has-name (eq
+                                    (go--parameter-list-type (point-max))
+                                    'present))
+
+  ;; Remember where our match started so we can continue our serach
+  ;; from here.
+  (setq go--fontify-param-beg (point))
+
+  ;; Return position of closing paren so we process the entire
+  ;; multiline param list.
   (save-excursion
-    (let (beg end)
-      (goto-char position)
-      (while (> (go-paren-level) 0)
-        (re-search-backward "[(\\[{]" nil t)
-        (when (looking-at "(")
-          (setq beg (point))))
-      (if (null beg)
-          (list position position)
-        (goto-char position)
-        (while (and (> (go-paren-level) 0)
-                    (search-forward ")" nil t)))
-        (when (> (go-paren-level) 0)
-          (unless (re-search-forward "^[[:space:]]*$" nil t)
-            (goto-char (point-max))))
-        (list beg (point))))))
+    (let ((depth (go-paren-level)))
+      ;; First check that our paren is closed by the end of the file. This
+      ;; avoids expanding the fontification region to the entire file when you
+      ;; have an unclosed paren at file scope.
+      (when (save-excursion
+              (goto-char (1+ (buffer-size)))
+              (< (go-paren-level) depth))
+        (while (and
+                (re-search-forward ")" nil t)
+                (>= (go-paren-level) depth)))))
+    (point)))
+
+(defun go--fontify-param-post ()
+  "Move point back to opening paren.
+
+This is used as an anchored font lock keyword POST-MATCH-FORM. We
+move point back to the opening \"(\" so we find nested param
+lists.
+"
+  (goto-char go--fontify-param-beg))
+
+(defun go--match-param-start (end)
+  "Search for the starting of param lists.
+
+Search for the opening `(' of function signature param lists.
+This covers the func receiver, params, and results. Interface
+declarations are also included."
+  (let (found-match)
+    (while (and
+            (not found-match)
+            (re-search-forward (concat "\\(\\_<" go-identifier-regexp "\\)?(") end t))
+      (when (not (go-in-string-or-comment-p))
+        (save-excursion
+          (goto-char (match-beginning 0))
+
+          (let ((name (match-string 1)))
+            (when name
+              ;; We are in a param list if "func" preceded the "(" (i.e.
+              ;; func literal), or if we are in an interface
+              ;; declaration, e.g. "interface { foo(i int) }".
+              (setq found-match (or (string= name "func") (go--in-interface-p))))
+
+            ;; Otherwise we are in a param list if our "(" is preceded
+            ;; by ") " or "func ".
+            (when (and (not found-match) (not (zerop (skip-syntax-backward " "))))
+              (setq found-match (or
+                                 (eq (char-before) ?\))
+                                 (looking-back "\\_<func" (- (point) 4)))))))))
+    found-match))
+
+
+(defconst go--named-param-re
+  (concat "[[:space:]\n]*\\(" go-identifier-regexp "\\)\\(?:[[:space:]]+\\(?:\\.\\.\\.\\)?" go-type-name-regexp "[[:space:]]*[,)]\\)?")
+  "Regexp to match named param such as \"s *string\" in:
+
+func(i int, s *string) { }")
+
+(defconst go--unnamed-param-re
+  (concat "\\(\\)[[:space:]\n]*\\(?:\\.\\.\\.\\)?" go-type-name-regexp "[[:space:]]*[,)]")
+  "Regexp to match unnamed param such as \"*string\" in:
+
+func(int, *string) { }
+
+We start with an empty subexp since our font lock keyword expects
+subexp 1 to a variable name, but we have no variable.")
+
+(defun go--fontify-param (end)
+  "Match a param within a param list.
+
+Our parent font lock matcher is anchored to the beginning of the
+param list. `go--fontify-param-has-name' has been set
+appropriately. We match the next param and advance point to after
+the next comma or to the closing paren."
+  (let (found-match done)
+    ;; We loop until match because there are some params that we can't
+    ;; handle (but we may need to handle subsequent params). For
+    ;; example:
+    ;;
+    ;; // We don't handle the interface, so we must skip it and handle
+    ;; // "string".
+    ;; func(int, interface { foo() }, string)
+    (while (and (not found-match) (not done))
+      (if go--fontify-param-has-name
+          (when (looking-at go--named-param-re)
+            (setq found-match t))
+        (when (looking-at go--unnamed-param-re)
+          (setq found-match t)))
+
+      ;; Advance to next comma. We are done if there are no more commas.
+      (setq done (not (go--search-next-comma end))))
+    found-match))
 
 (defun go--search-next-comma (end)
   "Search forward from point for a comma whose nesting level is
-the same as point.  If it reaches the end of line or a closing
-parenthesis before a comma, it stops at it."
+the same as point. If it reaches a closing parenthesis before a
+comma, it stops at it. Return non-nil if comma was found."
   (let ((orig-level (go-paren-level)))
     (while (and (< (point) end)
-                (or (looking-at "[^,)\n]")
+                (or (looking-at-p "[^,)]")
                     (> (go-paren-level) orig-level)))
       (forward-char))
-    (when (and (looking-at ",")
+    (when (and (looking-at-p ",")
                (< (point) (1- end)))
-      (forward-char))))
+      (forward-char)
+      t)))
 
 (defun go--looking-at-keyword ()
   (and (looking-at (concat "\\(" go-identifier-regexp "\\)"))
        (member (match-string 1) go-mode-keywords)))
 
-(defun go--match-func (end)
-  "Search for identifiers used as type names from a function
-parameter list, and set the identifier positions as the results
-of last search.  Return t if search succeeded."
-  (when (re-search-forward "\\_<func\\_>" end t)
-    (let ((regions (go--match-func-type-names end)))
-      (if (null regions)
-          ;; Nothing to highlight. This can happen if the current func
-          ;; is "func()". Try next one.
-          (go--match-func end)
-        ;; There are something to highlight. Set those positions as
-        ;; last search results.
-        (setq regions (go--filter-match-data regions end))
-        (when regions
-          (set-match-data (go--make-match-data regions))
-          t)))))
+(defun go--match-type-switch-case (end)
+  "Match a \"case\" clause within a type switch."
+  (let (found-match)
+    (while (and
+            (not found-match)
 
-(defun go--match-func-type-names (end)
-  (cond
-   ;; Function declaration (e.g. "func foo(")
-   ((looking-at (concat "[[:space:]\n]*" go-identifier-regexp "[[:space:]\n]*("))
-    (goto-char (match-end 0))
-    (nconc (go--match-parameter-list end)
-           (go--match-function-result end)))
-   ;; Method declaration, function literal, or function type
-   ((looking-at "[[:space:]]*(")
-    (goto-char (match-end 0))
-    (let ((regions (go--match-parameter-list end)))
-      ;; Method declaration (e.g. "func (x y) foo(")
-      (when (looking-at (concat "[[:space:]]*" go-identifier-regexp "[[:space:]\n]*("))
-        (goto-char (match-end 0))
-        (setq regions (nconc regions (go--match-parameter-list end))))
-      (nconc regions (go--match-function-result end))))))
+            ;; Search for "case" statements.
+            (re-search-forward "^[[:space:]]*case " end t))
+
+      ;; Make sure we are in a type switch statement.
+      (setq found-match (go--in-type-switch-p)))
+    found-match))
+
+(defun go--fontify-type-switch-case (end)
+  "Match a single type within a type switch case."
+  (let (found-match done)
+    ;; Loop until we find a match because we must skip types we don't
+    ;; handle, such as "interface { foo() }".
+    (while (and (not found-match) (not done))
+      (when (looking-at (concat "\\(?:[[:space:]]*\\|//.*\\|\n\\)*" go-type-name-regexp "[[:space:]]*[,:]"))
+        (goto-char (match-end 1))
+        (unless (member (match-string 1) go-constants)
+          (setq found-match t)))
+      (setq done (not (go--search-next-comma end))))
+    found-match))
+
+(defun go--containing-decl ()
+  "Return containing decl kind var|const|type, if any."
+  (save-match-data
+    (or
+     (save-excursion
+       (and
+        (go-goto-opening-parenthesis)
+        (eq (char-after) ?\()
+        (skip-syntax-backward " ")
+        (skip-syntax-backward "w")
+        (looking-at "\\(var\\|const\\|type\\)[[:space:]]")
+        (match-string-no-properties 1)))
+
+     (save-excursion
+       (let ((depth (go-paren-level)))
+         (beginning-of-line)
+         (and
+          (= (go-paren-level) depth)
+          (looking-at "[[:space:]]*\\(var\\|const\\|type\\)[[:space:]]")
+          (match-string-no-properties 1)))))))
+
+(defconst go--decl-ident-re (concat "\\(?:^\\|[[:space:]]\\)\\(\\(\\(" go-identifier-regexp "\\)\\)\\)\\_>"))
+
+(defun go--match-decl (end)
+  "Match identifers in \"var\", \"type\" and \"const\" decls, as
+well as \":=\" assignments.
+
+In order to only scan once, the regex has three subexpressions
+that match the same identifier. Depending on the kind of
+containing decl we zero out the subexpressions so the right one
+gets highlighted by the font lock keyword."
+  (let (found-match decl)
+    (while (and
+            (not found-match)
+            (re-search-forward go--decl-ident-re end t))
+
+      (save-excursion
+        ;; Skip keywords.
+        (cond
+         ((member (match-string 1) go-mode-keywords))
+
+         ((and
+           ;; We are in a decl of some kind.
+           (setq decl (go--containing-decl))
+
+           ;; We aren't on right side of equals sign.
+           (not (go--looking-back-p "=")))
+
+          (setq found-match t)
+
+          ;; Unset match data subexpressions that don't apply based on
+          ;; the decl kind.
+          (let ((md (match-data)))
+            (cond
+             ((string= decl "var")
+              (setf (nth 4 md) nil (nth 5 md) nil (nth 6 md) nil (nth 7 md) nil))
+             ((string= decl "const")
+              (setf (nth 2 md) nil (nth 3 md) nil (nth 6 md) nil (nth 7 md) nil))
+             ((string= decl "type")
+              (setf (nth 2 md) nil (nth 3 md) nil (nth 4 md) nil (nth 5 md) nil)))
+            (set-match-data md)))
+
+         (t
+          (save-match-data
+            ;; Left side of ":=" assignmnet.
+            (when (looking-at ".*:=")
+              (let ((depth (go-paren-level)))
+                (goto-char (match-end 0))
+                ;; Make sure the ":=" isn't in a comment or a sub-block.
+                (setq found-match (and
+                                   (not (go-in-string-or-comment-p))
+                                   (= depth (go-paren-level)))))))))))
+    found-match))
+
+(defun go--looking-back-p (re)
+  "Return non-nil if RE matches beginning of line to point.
+
+RE is not anchored automatically."
+  (string-match-p
+   re
+   (buffer-substring-no-properties (point) (line-beginning-position))))
+
+
+(defconst go--ident-type-pair-re (concat "\\_<\\(" go-identifier-regexp "\\)[[:space:]]+" go-type-name-regexp))
+
+(defun go--match-ident-type-pair (end)
+  "Search for identifier + type-name pairs.
+
+For example, this looks for the \"foo bar\" in \"var foo bar\",
+yielding match-data for \"bar\" since that is a type name to be
+fontified. This approach matches type names in var and const
+decls, and in struct definitions. Return non-nil if search
+succeeds."
+  (let (found-match)
+    (while (and
+            (not found-match)
+            (re-search-forward go--ident-type-pair-re end t))
+
+      ;; Make sure the neither match is a keyword.
+      (if (member (match-string 2) go-mode-keywords)
+          (goto-char (match-end 2))
+        (if (member (match-string 1) go-mode-keywords)
+            (goto-char (match-end 1))
+          (setq found-match t))))
+
+    found-match))
+
+(defconst go--single-func-result-re (concat ")[[:space:]]+" go-type-name-regexp "\\(?:$\\|[[:space:]),]\\)"))
+
+(defun go--match-single-func-result (end)
+  "Match single result types.
+
+Parenthetical result lists are handled by the param list keyword,
+so we need a separate keyword to handle singular reuslt types
+such as \"string\" in:
+
+func foo(i int) string"
+  (let (found-match)
+    (while (and
+            (not found-match)
+            (re-search-forward go--single-func-result-re end t))
+      (when (not (member (match-string 1) go-mode-keywords))
+        (setq found-match t)
+        (goto-char (match-end 1))))
+    found-match))
+
+(defconst go--type-alias-re
+  (concat "^[[:space:]]*\\(type\\)?[[:space:]]*" go-identifier-regexp "[[:space:]]*=[[:space:]]*" go-type-name-regexp))
+
+(defun go--match-type-alias (end)
+  "Search for type aliases.
+
+We are looking for the right-hand-side of the type alias"
+  (let (found-match)
+    (while (and
+            (not found-match)
+            (re-search-forward go--type-alias-re end t))
+      ;; Either line started with "type", or we are in a "type" block.
+      (setq found-match (or
+                         (match-string 1)
+                         (go--in-paren-with-prefix-p ?\( "type"))))
+    found-match))
+
+
+(defconst go--label-re (concat "\\(" go-label-regexp "\\):"))
+
+(defun go--match-ident-colon (end)
+  "Search for composite literal field names and label definitions."
+  (let (found-match)
+    (while (and
+            (not found-match)
+            (re-search-forward go--label-re end t))
+
+      (save-excursion
+        (goto-char (match-beginning 1))
+        (skip-syntax-backward " ")
+
+        (setq found-match (or
+                           ;; We are a label/field name if we are at the
+                           ;; beginning of the line.
+                           (bolp)
+
+                           ;; Composite literal field names, e.g. "Foo{Bar:". Note
+                           ;; that this gives false positives for literal maps,
+                           ;; arrays, and slices.
+                           (and
+                            (or (eq (char-before) ?,) (eq (char-before) ?{))
+                            (go--in-composite-literal-p))))))
+
+    found-match))
 
 (defun go--parameter-list-type (end)
   "Return `present' if the parameter list has names, or `absent' if not.
@@ -773,126 +1682,43 @@ after '('."
            'absent)
           (t 'present))))
 
-(defconst go--opt-dotdotdot-regexp "\\(?:\\.\\.\\.\\)?")
-(defconst go--parameter-type-regexp
-  (concat go--opt-dotdotdot-regexp "[[:space:]*\n]*\\(" go-type-name-no-prefix-regexp "\\)[[:space:]\n]*\\([,)]\\|\\'\\)"))
-(defconst go--func-type-in-parameter-list-regexp
-  (concat go--opt-dotdotdot-regexp "[[:space:]*\n]*\\(\\_<func\\_>" "\\)"))
-
-(defun go--match-parameters-common (identifier-regexp end)
-  (let ((acc ())
-        (start -1))
-    (while (progn (skip-chars-forward "[:space:]\n" end)
-                  (and (not (looking-at "\\(?:)\\|\\'\\)"))
-                       (< start (point))
-                       (<= (point) end)))
-      (setq start (point))
-      (cond
-       ((looking-at (concat identifier-regexp go--parameter-type-regexp))
-        (setq acc (nconc acc (list (match-beginning 1) (match-end 1))))
-        (goto-char (match-beginning 2)))
-       ((looking-at (concat identifier-regexp go--func-type-in-parameter-list-regexp))
-        (goto-char (match-beginning 1))
-        (setq acc (nconc acc (go--match-func-type-names end)))
-        (go--search-next-comma end))
-       (t
-        (go--search-next-comma end))))
-    (when (and (looking-at ")")
-               (< (point) end))
-      (forward-char))
-    acc))
-
-(defun go--match-parameters-with-identifier-list (end)
-  (go--match-parameters-common
-   (concat go-identifier-regexp "[[:space:]\n]+")
-   end))
-
-(defun go--match-parameters-without-identifier-list (end)
-  (go--match-parameters-common "" end))
-
-(defun go--filter-match-data (regions end)
-  "Remove points from REGIONS if they are beyond END.
-REGIONS are a list whose size is multiple of 2.  Element 2n is beginning of a
-region and 2n+1 is end of it.
-
-This function is used to make sure we don't override end point
-that `font-lock-mode' gave to us."
-  (when regions
-    (let* ((vec (vconcat regions))
-           (i 0)
-           (len (length vec)))
-      (while (and (< i len)
-                  (<= (nth i regions) end)
-                  (<= (nth (1+ i) regions) end))
-        (setq i (+ i 2)))
-      (cond ((= i len)
-             regions)
-            ((zerop i)
-             nil)
-            (t
-             (butlast regions (- (length regions) i)))))))
-
-(defun go--make-match-data (regions)
-  (let ((deficit (- (* 2 go--font-lock-func-param-num-groups)
-                    (length regions))))
-    (when (> deficit 0)
-      (let ((last (car (last regions))))
-        (setq regions (nconc regions (make-list deficit last))))))
-  `(,(car regions) ,@(last regions) ,@regions))
-
-(defun go--match-parameter-list (end)
-  "Return a list of identifier positions that are used as type
-names in a function parameter list, assuming point is at the
-beginning of a parameter list.  Return nil if the text after
-point does not look like a parameter list.
-
-Set point to end of closing parenthesis on success.
-
-In Go, the names must either all be present or all be absent
-within a list of parameters.
-
-Parsing a parameter list is a little bit complicated because we
-have to scan through the parameter list to determine whether or
-not the list has names. Until a type name is found or reaching
-end of a parameter list, we are not sure which form the parameter
-list is.
-
-For example, X and Y are type names in a parameter list \"(X,
-Y)\" but are parameter names in \"(X, Y int)\". We cannot say if
-X is a type name until we see int after Y.
-
-Note that even \"(int, float T)\" is a valid parameter
-list. Builtin type names are not reserved words. In this example,
-int and float are parameter names and only T is a type name.
-
-In this function, we first scan the parameter list to see if the
-list has names, and then handle it accordingly."
-  (let ((name (go--parameter-list-type end)))
-    (cond ((eq name 'present)
-           (go--match-parameters-with-identifier-list end))
-          ((eq name 'absent)
-           (go--match-parameters-without-identifier-list end))
-          (t nil))))
-
-(defun go--match-function-result (end)
-  "Return a list of identifier positions that are used as type
-names in a function result, assuming point is at the beginning of
-a result.
-
-Function result is a unparenthesized type or a parameter list."
-  (cond ((and (looking-at (concat "[[:space:]*]*\\(" go-type-name-no-prefix-regexp "\\)"))
-              (not (member (match-string 1) go-mode-keywords)))
-         (list (match-beginning 1) (match-end 1)))
-        ((looking-at "[[:space:]]*(")
-         (goto-char (match-end 0))
-         (go--match-parameter-list end))
-        (t nil)))
-
 (defun go--reset-dangling-cache-before-change (&optional _beg _end)
   "Reset `go-dangling-cache'.
 
 This is intended to be called from `before-change-functions'."
   (setq go-dangling-cache (make-hash-table :test 'eql)))
+
+(defun go--electric-indent-function (inserted-char)
+  (cond
+   ;; Indent after starting a "//" or "/*" comment.
+   ;; This is handy for comments above "case" statements.
+   ((or (eq inserted-char ?/) (eq inserted-char ?*))
+    (when (eq (char-before (1- (point))) ?/)
+      'do-indent))
+
+   ((eq inserted-char ? )
+    (and
+     (eq (char-before (- (point) 1)) ?e)
+     (eq (char-before (- (point) 2)) ?s)
+     (eq (char-before (- (point) 3)) ?a)
+     (eq (char-before (- (point) 4)) ?c)))))
+
+(defun go--comment-region (beg end &optional arg)
+  "Switch to block comment when commenting a partial line."
+  (save-excursion
+    (goto-char beg)
+    (let ((beg-bol (line-beginning-position)))
+      (goto-char end)
+      (if (and
+           ;; beg and end are on the same line
+           (eq (line-beginning-position) beg-bol)
+           ;; end is not at end of line
+           (not (eq end (line-end-position))))
+          (let ((comment-start "/* ")
+                (comment-end " */")
+                (comment-padding ""))
+            (comment-region-default beg end arg))
+        (comment-region-default beg end arg)))))
 
 ;;;###autoload
 (define-derived-mode go-mode prog-mode "Go"
@@ -953,14 +1779,14 @@ If you're looking for even more integration with Go, namely
 on-the-fly syntax checking, auto-completion and snippets, it is
 recommended that you look at flycheck
 \(see URL `https://github.com/flycheck/flycheck') or flymake in combination
-with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
+with goflymake (see URL `https://github.com/dougm/goflymake'), gocode
 \(see URL `https://github.com/nsf/gocode'), go-eldoc
 \(see URL `github.com/syohex/emacs-go-eldoc') and yasnippet-go
 \(see URL `https://github.com/dominikh/yasnippet-go')"
 
   ;; Font lock
-  (set (make-local-variable 'font-lock-defaults)
-       '(go--build-font-lock-keywords))
+  (setq font-lock-defaults '(go--build-font-lock-keywords))
+  (setq font-lock-multiline t)
 
   ;; Indentation
   (set (make-local-variable 'indent-line-function) #'go-mode-indent-line)
@@ -970,6 +1796,7 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
   (set (make-local-variable 'comment-end)   "")
   (set (make-local-variable 'comment-use-syntax) t)
   (set (make-local-variable 'comment-start-skip) "\\(//+\\|/\\*+\\)\\s *")
+  (set (make-local-variable 'comment-region-function) 'go--comment-region)
 
   (set (make-local-variable 'beginning-of-defun-function) #'go-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function) #'go-end-of-defun)
@@ -977,13 +1804,18 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
   (set (make-local-variable 'syntax-propertize-function) #'go-propertize-syntax)
 
-  (if (boundp 'electric-indent-chars)
-      (set (make-local-variable 'electric-indent-chars) '(?\n ?} ?\))))
+  (when (boundp 'electric-indent-chars)
+    (set (make-local-variable 'electric-indent-chars) '(?\n ?} ?\) ?:))
+    (add-hook 'electric-indent-functions #'go--electric-indent-function nil t))
 
   (set (make-local-variable 'compilation-error-screen-columns) nil)
 
   (set (make-local-variable 'go-dangling-cache) (make-hash-table :test 'eql))
   (add-hook 'before-change-functions #'go--reset-dangling-cache-before-change t t)
+
+  (set (make-local-variable 'adaptive-fill-function) #'go--fill-prefix)
+  (set (make-local-variable 'fill-paragraph-function) #'go--fill-paragraph)
+  (set (make-local-variable 'fill-forward-paragraph-function) #'go--fill-forward-paragraph)
 
   ;; ff-find-other-file
   (setq ff-other-file-alist 'go-other-file-alist)
@@ -1012,7 +1844,7 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
              (boundp 'compilation-error-regexp-alist-alist))
     (add-to-list 'compilation-error-regexp-alist 'go-test)
     (add-to-list 'compilation-error-regexp-alist-alist
-                 '(go-test . ("^\t+\\([^()\t\n]+\\):\\([0-9]+\\):? .*$" 1 2)) t)))
+                 '(go-test . ("^\\s-+\\([^()\t\n]+\\):\\([0-9]+\\):? .*$" 1 2)) t)))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist (cons "\\.go\\'" 'go-mode))
@@ -1067,10 +1899,10 @@ with goflymake \(see URL `https://github.com/dougm/goflymake'), gocode
 (defun gofmt ()
   "Format the current buffer according to the formatting tool.
 
-The tool used can be set via ‘gofmt-command` (default: gofmt) and additional
-arguments can be set as a list via ‘gofmt-args`."
+The tool used can be set via ‘gofmt-command’ (default: gofmt) and additional
+arguments can be set as a list via ‘gofmt-args’."
   (interactive)
-  (let ((tmpfile (make-temp-file "gofmt" nil ".go"))
+  (let ((tmpfile (go--make-nearby-temp-file "gofmt" nil ".go"))
         (patchbuf (get-buffer-create "*Gofmt patch*"))
         (errbuf (if gofmt-show-errors (get-buffer-create "*Gofmt Errors*")))
         (coding-system-for-read 'utf-8)
@@ -1096,17 +1928,25 @@ arguments can be set as a list via ‘gofmt-args`."
                           ;; accepting a full path, and some features
                           ;; of goimports rely on knowing the full
                           ;; name.
-                          (list "-srcdir" (file-truename buffer-file-name)))))
-          (setq our-gofmt-args (append our-gofmt-args
-                                       gofmt-args
-                                       (list "-w" tmpfile)))
+                          (list "-srcdir" (go--file-local-name
+                                           (file-truename buffer-file-name))))))
+          (setq our-gofmt-args
+                (append our-gofmt-args gofmt-args
+                        (list "-w" (go--file-local-name tmpfile))))
           (message "Calling gofmt: %s %s" gofmt-command our-gofmt-args)
           ;; We're using errbuf for the mixed stdout and stderr output. This
           ;; is not an issue because gofmt -w does not produce any stdout
           ;; output in case of success.
-          (if (zerop (apply #'call-process gofmt-command nil errbuf nil our-gofmt-args))
+          (if (zerop (apply #'process-file gofmt-command nil errbuf nil our-gofmt-args))
               (progn
-                (if (zerop (call-process-region (point-min) (point-max) "diff" nil patchbuf nil "-n" "-" tmpfile))
+                ;; There is no remote variant of ‘call-process-region’, but we
+                ;; can invoke diff locally, and the results should be the same.
+                (if (zerop (let ((local-copy (file-local-copy tmpfile)))
+                             (unwind-protect
+                                 (call-process-region
+                                  (point-min) (point-max) "diff" nil patchbuf
+                                  nil "-n" "-" (or local-copy tmpfile))
+                               (when local-copy (delete-file local-copy)))))
                     (message "Buffer is already gofmted")
                   (go--apply-rcs-patch patchbuf)
                   (message "Applied gofmt"))
@@ -1135,7 +1975,10 @@ arguments can be set as a list via ‘gofmt-args`."
              (if (gofmt--is-goimports-p)
                  (concat (file-name-directory filename) (file-name-nondirectory tmpfile))
                tmpfile)))
-        (while (search-forward-regexp (concat "^\\(" (regexp-quote truefile) "\\):") nil t)
+        (while (search-forward-regexp
+                (concat "^\\(" (regexp-quote (go--file-local-name truefile))
+                        "\\):")
+                nil t)
           (replace-match (file-name-nondirectory filename) t t nil 1)))
       (compilation-mode)
       (display-buffer errbuf))))
@@ -1164,9 +2007,15 @@ you save any file, kind of defeating the point of autoloading."
                        (go-packages) nil nil nil 'go-godoc-history)
     (read-from-minibuffer "godoc: " nil nil nil 'go-godoc-history)))
 
+(defun godoc--buffer-name (query)
+  "Determine the name to use for the output buffer of a given godoc QUERY."
+  (if godoc-reuse-buffer
+      "*godoc*"
+    (concat "*godoc " query "*")))
+
 (defun godoc--get-buffer (query)
   "Get an empty buffer for a godoc QUERY."
-  (let* ((buffer-name (concat "*godoc " query "*"))
+  (let* ((buffer-name (godoc--buffer-name query))
          (buffer (get-buffer buffer-name)))
     ;; Kill the existing buffer if it already exists.
     (when buffer (kill-buffer buffer))
@@ -1263,27 +2112,36 @@ declaration."
 (defun go-play-region (start end)
   "Send the region between START and END to the Playground.
 If non-nil `go-play-browse-function' is called with the
-Playground URL."
+Playground URL.
+
+By default this function will prompt to confirm you want to upload
+code to the Playground. You can disable the confirmation by setting
+`go-confirm-playground-uploads' to nil.
+"
   (interactive "r")
-  (let* ((url-request-method "POST")
-         (url-request-extra-headers
-          '(("Content-Type" . "application/x-www-form-urlencoded")))
-         (url-request-data
-          (encode-coding-string
-           (buffer-substring-no-properties start end)
-           'utf-8))
-         (content-buf (url-retrieve
-                       "https://play.golang.org/share"
-                       (lambda (arg)
-                         (cond
-                          ((equal :error (car arg))
-                           (signal 'go-play-error (cdr arg)))
-                          (t
-                           (re-search-forward "\n\n")
-                           (let ((url (format "https://play.golang.org/p/%s"
-                                              (buffer-substring (point) (point-max)))))
-                             (when go-play-browse-function
-                               (funcall go-play-browse-function url)))))))))))
+  (if (and go-confirm-playground-uploads
+           (not (yes-or-no-p "Upload to public Go Playground? ")))
+      (message "Upload aborted")
+    (let* ((url-request-method "POST")
+           (url-request-extra-headers
+            '(("Content-Type" . "text/plain; charset=UTF-8")))
+           (url-request-data
+            (encode-coding-string
+             (buffer-substring-no-properties start end)
+             'utf-8))
+
+           (content-buf (url-retrieve
+                         "https://play.golang.org/share"
+                         (lambda (arg)
+                           (cond
+                            ((equal :error (car arg))
+                             (signal 'go-play-error (cdr arg)))
+                            (t
+                             (re-search-forward "\n\n")
+                             (let ((url (format "https://play.golang.org/p/%s"
+                                                (buffer-substring (point) (point-max)))))
+                               (when go-play-browse-function
+                                 (funcall go-play-browse-function url))))))))))))
 
 ;;;###autoload
 (defun go-download-play (url)
@@ -1372,7 +2230,8 @@ If IGNORE-CASE is non-nil, the comparison is case-insensitive."
         (dolist (file files)
           (unless (member file '("." ".."))
             (let ((file (concat dir "/" file)))
-              (if (file-directory-p file)
+              (if (and (file-directory-p file)
+                       (not (file-symlink-p file)))
                   (setq dirs (append (cons file
                                            (go--directory-dirs file))
                                      dirs))))))
@@ -1384,8 +2243,11 @@ If IGNORE-CASE is non-nil, the comparison is case-insensitive."
   (funcall go-packages-function))
 
 (defun go-packages-native ()
-  "Return a list of all installed Go packages.
-It looks for archive files in /pkg/."
+  "Return a list of all installed Go packages. Obsolete.
+It looks for archive files in /pkg/. This strategy does not work
+well with the Go build cache or Go modules.
+
+You should use `go-packages-go-list' instead."
   (sort
    (delete-dups
     (cl-mapcan
@@ -1411,7 +2273,7 @@ It looks for archive files in /pkg/."
   (reverse (remove nil
                    (mapcar
                     (lambda (line)
-                      (when (string-match "^\\(.+\\):\\([[:digit:]]+\\): imported and not used: \".+\".*$" line)
+                      (when (string-match "^\\(.+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\): imported and not used: \".+\".*$" line)
                         (let ((error-file-name (match-string 1 line))
                               (error-line-num (match-string 2 line)))
                           (if (string= (file-truename error-file-name) (file-truename buffer-file-name))
@@ -1434,7 +2296,7 @@ they will be removed completely."
     (let ((cur-buffer (current-buffer)) flymake-state lines)
       (when (boundp 'flymake-mode)
         (setq flymake-state flymake-mode)
-        (flymake-mode-off))
+        (flymake-mode -1))
       (save-some-buffers nil (lambda () (equal cur-buffer (current-buffer))))
       (if (buffer-modified-p)
           (message "Cannot operate on unsaved buffer")
@@ -1446,7 +2308,7 @@ they will be removed completely."
               (comment-region (line-beginning-position) (line-end-position))
             (go--delete-whole-line)))
         (message "Removed %d imports" (length lines)))
-      (if flymake-state (flymake-mode-on)))))
+      (if flymake-state (flymake-mode 1)))))
 
 (defun godef--find-file-line-column (specifier other-window)
   "Given a file name in the format of `filename:line:column',
@@ -1493,6 +2355,7 @@ description at POINT."
 (defun godef--successful-p (output)
   (not (or (string= "-" output)
            (string= "godef: no identifier found" output)
+           (string= "godef: no object" output)
            (go--string-prefix-p "godef: no declaration found for " output)
            (go--string-prefix-p "error finding import path for " output))))
 
@@ -2010,6 +2873,90 @@ If BUFFER, return the number of characters in that buffer instead."
   (with-current-buffer (or buffer (current-buffer))
     (1- (position-bytes (point-max)))))
 
+(defvar go-dot-mod-mode-map
+  (let ((map (make-sparse-keymap)))
+    map)
+  "Keymap for `go-dot-mod-mode'.")
+
+(defvar go-dot-mod-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    ;; handle '//' comment syntax
+    (modify-syntax-entry ?/ ". 124b" st)
+    (modify-syntax-entry ?\n "> b" st)
+    st)
+  "Syntax table for `go-dot-mod-mode'.")
+
+(defconst go-dot-mod-mode-keywords
+  '("module" "go" "require" "replace" "exclude")
+  "All keywords for go.mod files.  Used for font locking.")
+
+(defgroup go-dot-mod nil
+  "Options specific to `go-dot-mod-mode`."
+  :group 'go)
+
+(defface go-dot-mod-module-name '((t :inherit default))
+  "Face for module name in \"require\" list."
+  :group 'go-dot-mod)
+
+(defface go-dot-mod-module-version '((t :inherit default))
+  "Face for module version in \"require\" list."
+  :group 'go-dot-mod)
+
+(defface go-dot-mod-module-semver '((t :inherit go-dot-mod-module-version))
+  "Face for module semver in \"require\" list."
+  :group 'go-dot-mod)
+
+
+(defvar go-dot-mod-font-lock-keywords
+  `(
+    (,(concat "^\\s-*\\(" (regexp-opt go-dot-mod-mode-keywords t) "\\)\\s-") 1 font-lock-keyword-face)
+    ("^\\s-*\\([^[:space:]]+\\)\\s-+\\(v[0-9]+\\.[0-9]+\\.[0-9]+\\)\\([^[:space:]\n]*\\)" (1 'go-dot-mod-module-name) (2 'go-dot-mod-module-semver) (3 'go-dot-mod-module-version)))
+  "Keyword highlighting specification for `go-dot-mod-mode'.")
+
+;;;###autoload
+(define-derived-mode go-dot-mod-mode fundamental-mode "Go Mod"
+  "A major mode for editing go.mod files."
+  :syntax-table go-dot-mod-mode-syntax-table
+  (set (make-local-variable 'comment-start) "// ")
+  (set (make-local-variable 'comment-end)   "")
+  (set (make-local-variable 'comment-use-syntax) t)
+  (set (make-local-variable 'comment-start-skip) "\\(//+\\)\\s *")
+
+  (set (make-local-variable 'font-lock-defaults)
+       '(go-dot-mod-font-lock-keywords))
+  (set (make-local-variable 'indent-line-function) 'go-mode-indent-line)
+
+  ;; Go style
+  (setq indent-tabs-mode t)
+
+  ;; we borrow the go-mode-indent function so we need this buffer cache
+  (set (make-local-variable 'go-dangling-cache) (make-hash-table :test 'eql))
+  (add-hook 'before-change-functions #'go--reset-dangling-cache-before-change t t))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("go\\.mod\\'" . go-dot-mod-mode))
+
+;; Polyfills for functions added in Emacs 26.  Remove these once we don’t
+;; support Emacs 25 any more.
+(defalias 'go--file-local-name
+  (if (fboundp 'file-local-name) #'file-local-name
+    (lambda (file) (or (file-remote-p file 'localname) file))))
+
+(defalias 'go--make-nearby-temp-file
+  (if (fboundp 'make-nearby-temp-file) #'make-nearby-temp-file
+    (lambda (prefix &optional dir-flag suffix)
+      (let ((temporary-file-directory (go--temporary-file-directory)))
+        (make-temp-file prefix dir-flag suffix)))))
+
+(defalias 'go--temporary-file-directory
+  (if (fboundp 'temporary-file-directory) #'temporary-file-directory
+    (lambda ()
+      (let ((remote (file-remote-p default-directory)))
+        (if remote
+            ;; Assume that /tmp is a temporary directory on the remote host.
+            ;; This won’t work on Windows.
+            (concat remote "/tmp")
+          temporary-file-directory)))))
 
 (provide 'go-mode)
 

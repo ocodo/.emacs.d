@@ -81,9 +81,7 @@ Add this to .emacs to run gofmt on the current buffer when saving:
 \(add-hook 'before-save-hook 'gofmt-before-save).
 
 Note that this will cause ‘go-mode’ to get loaded the first time
-you save any file, kind of defeating the point of autoloading.
-
-\(fn)" t nil)
+you save any file, kind of defeating the point of autoloading." t nil)
 
 (autoload 'godoc "go-mode" "\
 Show Go documentation for QUERY, much like \\<go-mode-map>\\[man].
@@ -96,7 +94,14 @@ Tries to look for a URL at point.
 
 \(fn URL)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "go-mode" '("gofmt" "god" "go-")))
+(autoload 'go-dot-mod-mode "go-mode" "\
+A major mode for editing go.mod files.
+
+\(fn)" t nil)
+
+(add-to-list 'auto-mode-alist '("go\\.mod\\'" . go-dot-mod-mode))
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "go-mode" '("go-" "god" "gofmt")))
 
 ;;;***
 
