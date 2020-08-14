@@ -1,16 +1,17 @@
 ;;; find-file-in-project-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
 ;;;### (autoloads nil "find-file-in-project" "find-file-in-project.el"
-;;;;;;  (23278 48317 0 0))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from find-file-in-project.el
 
 (autoload 'ffip-git-diff-current-file "find-file-in-project" "\
-Run 'git diff version:current-file current-file'.
-
-\(fn)" nil nil)
+Run 'git diff version:current-file current-file'." nil nil)
 
 (autoload 'ffip-copy-without-change "find-file-in-project" "\
 Copy P without change.
@@ -31,24 +32,16 @@ Create org link from P and copy the result.
 The callback after calling `find-relative-path'.")
 
 (autoload 'ffip-project-root "find-file-in-project" "\
-Return the root of the project.
-
-\(fn)" nil nil)
+Return project root or `default-directory'." nil nil)
 
 (autoload 'ffip-save-ivy-last "find-file-in-project" "\
-Save `ivy-last' into `ffip-ivy-last-saved'.  Requires ivy.
-
-\(fn)" t nil)
+Save `ivy-last' into `ffip-ivy-last-saved'.  Requires ivy." t nil)
 
 (autoload 'ffip-get-project-root-directory "find-file-in-project" "\
-Get the full path of project root directory.
-
-\(fn)" nil nil)
+Get the full path of project root directory." nil nil)
 
 (autoload 'ffip-ivy-resume "find-file-in-project" "\
-Wrapper of `ivy-resume'.  Resume the search saved at `ffip-ivy-last-saved'.
-
-\(fn)" t nil)
+Wrapper of `ivy-resume'.  Resume the search saved at `ffip-ivy-last-saved'." t nil)
 
 (autoload 'ffip-filename-identity "find-file-in-project" "\
 Return identical KEYWORD.
@@ -56,13 +49,13 @@ Return identical KEYWORD.
 \(fn KEYWORD)" nil nil)
 
 (autoload 'ffip-filename-camelcase-to-dashes "find-file-in-project" "\
-Convert KEYWORD from camel cased to dash seperated.
+Convert KEYWORD from camel cased to dash separated.
 If CHECK-ONLY is true, only do the check.
 
 \(fn KEYWORD &optional CHECK-ONLY)" nil nil)
 
 (autoload 'ffip-filename-dashes-to-camelcase "find-file-in-project" "\
-Convert KEYWORD from dash seperated to camel cased.
+Convert KEYWORD from dash separated to camel cased.
 If CHECK-ONLY is true, only do the check.
 
 \(fn KEYWORD &optional CHECK-ONLY)" nil nil)
@@ -103,9 +96,7 @@ This function is the API to find files.
 (autoload 'ffip-create-project-file "find-file-in-project" "\
 Create or Append .dir-locals.el to set up per directory.
 You can move .dir-locals.el to root directory.
-See (info \"(Emacs) Directory Variables\") for details.
-
-\(fn)" t nil)
+See (info \"(Emacs) Directory Variables\") for details." t nil)
 
 (autoload 'ffip-current-full-filename-match-pattern-p "find-file-in-project" "\
 Is current full file name (including directory) match the REGEX?
@@ -130,13 +121,12 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 \(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
 
 (autoload 'find-file-in-current-directory "find-file-in-project" "\
-Like `find-file-in-project'.  But search only in current directory.
-IF OPEN-ANOTHER-WINDOW is t, results are displayed in new window.
+Search file in current directory or LEVEL up parent directory.
 
-\(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
+\(fn &optional LEVEL)" t nil)
 
 (autoload 'find-file-in-project-by-selected "find-file-in-project" "\
-Same as `find-file-in-project' but more poweful and efficient.
+Same as `find-file-in-project' but more powerful and faster.
 It use string from selected region to search files in the project.
 If no region is selected, you could provide a keyword.
 
@@ -155,6 +145,10 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 
 \(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
 
+(autoload 'ffip-insert-file "find-file-in-project" "\
+Insert contents of file in current buffer.
+The file name is selected interactively from candidates in project." t nil)
+
 (autoload 'find-file-with-similar-name "find-file-in-project" "\
 Use base name of current file as keyword which could be further stripped.
 by `ffip-strip-file-name-regex'.
@@ -168,11 +162,11 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 
 \(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
 
-(autoload 'find-relative-path "find-file-in-project" "\
+(autoload 'ffip-find-relative-path "find-file-in-project" "\
 Find file/directory and copy its relative path into `kill-ring'.
-Optional prefix FIND-DIRECTORY copy the directory path; file path by default.
+If FIND-DIRECTORY is t, copy the directory path.
 
-You can set `ffip-find-relative-path-callback' to format the string before copying,
+Set `ffip-find-relative-path-callback' to format the result,
   (setq ffip-find-relative-path-callback 'ffip-copy-reactjs-import)
   (setq ffip-find-relative-path-callback 'ffip-copy-org-file-link)
 
@@ -183,7 +177,7 @@ Similar to `find-file-in-project-by-selected'.
 Use string from selected region to find directory in the project.
 If no region is selected, you need provide keyword.
 
-Keyword could be directory's base-name only or parent-directoy+base-name
+Keyword could be directory's base-name only or parent-directory+base-name
 For example, to find /home/john/proj1/test, below keywords are valid:
 - test
 - roj1/test
@@ -192,6 +186,12 @@ For example, to find /home/john/proj1/test, below keywords are valid:
 If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 
 \(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
+
+(autoload 'ffip-lisp-find-file-in-project "find-file-in-project" "\
+If DIRECTORY-P is nil, find file in project, or else find directory.
+It's is written in pure Lisp, so it works in all environments.
+
+\(fn &optional DIRECTORY-P)" t nil)
 
 (defalias 'ffip 'find-file-in-project)
 
@@ -210,9 +210,7 @@ Keyword to search new file is selected text or user input.
 \(fn &optional RATIO)" t nil)
 
 (autoload 'ffip-diff-quit "find-file-in-project" "\
-Quit.
-
-\(fn)" t nil)
+Quit." t nil)
 
 (autoload 'ffip-diff-find-file "find-file-in-project" "\
 File file(s) in current hunk.
@@ -221,14 +219,14 @@ If OPEN-ANOTHER-WINDOW is not nil, the file will be opened in new window.
 \(fn &optional OPEN-ANOTHER-WINDOW)" t nil)
 
 (autoload 'ffip-show-diff-internal "find-file-in-project" "\
-Show the diff output by excuting selected `ffip-diff-backends'.
+Show the diff output by executing selected `ffip-diff-backends'.
 NUM is the index selected backend from `ffip-diff-backends'.
 NUM is zero based whose default value is zero.
 
 \(fn &optional NUM)" t nil)
 
 (autoload 'ffip-show-diff-by-description "find-file-in-project" "\
-Show the diff output by excuting selected `ffip-diff-backends.
+Show the diff output by executing selected `ffip-diff-backends'.
 NUM is the backend index of `ffip-diff-backends'.
 If NUM is not nil, the corresponding backend is executed directly.
 
@@ -237,10 +235,12 @@ If NUM is not nil, the corresponding backend is executed directly.
 (autoload 'ffip-diff-apply-hunk "find-file-in-project" "\
 Apply current hunk in `diff-mode'.  Try to locate the file to patch.
 Similar to `diff-apply-hunk' but smarter.
-Please read documenation of `diff-apply-hunk' to get more details.
+Please read documentation of `diff-apply-hunk' to get more details.
 If REVERSE is t, applied patch is reverted.
 
 \(fn &optional REVERSE)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "find-file-in-project" '("ffip-" "find-relative-path")))
 
 ;;;***
 
@@ -248,5 +248,6 @@ If REVERSE is t, applied patch is reverted.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; find-file-in-project-autoloads.el ends here
