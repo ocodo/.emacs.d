@@ -2,11 +2,12 @@
 
 ;; Author: Masahiro Hayashi <mhayashi1120@gmail.com>
 ;; Keywords: extensions, tools, maint
-;; Package-Version: 20160121.959
+;; Package-Version: 20200513.1252
+;; Package-Commit: bfe27a1b8c7cac0fe054e76113e941efa3775fe8
 ;; URL: https://github.com/mhayashi1120/Emacs-erefactor
 ;; Emacs: GNU Emacs 24 or later
 ;; Package-Requires: ((cl-lib "0.3"))
-;; Version: 0.7.1
+;; Version: 0.7.2
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -943,22 +944,25 @@ Examples:
     '\(\"emacs-21\" \"emacs-22.1\" \"emacs-23.2\" \"emacs-current\"))
 "
   :group 'erefactor
-  :type '(list file))
+  :type '(repeat (string :tag "Emacs executable name")))  
 
 (defcustom erefactor-lint-path-alist nil
-  "*Associate list key is file name of Elisp.
-value is `load-path' that required by key file if key file require some module.
+  "*Association list. Each key is an Elisp file name.
+Each value is a `load-path' directory containing some module 
+required by the key file.
 
 Examples:
 \(setq erefactor-lint-path-alist
-   '\((\"/home/bob/.emacs.d/linting-file.el\"
-       \"/home/bob/.emacs.d/misc\"))
+   '\((\"/home/bob/.emacs.d/linting-file.el\" . \"/home/bob/.emacs.d/misc\")) 
 
 
 \"/home/bob/.emacs.d/misc\" directory have some requiring module(s).
 "
   :group 'erefactor
-  :type '(list (list file)))
+  :type
+  '(alist
+    :key-type (file :tag "Elisp file")
+    :value-type (directory :tag "Dependencies directory")))     
 
 (defun erefactor-lint--running-p ()
   (let ((buffer (erefactor-lint--get-buffer)))
@@ -1058,8 +1062,8 @@ Examples:
                                 (erefactor-lint--exit-mode-line p)))))))
 
 ;;;###autoload
-(defun erefactor-lint-by-emacsen ()
-  "Execuet Elint in new Emacs processes.
+(defun erefactor-lint-by-emacsen () 
+  "Execute Elint in new Emacs processes.
 See variable `erefactor-lint-emacsen'."
   (interactive)
   (when (erefactor-lint--running-p)

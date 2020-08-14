@@ -9,26 +9,25 @@
 ;;;### (autoloads nil "erefactor" "erefactor.el" (0 0 0 0))
 ;;; Generated autoloads from erefactor.el
 
-(autoload 'erefactor-lazy-highlight-turn-on "erefactor" "\
-
-
-\(fn)" nil nil)
+(autoload 'erefactor-lazy-highlight-turn-on "erefactor" nil nil nil)
 
 (autoload 'erefactor-check-eval-mode "erefactor" "\
 Display compiling warnings when \\[eval-last-sexp], \\[eval-defun]
 
+
+If called interactively, enable Erefactor-Check-Eval mode if ARG
+is positive, and disable it if ARG is zero or negative.  If
+called from Lisp, also enable the mode if ARG is omitted or nil,
+and toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (autoload 'erefactor-lint "erefactor" "\
-Execuet Elint in new Emacs process.
-
-\(fn)" t nil)
+Execuet Elint in new Emacs process." t nil)
 
 (autoload 'erefactor-lint-by-emacsen "erefactor" "\
-Execuet Elint in new Emacs processes.
-See variable `erefactor-lint-emacsen'.
-
-\(fn)" t nil)
+Execute Elint in new Emacs processes.
+See variable `erefactor-lint-emacsen'." t nil)
 
 (autoload 'erefactor-rename-symbol-in-package "erefactor" "\
 Rename symbol at point with queries.
@@ -56,9 +55,7 @@ OLD-PREFIX: `foo-' -> NEW-PREFIX: `baz-'
 
 (autoload 'erefactor-add-current-defun "erefactor" "\
 Add current defun form to `load-history'
-This is usefull when creating new definition.
-
-\(fn)" t nil)
+This is usefull when creating new definition." t nil)
 
 (autoload 'erefactor-eval-current-defun "erefactor" "\
 Evaluate current defun and add definition to `load-history'
@@ -67,9 +64,7 @@ Evaluate current defun and add definition to `load-history'
 
 (autoload 'erefactor-highlight-current-symbol "erefactor" "\
 Highlight current symbol in this buffer.
-Force to dehighlight \\[erefactor-dehighlight-all-symbol]
-
-\(fn)" t nil)
+Force to dehighlight \\[erefactor-dehighlight-all-symbol]" t nil)
 
 (defvar erefactor-map (let ((map (make-sparse-keymap))) (define-key map "L" 'erefactor-lint-by-emacsen) (define-key map "R" 'erefactor-rename-symbol-in-package) (define-key map "A" 'erefactor-add-current-defun) (define-key map "c" 'erefactor-change-prefix-in-buffer) (define-key map "d" 'erefactor-dehighlight-all-symbol) (define-key map "h" 'erefactor-highlight-current-symbol) (define-key map "l" 'erefactor-lint) (define-key map "r" 'erefactor-rename-symbol-in-buffer) (define-key map "x" 'erefactor-eval-current-defun) (define-key map "?" 'erefactor-flymake-display-errors) map))
 (add-hook 'emacs-lisp-mode-hook 'erefactor-lazy-highlight-turn-on)
