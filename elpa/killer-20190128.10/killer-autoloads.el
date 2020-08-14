@@ -51,24 +51,16 @@ always move by that many words.
 \(fn &optional ARG)" t nil)
 
 (autoload 'backward-delete-whitespace "killer" "\
-Delete all spaces and tabs before point.
-
-\(fn)" t nil)
+Delete all spaces and tabs before point." t nil)
 
 (autoload 'forward-delete-whitespace "killer" "\
-Delete all spaces and tabs after point.
-
-\(fn)" t nil)
+Delete all spaces and tabs after point." t nil)
 
 (autoload 'backward-kill-whitespace "killer" "\
-Kill all spaces and tabs before point.
-
-\(fn)" t nil)
+Kill all spaces and tabs before point." t nil)
 
 (autoload 'forward-kill-whitespace "killer" "\
-Kill all spaces and tabs after point.
-
-\(fn)" t nil)
+Kill all spaces and tabs after point." t nil)
 
 (autoload 'backward-kill-word-or-wspace "killer" "\
 Kill characters backward until encountering the end of a word.

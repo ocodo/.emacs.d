@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/killer-20190128.10/killer.el  -*- no-byte-compile: t -*-
+(define-package "killer" "20190128.10" "kill and delete text" 'nil :commit "ace0547944933440384ceeb5876b1f68c082d540" :keywords '("convenience") :authors '(("Jonas Bernoulli" . "jonas@bernoul.li")) :maintainer '("Jonas Bernoulli" . "jonas@bernoul.li") :url "http://github.com/tarsius/killer")
