@@ -10,14 +10,19 @@
 ;;; Generated autoloads from ace-isearch.el
 
 (autoload 'ace-isearch-jump-during-isearch "ace-isearch" "\
-Jump to the one of the current isearch candidates.
-
-\(fn)" t nil)
+Jump to one of the current isearch candidates." t nil)
 
 (autoload 'ace-isearch-mode "ace-isearch" "\
-Minor-mode which combines isearch, ace-jump-mode, avy, helm-swoop and swiper seamlessly.
+Minor-mode that combines isearch, ace-jump-mode, avy, helm-swoop and swiper seamlessly.
+
+If called interactively, enable Ace-Isearch mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
+
+(put 'global-ace-isearch-mode 'globalized-minor-mode t)
 
 (defvar global-ace-isearch-mode nil "\
 Non-nil if Global Ace-Isearch mode is enabled.
