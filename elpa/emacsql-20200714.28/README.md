@@ -14,17 +14,10 @@ closures. EmacSQL has no concept of "TEXT" values; it's all just lisp
 objects. The lisp object `nil` corresponds 1:1 with `NULL` in the
 database.
 
-On MELPA, each backend is provided as a separate package, suffixed
-with the database name. In the case of `emacsql-sqlite`, on first use
-EmacSQL will attempt to compile a custom native binary for
-communicating with a SQLite database. If this fails (a C compiler is
-not available), it will attempt to download, with permission, a
-pre-built binary when the first database connection is attempted. The
-official sqlite3 command shell is incapable of correct interaction
-when linked with GNU Readline, or when run in Windows, so a custom
-build tool is required. If your own package depends on EmacSQL as a
-database, this means it doesn't have to rely on the user having any
-particular software installed.
+On MELPA, each backend is provided as a separate package, suffixed with
+the database name. In the case of `emacsql-sqlite`, on first use EmacSQL
+will attempt to find a C compiler and use it to compile a custom native
+binary for communicating with a SQLite database.
 
 Requires Emacs 25 or later.
 
@@ -296,21 +289,11 @@ This is why rows must be vectors and not lists.
 
 ## SQLite Support
 
-The custom EmacSQL SQLite binary is compiled with [Soundex][soundex]
-and [full-text search][fts] (FTS4) enabled -- features disabled by the
-default SQLite build. This backend should work on any system with a
-compliant C compiler installed as `cc`. If you don't have a C compiler
-installed the following platforms will be able to fetch a pre-built
-SQLite binary:
-
- * Linux x86 and x86_64
- * OS X x86_64
- * Windows x86 and x86_64, including Cygwin
- * Linux armv6l (Raspberry Pi + Raspbian)
-
-The customization variable `emacsql-sqlite-automatic-fetch` controls
-the behavior of SQLite binary fetching, and the variable
-`emacsql-sqlite-automatic-build` enables/disables local builds.
+The custom EmacSQL SQLite binary is compiled with [Soundex][soundex] and
+[full-text search][fts] (FTS3, FTS4, and FTS5) enabled -- features
+disabled by the default SQLite build. This backend should work on any
+system with a conforming ANSI C compiler installed under a command name
+listed in `emacsql-sqlite-c-compilers`.
 
 ### Ignored Features
 
@@ -331,7 +314,7 @@ things that aren't supported, and probably will never be.
 ## Limitations
 
 EmacSQL is *not* intended to play well with other programs accessing
-the SQLite database. Non-numeric values are are stored encoded as
+the SQLite database. Non-numeric values are stored encoded as
 s-expressions TEXT values. This avoids ambiguities in parsing output
 from the command line and allows for storage of Emacs richer data
 types. This is an efficient, ACID-compliant database specifically for
