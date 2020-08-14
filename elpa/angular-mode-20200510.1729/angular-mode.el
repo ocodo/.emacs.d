@@ -2,11 +2,11 @@
 
 ;; Copyright (C) 2013-2015 Rudolf Olah
 
-;; Author: Rudolf Olah <omouse@gmail.com>
+;; Author: Rudolf Olah
 
 ;; This file is not part of GNU Emacs.
 
-;; URL: https://github.com/omouse/angularjs-mode
+;; URL: https://github.com/rudolfolah/angularjs-mode
 ;; Keywords: languages javascript
 
 ;;; Commentary:
@@ -36,7 +36,7 @@
   "Major mode for AngularJS."
   :prefix "angular-"
   :group 'languages
-  :link '(url-link :tag "Github" "https://github.com/omouse/angularjs-mode")
+  :link '(url-link :tag "Github" "https://github.com/rudolfolah/angularjs-mode")
   :link '(emacs-commentary-link :tag "Commentary" "angular-mode"))
 
 (defvar angular-controller-definition-keywords

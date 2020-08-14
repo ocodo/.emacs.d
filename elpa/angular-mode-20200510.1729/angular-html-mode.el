@@ -2,11 +2,11 @@
 
 ;; Copyright (C) 2013-2015 Rudolf Olah
 
-;; Author: Rudolf Olah <omouse@gmail.com>
+;; Author: Rudolf Olah
 
 ;; This file is not part of GNU Emacs.
 
-;; URL: https://github.com/omouse/angularjs-mode
+;; URL: https://github.com/rudolfolah/angularjs-mode
 ;; Keywords: languages javascript html
 
 ;;; Commentary:
