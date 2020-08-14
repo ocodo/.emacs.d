@@ -1,4 +1,4 @@
-;;; jq-mode.el --- Edit jq scripts.
+;;; jq-mode.el --- Edit jq scripts.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015--2018 Bjarte Johansen
 
@@ -36,6 +36,11 @@
 ;;  (add-to-list 'auto-mode-alist '("\\.jq\\'" . jq-mode))
 
 ;;; Code:
+(require 'smie)
+(require 'subr-x)
+
+(declare-function json-mode "json-mode")
+
 (defgroup jq nil
   "Major mode for editing jq queries."
   :group 'languages)
@@ -44,6 +49,30 @@
   "*Indentation offset for `jq-mode'."
   :group 'jq
   :type 'integer)
+
+(defvar jq-smie-grammar
+  (smie-prec2->grammar
+   (smie-bnf->prec2
+    '((id)
+      (inst ("def" id ":" insts)
+            ("if" inst "then" branches "end")
+            ("try" inst "catch" inst))
+      (insts (insts ";" inst)
+             (insts "|" inst)
+             (inst))
+      (branches (insts "elif" insts)
+                (insts "else" inst)))
+    '((assoc "end" "elif" "else" "then"))
+    '((assoc "|" ";" ":")))))
+
+(defun jq-smie-rules (kind token)
+  (pcase (list kind token)
+    (`(:elem basic) jq-indent-offset)
+    (`(:before ,(or "then" "elif" "else")) (smie-rule-parent))
+    (`(:after ,(or "elif" "else")) jq-indent-offset)
+    (`(:after "end") (smie-rule-parent))
+    (`(:before "catch") (smie-rule-parent))
+    (`(:before "|")  jq-indent-offset)))
 
 (defconst jq--keywords
   '("as"
@@ -58,40 +87,6 @@
     "reduce"
     "then" "try")
   "The keywords used in jq.")
-
-(defun jq-indent-line ()
-  "Indent current line as a jq-script."
-  (interactive)
-  (let ((indent-column 0)
-        (current (current-indentation)))
-    (save-mark-and-excursion
-     (if (> 0 (forward-line -1))
-         (setq indent-column (current-indentation))
-       (end-of-line)
-       (or (search-backward ";" (line-beginning-position) t)
-           (back-to-indentation))
-       (skip-chars-forward "[:space:]" (line-end-position))
-       (when (looking-at-p
-              (concat (regexp-opt (remove "end" jq--keywords)) "\\b"))
-         (setq indent-column (+ indent-column jq-indent-offset)))))
-    (save-mark-and-excursion
-     (back-to-indentation)
-     (save-mark-and-excursion
-      (ignore-errors
-        (up-list -1)
-        (when (looking-at-p "(\\|{\\|\\[")
-          (setq indent-column (1+ (current-column))))))
-     (when (looking-at-p "|")
-       (setq indent-column (+ indent-column jq-indent-offset)))
-     (end-of-line)
-     (delete-horizontal-space)
-     (indent-line-to indent-column)))
-  (when (let ((search-spaces-regexp t))
-          (string-match-p "^ *$"
-                          (buffer-substring-no-properties
-                           (line-beginning-position)
-                           (point))))
-    (skip-chars-forward "[:space:]" (line-end-position))))
 
 (defconst jq--builtins
   '("IN" "INDEX"
@@ -136,7 +131,6 @@
     "y0" "y1" "yn")
   "All builtin functions in jq.")
 
-
 (defconst jq--escapings
   '("text" "json" "html" "uri" "csv" "tsv" "sh" "base64")
   "Jq escaping directives.")
@@ -147,7 +141,9 @@
     ;; Format strings and escaping
     (,(concat "@" (regexp-opt jq--escapings) "\\b") . font-lock-type-face)
     ;; Keywords
-    ,(concat "\\b" (regexp-opt jq--keywords) "\\b")))
+    ,(concat "\\b" (regexp-opt jq--keywords) "\\b")
+    ;; Functions
+    ("\\bdef\\s-*\\([_[:alnum:]]+\\)\\s-*\(" (1 font-lock-function-name-face))))
 
 (defvar jq-mode-map
   (let ((map (make-sparse-keymap)))
@@ -165,6 +161,12 @@
     syntax-table)
   "Syntax table for `jq-mode.'")
 
+(defun jq-completion-at-point ()
+  (when-let ((bnds (bounds-of-thing-at-point 'symbol)))
+    (unless (eq ?$ (char-before (car bnds))) ; Ignore variables
+      (list (car bnds) (cdr bnds) jq--builtins))))
+
+(defvar company-keywords-alist)
 (with-eval-after-load 'company-keywords
   (add-to-list 'company-keywords-alist
                `(jq-mode . ,(append jq--keywords
@@ -175,9 +177,11 @@
   "Major mode for jq scripts.
 \\{jq-mode-map}"
   :group 'jq
-  (setq-local indent-line-function #'jq-indent-line)
+  ;; (setq-local indent-line-function #'jq-indent-line)
   (setq-local font-lock-defaults '(jq-font-lock-keywords))
-  (setq-local comment-start "# "))
+  (setq-local comment-start "# ")
+  (add-hook 'completion-at-point-functions #'jq-completion-at-point nil t)
+  (smie-setup jq-smie-grammar #'jq-smie-rules))
 
 ;;; jq-interactively
 (defgroup jq-interactive nil
@@ -211,8 +215,8 @@
     (let ((output (current-buffer)))
       (with-current-buffer jq-interactive--buffer
         (call-process-region
-         (point-min)
-         (point-max)
+         (car jq-interactive--positions)
+         (cdr jq-interactive--positions)
          shell-file-name
          nil
          output
@@ -225,7 +229,8 @@
                   jq-interactive--last-minibuffer-contents))))
       (ignore-errors
         (json-mode)
-        (font-lock-fontify-region (point-min) (point-max)))
+        (font-lock-fontify-region (car jq-interactive--positions) 
+                                  (cdr jq-interactive--positions)))
       (buffer-string))))
 
 (defun jq-interactive--feedback ()
@@ -238,29 +243,33 @@
                  (jq-interactive--run-command))))
 
 (defun jq-interactive--minibuffer-setup ()
-  (setq-local font-lock-defaults '(jq-font-lock-keywords)))
+  (setq-local font-lock-defaults '(jq-font-lock-keywords))
+  (set-syntax-table jq-mode-syntax-table)
+  (setq-local comment-start "# ")
+  (smie-setup jq-smie-grammar #'jq-smie-rules))
 
 (defun jq-interactive--quit ()
   (remove-hook 'after-change-functions #'jq-interactive--update)
   (remove-hook 'minibuffer-setup-hook #'jq-interactive--minibuffer-setup)
   (delete-overlay jq-interactive--overlay))
 
-(defun jq-interactive--update (beg end len)
-  (let ((contents (minibuffer-contents-no-properties)))
-    (unless (or (not (minibufferp))
-                (and (string= "" contents)
-                     (equal last-command 'previous-history-element))
-                (string= contents jq-interactive--last-minibuffer-contents))
-      (setq jq-interactive--last-minibuffer-contents contents)
-      (jq-interactive--feedback))))
+(defun jq-interactive--update (_beg _end _len)
+  (unless (> (minibuffer-depth) 1)
+    (let ((contents (minibuffer-contents-no-properties)))
+      (unless (or (not (minibufferp))
+                  (and (string= "" contents)
+                       (equal last-command 'previous-history-element))
+                  (string= contents jq-interactive--last-minibuffer-contents))
+        (setq jq-interactive--last-minibuffer-contents contents)
+        (jq-interactive--feedback)))))
 
 (defun jq-interactive-indent-line ()
   "Indents a jq expression in the jq-interactive mini-buffer."
   (interactive)
-  (jq-indent-line)
+  (smie-indent-line)
   (save-mark-and-excursion
-   (beginning-of-line)
-   (insert-char ?\s (length jq-interactive-default-prompt)))
+    (beginning-of-line)
+    (insert-char ?\s (length jq-interactive-default-prompt)))
   (skip-chars-forward "[:space:]"))
 
 (defvar jq-interactive-map
