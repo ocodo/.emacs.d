@@ -1,10 +1,16 @@
 ;;; helm-core-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "helm" "helm.el" (23278 48226 0 0))
+;;;### (autoloads nil "helm" "helm.el" (0 0 0 0))
 ;;; Generated autoloads from helm.el
+
+(autoload 'helm-configuration "helm" "\
+Customize Helm." t nil)
 
 (autoload 'helm-define-multi-key "helm" "\
 In KEYMAP, define key sequence KEY for function list FUNCTIONS.
@@ -12,7 +18,7 @@ Each function runs sequentially for each KEY press.
 If DELAY is specified, switch back to initial function of FUNCTIONS list
 after DELAY seconds.
 The functions in FUNCTIONS list take no args.
-e.g
+E.g.
     (defun foo ()
       (interactive)
       (message \"Run foo\"))
@@ -25,9 +31,9 @@ e.g
 
 \(helm-define-multi-key global-map (kbd \"<f5> q\") '(foo bar baz) 2)
 
-Each time \"<f5> q\" is pressed, the next function is executed. Waiting
-more than 2 seconds between key presses switches back to executing the first
-function on the next hit.
+Each time \"<f5> q\" is pressed, the next function is executed.
+Waiting more than 2 seconds between key presses switches back to
+executing the first function on the next hit.
 
 \(fn KEYMAP KEY FUNCTIONS &optional DELAY)" nil nil)
 
@@ -41,43 +47,41 @@ See `helm-define-multi-key'.
 (function-put 'helm-multi-key-defun 'lisp-indent-function '2)
 
 (autoload 'helm-define-key-with-subkeys "helm" "\
-Defines in MAP a KEY and SUBKEY to COMMAND.
+Define in MAP a KEY and SUBKEY to COMMAND.
 
 This allows typing KEY to call COMMAND the first time and
 type only SUBKEY on subsequent calls.
 
-Arg MAP is the keymap to use, SUBKEY is the initial short key-binding to
-call COMMAND.
+Arg MAP is the keymap to use, SUBKEY is the initial short
+key binding to call COMMAND.
 
-Arg OTHER-SUBKEYS is an alist specifying other short key-bindings
-to use once started e.g:
+Arg OTHER-SUBKEYS is an alist specifying other short key bindings
+to use once started, e.g.:
 
     (helm-define-key-with-subkeys global-map
-       (kbd \"C-x v n\") ?n 'git-gutter:next-hunk '((?p . git-gutter:previous-hunk)))
-
+       (kbd \"C-x v n\") ?n 'git-gutter:next-hunk
+       '((?p . git-gutter:previous-hunk)))
 
 In this example, `C-x v n' will run `git-gutter:next-hunk'
-subsequent \"n\"'s run this command again
-and subsequent \"p\"'s run `git-gutter:previous-hunk'.
+subsequent \"n\" will run this command again and subsequent \"p\"
+will run `git-gutter:previous-hunk'.
 
-If specified PROMPT can be displayed in minibuffer to
-describe SUBKEY and OTHER-SUBKEYS.
-Arg EXIT-FN specifies a function to run on exit.
+If specified PROMPT can be displayed in minibuffer to describe
+SUBKEY and OTHER-SUBKEYS.  Arg EXIT-FN specifies a function to run
+on exit.
 
-For any other keys pressed, run their assigned command as defined
+For any other key pressed, run their assigned command as defined
 in MAP and then exit the loop running EXIT-FN, if specified.
 
-NOTE: SUBKEY and OTHER-SUBKEYS bindings support only char syntax and
-vectors, so don't use strings to define them.
+NOTE: SUBKEY and OTHER-SUBKEYS bindings support only char syntax
+and vectors, so don't use strings to define them.
 
 \(fn MAP KEY SUBKEY COMMAND &optional OTHER-SUBKEYS PROMPT EXIT-FN)" nil nil)
 
 (function-put 'helm-define-key-with-subkeys 'lisp-indent-function '1)
 
 (autoload 'helm-debug-open-last-log "helm" "\
-Open helm log file or buffer of last helm session.
-
-\(fn)" t nil)
+Open Helm log file or buffer of last Helm session." t nil)
 
 (autoload 'helm "helm" "\
 Main function to execute helm sources.
@@ -169,9 +173,9 @@ the list items, starting with the first.
 
 If nil, `thing-at-point' is used.
 
-If `helm--maybe-use-default-as-input' is non-`nil', display is
-updated using this value, unless :input is specified, in which
-case that value is used instead.
+If `helm-maybe-use-default-as-input' is non-nil, display is
+updated using this value if this value matches, otherwise it is
+ignored. If :input is specified, it takes precedence on :default.
 
 *** :history
 
@@ -193,7 +197,7 @@ session. The `helm-' prefix can be omitted. For example,
        :buffer \"*helm buffers*\"
        :candidate-number-limit 10)
 
-starts a Helm session with the variable
+Starts a Helm session with the variable
 `helm-candidate-number-limit' set to 10.
 
 ** Backward compatibility
@@ -209,20 +213,41 @@ However, the use of non-keyword args is deprecated.
 \(fn &key SOURCES INPUT PROMPT RESUME PRESELECT BUFFER KEYMAP DEFAULT HISTORY ALLOW-NEST OTHER-LOCAL-VARS)" nil nil)
 
 (autoload 'helm-cycle-resume "helm" "\
-Cycle in `helm-buffers' list and resume when waiting more than 1.2s.
-
-\(fn)" t nil)
+Cycle in `helm-buffers' list and resume when waiting more than 1.2s." t nil)
 
 (autoload 'helm-other-buffer "helm" "\
-Simplified `helm' interface with other `helm-buffer'.
-Call `helm' only with ANY-SOURCES and ANY-BUFFER as args.
+Simplified Helm interface with other `helm-buffer'.
+Call `helm' only with SOURCES and BUFFER as args.
 
-\(fn ANY-SOURCES ANY-BUFFER)" nil nil)
+\(fn SOURCES BUFFER)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm" '("helm-" "with-helm-")))
 
 ;;;***
 
-;;;### (autoloads nil nil ("helm-core-pkg.el" "helm-lib.el" "helm-multi-match.el"
-;;;;;;  "helm-source.el") (23278 48226 0 0))
+;;;### (autoloads nil "helm-lib" "helm-lib.el" (0 0 0 0))
+;;; Generated autoloads from helm-lib.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-lib" '("helm-" "with-helm-")))
+
+;;;***
+
+;;;### (autoloads nil "helm-multi-match" "helm-multi-match.el" (0
+;;;;;;  0 0 0))
+;;; Generated autoloads from helm-multi-match.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-multi-match" '("helm-m")))
+
+;;;***
+
+;;;### (autoloads nil "helm-source" "helm-source.el" (0 0 0 0))
+;;; Generated autoloads from helm-source.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "helm-source" '("helm-")))
+
+;;;***
+
+;;;### (autoloads nil nil ("helm-core-pkg.el") (0 0 0 0))
 
 ;;;***
 
@@ -230,5 +255,6 @@ Call `helm' only with ANY-SOURCES and ANY-BUFFER as args.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; helm-core-autoloads.el ends here

@@ -1,6 +1,6 @@
 ;;; helm-source.el --- Helm source creation. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015 ~ 2018  Thierry Volpiatto <thierry.volpiatto@gmail.com>
+;; Copyright (C) 2015 ~ 2019  Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
 ;; Author: Thierry Volpiatto <thierry.volpiatto@gmail.com>
 ;; URL: http://github.com/emacs-helm/helm
@@ -39,6 +39,18 @@
 (declare-function helm-init-candidates-in-buffer "helm.el")
 (declare-function helm-interpret-value "helm.el")
 (declare-function helm-fuzzy-highlight-matches "helm.el")
+
+;;; Advice Emacs fn
+;;  Make Classes's docstrings more readable by removing al the
+;;  unnecessary crap.
+
+(defun helm-source--cl--print-table (_header rows)
+  "Advice for `cl--print-table' to make readable class slots docstrings."
+  (let ((format "%s\n\n  Initform=%s\n\n%s"))
+    (dolist (row rows)
+      (setcar row (propertize (car row) 'face 'bold))
+      (setcdr row (nthcdr 1 (cdr row)))
+      (insert "\n* " (apply #'format format row) "\n"))))
 
 
 (defgeneric helm--setup-source (source)
@@ -91,6 +103,9 @@
   It can either be a variable name, a function called with no parameters
   or the actual list of candidates.
 
+  Do NOT use this for asynchronous sources, use `candidates-process'
+  instead.
+
   The list must be a list whose members are strings, symbols
   or (DISPLAY . REAL) pairs.
 
@@ -104,7 +119,14 @@
 
   Note that if the (DISPLAY . REAL) form is used then pattern
   matching is done on the displayed string, not on the real
-  value.")
+  value.
+
+  This function, generally should not compute candidates according to
+  `helm-pattern' which defeat all the Helm's matching mechanism
+  i.e. multiple pattern matching and/or fuzzy matching.
+  If you want to do so, use :match-dynamic slot to be sure matching
+  occur only in :candidates function and there is no conflict with
+  other match functions.")
 
    (update
     :initarg :update
@@ -247,7 +269,7 @@
 
    (requires-pattern
     :initarg :requires-pattern
-    :initform nil
+    :initform 0
     :custom integer
     :documentation
     "  If present matches from the source are shown only if the
@@ -350,6 +372,15 @@
   It is unuseful as the same can be performed by using more than
   one function in transformers, it is kept only for backward compatibility.")
 
+   (marked-with-props
+    :initarg :marked-with-props
+    :initform nil
+    :custom (choice boolean symbol)
+    :documentation
+    "  Get candidates with their properties in `helm-marked-candidates'.
+  Allow using the FORCE-DISPLAY-PART of `helm-get-selection' in marked
+  candidates, use t or 'withprop to pass it to `helm-get-selection'.")
+
    (action-transformer
     :initarg :action-transformer
     :initform nil
@@ -422,10 +453,17 @@
   functions, respectively.
 
   This attribute has no effect for asynchronous sources (see
-  attribute `candidates'), since they perform pattern matching
-  themselves.
+  attribute `candidates'), and sources using `match-dynamic'
+  since they perform pattern matching themselves.
 
   Note that FUZZY-MATCH slot will overhide value of this slot.")
+
+   (match-on-real
+    :initarg :match-on-real
+    :initform nil
+    :custom boolean
+    :documentation
+    "  Match the real value of candidates when non nil.")
 
    (fuzzy-match
     :initarg :fuzzy-match
@@ -546,7 +584,7 @@
     :custom integer
     :documentation
     "  Enable `helm-follow-mode' for this source only.
-With a value of 1 enable, a value of -1 or nil disable the mode.
+  With a value of 1 enable, a value of -1 or nil disable the mode.
   See `helm-follow-mode' for more infos.")
 
    (follow-delay
@@ -616,6 +654,22 @@ With a value of 1 enable, a value of -1 or nil disable the mode.
     "  This slot have no more effect and is just kept for backward compatibility.
   Please don't use it.")
 
+   (must-match
+    :initarg :must-match
+    :initform nil
+    :custom symbol
+    :documentation
+    "  Same as `completing-read' require-match arg.
+  Possible values are:
+  - `t' which prevent exiting with an empty helm-buffer i.e. no matches.
+  - `confirm' which ask for confirmation i.e. need to press a second
+     time RET.
+  - `nil' is the default and is doing nothing i.e. returns nil when
+    pressing RET with an empty helm-buffer.
+  - Any other non nil values e.g. `ignore' allow exiting with
+    minibuffer contents as candidate value (in this case helm-buffer
+    is empty).")
+
    (group
     :initarg :group
     :initform helm
@@ -655,7 +709,18 @@ With a value of 1 enable, a value of -1 or nil disable the mode.
   functions will be used. You can specify those functions as a
   list of functions or a single symbol function.
 
-  NOTE: This have the same effect as using :MULTIMATCH nil."))
+  NOTE: This have the same effect as using :MULTIMATCH nil.")
+
+   (match-dynamic
+    :initarg :match-dynamic
+    :initform nil
+    :custom boolean
+    :documentation
+    "  Disable all helm matching functions when non nil.
+  The :candidates function in this case is in charge of fetching
+  candidates dynamically according to `helm-pattern'.
+  Note that :volatile is automatically enabled when using this, so no
+  need to specify it."))
 
   "Use this class to make helm sources using a list of candidates.
 This list should be given as a normal list, a variable handling a list
@@ -669,7 +734,10 @@ Matching is done basically with `string-match' against each candidate.")
     :custom function
     :documentation
     "  This attribute is used to define a process as candidate.
-  The value must be a process.
+  The function called with no arguments must return a process
+  i.e. `processp', it use typically `start-process' or `make-process',
+  see (info \"(elisp) Asynchronous Processes\").
+  
 
   NOTE:
   When building the source at runtime you can give directly a process
@@ -680,6 +748,12 @@ Matching is done basically with `string-match' against each candidate.")
    (multimatch :initform nil))
 
   "Use this class to define a helm source calling an external process.
+The external process is called typically in a `start-process' call to be
+asynchronous.
+
+Note that using multiples asynchronous sources is not fully working,
+expect weird behavior if you try this.
+
 The :candidates slot is not allowed even if described because this class
 inherit from `helm-source'.")
 
@@ -844,7 +918,7 @@ Where OBJECT is an instance of an eieio class."
   (cl-loop for s in (object-slots object)
            for slot-val = (slot-value object s)
            when slot-val
-           collect (cons s (unless (eq t slot-val) slot-val))))
+           collect (cons s slot-val)))
 
 (defun helm-make-source (name class &rest args)
   "Build a `helm' source named NAME with ARGS for CLASS.
@@ -965,16 +1039,31 @@ an eieio class."
 (defmethod helm--setup-source :primary ((_source helm-source)))
 
 (defmethod helm--setup-source :before ((source helm-source))
+  (unless (slot-value source 'group)
+    (setf (slot-value source 'group) 'helm))
   (when (slot-value source 'delayed)
     (warn "Deprecated usage of helm `delayed' slot in `%s'"
           (slot-value source 'name)))
   (helm-aif (slot-value source 'keymap)
-      (and (symbolp it) (setf (slot-value source 'keymap) (symbol-value it))))
+      (let* ((map (if (symbolp it)
+                      (symbol-value it)
+                    it))
+             (must-match-map (when (slot-value source 'must-match)
+                               (let ((map (make-sparse-keymap)))
+                                 (define-key map (kbd "RET")
+                                   'helm-confirm-and-exit-minibuffer)
+                                 map)))
+             (loc-map (if must-match-map
+                          (make-composed-keymap
+                           must-match-map map)
+                        map)))
+        (setf (slot-value source 'keymap) loc-map)))
   (helm-aif (slot-value source 'persistent-help)
       (setf (slot-value source 'header-line)
             (helm-source--persistent-help-string it source))
     (setf (slot-value source 'header-line) (helm-source--header-line source)))
-  (when (and (slot-value source 'fuzzy-match) helm-fuzzy-sort-fn)
+  (when (slot-value source 'fuzzy-match)
+    (cl-assert helm-fuzzy-sort-fn nil "Wrong type argument functionp: nil")
     (setf (slot-value source 'filtered-candidate-transformer)
           (helm-aif (slot-value source 'filtered-candidate-transformer)
               (append (helm-mklist it)
@@ -991,7 +1080,12 @@ an eieio class."
           (helm-aif (slot-value source 'filtered-candidate-transformer)
               (append (helm-mklist it)
                       (list #'helm-multiline-transformer))
-            (list #'helm-multiline-transformer)))))
+            (list #'helm-multiline-transformer))))
+  (helm-aif (slot-value source 'requires-pattern)
+      (let ((val (if (symbolp it)
+                     (symbol-value it)
+                   it)))
+        (setf (slot-value source 'requires-pattern) val))))
 
 (defmethod helm-setup-user-source ((_source helm-source)))
 
@@ -1010,9 +1104,19 @@ an eieio class."
       (unless (eq it 'nomultimatch) ; Use own migemo fn.
         (setf (slot-value source 'match)
               (append (helm-mklist (slot-value source 'match))
-                      '(helm-mm-3-migemo-match))))))
+                      '(helm-mm-3-migemo-match)))))
+  (when (slot-value source 'match-dynamic)
+    (setf (slot-value source 'match) 'identity)
+    (setf (slot-value source 'match-part) nil)
+    (setf (slot-value source 'multimatch) nil)
+    (setf (slot-value source 'fuzzy-match) nil)
+    (setf (slot-value source 'volatile) t)))
 
 (defmethod helm--setup-source ((source helm-source-in-buffer))
+  (cl-assert (eq (slot-value source 'candidates) 'helm-candidates-in-buffer)
+             nil
+             (format "Wrong usage of `candidates' attr in `%s' use `data' or `init' instead"
+                     (slot-value source 'name)))
   (let ((cur-init (slot-value source 'init)))
     (helm-aif (slot-value source 'data)
         (setf (slot-value source 'init)
@@ -1104,7 +1208,7 @@ Args ARGS are keywords provided by `helm-source-dummy'."
 Arg FILE is a filename, the contents of this file will be
 used as candidates in buffer.
 Args ARGS are keywords provided by `helm-source-in-file'."
-  (declare (indent 1))
+  (declare (indent 2))
   `(helm-make-source ,name 'helm-source-in-file
      :candidates-file ,file ,@args))
 
