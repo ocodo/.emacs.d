@@ -4,9 +4,10 @@
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/anaconda-mode
-;; Package-Version: 20181030.2109
+;; Package-Version: 20200806.436
+;; Package-Commit: 73266a48fa964d44268c3f3478597e553b9843f1
 ;; Version: 0.1.13
-;; Package-Requires: ((emacs "25") (pythonic "0.1.0") (dash "2.6.0") (s "1.9") (f "0.16.2"))
+;; Package-Requires: ((emacs "25.1") (pythonic "0.1.0") (dash "2.6.0") (s "1.9") (f "0.16.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -37,34 +38,51 @@
 (require 's)
 (require 'f)
 
-(defgroup anaconda-mode nil
+(defgroup anaconda nil
   "Code navigation, documentation lookup and completion for Python."
   :group 'programming)
 
 (defcustom anaconda-mode-installation-directory
-  "~/.emacs.d/anaconda-mode"
+  (locate-user-emacs-file "anaconda-mode")
   "Installation directory for `anaconda-mode' server."
-  :group 'anaconda-mode
   :type 'directory)
 
 (defcustom anaconda-mode-eldoc-as-single-line nil
   "If not nil, trim eldoc string to frame width."
-  :group 'anaconda-mode
   :type 'boolean)
 
 (defcustom anaconda-mode-lighter " Anaconda"
   "Text displayed in the mode line when `anaconda-mode’ is active."
-  :group 'anaconda-mode
   :type 'sexp)
 
 (defcustom anaconda-mode-localhost-address "127.0.0.1"
   "Address used by `anaconda-mode' to resolve localhost."
-  :group 'anaconda-mode
   :type 'string)
 
-
-;;; Server.
+(defcustom anaconda-mode-doc-frame-background (face-attribute 'default :background)
+  "Doc frame background color, default color is current theme's background."
+  :type 'string)
 
+(defcustom anaconda-mode-doc-frame-foreground (face-attribute 'default :foreground)
+  "Doc frame foreground color, default color is current theme's foreground."
+  :type 'string)
+
+(defcustom anaconda-mode-use-posframe-show-doc nil
+  "If the value is not nil, use posframe to show eldoc."
+  :type 'boolean)
+
+(defcustom anaconda-mode-tunnel-setup-sleep 2
+  "Time in seconds `anaconda-mode' waits after tunnel creation before first RPC call."
+  :type 'integer)
+
+;;; Compatibility
+
+;; Functions from posframe which is an optional dependency
+(declare-function posframe-workable-p "posframe")
+(declare-function posframe-hide "posframe")
+(declare-function posframe-show "posframe")
+
+;;; Server.
 (defvar anaconda-mode-server-version "0.1.13"
   "Server version needed to run `anaconda-mode'.")
 
@@ -86,6 +104,7 @@ virtual_environment = sys.argv[-1]
 import os
 
 server_directory = os.path.expanduser(server_directory)
+virtual_environment = os.path.expanduser(virtual_environment)
 
 if not os.path.exists(server_directory):
     os.makedirs(server_directory)
@@ -158,11 +177,16 @@ else:
 # Define JSON-RPC application.
 
 import functools
+import threading
 
 def script_method(f):
     @functools.wraps(f)
     def wrapper(source, line, column, path):
-        return f(jedi.Script(source, line, column, path, environment=virtual_environment))
+        timer = threading.Timer(30.0, sys.exit)
+        timer.start()
+        result = f(jedi.Script(source, line, column, path, environment=virtual_environment))
+        timer.cancel()
+        return result
     return wrapper
 
 def process_definitions(f):
@@ -260,6 +284,15 @@ service_factory.service_factory(app, server_address, 0, 'anaconda_mode port {por
 (defvar anaconda-mode-ssh-process nil
   "Currently running `anaconda-mode' ssh port forward companion process.")
 
+(defvar anaconda-mode-doc-frame-name "*Anaconda Posframe*"
+  "The posframe to show anaconda documentation.")
+
+(defvar anaconda-mode-frame-last-point 0
+  "The last point of anaconda doc view frame, use for hide frame after move point.")
+
+(defvar anaconda-mode-frame-last-scroll-offset 0
+  "The last scroll offset when show doc view frame, use for hide frame after window scroll.")
+
 (defun anaconda-mode-server-directory ()
   "Anaconda mode installation directory."
   (f-short (f-join anaconda-mode-installation-directory
@@ -345,12 +378,27 @@ be bound."
                 (equal (process-get anaconda-mode-process 'remote-port)
                        (pythonic-remote-port)))))))
 
+(defun anaconda-mode-get-server-process-cwd ()
+  "Get the working directory for starting the anaconda server process.
+
+The current working directory ends up being on sys.path, which may
+result in conflicts with stdlib modules.
+
+When running python from the local machine, we start the server
+process from `anaconda-mode-installation-directory'.
+This function creates that directory if it doesn't exist yet."
+  (when (pythonic-local-p)
+    (unless (file-directory-p anaconda-mode-installation-directory)
+      (make-directory anaconda-mode-installation-directory t))
+    anaconda-mode-installation-directory))
+
 (defun anaconda-mode-bootstrap (&optional callback)
   "Run `anaconda-mode' server.
 CALLBACK function will be called when `anaconda-mode-port' will
 be bound."
   (setq anaconda-mode-process
         (pythonic-start-process :process anaconda-mode-process-name
+                                :cwd (anaconda-mode-get-server-process-cwd)
                                 :buffer (get-buffer-create anaconda-mode-process-buffer)
                                 :query-on-exit nil
                                 :filter (lambda (process output)
@@ -372,6 +420,25 @@ be bound."
     (process-put anaconda-mode-process 'remote-user (pythonic-remote-user))
     (process-put anaconda-mode-process 'remote-host (pythonic-remote-host))
     (process-put anaconda-mode-process 'remote-port (pythonic-remote-port))))
+
+(defun anaconda-jump-proxy-string ()
+  "Create -J option string for SSH tunnel."
+  (let ((dfn
+         (tramp-dissect-file-name (pythonic-aliased-path default-directory))))
+    (when (tramp-file-name-hop dfn)
+      (let ((hop-list (split-string (tramp-file-name-hop dfn) "|"))
+            (result "-J "))
+        (delete "" hop-list) ;; remove empty string after final pipe
+        (dolist (elt hop-list result)
+          ;; tramp-dissect-file-name expects a filename so give it dummy.file
+          (let ((ts (tramp-dissect-file-name (concat "/" elt ":/dummy.file"))))
+            (setq result (concat result
+                                 (format "%s@%s:%s,"
+                                         (tramp-file-name-user ts)
+                                         (tramp-file-name-host ts)
+                                         (or (tramp-file-name-port-or-default ts) 22))))))
+        ;; Remove final comma
+        (substring result 0 -1)))))
 
 (defun anaconda-mode-bootstrap-filter (process output &optional callback)
   "Set `anaconda-mode-port' from PROCESS OUTPUT.
@@ -406,14 +473,28 @@ called when `anaconda-mode-port' will be bound."
                                     (format "TCP4:%s:%d" container-ip (anaconda-mode-port))))
                (set-process-query-on-exit-flag anaconda-mode-socat-process nil)))
             ((pythonic-remote-ssh-p)
-             (setq anaconda-mode-ssh-process
-                   (start-process anaconda-mode-ssh-process-name
-                                  anaconda-mode-ssh-process-buffer
-                                  "ssh" "-nNT"
-                                  (format "%s@%s" (pythonic-remote-user) (pythonic-remote-host))
-                                  "-p" (number-to-string (pythonic-remote-port))
-                                  "-L" (format "%s:%s:%s" (anaconda-mode-port) (pythonic-remote-host) (anaconda-mode-port))))
-             (set-process-query-on-exit-flag anaconda-mode-ssh-process nil)))
+             (let ((jump (anaconda-jump-proxy-string)))
+               (message (format "Anaconda Jump Proxy: %s" jump))
+               (setq anaconda-mode-ssh-process
+                     (if jump
+                         (start-process anaconda-mode-ssh-process-name
+                                        anaconda-mode-ssh-process-buffer
+                                        "ssh" jump "-nNT"
+                                        "-L" (format "%s:localhost:%s" (anaconda-mode-port) (anaconda-mode-port))
+                                        (format "%s@%s" (pythonic-remote-user) (pythonic-remote-host))
+                                        "-p" (number-to-string (or (pythonic-remote-port) 22)))
+                       (start-process anaconda-mode-ssh-process-name
+                                      anaconda-mode-ssh-process-buffer
+                                      "ssh" "-nNT"
+                                      "-L" (format "%s:localhost:%s" (anaconda-mode-port) (anaconda-mode-port))
+                                      (if (pythonic-remote-user)
+                                          (format "%s@%s" (pythonic-remote-user) (pythonic-remote-host))
+                                        ;; Asssume remote host is an ssh alias
+                                        (pythonic-remote-host))
+                                      "-p" (number-to-string (or (pythonic-remote-port) 22)))))
+               ;; prevent race condition between tunnel setup and first use
+               (sleep-for anaconda-mode-tunnel-setup-sleep)
+               (set-process-query-on-exit-flag anaconda-mode-ssh-process nil))))
       (when callback
         (funcall callback)))))
 
@@ -434,7 +515,7 @@ number position, column number position and file path."
   (let ((url-request-method "POST")
         (url-request-data (anaconda-mode-jsonrpc-request command)))
     (url-retrieve
-     (format "http://%s:%s" (anaconda-mode-host) (anaconda-mode-port))
+     (format "http://%s:%s" anaconda-mode-localhost-address (anaconda-mode-port))
      (anaconda-mode-create-response-handler callback)
      nil
      t)))
@@ -486,7 +567,9 @@ number position, column number position and file path."
                       (let* ((error-structure (cdr (assoc 'error response)))
                              (error-message (cdr (assoc 'message error-structure)))
                              (error-data (cdr (assoc 'data error-structure)))
-                             (error-template (if error-data "%s: %s" "%s")))
+                             (error-template (concat (if error-data "%s: %s" "%s")
+                                                     " - see " anaconda-mode-process-buffer
+                                                     " for more information.")))
                         (apply 'message error-template (delq nil (list error-message error-data))))
                     (with-current-buffer anaconda-mode-request-buffer
                       (let ((result (cdr (assoc 'result response))))
@@ -537,8 +620,11 @@ number position, column number position and file path."
 (defun anaconda-mode-show-doc-callback (result)
   "Process view doc RESULT."
   (if (> (length result) 0)
-      (pop-to-buffer
-       (anaconda-mode-documentation-view result))
+      (if (and anaconda-mode-use-posframe-show-doc
+               (require 'posframe nil 'noerror)
+               (posframe-workable-p))
+          (anaconda-mode-documentation-posframe-view result)
+        (pop-to-buffer (anaconda-mode-documentation-view result) t))
     (message "No documentation available")))
 
 (defun anaconda-mode-documentation-view (result)
@@ -557,6 +643,35 @@ number position, column number position and file path."
       (view-mode 1)
       (goto-char (point-min))
       buf)))
+
+(defun anaconda-mode-documentation-posframe-view (result)
+  "Show documentation view in posframe for rpc RESULT."
+  (with-current-buffer (get-buffer-create anaconda-mode-doc-frame-name)
+    (erase-buffer)
+    (mapc
+     (lambda (it)
+       (insert (propertize (aref it 0) 'face 'bold))
+       (insert "\n")
+       (insert (s-trim-left (aref it 1)))
+       (insert "\n\n"))
+     result))
+  (posframe-show anaconda-mode-doc-frame-name
+                 :position (point)
+                 :internal-border-width 10
+                 :background-color anaconda-mode-doc-frame-background
+                 :foreground-color anaconda-mode-doc-frame-foreground)
+  (add-hook 'post-command-hook 'anaconda-mode-hide-frame)
+  (setq anaconda-mode-frame-last-point (point))
+  (setq anaconda-mode-frame-last-scroll-offset (window-start)))
+
+(defun anaconda-mode-hide-frame ()
+  "Hide posframe when window scroll or move point."
+  (ignore-errors
+    (when (get-buffer anaconda-mode-doc-frame-name)
+      (unless (and (equal (point) anaconda-mode-frame-last-point)
+                   (equal (window-start) anaconda-mode-frame-last-scroll-offset))
+        (posframe-hide anaconda-mode-doc-frame-name)
+        (remove-hook 'post-command-hook 'anaconda-mode-hide-frame)))))
 
 
 ;;; Find definitions.
@@ -648,7 +763,19 @@ Show ERROR-MESSAGE if result is empty."
   (if result
       (if (stringp result)
           (message result)
-        (xref--show-xrefs (anaconda-mode-make-xrefs result) display-action))
+        (let ((xrefs (anaconda-mode-make-xrefs result)))
+          (if (not (cdr xrefs))
+              (progn
+                (xref-push-marker-stack)
+                (funcall (if (fboundp 'xref-pop-to-location)
+                             'xref-pop-to-location
+                           'xref--pop-to-location)
+                         (cl-first xrefs)
+                         display-action))
+            (xref--show-xrefs (if (functionp 'xref--create-fetcher)
+                                  (lambda (&rest _) xrefs)
+                                xrefs)
+                              display-action))))
     (message error-message)))
 
 (defun anaconda-mode-make-xrefs (result)
@@ -715,7 +842,8 @@ Show ERROR-MESSAGE if result is empty."
 
 \\{anaconda-mode-map}"
   :lighter anaconda-mode-lighter
-  :keymap anaconda-mode-map)
+  :keymap anaconda-mode-map
+  (setq-local url-http-attempt-keepalives nil))
 
 ;;;###autoload
 (define-minor-mode anaconda-eldoc-mode

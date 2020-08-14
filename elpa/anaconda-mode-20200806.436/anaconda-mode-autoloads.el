@@ -12,6 +12,11 @@
 (autoload 'anaconda-mode "anaconda-mode" "\
 Code navigation, documentation lookup and completion for Python.
 
+If called interactively, enable Anaconda mode if ARG is positive,
+and disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it if
+ARG is `toggle'; disable the mode otherwise.
+
 \\{anaconda-mode-map}
 
 \(fn &optional ARG)" t nil)
@@ -19,9 +24,14 @@ Code navigation, documentation lookup and completion for Python.
 (autoload 'anaconda-eldoc-mode "anaconda-mode" "\
 Toggle echo area display of Python objects at point.
 
+If called interactively, enable Anaconda-Eldoc mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "anaconda-mode" '("turn-o" "anaconda-mode-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "anaconda-mode" '("anaconda-" "turn-o")))
 
 ;;;***
 
