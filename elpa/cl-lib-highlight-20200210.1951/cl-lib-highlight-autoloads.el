@@ -11,9 +11,7 @@
 ;;; Generated autoloads from cl-lib-highlight.el
 
 (autoload 'cl-lib-highlight-initialize "cl-lib-highlight" "\
-Add all cl-lib font lock highlighting to `emacs-lisp-mode'.
-
-\(fn)" t nil)
+Add all cl-lib font lock highlighting to `emacs-lisp-mode'." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "cl-lib-highlight" '("cl-lib-highlight-")))
 
