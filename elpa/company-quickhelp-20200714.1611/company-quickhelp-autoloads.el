@@ -1,16 +1,26 @@
 ;;; company-quickhelp-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
 ;;;### (autoloads nil "company-quickhelp" "company-quickhelp.el"
-;;;;;;  (23344 45097 449721 625000))
+;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from company-quickhelp.el
 
 (autoload 'company-quickhelp-local-mode "company-quickhelp" "\
 Provides documentation popups for `company-mode' using `pos-tip'.
 
+If called interactively, enable Company-Quickhelp-Local mode if
+ARG is positive, and disable it if ARG is zero or negative.  If
+called from Lisp, also enable the mode if ARG is omitted or nil,
+and toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
+
+(put 'company-quickhelp-mode 'globalized-minor-mode t)
 
 (defvar company-quickhelp-mode nil "\
 Non-nil if Company-Quickhelp mode is enabled.
@@ -34,11 +44,14 @@ See `company-quickhelp-local-mode' for more information on Company-Quickhelp-Loc
 
 \(fn &optional ARG)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "company-quickhelp" '("company-quickhelp-")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; company-quickhelp-autoloads.el ends here
