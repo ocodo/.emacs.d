@@ -1,2 +1,0 @@
-;;; -*- no-byte-compile: t -*-
-(define-package "ido-flex-with-migemo" "20180817.1440" "use ido with flex and migemo" '((flx-ido "0.6.1") (migemo "1.9.1") (emacs "24.4")) :commit "acced7c19f3ad505cc27cd95ab05593b8194d2e5" :keywords '("matching") :authors '(("ROCKTAKEY " . "rocktakey@gmail.com")) :maintainer '("ROCKTAKEY " . "rocktakey@gmail.com") :url "https://github.com/ROCKTAKEY/ido-flex-with-migemo")

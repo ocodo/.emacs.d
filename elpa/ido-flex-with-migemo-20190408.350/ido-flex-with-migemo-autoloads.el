@@ -13,12 +13,20 @@
 (defvar ido-flex-with-migemo-mode nil "\
 Non-nil if Ido-Flex-With-Migemo mode is enabled.
 See the `ido-flex-with-migemo-mode' command
-for a description of this minor mode.")
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `ido-flex-with-migemo-mode'.")
 
 (custom-autoload 'ido-flex-with-migemo-mode "ido-flex-with-migemo" nil)
 
 (autoload 'ido-flex-with-migemo-mode "ido-flex-with-migemo" "\
-Toggle ido flex with migemo mode
+Toggle ido flex with migemo mode.
+
+If called interactively, enable Ido-Flex-With-Migemo mode if ARG
+is positive, and disable it if ARG is zero or negative.  If
+called from Lisp, also enable the mode if ARG is omitted or nil,
+and toggle it if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 

@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/ido-flex-with-migemo-20190408.350/ido-flex-with-migemo.el  -*- no-byte-compile: t -*-
+(define-package "ido-flex-with-migemo" "20190408.350" "use ido with flex and migemo" '((flx-ido "0.6.1") (migemo "1.9.1") (emacs "24.4")) :commit "da64f2fe3849492d35e155d81a817308a4853473" :keywords '("matching") :authors '(("ROCKTAKEY " . "rocktakey@gmail.com")) :maintainer '("ROCKTAKEY " . "rocktakey@gmail.com") :url "https://github.com/ROCKTAKEY/ido-flex-with-migemo")
