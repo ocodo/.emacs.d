@@ -1,12 +1,12 @@
 ;;; helm-make.el --- Select a Makefile target with helm
 
-;; Copyright (C) 2014 Oleh Krehel
+;; Copyright (C) 2014-2019 Oleh Krehel
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/helm-make
-;; Package-Version: 20181107.2126
+;; Package-Version: 20200620.27
+;; Package-Commit: ebd71e85046d59b37f6a96535e01993b6962c559
 ;; Version: 0.2.0
-;; Package-Requires: ((helm "1.5.3") (projectile "0.11.0"))
 ;; Keywords: makefile
 
 ;; This file is not part of GNU Emacs
@@ -31,8 +31,14 @@
 
 ;;; Code:
 
-(require 'helm)
+(require 'subr-x)
+(require 'cl-lib)
+(eval-when-compile
+  (require 'helm-source nil t))
 
+(declare-function helm "ext:helm")
+(declare-function helm-marked-candidates "ext:helm")
+(declare-function helm-build-sync-source "ext:helm")
 (declare-function ivy-read "ext:ivy")
 (declare-function projectile-project-root "ext:projectile")
 
@@ -122,6 +128,16 @@ You can reset the cache by calling `helm-make-reset-db'."
           (const :tag "Ido" ido)
           (const :tag "Ivy" ivy)))
 
+(defcustom helm-make-nproc 1
+  "Use that many processing units to compile the project.
+
+If `0', automatically retrieve available number of processing units
+using `helm--make-get-nproc'.
+
+Regardless of the value of this variable, it can be bypassed by
+passing an universal prefix to `helm-make' or `helm-make-projectile'."
+  :type 'integer)
+
 (defvar helm-make-command nil
   "Store the make command.")
 
@@ -135,8 +151,27 @@ An exception is \"GNUmakefile\", only GNU make understands it.")
 (defvar helm-make-ninja-filename "build.ninja"
   "Ninja build filename which ninja recognizes.")
 
+(defun helm--make-get-nproc ()
+  "Retrieve available number of processing units on this machine.
+
+If it fails to do so, `1' will be returned.
+"
+  (cond
+    ((member system-type '(gnu gnu/linux gnu/kfreebsd cygwin))
+     (if (executable-find "nproc")
+         (string-to-number (string-trim (shell-command-to-string "nproc")))
+       (warn "Can not retrieve available number of processing units, \"nproc\" not found")
+       1))
+    ;; What about the other systems '(darwin windows-nt aix berkeley-unix hpux usg-unix-v)?
+    (t
+     (warn "Retrieving available number of processing units not implemented for system-type %s" system-type)
+     1)))
+
+(defvar helm-make--last-item nil)
+
 (defun helm--make-action (target)
   "Make TARGET."
+  (setq helm-make--last-item target)
   (let* ((targets (and (eq helm-make-completion-method 'helm)
                        (or (> (length (helm-marked-candidates)) 1)
                            ;; Give single marked candidate precedence over current selection.
@@ -178,15 +213,32 @@ ninja.build file."
             (t
              helm-make-executable))
           (replace-regexp-in-string
-           "^/\\(scp\\|ssh\\).+?:" ""
+           "^/\\(scp\\|ssh\\).+?:.+?:" ""
            (shell-quote-argument (file-name-directory file)))
-          arg))
+          (let ((jobs (abs (if arg (prefix-numeric-value arg)
+                             (if (= helm-make-nproc 0) (helm--make-get-nproc)
+                               helm-make-nproc)))))
+            (if (> jobs 0) jobs 1))))
+
+(defcustom helm-make-directory-functions-list
+  '(helm-make-current-directory helm-make-project-directory helm-make-dominating-directory)
+  "Functions that return Makefile's directory, sorted by priority."
+  :type
+  '(repeat
+    (choice
+     (const :tag "Default directory" helm-make-current-directory)
+     (const :tag "Project directory" helm-make-project-directory)
+     (const :tag "Dominating directory with makefile" helm-make-dominating-directory)
+     (function :tag "Custom function"))))
 
 ;;;###autoload
 (defun helm-make (&optional arg)
   "Call \"make -j ARG target\". Target is selected with completion."
-  (interactive "p")
-  (let ((makefile (helm--make-makefile-exists default-directory)))
+  (interactive "P")
+  (let ((makefile nil))
+    (cl-find-if
+     (lambda (fn) (setq makefile (helm--make-makefile-exists (funcall fn))))
+     helm-make-directory-functions-list)
     (if (not makefile)
         (error "No build file in %s" default-directory)
       (setq helm-make-command (helm--make-construct-command arg makefile))
@@ -216,7 +268,8 @@ ninja.build file."
     (with-temp-buffer
       (insert
        (shell-command-to-string
-        "make -nqp __BASH_MAKE_COMPLETION__=1 .DEFAULT 2>/dev/null"))
+        (format "make -f %s -nqp __BASH_MAKE_COMPLETION__=1 .DEFAULT 2>/dev/null"
+                makefile)))
       (goto-char (point-min))
       (unless (re-search-forward "^# Files" nil t)
         (error "Unexpected \"make -nqp\" output"))
@@ -236,7 +289,7 @@ ninja.build file."
     (with-temp-buffer
       (insert-file-contents makefile)
       (goto-char (point-min))
-      (while (re-search-forward "^\\([^: \n]+\\):" nil t)
+      (while (re-search-forward "^\\([^: \n]+\\) *:\\(?: \\|$\\)" nil t)
         (let ((str (match-string 1)))
           (unless (string-match "^\\." str)
             (push str targets)))))
@@ -352,20 +405,22 @@ and cache targets of MAKEFILE, if `helm-make-cache-targets' is t."
     (delete-dups helm-make-target-history)
     (cl-case helm-make-completion-method
       (helm
+       (require 'helm)
        (helm :sources (helm-build-sync-source "Targets"
+                        :header-name (lambda (name) (format "%s (%s):" name makefile))
                         :candidates 'targets
                         :fuzzy-match helm-make-fuzzy-matching
                         :action 'helm--make-action)
              :history 'helm-make-target-history
-             :preselect (when helm-make-target-history
-                          (car helm-make-target-history))))
+             :preselect helm-make--last-item))
       (ivy
-       (ivy-read "Target: "
-                 targets
-                 :history 'helm-make-target-history
-                 :preselect (car helm-make-target-history)
-                 :action 'helm--make-action
-                 :require-match helm-make-require-match))
+       (unless (window-minibuffer-p)
+         (ivy-read "Target: "
+                   targets
+                   :history 'helm-make-target-history
+                   :preselect (car helm-make-target-history)
+                   :action 'helm--make-action
+                   :require-match helm-make-require-match)))
       (ido
        (let ((target (ido-completing-read
                       "Target: " targets
@@ -384,7 +439,7 @@ followed by `projectile-project-root'/build, for a makefile.
 
 You can specify an additional directory to search for a makefile by
 setting the buffer local variable `helm-make-build-dir'."
-  (interactive "p")
+  (interactive "P")
   (require 'projectile)
   (let ((makefile (helm--make-makefile-exists
                    (projectile-project-root)
@@ -396,6 +451,22 @@ setting the buffer local variable `helm-make-build-dir'."
         (error "No build file found for project %s" (projectile-project-root))
       (setq helm-make-command (helm--make-construct-command arg makefile))
       (helm--make makefile))))
+
+(defvar project-roots)
+
+(defun helm-make-project-directory ()
+  "Return the current project root directory if found."
+  (if (and (fboundp 'project-current) (project-current))
+      (car (project-roots (project-current)))
+    nil))
+
+(defun helm-make-current-directory()
+  "Return the current directory."
+  default-directory)
+
+(defun helm-make-dominating-directory ()
+  "Return the dominating directory that contains a Makefile if found"
+  (locate-dominating-file default-directory 'helm--make-makefile-exists))
 
 (provide 'helm-make)
 
