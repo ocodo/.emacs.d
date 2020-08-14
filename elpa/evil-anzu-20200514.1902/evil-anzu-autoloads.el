@@ -6,6 +6,13 @@
                          (or (file-name-directory #$) (car load-path))))
 
 
+;;;### (autoloads nil "evil-anzu" "evil-anzu.el" (0 0 0 0))
+;;; Generated autoloads from evil-anzu.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-anzu" '("evil-anzu-")))
+
+;;;***
+
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
