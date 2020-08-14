@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# contributor: Mark Karpov
-# name: cond
-# key: cond
-# --
-(cond (${1:test} ${2:then})
-      (t ${3:else}))

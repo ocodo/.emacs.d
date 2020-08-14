@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# contributor: Mark Karpov
-# name: do
-# key: do
-# --
-(do (${1:vars})
-    (${2:end-test-form}${3: result})
-  $0)

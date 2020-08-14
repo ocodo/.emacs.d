@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# contributor: Mark Karpov
-# name: dolist
-# key: dolist
-# --
-(dolist (${1:var} ${2:list}${3: result})
-  $0)
