@@ -1,7 +1,10 @@
 ;;; diminish-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
 ;;;### (autoloads nil "diminish" "diminish.el" (0 0 0 0))
 ;;; Generated autoloads from diminish.el
@@ -42,9 +45,7 @@ Echo all active diminished or minor modes as if they were minor.
 The display goes in the echo area; if it's too long even for that,
 you can see the whole thing in the *Messages* buffer.
 This doesn't change the status of any modes; it just lets you see
-what diminished modes would be on the mode-line if they were still minor.
-
-\(fn)" t nil)
+what diminished modes would be on the mode-line if they were still minor." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "diminish" '("diminish")))
 
@@ -54,5 +55,6 @@ what diminished modes would be on the mode-line if they were still minor.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; diminish-autoloads.el ends here
