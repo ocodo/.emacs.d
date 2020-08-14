@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/flx-isearch-20191119.515/flx-isearch.el  -*- no-byte-compile: t -*-
+(define-package "flx-isearch" "20191119.515" "Fuzzy incremental searching for emacs" '((emacs "24") (flx "20140821") (cl-lib "0.5")) :commit "a44097fb8f539a193c2f09a37ea52a68f2c51839" :keywords '("convenience" "search" "flx") :authors '(("PythonNut" . "pythonnut@pythonnut.com")) :maintainer '("PythonNut" . "pythonnut@pythonnut.com") :url "https://github.com/pythonnut/flx-isearch")
