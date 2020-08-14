@@ -1,12 +1,11 @@
 ;;; evil-nerd-commenter.el --- Comment/uncomment lines efficiently. Like Nerd Commenter in Vim
 
-;; Copyright (C) 2013-2017, Chen Bin
+;; Author: Chen Bin <chenbin DOT sh AT gmail.com>
 
-;; Author: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: http://github.com/redguardtoo/evil-nerd-commenter
-;; Version: 3.2.3
+;; Version: 3.5.1
 ;; Package-Requires: ((emacs "24.4"))
-;; Keywords: commenter vim line evil
+;; Keywords: convenience evil
 ;;
 ;; This file is not part of GNU Emacs.
 
@@ -17,14 +16,12 @@
 
 ;;; License:
 
-;; This file is part of evil-nerd-commenter
-;;
-;; evil-nerd-commenter is free software: you can redistribute it and/or
+;; This program is free software: you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as published
 ;; by the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 ;;
-;; evil-nerd-commenter is distributed in the hope that it will be useful,
+;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
@@ -81,6 +78,10 @@
 ;;   "."  'evilnc-copy-and-comment-operator
 ;;   "\\" 'evilnc-comment-operator)
 ;;
+;; `evilnc-comment-or-uncomment-html-tag' comment/uncomment html tag(s).
+;; `evilnc-comment-or-uncomment-html-paragraphs' comment/uncomment paragraphs
+;; containing html tags.
+;;
 ;; You can setup `evilnc-original-above-comment-when-copy-and-comment'
 ;; to decide which style to use when `evilnc-copy-and-comment-lines'
 ;; or `evilnc-copy-and-comment-operator',
@@ -114,6 +115,9 @@
 ;;
 ;;; Code:
 
+(require 'subr-x) ; required by `string-trim'
+(require 'sgml-mode)
+(require 'newcomment)
 (require 'evil-nerd-commenter-sdk)
 
 (autoload 'count-lines "simple")
@@ -126,17 +130,90 @@
   "If t then invert region comment status line by line.
 Please note it has NOT effect on evil text object!")
 
-(defvar evilnc-comment-both-snippet-html nil
-  "Comment both embedded snippet and HTML tag if they are mixed in one line.
-`web-mode' required.")
+(defvar evilnc-cpp-like-comment-syntax-modes
+  '(java-mode
+    javascript-mode
+    js-mode
+    js2-mode
+    js3-mode
+    rjsx-mode
+    js2-jsx-mode
+    rust-mode
+    c++-mode
+    c-mode
+    objc-mode)
+  "Major modes which has C++ like comment syntax.")
 
 (defvar evilnc-comment-text-object "c"
   "The comment object.
 `vic` to select inner object.
 `vac` to select outer object.")
 
+(defvar evilnc-use-comment-object-setup t
+  "Use evil text object setup when calling `evilnc-default-hotkeys'.")
+
 (defvar evilnc-min-comment-length-for-imenu 8
   "Minimum length of comment to display in imenu.")
+
+(defvar evilnc-html-comment-delimiters
+  '((evilnc-html-jsx-p "{/* " " */}")
+    ("js-mode" "{/* " " */}")
+    (("web-mode" "html-mode") "<!-- " " -->"))
+  "List of html tag comment rules.
+The 1st item of each rule is the major mode(s) to match curernt `major-mode'.
+Current `major-mode' could equal or derive from the listed major mode(s).
+The 2nd and 3rd item is the comment start and comment end.")
+
+(defun evilnc-html-jsx-p ()
+  "Test if current file is jsx."
+  (and buffer-file-name
+       (string-match-p "\.jsx?$" buffer-file-name)))
+
+(defun evilnc-html-match-comment-delimiters-p (target-mode)
+  "Use `major-mode' to match TARGET-MODE which could be:
+One major mode.
+List of major modes.
+A function to return t or nil."
+  (let* (rlt)
+    (cond
+     ((functionp target-mode)
+      (setq rlt (funcall target-mode)))
+     ((stringp target-mode)
+      ;; convert name of `major-mode' to symbol
+      (when (or (eq major-mode (intern target-mode))
+                (derived-mode-p (intern target-mode)))
+        (setq rlt t)))
+     ((listp target-mode)
+      (while (and (not rlt) target-mode)
+        (unless (setq rlt (evilnc-html-match-comment-delimiters-p (nth 0 target-mode)))
+          ;; continue looping
+          (setq target-mode (cdr target-mode))))))
+    rlt))
+
+(defun evilnc-html-find-comment-delimiter ()
+  "Found comment delimiter from `evilnc-html-find-comment-delimiter'."
+  (let* (found
+         (delimiters evilnc-html-comment-delimiters)
+         rule)
+    (while (and (not found) delimiters)
+      (setq rule (car delimiters))
+      (cond
+       ((evilnc-html-match-comment-delimiters-p (nth 0 rule))
+        (setq found rule))
+       (t
+        ;; keep looping
+        (setq delimiters (cdr delimiters)))))
+    found))
+
+(defun evilnc-html-comment-start ()
+  "Return start of html comment."
+  (let* ((s (evilnc-html-find-comment-delimiter)))
+    (if s (nth 1 s) "<!-- ")))
+
+(defun evilnc-html-comment-end ()
+  "Return end of html comment."
+  (let* ((s (evilnc-html-find-comment-delimiter)))
+    (if s (nth 2 s) " -->")))
 
 (defun  evilnc--count-lines (beg end)
   "Assume BEG is less than END."
@@ -179,6 +256,18 @@ See http://lists.gnu.org/archive/html/bug-gnu-emacs/2013-03/msg00891.html."
     (setq comment-start "-# ")
     (setq comment-start-skip "-##*[ \t]*"))))
 
+(defun evilnc--forward-line (num)
+  "Move NUM source or screen lines forward, depending on visual-line settings."
+  (cond
+   ((or (and visual-line-mode
+             (or (not (bound-and-true-p evil-mode))
+                 (bound-and-true-p evil-respect-visual-line-mode)))
+        (and (boundp 'display-line-numbers-type)
+             (eq display-line-numbers-type 'visual)))
+    (vertical-motion num))
+   (t
+    (forward-line num))))
+
 (defun evilnc--operation-on-lines-or-region (fn &optional num)
   "Apply FN on NUM lines or selected region."
   (cond
@@ -186,25 +275,16 @@ See http://lists.gnu.org/archive/html/bug-gnu-emacs/2013-03/msg00891.html."
    ((not (region-active-p))
     (let* ((b (line-beginning-position)) e)
       (save-excursion
-        (forward-line (- num 1))
+        (evilnc--forward-line (- num 1))
         (setq e (line-end-position)))
       (funcall fn b e)))
 
-   ;; Select region inside ONE line
-   ((and (<= (line-beginning-position) (region-beginning))
-          (<= (region-end) (line-end-position)))
+   ((evilnc-sdk-inside-one-line-p (region-beginning) (region-end))
     (cond
-     ;; Well, looks current comment syntax is NOT fit for comment out a region.
-     ;; So we also need hack the comment-start and comment-end
+     ;; current comment syntax is NOT fit to comment out a region.
+     ;; So we also need hack the `comment-start' and `comment-end'.
      ((and (string= "" comment-end)
-           (member major-mode '(java-mode
-                                javascript-mode
-                                js-mode
-                                js2-mode
-                                js3-mode
-                                rjsx-mode
-                                c++-mode
-                                objc-mode)))
+           (member major-mode evilnc-cpp-like-comment-syntax-modes))
       (let* ((comment-start-old comment-start)
             (comment-end-old comment-end)
             (comment-start-skip-old comment-start-skip)
@@ -229,39 +309,29 @@ See http://lists.gnu.org/archive/html/bug-gnu-emacs/2013-03/msg00891.html."
    ;; Select more than one line
    (t
     ;; selected region spans MORE than one line
-    (save-excursion
-      (let* ((b (region-beginning))
-             (e (region-end)))
-        ;; Another work around for evil-visual-line bug:
-        ;; In evil-mode, if we use hotkey V or `M-x evil-visual-line` to select line,
-        ;; the (line-beginning-position) of the line which is after the last selected
-        ;; line is always (region-end)! Don't know why.
-        (if (and (> e b)
-                 (save-excursion (goto-char e) (= e (line-beginning-position)))
-                 (boundp 'evil-state) (eq evil-state 'visual))
-            (setq e (1- e)))
-
-        (goto-char b)
-        (setq b (line-beginning-position))
-        (goto-char e)
-        (setq e (line-end-position))
+    (let* ((range (evilnc-sdk-expand-to-contain-whole-lines (region-beginning)
+                                                            (region-end)))
+           (b (car range))
+           (e (cdr range)))
+      (save-excursion
         (funcall fn b e))))))
 
 (defun evilnc--get-one-paragraph-region ()
   "Select a paragraph which has NO empty line."
-  (let* (b e)
-    (save-excursion
-      (if (setq b (re-search-backward "^[ \t]*$" nil t))
-          (progn
-            (forward-line)
-            (setq b (line-beginning-position)))
-        (setq b 1)))
-    (save-excursion
-      (if (setq e (re-search-forward "^[ \t]*$" nil t))
-          (progn
-            (forward-line -1)
-            (setq e (line-end-position)))
-        (setq e (point-max))))
+  (let* ((b (save-excursion
+              (cond
+               ((re-search-backward "^[ \t]*$" nil t)
+                (forward-line)
+                (line-beginning-position))
+               (t
+                1))))
+         (e (save-excursion
+              (cond
+               ((re-search-forward "^[ \t]*$" nil t)
+                (forward-line -1)
+                (line-end-position))
+               (t
+                (point-max))))))
     (list b e)))
 
 (defun evilnc--invert-comment (beg end)
@@ -285,46 +355,86 @@ See http://lists.gnu.org/archive/html/bug-gnu-emacs/2013-03/msg00891.html."
 (declare-function org-show-subtree "org")
 (declare-function outline-up-heading "outline")
 
+(defun evilnc--org-src-block-info ()
+  "Return src-block info in org.  It's like (beg end language)."
+  (cond
+   ;; Emacs 24.4+
+   ((fboundp 'org-edit-src-find-region-and-lang)
+    (let* ((info (org-edit-src-find-region-and-lang)))
+      (list (nth 0 info)
+            (1+ (nth 1 info))
+            (nth 2 info))))
+
+   ;; Emacs 26.1
+   ((fboundp 'org-element-at-point)
+    (let* ((elem (org-element-at-point))
+           (b (org-element-property :begin elem))
+           (e (org-element-property :end elem))
+           (lang (org-element-property :language (org-element-at-point)))
+           (str (buffer-substring-no-properties b e))
+           (case-fold-search t))
+      (when (string-match ".\+BEGIN_SRC .*$" str)
+        (setq b (+ b (length (match-string 0 str)) 1)))
+      (save-excursion
+        (goto-char b)
+        (search-forward "#+END_SRC" e t)
+        ;; - 1 to remove line feed
+        (setq e (- (point) (length "#+END_SRC"))))
+      ;; Now Emacs 24.4 and Emacs 26.1 return same result
+      (list b e lang)))))
+
+(defun evilnc--org-lang-major-mode (info)
+  "Get `major-mode' from INFO of org source block."
+  (let* ((lang (nth 2 info)))
+    (cond
+     ((setq lang (or (cdr (assoc lang org-src-lang-modes))
+                     lang))
+      (intern (concat (if (symbolp lang) (symbol-name lang) lang)
+                      "-mode")))
+     (t
+      nil))))
+
 (defun evilnc--working-on-region (beg end fn)
   "Region from BEG to END is applied with operation FN.
 Code snippets embedded in Org-mode is identified and right `major-mode' is used."
-  (let* (pos
-         info
-         lang
-         lang-f
-         old-flag)
-    (when (and (eq major-mode 'org-mode)
-               (fboundp 'org-edit-src-find-region-and-lang))
-      (setq info (org-edit-src-find-region-and-lang)))
-
-    (when info
-      (setq lang (or (cdr (assoc (nth 2 info) org-src-lang-modes))
-                     (nth 2 info)))
-      (setq lang (if (symbolp lang) (symbol-name lang) lang))
-      (setq lang-f (intern (concat lang "-mode"))))
+  (let* ((old-pos (point))
+         (info (if (eq major-mode 'org-mode) (evilnc--org-src-block-info)))
+         (lang-f (and info (evilnc--org-lang-major-mode info))))
 
     ;; turn on 3rd party language's major-mode temporarily
-    (if lang-f (funcall lang-f))
+    (cond
+     (lang-f
+      (let* ((src-beg (nth 0 info))
+             (src-end (nth 1 info))
+             (comment-beg-in-buf (1+ (- beg src-beg)))
+             (comment-end-in-buf (1+ (- end src-beg)))
+             (new-pos (1+ (- old-pos src-beg)))
+             (old-code (buffer-substring-no-properties src-beg src-end))
+             new-code)
+        (with-temp-buffer
+          (goto-char (point-min))
+          (insert old-code)
+          (funcall lang-f)
+          (goto-char new-pos)
 
-    (if evilnc-invert-comment-line-by-line
-        (evilnc--invert-comment beg end)
-      (setq pos (point))
-      (funcall fn beg end)
-      (goto-char pos))
+          (cond
+           (evilnc-invert-comment-line-by-line
+            (evilnc--invert-comment comment-beg-in-buf comment-end-in-buf))
+           (t
+            (funcall fn comment-beg-in-buf comment-end-in-buf)))
 
-    ;; turn off  3rd party language's major-mode temporarily and clean the shit
-    (when lang-f
-      ;; avoid org file automatically collapsed
-      (setq pos (point))
-      (org-mode)
-      ;; just goto the root element
-      (condition-case nil
-          (outline-up-heading 1)
-        (error
-         (message "in the beginning ...")))
-      ;; expand current node because by default (org-mode) will collapse all nodes
-      (org-show-subtree)
-      (goto-char pos))))
+          (setq new-code (buffer-substring-no-properties (point-min) (point-max))))
+
+        (delete-region src-beg src-end)
+        (insert new-code)
+        ;; go back to original position when comment inside org src-block
+        (goto-char old-pos)))
+     (t
+      (cond
+       (evilnc-invert-comment-line-by-line
+        (evilnc--invert-comment beg end))
+       (t
+        (funcall fn beg end)))))))
 
 (declare-function web-mode-comment-or-uncomment "ext:web-mode")
 (defvar web-mode-engine)
@@ -340,77 +450,22 @@ Code snippets embedded in Org-mode is identified and right `major-mode' is used.
                comment-operation))
     is-comment))
 
-(defun evilnc--web-mode-is-region-comment (beg end)
-  "Is region between BEG and END is comment in web mode?"
-  (let* ((rlt (and (save-excursion
-                     (goto-char beg)
-                     (goto-char (line-end-position))
-                     (re-search-backward "^\\|[^[:space:]]")
-                     (evilnc-web-mode-is-comment))
-                   (evilnc-web-mode-is-comment (/ (+ beg end) 2))
-                   (save-excursion
-                     (goto-char end)
-                     (back-to-indentation)
-                     (evilnc-web-mode-is-comment)))))
-    rlt))
-
-(defun evilnc--web-mode-do-current-line ()
-  "In `web-mode', have to select whole line to comment."
-  (let* (first-char-is-snippet e)
-
-    (save-excursion
-      (goto-char (line-beginning-position))
-      (skip-chars-forward "[:space:]" (line-end-position))
-      (setq first-char-is-snippet (get-text-property (point) 'block-side)))
-
-    ;; comment the snippet block at first
-    (when (and evilnc-comment-both-snippet-html (not first-char-is-snippet))
-      (save-excursion
-        (let* (fired)
-          (goto-char (line-beginning-position))
-          ;; please note (line-beginning-position) is changing in (while)
-          (while (< (point) (line-end-position))
-            (forward-char)
-            (if (get-text-property (point) 'block-side)
-                (when (not fired)
-                  (save-excursion
-                    (push-mark (1+ (point)) t t)
-                    (goto-char (point))
-                    (web-mode-comment-or-uncomment))
-                  (setq fired t))
-              (setq fired nil))))))
-
-    ;; comment the html line
-    ;; To comment one line ONLY, you need select a line at first,
-    ;; in order to work around web-mode "feature".
-    (push-mark (setq e (line-end-position)) t t)
-    (goto-char (line-beginning-position))
-    (skip-chars-forward "[:space:]" e)
-    (evilnc--warn-on-web-mode (evilnc--web-mode-is-region-comment (point) e))
-    (web-mode-comment-or-uncomment)))
-
 (defun evilnc--web-mode-comment-or-uncomment (beg end)
-  "Comment/uncomment line by line from BEG to END.
-DO-COMMENT decides we comment or uncomment."
+  "Comment/uncomment line by line from BEG to END."
   ;; end will change when you comment line by line
-  (let* (line-cnt tmp)
+  (let* (tmp)
     ;; make sure beg <= end
     (when (> beg end)
       (setq tmp beg)
       (setq beg end)
       (setq end tmp))
-
-    ;; start (un)comment
     (save-excursion
-      (setq line-cnt (evilnc--count-lines beg end))
-      (goto-char beg)
-      (while (> line-cnt 0)
-        (evilnc--web-mode-do-current-line)
-        (forward-line)
-        (setq line-cnt (1- line-cnt))))))
+      (push-mark beg t t)
+      (goto-char end)
+      (web-mode-comment-or-uncomment))))
 
 (defun evilnc--comment-or-uncomment-region (beg end)
-  "Comment or uncommment region from BEG to END."
+  "Comment or uncomment region from BEG to END."
   (cond
    ((eq major-mode 'web-mode)
     ;; elixir is not supported in web-mode for now
@@ -429,22 +484,63 @@ DO-COMMENT decides we comment or uncomment."
       (beginning-of-line)
       (1+ (count-lines 1 (point))))))
 
-(defun evilnc--find-dst-line-num (UNITS)
-  "Find closet line whose line number ends with digit UNITS.
-Given UNITS as 5, line 5, line 15, and line 25 are good candidates.
-If UNITS is 16, line 16, line 116, and line 216 are good candidates."
+(defun evilnc--get-line-num (position)
+  "Get line number at POSITION."
+  (save-excursion
+    (goto-char position)
+    (evilnc--current-line-num)))
+
+(defun evilnc--find-destination-linenum (last-digits)
+  "Find closest line whose line number ends with digit LAST-DIGITS.
+If LAST-DIGITS is 16, line 16, line 116, and line 216 are candidates.
+Then if current line is 17, 16 is the final result."
   (let* ((cur-line-num (evilnc--current-line-num))
-         dst-line-num
          (r 1)
-         (l (length (number-to-string UNITS))))
+         (l (length (number-to-string last-digits))))
     (while (> l 0)
       (setq r (* r 10))
       (setq l (- l 1)))
-    (if (>= (mod cur-line-num r) UNITS)
-        (setq UNITS (+ UNITS r)))
-    (setq dst-line-num (+ cur-line-num (- UNITS (mod cur-line-num r))))))
+    (if (>= (mod cur-line-num r) last-digits)
+        (setq last-digits (+ last-digits r)))
+    (+ cur-line-num (- last-digits (mod cur-line-num r)))))
 
-;; ==== below this line are public commands
+(defun evilnc-do-paragraphs (action num)
+  "Apply ACTION on NUM paragraphs."
+  (let* ((i 0)
+         rlt
+         (b (point-max))
+         (e 0)
+         linenum)
+    (catch 'break
+      (while (< i num)
+        (when (setq rlt (evilnc--get-one-paragraph-region))
+          (setq b (nth 0 rlt))
+          (setq e (nth 1 rlt))
+          (setq linenum (evilnc--get-line-num e)))
+
+        ;; Original algorithm select all paragraph and comment once
+        ;; New algorithm comment paragraph by paragraph
+        (when (<= b e)
+          (save-excursion
+            (funcall action b e)))
+
+        ;; prepare for the next paragraph
+        (cond
+         ((and rlt (< i num))
+          (evilnc--goto-line linenum)
+
+          ;; move to an empty line
+          (forward-line)
+
+          ;; move to next non-empty line
+          (re-search-forward "^[ \t]*[^ \t]" nil t)
+          (if (<= (line-beginning-position) e)
+              (throw 'break i)))
+
+          (t
+           (throw 'break i)))
+
+        (setq i (1+ i))))))
 
 ;;;###autoload
 (defun evilnc-comment-or-uncomment-paragraphs (&optional num)
@@ -452,37 +548,11 @@ If UNITS is 16, line 16, line 116, and line 216 are good candidates."
 A paragraph is a continuation non-empty lines.
 Paragraphs are separated by empty lines."
   (interactive "p")
-  (let* ((i 0)
-         rlt
-         (b (point-max))
-         (e 0))
-    (catch 'break
-      (while (< i num)
-        (setq i (1+ i))
-        (setq rlt (evilnc--get-one-paragraph-region))
-        (setq b (if (< (nth 0 rlt) b) (nth 0 rlt) b))
-        (setq e (if (> (nth 1 rlt) e) (nth 1 rlt) e))
-
-        ;; prepare for the next paragraph
-        (if (and rlt (< i num))
-            (progn
-              ;; e should be the end of last non-empty line
-              (goto-char e)
-
-              ;; move to an empty line
-              (forward-line)
-
-              ;; move to next non-empty line
-              (re-search-forward "^[ \t]*[^ \t]" nil t)
-
-              (if (<= (line-beginning-position) e)
-                  (throw 'break i)))
-          (throw 'break i))))
-
-    (when (<= b e)
-      (save-excursion
-        (evilnc--fix-buggy-major-modes)
-        (evilnc--comment-or-uncomment-region b e)))))
+  (evilnc-do-paragraphs
+   (lambda (b e)
+     (evilnc--fix-buggy-major-modes)
+     (evilnc--comment-or-uncomment-region b e))
+   num))
 
 ;;;###autoload
 (defun evilnc-comment-or-uncomment-to-the-line (&optional LINENUM)
@@ -498,20 +568,19 @@ Paragraphs are separated by empty lines."
           (if (> (line-end-position) e)
               (setq e (line-end-position)))
           (evilnc--fix-buggy-major-modes)
-          (evilnc--comment-or-uncomment-region b e)
-          ))))
+          (evilnc--comment-or-uncomment-region b e)))))
 
 ;;;###autoload
-(defun evilnc-quick-comment-or-uncomment-to-the-line (&optional units)
-  "Comment/uncomment to line number by last digit(s) whose value is UNITS.
-For exmaple, you can use either \
+(defun evilnc-quick-comment-or-uncomment-to-the-line (&optional last-digits)
+  "Comment/uncomment to line number by LAST-DIGITS.
+For example, you can use either \
 \\<M-53>\\[evilnc-quick-comment-or-uncomment-to-the-line] \
 or \\<M-3>\\[evilnc-quick-comment-or-uncomment-to-the-line] \
 to comment to the line 6453"
   (interactive "p")
-  (let* ((dst-line-num (evilnc--find-dst-line-num units)))
-    (evilnc-comment-or-uncomment-to-the-line dst-line-num)
-    (evilnc--goto-line (+ 1 dst-line-num))))
+  (let* ((l (evilnc--find-destination-linenum last-digits)))
+    (evilnc-comment-or-uncomment-to-the-line l)
+    (evilnc--goto-line (+ 1 l))))
 
 ;;;###autoload
 (defun evilnc-toggle-invert-comment-line-by-line ()
@@ -549,21 +618,23 @@ Case 3: If a region inside of ONE line is selected,
 we comment/uncomment that region.
 CORRECT comment syntax will be used for C++/Java/Javascript."
   (interactive "p")
-  ;; donot move the cursor
-  ;; support negative number
-  (cond
-   ((and (= 1 num) (string-match "^[ \t]*$" (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
-    ;; comment on current empty line
-    (comment-dwim nil))
-   (t
-    (save-excursion
-      (when (< num 0)
-        (forward-line (1+ num))
-        (setq num (- 0 num)))
-      (evilnc--operation-on-lines-or-region '(lambda (b e)
-                                               (evilnc--fix-buggy-major-modes)
-                                               (evilnc--comment-or-uncomment-region b e))
-                                            num)))))
+  (let* ((orig-pos (point)))
+    ;; donot move the cursor
+    ;; support negative number
+    (cond
+     ((and (= 1 num) (string-match "^[ \t]*$" (evilnc-sdk-cur-line)))
+      ;; comment on current empty line
+      (comment-dwim nil))
+     (t
+      (save-excursion
+        (when (< num 0)
+          (evilnc--forward-line (1+ num))
+          (setq num (- 0 num)))
+        (evilnc--operation-on-lines-or-region '(lambda (b e)
+                                                 (evilnc--fix-buggy-major-modes)
+                                                 (evilnc--comment-or-uncomment-region b e))
+                                              num))
+      (goto-char orig-pos)))))
 
 ;;;###autoload
 (defun evilnc-copy-and-comment-lines (&optional num)
@@ -578,7 +649,7 @@ Then we operate the expanded region.  NUM is ignored."
   (interactive "p")
   ;; support negative number
   (when (< num 0)
-    (forward-line (1+ num))
+    (evilnc--forward-line (1+ num))
     (setq num (- 0 num)))
 
   (let* ((original-column (current-column)))
@@ -617,7 +688,7 @@ Then we operate the expanded region.  NUM is ignored."
   (interactive "p")
   ;; support negative number
   (when (< num 0)
-    (forward-line (1+ num))
+    (evilnc--forward-line (1+ num))
     (setq num (- 0 num)))
 
   (evilnc--operation-on-lines-or-region
@@ -666,50 +737,44 @@ Then we operate the expanded region.  NUM is ignored."
 (defun evilnc-version ()
   "The version number."
   (interactive)
-  (message "3.2.3"))
+  (message "3.5.1"))
 
 (defvar evil-normal-state-map)
 (defvar evil-visual-state-map)
 (defvar evil-inner-text-objects-map)
 (defvar evil-outer-text-objects-map)
+
 ;;;###autoload
-(defun evilnc-default-hotkeys (&optional no-evil-keybindings)
+(defun evilnc-default-hotkeys (&optional no-evil-keybindings no-emacs-keybindings)
   "Setup the key bindings of evil-nerd-comment.
-If NO-EVIL-KEYBINDINGS is t, we don't define keybindings in EVIL."
+If NO-EVIL-KEYBINDINGS is t, we don't define keybindings in EVIL,
+if NO-EMACS-KEYBINDINGS is t, we don't define keybindings in EMACS mode."
   (interactive)
   ;; Install hotkeys for Emacs mode
-  (global-set-key (kbd "M-;") 'evilnc-comment-or-uncomment-lines)
-  (global-set-key (kbd "C-c l") 'evilnc-quick-comment-or-uncomment-to-the-line)
-  (global-set-key (kbd "C-c c") 'evilnc-copy-and-comment-lines)
-  (global-set-key (kbd "C-c p") 'evilnc-comment-or-uncomment-paragraphs)
+  (unless no-emacs-keybindings
+    (global-set-key (kbd "M-;") 'evilnc-comment-or-uncomment-lines)
+    (global-set-key (kbd "C-c l") 'evilnc-quick-comment-or-uncomment-to-the-line)
+    (global-set-key (kbd "C-c c") 'evilnc-copy-and-comment-lines)
+    (global-set-key (kbd "C-c p") 'evilnc-comment-or-uncomment-paragraphs))
 
   ;; Install key bindings for evil
-  (unless no-evil-keybindings
-    (eval-after-load 'evil
-      '(progn
-         (define-key evil-normal-state-map ",ci" 'evilnc-comment-or-uncomment-lines)
-         (define-key evil-visual-state-map ",ci" 'evilnc-comment-or-uncomment-lines)
-         (define-key evil-normal-state-map ",cl" 'evilnc-quick-comment-or-uncomment-to-the-line)
-         (define-key evil-normal-state-map ",ll" 'evilnc-quick-comment-or-uncomment-to-the-line)
-         (define-key evil-normal-state-map ",cc" 'evilnc-copy-and-comment-lines)
-         (define-key evil-visual-state-map ",cc" 'evilnc-copy-and-comment-lines)
-         (define-key evil-normal-state-map ",cp" 'evilnc-comment-or-uncomment-paragraphs)
-         (define-key evil-normal-state-map ",cr" 'comment-or-uncomment-region)
-         (define-key evil-normal-state-map ",cv" 'evilnc-toggle-invert-comment-line-by-line)))
+  (when (and (not no-evil-keybindings) (fboundp 'evil-mode))
+    (define-key evil-normal-state-map ",ci" 'evilnc-comment-or-uncomment-lines)
+    (define-key evil-visual-state-map ",ci" 'evilnc-comment-or-uncomment-lines)
+    (define-key evil-normal-state-map ",cl" 'evilnc-quick-comment-or-uncomment-to-the-line)
+    (define-key evil-normal-state-map ",ll" 'evilnc-quick-comment-or-uncomment-to-the-line)
+    (define-key evil-normal-state-map ",cc" 'evilnc-copy-and-comment-lines)
+    (define-key evil-visual-state-map ",cc" 'evilnc-copy-and-comment-lines)
+    (define-key evil-normal-state-map ",cp" 'evilnc-comment-or-uncomment-paragraphs)
+    (define-key evil-normal-state-map ",cr" 'comment-or-uncomment-region)
+    (define-key evil-normal-state-map ",cv" 'evilnc-toggle-invert-comment-line-by-line)
 
-    ;; Install operator for evil text objects
-    (eval-after-load 'evil-nerd-commenter-operator
-      '(progn
-         ;; operator to comment at text objects
-         (define-key evil-normal-state-map ",." 'evilnc-copy-and-comment-operator)
-         (define-key evil-visual-state-map ",." 'evilnc-copy-and-comment-operator)
-         (define-key evil-normal-state-map ",," 'evilnc-comment-operator)
-         (define-key evil-visual-state-map ",," 'evilnc-comment-operator)
-
-         ;; comment itself is text object
-         (define-key evil-inner-text-objects-map evilnc-comment-text-object 'evilnc-inner-comment)
-         (define-key evil-outer-text-objects-map evilnc-comment-text-object 'evilnc-outer-commenter)))))
-
+    (when evilnc-use-comment-object-setup
+      ;; Install operator for evil text objects
+      (define-key evil-normal-state-map ",." 'evilnc-copy-and-comment-operator)
+      (define-key evil-visual-state-map ",." 'evilnc-copy-and-comment-operator)
+      (define-key evil-normal-state-map ",," 'evilnc-comment-operator)
+      (define-key evil-visual-state-map ",," 'evilnc-comment-operator))))
 
 (defun evilnc-frame-wide-string (s)
   "Build summary from S."
@@ -747,7 +812,7 @@ If NO-EVIL-KEYBINDINGS is t, we don't define keybindings in EVIL."
          (t
           (setq beg (1+ beg))))
 
-        (when (and searching (evilnc-is-comment beg))
+        (when (and searching (evilnc-comment-p beg))
           (setq linenum (line-number-at-pos beg) )
           (cond
            ((string= comment-end "")
@@ -787,10 +852,98 @@ If NO-EVIL-KEYBINDINGS is t, we don't define keybindings in EVIL."
             (setq searching nil))))))
     cands))
 
+(defun evilnc-html-comment-region (beg end)
+  "Comment region between BEG and END."
+  (save-excursion
+    (goto-char end)
+    (insert (evilnc-html-comment-end))
+    (goto-char beg)
+    (insert (evilnc-html-comment-start))))
+
+(defun evilnc-html-uncomment-region (beg end)
+  "Uncomment HTML tag between BEG and END."
+  (let* (mark-start-pos
+         mark-end-pos
+         (len-comment-start (length (evilnc-html-comment-start))))
+    (save-excursion
+      (goto-char beg)
+      (setq mark-start-pos (search-forward (evilnc-html-comment-start) end t))
+      (goto-char end)
+      (setq mark-end-pos (search-backward (evilnc-html-comment-end) beg t))
+      (when (and mark-start-pos mark-end-pos)
+        (goto-char mark-end-pos)
+        (delete-char (length (evilnc-html-comment-end)))
+        (goto-char (- mark-start-pos len-comment-start))
+        (delete-char len-comment-start)))))
+
+(defun evilnc-html-tag-comment-p (beg)
+  "Html tag comment at position BEG?"
+  (save-excursion
+    (goto-char beg)
+    (string-match-p (concat "^[ \t]*" (regexp-quote (evilnc-html-comment-start)))
+                    (evilnc-sdk-cur-line))))
+
+;;;###autoload
+(defun evilnc-comment-or-uncomment-html-tag ()
+  "Comment or uncomment html tag(s).
+If no region is selected, current tag under focus is automatically selected.
+In this case, only one tag is selected.
+If users manually select region, the region could cross multiple sibling tags
+and automatically expands to include complete tags.
+Users can press \"v\" key in evil mode to select multiple tags.
+This command is not dependent on any 3rd party package."
+  (interactive)
+  (let* (beg end beg-line-beg end-line-end)
+    (cond
+     ((region-active-p)
+      (setq beg (region-beginning))
+      (setq end (region-end))
+      (save-excursion
+        (goto-char beg)
+        (setq beg-line-beg (line-beginning-position))
+        (goto-char end)
+        (setq end-line-end (line-end-position))
+        (when (< beg-line-beg (line-beginning-position))
+          ;; it's multiple lines region
+          (goto-char beg-line-beg)
+          (setq beg (re-search-forward "^[ \t]*" end t))
+          (setq end end-line-end))))
+     (t
+      (save-excursion
+        (sgml-skip-tag-backward 1)
+        (setq beg (point))
+        (setq beg-line-beg (line-beginning-position))
+        (sgml-skip-tag-forward 1)
+        (setq end (point))
+        (setq end-line-end (line-end-position)))))
+
+    (cond
+     ((evilnc-html-tag-comment-p beg)
+      ;; make sure all tags plus comment marks are selected
+      (evilnc-html-uncomment-region beg-line-beg end-line-end))
+     (t
+      ;; the whole tags is already selected
+      (evilnc-html-comment-region beg end)))))
+
+;;;###autoload
+(defun evilnc-comment-or-uncomment-html-paragraphs (&optional num)
+  "Comment or uncomment NUM paragraphs contain html tag.
+A paragraph is a continuation non-empty lines.
+Paragraphs are separated by empty lines."
+  (interactive "p")
+  (evilnc-do-paragraphs
+   (lambda (b e)
+     ;; {{ make sure tag is focused
+     (goto-char b)
+     (sgml-skip-tag-forward 1)
+     ;; }}
+     (evilnc-comment-or-uncomment-html-tag))
+   num))
+
 ;; Attempt to define the operator on first load.
 ;; Will only work if evil has been loaded
-(eval-after-load 'evil
-  '(require 'evil-nerd-commenter-operator))
+(with-eval-after-load 'evil
+  (require 'evil-nerd-commenter-operator))
 
 (provide 'evil-nerd-commenter)
 ;;; evil-nerd-commenter.el ends here

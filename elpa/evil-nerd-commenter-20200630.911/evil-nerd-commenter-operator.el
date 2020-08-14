@@ -1,6 +1,4 @@
-;;; evil-nerd-commenter-operator.el --- Provides an evil operator for evil-nerd-commenter
-
-;; Copyright (C) 2013-2017, Chen Bin
+;;; evil-nerd-commenter-operator.el --- evil operator for this program
 
 ;; Author: Chen Bin <chenbin.sh@gmail.com>
 
@@ -10,7 +8,7 @@
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; This program is distributed in the hope that it will be useful,
@@ -49,6 +47,14 @@
     web-mode)
   "Major modes using C comment syntax.")
 
+(defvar evilnc-current-text-object nil
+  "Internal variable to detect current object working on.")
+
+(defvar evilnc-whole-line-text-objects
+  '(evil-forward-paragraph
+    evil-backward-paragraph)
+  "Comment operator operates on wholes when dealing with these text objects.")
+
 (defvar evilnc-temporary-goal-column 0
   "Value of`temporary-goal-column' specifying right edge of rectangle yank.")
 
@@ -64,7 +70,7 @@
         (move-overlay overlay b e)))))
 
 (defadvice evil-apply-on-block (around evil-apply-on-block-around-hack activate)
-  "Yank correct region of nner comment text object."
+  "Yank correct region of inner comment text object."
   (let* ((tmp-command last-command))
     ;; force `evil-apply-on-block' use our temporary-goal-column
     (when (> evilnc-temporary-goal-column 0)
@@ -78,55 +84,72 @@
     (setq last-command tmp-command)
     (setq evilnc-temporary-goal-column 0)))
 
-(defun evilnc--in-comment-p (pos)
-  "Check whether the code at POS is comment by comparing font face."
-  (interactive)
-  (let* ((fontfaces (get-text-property pos 'face)))
-    (if (not (listp fontfaces))
-        (setf fontfaces (list fontfaces)))
-    (delq nil
-          (mapcar #'(lambda (f)
-                      ;; learn this trick from flyspell
-                      (or (eq f 'font-lock-comment-face)
-                          (eq f 'font-lock-comment-delimiter-face)))
-                  fontfaces))))
+(defun evilnc-expand-to-whole-comment-or-line (beg end)
+  "Expand the comment region defined by BEG and END so all comment is included.
+Or expand the region to contain whole lines if it's not comment and certain conditions met."
 
-(defun evilnc--extend-to-whole-comment (beg end)
-  "Extend the comment region defined by BEG and END so ALL comment is included."
-  (interactive)
-  (if (evilnc--in-comment-p beg)
-      (save-excursion
-        (let* ((newbeg beg)
-               (newend end))
+  (cond
+   ((evilnc-pure-comment-p beg)
+    (save-excursion
+      (let* ((newbeg beg)
+             (newend end))
 
-          ;; extend the beginning
-          (goto-char newbeg)
-          (while (and (>= newbeg (line-beginning-position)) (evilnc--in-comment-p newbeg))
-            (setq newbeg (1- newbeg)))
+        ;; expand the beginning
+        (goto-char newbeg)
+        (while (and (>= (1- newbeg) (line-beginning-position)) (evilnc-pure-comment-p (1- newbeg)))
+          (setq newbeg (1- newbeg)))
 
-          ;; make sure newbeg is at the beginning of the comment
-          (if (< newbeg beg) (setq newbeg (1+ newbeg)))
+        ;; expand the end
+        (goto-char newend)
+        (while (and (<= newend (line-end-position)) (evilnc-pure-comment-p newend))
+          (setq newend (1+ newend)))
 
-          ;; extend the end
-          (goto-char newend)
-          (while (and (<= newend (line-end-position)) (evilnc--in-comment-p newend))
-            (setq newend (1+ newend)))
-          ;; make sure newend is at the end of the comment
-          (if (> newend end) (setq newend (evilnc-get-comment-end newend)))
+        (cons newbeg newend))))
 
-          (list newbeg newend)))
-    (list beg end)))
+   ;; try to expand region to contain whole line if,
+   ;; - currently more than one line text in the region,
+   ;; - a specific text object is touched just before the operator
+   ((and (not (evilnc-sdk-inside-one-line-p beg end))
+         evilnc-current-text-object
+         (member (car evilnc-current-text-object) evilnc-whole-line-text-objects)
+         ;; 0.5 second
+         (< (- (float-time (current-time)) (cdr evilnc-current-text-object)) 0.5))
+    (evilnc-sdk-expand-to-contain-whole-lines beg end))
+   (t
+    (cons beg end))))
+
+;; {{ know text object type to operate on
+(defun evilnc-set-current-text-object (text-object)
+  "Set current TEXT-OBJECT."
+  (setq evilnc-current-text-object
+        (cons text-object (float-time (current-time)))))
+
+(defadvice evil-select-an-object (before evilnc-evil-select-an-object-hack activate)
+  "Figure out text object type."
+  (let* ((thing (car (ad-get-args 0))))
+    ;; record the thing and timestamp `evil-select-an-object' is called
+    (evilnc-set-current-text-object thing)))
+
+(defadvice evil-backward-paragraph (before evilnc-evil-backward-paragraph-hack activate)
+  "Record current text object."
+  (evilnc-set-current-text-object 'evil-backward-paragraph))
+
+(defadvice evil-forward-paragraph (before evilnc-evil-forward-paragraph-hack activate)
+  "Record current text object."
+  (evilnc-set-current-text-object 'evil-forward-paragraph))
+;; }}
 
 (evil-define-operator evilnc-comment-operator (beg end type)
   "Comments text from BEG to END with TYPE."
   (interactive "<R>")
   (cond
    ((eq type 'block)
-    (let* ((newpos (evilnc--extend-to-whole-comment beg end) ))
+    (let* ((newpos (evilnc-expand-to-whole-comment-or-line beg end) ))
       (evil-apply-on-block #'evilnc--comment-or-uncomment-region
-                           (nth 0 newpos)
-                           (nth 1 newpos)
+                           (car newpos)
+                           (cdr newpos)
                            nil)))
+
    ((and (eq type 'line)
          (= end (point-max))
          (or (= beg end)
@@ -136,43 +159,48 @@
     (evilnc--comment-or-uncomment-region (1- beg) end))
 
    ((eq type 'line)
-    (evilnc--comment-or-uncomment-region beg (evilnc-get-comment-end end)))
+    ;; comment whole line, for now
+    (evilnc--comment-or-uncomment-region beg
+                                         (save-excursion
+                                           (goto-char (1- end))
+                                           (line-end-position))))
 
    (t
-    (let* ((newpos (evilnc--extend-to-whole-comment beg end) ))
-      (evilnc--comment-or-uncomment-region (nth 0 newpos) (nth 1 newpos)))))
+    (when (and beg end)
+      (let* ((newpos (evilnc-expand-to-whole-comment-or-line beg end)))
+        (evilnc--comment-or-uncomment-region (car newpos) (cdr newpos))))))
 
   ;; place cursor on beginning of line
-  (if (and (called-interactively-p 'any)
-           (eq type 'line))
-    (evil-first-non-blank)))
+  (if (and (called-interactively-p 'any) (eq type 'line))
+      (evil-first-non-blank)))
 
-(evil-define-operator evilnc-copy-and-comment-operator (beg end)
-  "Inserts an out commented copy of the text from BEG to END."
+(evil-define-operator evilnc-copy-and-comment-operator (begin end)
+  "Inserts an out commented copy of the text from BEGIN to END."
   :move-point (not evilnc-original-above-comment-when-copy-and-comment)
   (interactive "<r>")
-    (evil-yank-lines beg end nil 'lines)
+  (evil-with-single-undo
+    (evil-yank-lines begin end nil 'lines)
     (cond
      (evilnc-original-above-comment-when-copy-and-comment
       (let* ((p (point)))
-        (comment-region beg end)
-        (goto-char beg)
+        (comment-region begin end)
+        (goto-char begin)
         (evil-paste-before 1)
         (goto-char p)))
      (t
       (goto-char end)
       (evil-paste-before 1)
       ;; actual comment operatio should happen at last
-      ;; or else beg end will be screwed up
-      (comment-region beg end))))
+      ;; or else begin end will be screwed up
+      (comment-region begin end)))))
 
-(defun evilnc-is-one-line-comment (b e)
-  "Check whether text between B and E is one line comment."
+(defun evilnc-one-line-comment-p (begin end)
+  "Test if text between BEGIN and END is one line comment."
   (save-excursion
-    (goto-char b)
-    (and (<= (line-beginning-position) b)
-         ;; e is the upper limit great than (line-end-position)
-         (<= e (1+ (line-end-position))))))
+    (goto-char begin)
+    (and (<= (line-beginning-position) begin)
+         ;; end is the upper limit great than (line-end-position)
+         (<= end (1+ (line-end-position))))))
 
 (defun evilnc-get-comment-bounds ()
   "Return bounds like (cons beg end)."
@@ -180,19 +208,19 @@
          (e (point))
          (col 0)
          rlt)
-    ;; extend begin
-    (while (evilnc-is-comment (- b 1))
+    ;; decrease begin
+    (while (evilnc-comment-p (- b 1))
       (setq b (- b 1)))
 
-    ;; extend end
-    (while (evilnc-is-comment (+ e 1))
+    ;; increase end
+    (while (evilnc-comment-p (+ e 1))
       (setq e (+ e 1)))
 
     ;; we could select extra spaces at the end of comment
     ;; so we need go back
     (let* ((str (save-excursion
                   (goto-char e)
-                  (buffer-substring-no-properties (line-beginning-position) e)))
+                  (evilnc-sdk-cur-line e)))
            (empty-line-p (string-match "^[ \t]*$" str)))
       (if empty-line-p
           ;; empty line plus line feed
@@ -200,13 +228,13 @@
     (cond
      ((>= b e)
       (setq rlt nil))
-     ((evilnc-is-one-line-comment b e)
+     ((evilnc-one-line-comment-p b e)
       ;; contract begin
-      (while (not (evilnc-is-pure-comment b))
+      (while (not (evilnc-pure-comment-p b))
         (setq b (+ b 1)))
 
       ;; contract end
-      (while (not (evilnc-is-pure-comment e))
+      (while (not (evilnc-pure-comment-p e))
         (setq e (- e 1)))
 
       (if (< b e) (setq rlt (cons b (+ e 1)))))
@@ -216,7 +244,7 @@
     rlt))
 
 (defun evilnc-adjusted-comment-end (b e)
-  "Ajust comment end of region between B and E."
+  "Adjust comment end of region between B and E."
   (let* ((next-end-char (evilnc-get-char (- e 2)))
          (end-char (evilnc-get-char (- e 1))))
     ;; avoid selecting CR/LF at the end of comment
@@ -237,11 +265,11 @@
      (t
       ;; other languages we can safely use font face
       (while (and (> e b)
-                  (evilnc-is-comment-delimiter (- e 1)))
+                  (evilnc-comment-delimiter-p (- e 1)))
         (setq e (- e 1)))))
     e))
 
-(defun evilnc-is-c-style-comment (pos)
+(defun evilnc-c-style-comment-p (pos)
   "Is C style comment at POS?"
   (and (memq major-mode evilnc-c-style-comment-modes)
        (= (evilnc-get-char pos) ?/)
@@ -254,9 +282,9 @@ we are processing C like language."
   (let* ((col-min most-positive-fixnum)
          (col-max 0))
     (while (< beg end)
-      (when (and (not (evilnc-is-whitespace beg))
-                 (evilnc-is-pure-comment beg)
-                 (not (or (evilnc-is-comment-delimiter beg)
+      (when (and (not (evilnc-whitespace-p beg))
+                 (evilnc-pure-comment-p beg)
+                 (not (or (evilnc-comment-delimiter-p beg)
                           (and c-style
                                (memq (evilnc-get-char beg) '(?/ ?*))))))
         (let* ((col (evil-column beg)))
@@ -279,15 +307,15 @@ we are processing C like language."
       (setq b (car bounds))
       (setq e (cdr bounds))
       (cond
-       ((setq c-style (evilnc-is-c-style-comment b))
+       ((setq c-style (evilnc-c-style-comment-p b))
         (while (and (< b e)
-                    (or (evilnc-is-whitespace b)
-                        (evilnc-is-line-end b)
+                    (or (evilnc-whitespace-p b)
+                        (evilnc-line-end-p b)
                         (memq (evilnc-get-char b) '(?/ ?*))))
           (setq b (1+ b)))
         (while (and (< b e)
-                    (or (evilnc-is-whitespace e)
-                        (evilnc-is-line-end e)
+                    (or (evilnc-whitespace-p e)
+                        (evilnc-line-end-p e)
                         (memq (evilnc-get-char e) '(?/ ?*))))
           (setq e (1- e)))
         (setq e (1+ e))
@@ -307,7 +335,7 @@ we are processing C like language."
                   (goto-char (evilnc-adjusted-comment-end b (line-end-position)))
                   (point)))))
       (cond
-       ((evilnc-is-one-line-comment b e)
+       ((evilnc-one-line-comment-p b e)
         ;; keep move e to the end of comment
         (evil-range b ;; (if c-style (1+ e) e)
                     e))
@@ -336,6 +364,7 @@ we are processing C like language."
         (evil-range b e 'exclusive :expanded t)))
      (t
       (error "Not inside a comment")))))
+
 
 (provide 'evil-nerd-commenter-operator)
 ;;; evil-nerd-commenter-operator.el ends here
