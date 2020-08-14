@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/ioccur-20200326.1341/ioccur.el  -*- no-byte-compile: t -*-
+(define-package "ioccur" "20200326.1341" "Incremental occur" '((emacs "24") (cl-lib "0.5")) :commit "59350b2066d61444f93c8a51b16353e746486e4c" :authors '(("Thierry Volpiatto" . "thierry.volpiatto@gmail.com")) :maintainer '("Thierry Volpiatto" . "thierry.volpiatto@gmail.com") :url "https://github.com/thierryvolpiatto/ioccur")

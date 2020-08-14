@@ -1,23 +1,24 @@
-;;; ioccur.el --- Incremental occur
+;;; ioccur.el --- Incremental occur  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2013  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2020  Free Software Foundation, Inc.
 
-;; Author: Thierry Volpiatto <thierry dot volpiatto at gmail dot com>
+;; Author: Thierry Volpiatto <thierry.volpiatto@gmail.com>
 ;; X-URL: https://github.com/thierryvolpiatto/ioccur
 ;; Version: 2.4
-;; Package-Version: 20130821.2248
-;; Compatibility: GNU Emacs >=22.3
+;; Package-Version: 20200326.1341
+;; Package-Commit: 59350b2066d61444f93c8a51b16353e746486e4c
+;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
 ;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;; General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 
@@ -50,7 +51,7 @@
 
 ;;; Code:
 (require 'derived)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'outline)
 (eval-when-compile (require 'wdired))
 
@@ -85,12 +86,10 @@
 ;;; User variables.
 (defcustom ioccur-search-delay 0.5
   "During incremental searching, display is updated all these seconds."
-  :group 'ioccur
   :type  'integer)
 
 (defcustom ioccur-search-prompt "Pattern: "
   "Prompt used for `ioccur-occur'."
-  :group 'ioccur
   :type  'string)
 
 (defcustom ioccur-mode-line-string
@@ -103,52 +102,44 @@ S-/Tab:Hist,C-v/t:Scroll,C-d/u:Follow,C-w:Yank tap")
 
   "Minimal documentation of `ioccur' commands displayed in mode-line.
 Set it to nil to remove doc in mode-line."
-  :group 'ioccur
   :type  'string)
 
 (defcustom ioccur-length-line 80
   "Length of the line displayed in ioccur buffer.
 When set to nil lines displayed in `ioccur-buffer' will not be modified.
 See `ioccur-truncate-line'."
-  :group 'ioccur
   :type 'integer)
 
 (defcustom ioccur-max-length-history 100
   "Maximum number of element stored in `ioccur-history'."
-  :group 'ioccur
   :type 'integer)
 
 (defcustom ioccur-buffer-completion-use-ido nil
   "Use ido to choose buffers in `ioccur-find-buffer-matching'."
-  :group 'ioccur
   :type 'symbol)
 
-(defcustom ioccur-default-search-function 're-search-forward
+(defcustom ioccur-default-search-function #'re-search-forward
   "Default search function.
 Use here one of `re-search-forward' or `search-forward'."
-  :group 'ioccur
   :type 'symbol)
 
 (defcustom ioccur-highlight-match-p t
   "Highlight matchs in `ioccur-buffer' when non--nil."
-  :group 'ioccur
   :type 'boolean)
 
 (defcustom ioccur-fontify-buffer-p nil
   "Fontify `ioccur-current-buffer' when non--nil.
 This allow to have syntactic coloration in `ioccur-buffer' but
 it slow down the start of ioccur at first time on large buffers."
-  :group 'ioccur
   :type 'boolean)
 
 (defcustom ioccur-case-fold-search 'smart
-  "Add 'smart' option to `case-fold-search'.
+  "Add smart option to `case-fold-search'.
 When smart is enabled, Ignore case in the search strings
 if pattern contains no uppercase characters.
 Otherwise, with a nil or t value, the behavior is same as
 `case-fold-search'.
-Default value is smart, other possible values are nil and t."
-  :group 'ioccur
+Default value is `smart', other possible values are nil and t."
   :type 'symbol)
 
 (defvar ioccur-read-char-or-event-skip-read-key nil
@@ -162,43 +153,35 @@ Deprecated, should be used only in old Emacs versions.")
 ;;; Faces.
 (defface ioccur-overlay-face
     '((t (:background "Green4" :underline t)))
-  "Face for highlight line in ioccur buffer."
-  :group 'ioccur-faces)
+  "Face for highlight line in ioccur buffer.")
 
 (defface ioccur-match-overlay-face
     '((t (:background "Indianred4" :underline t)))
-  "Face for highlight line in matched buffer."
-  :group 'ioccur-faces)
+  "Face for highlight line in matched buffer.")
 
 (defface ioccur-title-face
     '((t (:background "Dodgerblue4")))
-  "Face for highlight incremental buffer title."
-  :group 'ioccur-faces)
+  "Face for highlight incremental buffer title.")
 
 (defface ioccur-regexp-face
     '((t (:background "DeepSkyBlue" :underline t)))
-  "Face for highlight found regexp in `ioccur-buffer'."
-  :group 'ioccur-faces)
+  "Face for highlight found regexp in `ioccur-buffer'.")
 
 (defface ioccur-match-face
     '((t (:background "DeepSkyBlue")))
-  "Face for highlight matches in `ioccur-buffer'."
-  :group 'ioccur-faces)
+  "Face for highlight matches in `ioccur-buffer'.")
 
 (defface ioccur-num-line-face
     '((t (:foreground "OrangeRed")))
-  "Face for highlight number line in ioccur buffer."
-  :group 'ioccur-faces)
+  "Face for highlight number line in ioccur buffer.")
 
 (defface ioccur-invalid-regexp
     '((t (:foreground "Goldenrod")))
-  "Face for highlight wrong regexp message in ioccur buffer."
-  :group 'ioccur-faces)
+  "Face for highlight wrong regexp message in ioccur buffer.")
 
 (defface ioccur-cursor
     '((t (:foreground "green")))
-  "Face for cursor color in minibuffer."
-  :group 'ioccur-faces)
+  "Face for cursor color in minibuffer.")
 
 ;;; Internal variables.
 ;; String entered in prompt.
@@ -247,10 +230,15 @@ Special commands:
                 ioccur-mode-line-string "-%-"))
         (kill-local-variable 'mode-line-format)))
 
-(defsubst* ioccur-position (item seq &key (test 'eq))
+(cl-defsubst ioccur-position (item seq &key (test #'eq))
+  ;; FIXME: Probably not worth inlining since it's a loop with an indirect
+  ;; function call inside and the compiler likely won't figure out which
+  ;; function is called indirectly to turn it into a direct call.
   "A simple replacement of CL `position'."
-  (loop for i in seq for index from 0
-     when (funcall test i item) return index))
+  ;; FIXME: We could (require 'cl-lib) and use `cl-position' (or
+  ;; `seq-position') nowadays.
+  (cl-loop for i in seq for index from 0
+           when (funcall test i item) return index))
 
 ;; Compatibility
 (unless (fboundp 'window-system)
@@ -258,22 +246,19 @@ Special commands:
     window-system))
 
 ;;; Iterators.
-(defmacro ioccur-iter-list (list-obj)
+(defun ioccur-iter-list (list)
   "Return an iterator from list LIST-OBJ."
-  `(lexical-let ((lis ,list-obj))
-     (lambda ()
-       (let ((elm (car lis)))
-         (setq lis (cdr lis))
-         elm))))
+  (lambda () (pop list)))
 
-(defun ioccur-iter-next (iterator)
-  "Return next elm of ITERATOR."
-  (funcall iterator))
+(defalias 'ioccur-iter-next #'funcall
+  "Return next elm of ITERATOR.
+
+\(fn ITERATOR)")
 
 (defun ioccur-iter-circular (seq)
   "Infinite iteration on SEQ."
-  (lexical-let ((it  (ioccur-iter-list seq))
-                (lis seq))
+  (let ((it  (ioccur-iter-list seq))
+        (lis seq))
     (lambda ()
       (let ((elm (ioccur-iter-next it)))
         (or elm
@@ -284,25 +269,25 @@ Special commands:
   "Return SEQ from index 0 to POS."
   (butlast seq (- (length seq) pos)))
 
-(defun* ioccur-sub-prec-circular (seq elm &key (test 'eq))
+(cl-defun ioccur-sub-prec-circular (seq elm &key (test #'eq))
   "Infinite reverse iteration of SEQ starting at ELM."
-  (lexical-let* ((rev-seq  (reverse seq))
-                 (pos      (ioccur-position elm rev-seq :test test))
-                 (sub      (append (nthcdr (1+ pos) rev-seq)
-                                   (ioccur-butlast rev-seq pos)))
-                 (iterator (ioccur-iter-list sub)))
+  (let* ((rev-seq  (reverse seq))
+         (pos      (ioccur-position elm rev-seq :test test))
+         (sub      (append (nthcdr (1+ pos) rev-seq)
+                           (ioccur-butlast rev-seq pos)))
+         (iterator (ioccur-iter-list sub)))
      (lambda ()
        (let ((elm (ioccur-iter-next iterator)))
          (or elm
              (progn (setq iterator (ioccur-iter-list sub))
                     (ioccur-iter-next iterator)))))))
 
-(defun* ioccur-sub-next-circular (seq elm &key (test 'eq))
+(cl-defun ioccur-sub-next-circular (seq elm &key (test #'eq))
   "Infinite iteration of SEQ starting at ELM."
-  (lexical-let* ((pos      (ioccur-position elm seq :test test))
-                 (sub      (append (nthcdr (1+ pos) seq)
-                                   (ioccur-butlast seq pos)))
-                 (iterator (ioccur-iter-list sub)))
+  (let* ((pos      (ioccur-position elm seq :test test))
+         (sub      (append (nthcdr (1+ pos) seq)
+                           (ioccur-butlast seq pos)))
+         (iterator (ioccur-iter-list sub)))
      (lambda ()
        (let ((elm (ioccur-iter-next iterator)))
          (or elm (progn
@@ -313,13 +298,14 @@ Special commands:
   "Print in `ioccur-buffer' lines matching REGEXP in `ioccur-current-buffer'."
   (setq ioccur-count-occurences 0)
   (with-current-buffer ioccur-current-buffer
-    (let ((case-fold-search (case ioccur-case-fold-search
-                              (smart (let ((case-fold-search nil))
-                                       (if (string-match "[A-Z]" regexp) nil t)))
-                              (t ioccur-case-fold-search))))
+    (let ((case-fold-search
+           (pcase ioccur-case-fold-search
+             (`smart (let ((case-fold-search nil))
+                       (if (string-match "[A-Z]" regexp) nil t)))
+             (_ ioccur-case-fold-search))))
       (save-excursion
         (goto-char (point-min))
-        (loop
+        (cl-loop
               while (not (eobp))
               ;; We need to read also C-g from here
               ;; Because when loop is started `ioccur-read-search-input'
@@ -344,7 +330,7 @@ If ALL is non--nil highlight the whole string STR."
         (if all
             (add-text-properties
              (point) (point-at-eol)
-             '(face ioccur-match-face))  
+             '(face ioccur-match-face))
             (while (and (funcall ioccur-search-function ioccur-pattern nil t)
                         ;; Don't try to highlight line with a length <= 0.
                         (> (- (match-end 0) (match-beginning 0)) 0))
@@ -365,12 +351,12 @@ If ALL is non--nil highlight the whole string STR."
                                     whole-line-matched)
                                    line))
            (trunc-line          (ioccur-truncate-line hightline)))
-      (incf ioccur-count-occurences)
+      (cl-incf ioccur-count-occurences)
       (insert " " (propertize lineno 'face 'ioccur-num-line-face
                               'help-echo line)
               ":" trunc-line "\n"))))
 
-(defun* ioccur-truncate-line (line &optional (columns ioccur-length-line))
+(cl-defun ioccur-truncate-line (line &optional (columns ioccur-length-line))
   "Remove indentation in LINE and truncate modified LINE of num COLUMNS.
 COLUMNS default value is `ioccur-length-line'.
 If COLUMNS is nil return original indented LINE.
@@ -394,8 +380,8 @@ So just set `ioccur-length-line' to nil if you don't want lines truncated."
 (defun ioccur-list-buffers-matching (buffer-match regexp buffer-list)
   "Collect all buffers in BUFFER-LIST whose names match BUFFER-MATCH and \
 contain lines matching REGEXP."
-  (loop
-     with ini-buf-list = (loop for buf in buffer-list
+  (cl-loop
+     with ini-buf-list = (cl-loop for buf in buffer-list
                             unless (rassq buf dired-buffers)
                             collect buf)
      for buf in ini-buf-list
@@ -406,17 +392,17 @@ contain lines matching REGEXP."
 
 (defun ioccur-list-buffers-containing (regexp buffer-list)
   "Collect all buffers in BUFFER-LIST containing lines matching REGEXP."
-  (loop with buf-list = (loop for i in buffer-list
-                           when (buffer-file-name (get-buffer i))
-                           collect i)
+  (cl-loop with buf-list = (cl-loop for i in buffer-list
+                                    when (buffer-file-name (get-buffer i))
+                                    collect i)
      for buf in buf-list
      when (ioccur-buffer-contain buf regexp)
      collect (buffer-name buf)))
 
-(defun* ioccur-find-buffer-matching1 (regexp
-                                      &optional
-                                      match-buf-name
-                                      (buffer-list (buffer-list)))
+(cl-defun ioccur-find-buffer-matching1 (regexp
+                                        &optional
+                                        match-buf-name
+                                        (buffer-list (buffer-list)))
   "Find all buffers containing a text matching REGEXP \
 and connect `ioccur' to the selected one.
 
@@ -431,9 +417,9 @@ The buffer completion list is provided by one of:
 depending on which `ioccur-buffer-completion-use-ido' you have choosen."
   ;; Remove doublons maybe added by minibuffer in `ioccur-history'.
   (setq ioccur-history
-        (loop for i in ioccur-history
-           when (not (member i hist)) collect i into hist
-           finally return hist))
+        (cl-loop for i in ioccur-history
+                 when (not (member i hist)) collect i into hist
+                 finally return hist))
 
   (let ((prompt   (format "Search (%s) in Buffer: " regexp))
         (win-conf (current-window-configuration))
@@ -443,7 +429,7 @@ depending on which `ioccur-buffer-completion-use-ido' you have choosen."
                        regexp buffer-list)
                       (ioccur-list-buffers-containing regexp buffer-list))))
 
-    (labels
+    (cl-labels
         ((find-buffer ()
            (let ((buf (if (and ido-mode
                                (eq ioccur-buffer-completion-use-ido 'ido))
@@ -479,14 +465,17 @@ See `ioccur-find-buffer-matching1'."
 ;;; Ioccur dired
 ;;;###autoload
 (defun ioccur-dired (regexp)
+  ;; FIXME: Missing docstring!
   (interactive (list (let ((savehist-save-minibuffer-history nil))
                        (read-from-minibuffer "Search for Pattern: "
                                              nil nil nil '(ioccur-history . 0)
                                              (thing-at-point 'symbol)))))
-  (let ((buf-list (loop for f in (dired-get-marked-files)
-                     do (find-file-noselect f)
-                     unless (file-directory-p f)
-                     collect (get-buffer (file-name-nondirectory f)))))
+  (cl-assert (derived-mode-p 'dired-mode))
+  (declare-function dired-get-marked-files "dired")
+  (let ((buf-list (cl-loop for f in (dired-get-marked-files)
+                           do (find-file-noselect f)
+                           unless (file-directory-p f)
+                           collect (get-buffer (file-name-nondirectory f)))))
     (ioccur-find-buffer-matching1 regexp nil buf-list)))
 
 ;;;###autoload
@@ -677,155 +666,168 @@ START-POINT is the point where we start searching in buffer."
          yank-point
          (index 0))
     (unless (string= initial-input "")
-      (loop for char across initial-input do (push char tmp-list)))
+      (cl-loop for char across initial-input do (push char tmp-list)))
     (setq ioccur-pattern initial-input)
     ;; Cycle history function.
     ;;
-    (flet ((cycle-hist (arg)
-             ;; ARG can be positive or negative depending we call M-p or M-n.
-             (if ioccur-history
-                 (progn
-                   ;; Cycle history will start at second call,
-                   ;; at first call just use the car of hist ring.
-                   ;; We build a new iterator based on a sublist
-                   ;; starting at the current element of history.
-                   ;; This is a circular iterator. (no end)
-                   (if start-hist ; At first call, start-hist is nil.
-                       (progn
-                         (if (< arg 0)
-                             ;; M-p (move from left to right in hist ring).
-                             (unless it-prec ; Don't rebuild iterator if exists.
-                               (setq it-prec (ioccur-sub-next-circular
-                                              ioccur-history
-                                              cur-hist-elm :test 'equal))
-                               (setq it-next nil)) ; Kill forward iterator.
-                             ;; M-n (move from right to left in hist ring).
-                             (unless it-next ; Don't rebuild iterator if exists.
-                               (setq it-next (ioccur-sub-prec-circular
-                                              ioccur-history
-                                              cur-hist-elm :test 'equal))
-                               (setq it-prec nil))) ; kill backward iterator.
-                         (let ((it (or it-prec it-next)))
-                           (setq cur-hist-elm (ioccur-iter-next it))
-                           (setq tmp-list nil)
-                           (loop for char across cur-hist-elm
-                                 do (push char tmp-list))
-                           (setq ioccur-pattern cur-hist-elm)))
-                       ;; First call use car of history ring.
-                       (setq tmp-list nil)
-                       (loop for char across cur-hist-elm
-                             do (push char tmp-list))
-                       (setq ioccur-pattern cur-hist-elm)
-                       (setq start-hist t)))
-                 (message "No history available.") (sit-for 2) t))
-           ;; Insert INITIAL-INPUT.
-           ;;
-           (insert-initial-input ()
-             (unless (string= initial-input "")
-               (loop for char across initial-input
-                     do (push char (nthcdr index tmp-list)))))
-           ;; Maybe start timer.
-           ;;
-           (start-timer ()
-             (unless ioccur-search-timer
-               (ioccur-start-timer)))
-           ;; Maybe stop timer.
-           ;;
-           (stop-timer ()
-             (when ioccur-search-timer
-               (ioccur-cancel-search)))
-           ;; Kill pattern
-           ;;
-           (kill (str)
-             (with-current-buffer ioccur-current-buffer
-               (goto-char start-point)
-               (setq yank-point start-point))
-             (kill-new (substring str (- (length tmp-list) index)))
-             (setq tmp-list (nthcdr index tmp-list)))
-           ;; Add cursor in minibuffer
-           ;;
-           (set-cursor (str pos)
-             (setq pos (min index (1- (length tmp-list))))
-             (when (not (string= str ""))
-               (let* ((real-index (- (1- (length tmp-list)) pos))
-                      (cur-str (substring str real-index (1+ real-index))))
-                 (concat (substring str 0 real-index)
-                         (propertize cur-str 'display
-                                     (if (= index (length tmp-list))
-                                         (concat
-                                          (propertize "|" 'face 'ioccur-cursor)
-                                          cur-str)
-                                         (concat
-                                          cur-str
-                                          (propertize "|" 'face 'ioccur-cursor))))
-                         (substring str (1+ real-index)))))))
-      
+    (cl-flet
+        ((cycle-hist (arg)
+           ;; ARG can be positive or negative depending we call M-p or M-n.
+           (if ioccur-history
+               (progn
+                 ;; Cycle history will start at second call,
+                 ;; at first call just use the car of hist ring.
+                 ;; We build a new iterator based on a sublist
+                 ;; starting at the current element of history.
+                 ;; This is a circular iterator. (no end)
+                 (if start-hist ; At first call, start-hist is nil.
+                     (progn
+                       (if (< arg 0)
+                           ;; M-p (move from left to right in hist ring).
+                           (unless it-prec ; Don't rebuild iterator if exists.
+                             (setq it-prec (ioccur-sub-next-circular
+                                            ioccur-history
+                                            cur-hist-elm :test #'equal))
+                             (setq it-next nil)) ; Kill forward iterator.
+                           ;; M-n (move from right to left in hist ring).
+                           (unless it-next ; Don't rebuild iterator if exists.
+                             (setq it-next (ioccur-sub-prec-circular
+                                            ioccur-history
+                                            cur-hist-elm :test #'equal))
+                             (setq it-prec nil))) ; kill backward iterator.
+                       (let ((it (or it-prec it-next)))
+                         (setq cur-hist-elm (ioccur-iter-next it))
+                         (setq tmp-list nil)
+                         (cl-loop for char across cur-hist-elm
+                                  do (push char tmp-list))
+                         (setq ioccur-pattern cur-hist-elm)))
+                     ;; First call use car of history ring.
+                     (setq tmp-list nil)
+                     (cl-loop for char across cur-hist-elm
+                              do (push char tmp-list))
+                     (setq ioccur-pattern cur-hist-elm)
+                     (setq start-hist t)))
+               (message "No history available.") (sit-for 2) t))
+         ;; Insert INITIAL-INPUT.
+         ;;
+         (insert-initial-input ()
+           (unless (string= initial-input "")
+             (cl-loop for char across initial-input
+                      do (push char (nthcdr index tmp-list)))))
+         ;; Maybe start timer.
+         ;;
+         (start-timer ()
+           (unless ioccur-search-timer
+             (ioccur-start-timer)))
+         ;; Maybe stop timer.
+         ;;
+         (stop-timer ()
+           (when ioccur-search-timer
+             (ioccur-cancel-search)))
+         ;; Kill pattern
+         ;;
+         (kill (str)
+           (with-current-buffer ioccur-current-buffer
+             (goto-char start-point)
+             (setq yank-point start-point))
+           (kill-new (substring str (- (length tmp-list) index)))
+           (setq tmp-list (nthcdr index tmp-list)))
+         ;; Add cursor in minibuffer
+         ;;
+         (set-cursor (str pos)
+           (setq pos (min index (1- (length tmp-list))))
+           (when (not (string= str ""))
+             (let* ((real-index (- (1- (length tmp-list)) pos))
+                    (cur-str (substring str real-index (1+ real-index))))
+               (concat (substring str 0 real-index)
+                       (propertize cur-str 'display
+                                   (if (= index (length tmp-list))
+                                       (concat
+                                        (propertize "|" 'face 'ioccur-cursor)
+                                        cur-str)
+                                       (concat
+                                        cur-str
+                                        (propertize "|" 'face 'ioccur-cursor))))
+                       (substring str (1+ real-index)))))))
+
       ;; Start incremental loop.
       (while (let ((char (ioccur-read-char-or-event
                           (concat prompt (set-cursor ioccur-pattern index)))))
                (message nil)
-               (case char
-                 ((not (?\M-p ?\M-n ?\t C-tab)) ; Reset history
-                  (setq start-hist nil)
-                  (setq cur-hist-elm (car ioccur-history)) t)
-                 ((down ?\C-n)                  ; Next line.
+               (pcase char
+                 ;; FIXME: The old code used CL's `case' with the following
+                 ;; first branch:
+                 ;;
+                 ;;     ((not (?\M-p ?\M-n ?\t C-tab)) ; Reset history
+                 ;;      (setq start-hist nil)
+                 ;;      (setq cur-hist-elm (car ioccur-history)) t)
+                 ;;
+                 ;; This was clearly not working since it could only match if
+                 ;; `char' was equal to `not' or to the list
+                 ;; (?\M-p ?\M-n ?\t C-tab), which is clearly not what was
+                 ;; intended, but it's not clear what this was meant to do!
+                 ((or `down `?\C-n)             ; Next line.
                   (stop-timer) (ioccur-next-line)
                   (ioccur-color-current-line) t)
-                 ((up ?\C-p)                    ; Precedent line.
+                 ((or `up `?\C-p)               ; Precedent line.
                   (stop-timer) (ioccur-precedent-line)
                   (ioccur-color-current-line) t)
-                 (?\M-<                         ; Beginning of buffer.
+                 (`?\M-<                        ; Beginning of buffer.
                   (when (ioccur-beginning-of-buffer)
-                    (stop-timer)) t)
-                 (?\M->                         ; End of buffer.
+                    (stop-timer))
+                  t)
+                 (`?\M->                        ; End of buffer.
                   (when (ioccur-end-of-buffer)
-                    (stop-timer)) t)
-                 ((?\C-d C-down)                ; Scroll both windows down.
+                    (stop-timer))
+                  t)
+                 ((or `?\C-d `C-down)           ; Scroll both windows down.
                   (stop-timer) (ioccur-scroll-down) t)
-                 ((?\C-u C-up)                  ; Scroll both windows up.
+                 ((or `?\C-u `C-up)             ; Scroll both windows up.
                   (stop-timer) (ioccur-scroll-up) t)
-                 (?\r                           ; RET break and exit code.
+                 (`?\r                          ; RET break and exit code.
                   nil)
-                 (?\d                           ; Delete backward with DEL.
+                 (`?\d                          ; Delete backward with DEL.
                   (start-timer)
                   (with-current-buffer ioccur-current-buffer
                     (goto-char start-point)
                     (setq yank-point start-point))
                   (with-no-warnings (pop (nthcdr index tmp-list)))
                   t)
-                 (?\C-g                         ; Quit and restore buffers.
+                 (`?\C-g                        ; Quit and restore buffers.
                   (setq ioccur-quit-flag t) nil)
-                 ((right ?\C-z)                 ; Persistent action.
+                 ((or `right `?\C-z)            ; Persistent action.
                   (ioccur-jump-without-quit) t)
-                 ((?\C- )                       ; Persistent action save mark.
-                  (ioccur-jump-without-quit t) t)                 
-                 ((left ?\C-j)                  ; Jump and kill search buffer.
+                 (`?\C-                         ; Persistent action save mark.
+                  (ioccur-jump-without-quit t) t)
+                 ((or `left `?\C-j)             ; Jump and kill search buffer.
                   (setq ioccur-exit-and-quit-p t) nil)
-                 ((next ?\C-v)                  ; Scroll down.
+                 ((or `next `?\C-v)             ; Scroll down.
                   (ioccur-scroll-other-window-down) t)
-                 ((?\C-t ?\M-v prior)           ; Scroll up.
+                 ((or `?\C-t `?\M-v `prior)     ; Scroll up.
                   (ioccur-scroll-other-window-up) t)
-                 (?\C-s                         ; Toggle split window.
+                 (`?\C-s                        ; Toggle split window.
                   (ioccur-split-window) t)
-                 ((?\C-: ?\C-l)                 ; Toggle regexp/litteral search.
+                 ((or `?\C-: `?\C-l)            ; Toggle regexp/litteral search.
                   (start-timer)
-                  (if (eq ioccur-search-function 're-search-forward)
-                      (setq ioccur-search-function 'search-forward)
-                      (setq ioccur-search-function 're-search-forward)) t)
-                 (?\C-k                         ; Kill input.
+                  (setq ioccur-search-function
+                        (if (eq ioccur-search-function #'re-search-forward)
+                            #'search-forward
+                          #'re-search-forward))
+                  t)
+                 (`?\C-k                        ; Kill input.
                   (start-timer)
                   (kill ioccur-pattern) (setq index 0) t)
-                 ((?\M-k ?\C-x)                 ; Kill input as sexp.
+                 ((or `?\M-k `?\C-x)            ; Kill input as sexp.
                   (start-timer)
                   (let ((sexp (prin1-to-string ioccur-pattern)))
                     (kill sexp)
                     (setq ioccur-quit-flag t)
                     (setq ioccur-message (format "Killed: %s" sexp)))
                   nil)
-                 (?\C-y                         ; Yank from `kill-ring'.
+                 (`?\C-y                        ; Yank from `kill-ring'.
                   (setq initial-input (car kill-ring))
                   (insert-initial-input) t)
-                 (?\C-w                         ; Yank stuff at point.
+                 (`?\C-w                        ; Yank stuff at point.
                   (start-timer)
                   (with-current-buffer ioccur-current-buffer
                     ;; Start to initial point if C-w have never been hit.
@@ -841,16 +843,17 @@ START-POINT is the point where we start searching in buffer."
                         (setq initial-input (buffer-substring-no-properties
                                              yank-point (point)))
                         (setq yank-point (point)) ; End of last forward-word
-                        (insert-initial-input)))) t)
-                 ((?\t ?\M-p)                   ; Precedent history elm.
+                        (insert-initial-input))))
+                  t)
+                 ((or `?\t `?\M-p)              ; Precedent history elm.
                   (start-timer)
                   (setq index 0)
                   (cycle-hist -1))
-                 ((backtab ?\M-n)               ; Next history elm.
+                 ((or `backtab `?\M-n)          ; Next history elm.
                   (start-timer)
                   (setq index 0)
                   (cycle-hist 1))
-                 (?\C-q                         ; quoted-insert.
+                 (`?\C-q                        ; quoted-insert.
                   (stop-timer)
                   (let ((char (with-temp-buffer
                                 (call-interactively 'quoted-insert)
@@ -859,31 +862,31 @@ START-POINT is the point where we start searching in buffer."
                   (start-timer)
                   t)
                  ;; Movements in minibuffer
-                 (?\C-b                         ; backward-char.
+                 (`?\C-b                        ; backward-char.
                   (setq index (min (1+ index) (length tmp-list))) t)
-                 (?\C-f                         ; forward-char.
+                 (`?\C-f                        ; forward-char.
                   (setq index (max (1- index) 0)) t)
-                 (?\C-a                         ; move bol.
+                 (`?\C-a                        ; move bol.
                   (setq index (length tmp-list)) t)
-                 (?\C-e                         ; move eol.
+                 (`?\C-e                        ; move eol.
                   (setq index 0) t)
-                 (t                             ; Store character.
+                 (_                             ; Store character.
                   (start-timer)
                   (if (characterp char)
                       (push char (nthcdr index tmp-list))
                       (setq unread-command-events
-                            (nconc (mapcar 'identity
+                            (nconc (mapcar #'identity
                                            (this-single-command-raw-keys))
                                    unread-command-events))
                       nil))))
-        (setq ioccur-pattern (apply 'string (reverse tmp-list)))))))
+        (setq ioccur-pattern (apply #'string (reverse tmp-list)))))))
 
 (defun ioccur-print-buffer (regexp)
   "Pretty Print results matching REGEXP in `ioccur-buffer'."
   ;; FIXME: Why force tooltip-mode?  What about sessions with both GUI and
   ;; tty frames?
   (unless (window-system) (setq tooltip-use-echo-area t) (tooltip-mode 1))
-  (let* ((cur-method (if (eq ioccur-search-function 're-search-forward)
+  (let* ((cur-method (if (eq ioccur-search-function #'re-search-forward)
                          "Regexp" "Literal"))
          (title      (propertize
                       (format
@@ -993,7 +996,7 @@ Special NOTE for terms:
   tab/S-tab are bound to history.
   C-d/u are for following in other buffer.
   Use C-t to Scroll up.
- 
+
 When you quit incremental search with RET, see `ioccur-mode'
 for commands provided in the `ioccur-buffer'."
   (interactive "P")
@@ -1022,13 +1025,13 @@ for commands provided in the `ioccur-buffer'."
                (len      (length init-str))
                (curpos   (point))
                (inhibit-read-only t)
-               (cur-mode (with-current-buffer ioccur-current-buffer
-                           (prog1
-                               major-mode
-                             ;; If current `major-mode' is wdired
-                             ;; Turn it off.
-                             (when (eq major-mode 'wdired-mode)
-                               (wdired-change-to-dired-mode)))))
+               (wdired (with-current-buffer ioccur-current-buffer
+                         ;; If current `major-mode' is wdired Turn it off.
+                         (when (derived-mode-p 'wdired-mode)
+                           (declare-function wdired-change-to-dired-mode
+                                             "wdired" ())
+                           (wdired-change-to-dired-mode)
+                           t)))
                str-no-prop)
           (set-text-properties 0 len nil init-str)
           (setq str-no-prop init-str)
@@ -1067,7 +1070,7 @@ for commands provided in the `ioccur-buffer'."
                      (setq buffer-read-only t)
                      (ioccur-save-history)))
               ;; Maybe reenable `wdired-mode'.
-              (when (eq cur-mode 'wdired-mode) (wdired-change-to-wdired-mode))
+              (when wdired (wdired-change-to-wdired-mode))
               (setq ioccur-count-occurences 0)
               (setq ioccur-quit-flag nil)
               (setq ioccur-message nil)
@@ -1109,7 +1112,7 @@ of matched line in `ioccur-current-buffer'."
             (make-overlay (point-at-bol) (1+ (point-at-eol)))))
   (overlay-put ioccur-match-overlay 'face 'ioccur-match-overlay-face))
 
-            
+
 (provide 'ioccur)
 
 ;;; ioccur.el ends here
