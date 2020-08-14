@@ -4,7 +4,8 @@
 
 ;; Author: Bar Magal (2015)
 ;; Version: 0.8
-;; Package-Version: 20180601.702
+;; Package-Version: 20190115.2130
+;; Package-Commit: 46008738f8fef578a763c308cf6695e5b4d4aa77
 ;; Homepage: https://github.com/bmag/imenu-list
 ;; Package-Requires: ((cl-lib "0.5"))
 
@@ -418,7 +419,11 @@ See `display-buffer-alist' for a description of BUFFER and ALIST."
   (or (get-buffer-window buffer)
       (let ((window (ignore-errors (split-window (frame-root-window) (imenu-list-split-size) imenu-list-position))))
         (when window
-          (window--display-buffer buffer window 'window alist t)
+          ;; since Emacs 27.0.50, `window--display-buffer' doesn't take a
+          ;; `dedicated' argument, so instead call `set-window-dedicated-p'
+          ;; directly (works both on new and old Emacs versions)
+          (window--display-buffer buffer window 'window alist)
+          (set-window-dedicated-p window t)
           window))))
 
 (defun imenu-list-install-display-buffer ()
