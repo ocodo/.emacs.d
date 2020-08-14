@@ -10,14 +10,10 @@
 ;;; Generated autoloads from github-elpa.el
 
 (autoload 'github-elpa-build "github-elpa" "\
-Github elpa build.
-
-\(fn)" nil nil)
+Github elpa build." nil nil)
 
 (autoload 'github-elpa-commit "github-elpa" "\
-Github elpa commit.
-
-\(fn)" nil nil)
+Github elpa commit." nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "github-elpa" '("github-elpa-")))
 

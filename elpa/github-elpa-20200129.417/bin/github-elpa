@@ -80,23 +80,30 @@
   "Set directory that contains recipe files to ARG."
   (setq github-elpa-recipes-dir arg))
 
+(defun github-elpa-bin-set-tar-executable (arg)
+  "Set tar executable name to ARG."
+  (setq github-elpa-tar-executable arg))
+
 
 (commander
  (name "github-elpa")
  (description "Your own ELPA archive in GitHub page")
  (default commander-print-usage-and-exit)
+ (option "--help, -h" "Show usage information and exit" commander-print-usage-and-exit)
 
  (command "update" "Update elpa repository" github-elpa-bin-update)
  (command "build" "Update elpa archives without committing them"
           github-elpa-bin-build)
  (command "commit" "Commit elpa archives" github-elpa-bin-commmit)
 
- (option "--working-dir <working-dir>, -r <working-dir>"
+ (option "--working-dir <working-dir>, -w <working-dir>"
          github-elpa-bin-set-working-dir)
- (option "--archive-dir <archive-dir>, -r <archive-dir>"
+ (option "--archive-dir <archive-dir>, -a <archive-dir>"
          github-elpa-bin-set-archive-dir)
  (option "--recipes-dir <recipes-dir>, -r <recipes-dir>"
          github-elpa-bin-set-recipes-dir)
+ (option "--tar <tar-executable>, -t <tar-executable>"
+         github-elpa-bin-set-tar-executable)
  )
 
 ;;; github-elpa ends here

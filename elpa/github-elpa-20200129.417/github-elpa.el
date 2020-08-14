@@ -59,6 +59,9 @@
 (defvar github-elpa-recipes-dir
   "./recipes")
 
+(defvar github-elpa-tar-executable
+  nil)
+
 (defun github-elpa--git-check-repo ()
   "Check if current directory is git toplevel directory.
 If not throw error."
@@ -94,7 +97,15 @@ If not throw error."
     ;;(github-elpa--git-check-repo)
     ;;(github-elpa--git-check-workdir-clean)
     (make-directory package-build-archive-dir t)
-    (package-build-all)))
+    ;; Currently no way to detect build failure...
+    (dolist (recipe (directory-files package-build-recipes-dir nil "^[^.]"))
+      (message "")
+      (message "")
+      (message ":: github-elpa: packaging recipe %s" recipe)
+      (let ((package-build-tar-executable (or github-elpa-tar-executable
+                                              package-build-tar-executable)))
+        (package-build-archive recipe)))
+    (package-build-cleanup)))
 
 ;;;###autoload
 (defun github-elpa-commit ()
@@ -105,7 +116,7 @@ If not throw error."
          (expand-file-name github-elpa-archive-dir))
         (package-build-recipes-dir
          (expand-file-name github-elpa-recipes-dir)))
-    (message "github-elpa: Commit packages in %s"
+    (message ":: github-elpa: Commit packages in %s"
               package-build-archive-dir)
     (github-elpa--git-check-repo)
     (github-elpa--git-commit-archives)))
