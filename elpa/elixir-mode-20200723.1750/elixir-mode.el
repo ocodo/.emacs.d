@@ -7,7 +7,7 @@
 ;;          Matt DeBoard
 ;;          Samuel Tonini <tonini.samuel@gmail.com>
 
-;; URL: https://github.com/elixir-lang/emacs-elixir
+;; URL: https://github.com/elixir-editors/emacs-elixir
 ;; Created: Mon Nov 7 2011
 ;; Keywords: languages elixir
 ;; Version: 2.3.1
@@ -45,11 +45,14 @@
   "Major mode for editing Elixir code."
   :prefix "elixir-"
   :group 'languages
-  :link '(url-link :tag "Github" "https://github.com/elixir-lang/emacs-elixir")
+  :link '(url-link :tag "Github" "https://github.com/elixir-editors/emacs-elixir")
   :link '(emacs-commentary-link :tag "Commentary" "elixir-mode"))
 
 (defvar elixir-mode-website-url "http://elixir-lang.org"
   "Official url of Elixir programming website.")
+
+(defvar elixir-mode-doc-url "https://hexdocs.pm/elixir"
+  "Official documentation for the Elixir programming language.")
 
 (defvar elixir-mode-hook nil)
 
@@ -75,21 +78,13 @@
 
 (defvar elixir-attribute-face 'elixir-attribute-face)
 (defface elixir-attribute-face
-  '((((class color) (min-colors 88) (background light))
-     :foreground "MediumPurple4")
-    (((class color) (background dark))
-     (:foreground "thistle"))
-    (t nil))
+  '((t (:inherit font-lock-preprocessor-face)))
   "For use with module attribute tokens."
   :group 'font-lock-faces)
 
 (defvar elixir-atom-face 'elixir-atom-face)
 (defface elixir-atom-face
-  '((((class color) (min-colors 88) (background light))
-     :foreground "RoyalBlue4")
-    (((class color) (background dark))
-     (:foreground "light sky blue"))
-    (t nil))
+  '((t (:inherit font-lock-builtin-face)))
   "For use with atoms & map keys."
   :group 'font-lock-faces)
 
@@ -121,7 +116,8 @@
                                   (or "def" "defp" "defmodule" "defprotocol"
                                       "defmacro" "defmacrop" "defdelegate"
                                       "defexception" "defstruct" "defimpl"
-                                      "defcallback" "defoverridable")
+                                      "defguard" "defguardp" "defcallback"
+                                      "defoverridable")
                                   symbol-end))
       (builtin-namespace . ,(rx symbol-start
                                 (or "import" "require" "use" "alias")
@@ -138,7 +134,7 @@
       ;; The first character of an identifier must be a letter or an underscore.
       ;; After that, they may contain any alphanumeric character + underscore.
       ;; Additionally, the final character may be either `?' or `!'.
-      (identifiers . ,(rx (one-or-more (any "A-Z" "a-z" "_"))
+      (identifiers . ,(rx (any "A-Z" "a-z" "_")
                           (zero-or-more (any "A-Z" "a-z" "0-9" "_"))
                           (optional (or "?" "!"))))
       (keyword . ,(rx symbol-start
@@ -155,11 +151,11 @@
       ;; or `!'.
       (module-names . ,(rx symbol-start
                            (optional (or "%" "&"))
-                           (one-or-more (any "A-Z"))
+                           (any "A-Z")
                            (zero-or-more (any "A-Z" "a-z" "_" "0-9"))
                            (zero-or-more
                             (and "."
-                                 (one-or-more (any "A-Z" "_"))
+                                 (any "A-Z" "_")
                                  (zero-or-more (any "A-Z" "a-z" "_" "0-9"))))
                            (optional (or "!" "?"))
                            symbol-end))
@@ -168,7 +164,7 @@
                          (or "_" "__MODULE__" "__DIR__" "__ENV__" "__CALLER__"
                              "__block__" "__aliases__")
                          symbol-end))
-      (sigils . ,(rx "~" (or "B" "C" "D" "N" "R" "S" "T" "b" "c" "r" "s" "w")))))
+      (sigils . ,(rx "~" (or "B" "C" "D" "E" "L" "N" "R" "S" "T" "U" "b" "c" "e" "r" "s" "w")))))
 
   (defmacro elixir-rx (&rest sexps)
     (let ((rx-constituents (append elixir-rx-constituents rx-constituents)))
@@ -308,7 +304,7 @@ is used to limit the scan."
     (elixir-match-interpolation 0 font-lock-variable-name-face t)
 
     ;; Module attributes
-    (,(elixir-rx (and "@" (1+ identifiers)))
+    (,(elixir-rx (and "@" identifiers))
      0 elixir-attribute-face)
 
     ;; Keywords
@@ -403,7 +399,7 @@ is used to limit the scan."
      1 font-lock-variable-name-face)
 
     ;; Map keys
-    (,(elixir-rx (group (and (one-or-more identifiers) ":")) space)
+    (,(elixir-rx (group (and identifiers ":")) space)
      1 elixir-atom-face)
 
     ;; Pseudovariables
@@ -418,7 +414,7 @@ is used to limit the scan."
 (defun elixir-mode-open-github ()
   "Elixir mode open GitHub page."
   (interactive)
-  (browse-url "https://github.com/elixir-lang/emacs-elixir"))
+  (browse-url "https://github.com/elixir-editors/emacs-elixir"))
 
 ;;;###autoload
 (defun elixir-mode-open-elixir-home ()
@@ -430,13 +426,13 @@ is used to limit the scan."
 (defun elixir-mode-open-docs-master ()
   "Elixir mode go to master documentation."
   (interactive)
-  (browse-url (concat elixir-mode-website-url "/docs/master/elixir")))
+  (browse-url (concat elixir-mode-doc-url "/master")))
 
 ;;;###autoload
 (defun elixir-mode-open-docs-stable ()
   "Elixir mode go to stable documentation."
   (interactive)
-  (browse-url (concat elixir-mode-website-url "/docs/stable/elixir")))
+  (browse-url elixir-mode-doc-url))
 
 ;;;###autoload
 (defun elixir-mode-version (&optional show-version)
@@ -460,7 +456,7 @@ just return nil."
 (defun elixir-mode-fill-doc-string ()
   (interactive)
   (save-excursion
-    (re-search-backward "@\\(?:module\\)?doc +\"\"\"" nil t)
+    (re-search-backward (rx "@" (or "moduledoc" "typedoc" "doc") space "\"\"\"") nil t)
     (re-search-forward "\"\"\"" nil t)
     (set-mark (point))
     (re-search-forward "\"\"\"" nil t)
@@ -499,7 +495,7 @@ just return nil."
     (when pos
       (save-excursion
         (goto-char pos)
-        (and (looking-at "\"\"\"")(looking-back "@moduledoc[ \]+\\|@doc[ \]+"
+        (and (looking-at "\"\"\"")(looking-back (rx "@" (or "moduledoc" "typedoc" "doc") (+ space))
                                                 (line-beginning-position)))))))
 
 (defun elixir-font-lock-syntactic-face-function (state)
@@ -542,7 +538,10 @@ just return nil."
 
   (smie-setup elixir-smie-grammar 'verbose-elixir-smie-rules
               :forward-token 'elixir-smie-forward-token
-              :backward-token 'elixir-smie-backward-token))
+              :backward-token 'elixir-smie-backward-token)
+  ;; https://github.com/elixir-editors/emacs-elixir/issues/363
+  ;; http://debbugs.gnu.org/cgi/bugreport.cgi?bug=35496
+  (set (make-local-variable 'smie-blink-matching-inners) nil))
 
 ;; Invoke elixir-mode when appropriate
 
