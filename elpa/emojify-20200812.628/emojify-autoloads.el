@@ -1,10 +1,12 @@
 ;;; emojify-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "emojify" "emojify.el" (23344 45049 660598
-;;;;;;  545000))
+;;;### (autoloads nil "emojify" "emojify.el" (0 0 0 0))
 ;;; Generated autoloads from emojify.el
 
 (autoload 'emojify-set-emoji-styles "emojify" "\
@@ -17,7 +19,14 @@ STYLES is the styles emoji styles that should be used, see `emojify-emoji-styles
 (autoload 'emojify-mode "emojify" "\
 Emojify mode
 
+If called interactively, enable Emojify mode if ARG is positive,
+and disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it if
+ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
+
+(put 'global-emojify-mode 'globalized-minor-mode t)
 
 (defvar global-emojify-mode nil "\
 Non-nil if Global Emojify mode is enabled.
@@ -44,7 +53,14 @@ See `emojify-mode' for more information on Emojify mode.
 (autoload 'emojify-mode-line-mode "emojify" "\
 Emojify mode line
 
+If called interactively, enable Emojify-Mode-Line mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
+
+(put 'global-emojify-mode-line-mode 'globalized-minor-mode t)
 
 (defvar global-emojify-mode-line-mode nil "\
 Non-nil if Global Emojify-Mode-Line mode is enabled.
@@ -76,14 +92,13 @@ Show Emojis that match PATTERN.
 (autoload 'emojify-insert-emoji "emojify" "\
 Interactively prompt for Emojis and insert them in the current buffer.
 
-This respects the `emojify-emoji-styles' variable.
+This respects the `emojify-emoji-styles' variable." t nil)
 
-\(fn)" t nil)
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "emojify" '("emojify-")))
 
 ;;;***
 
-;;;### (autoloads nil nil ("emojify-pkg.el") (23344 45049 660598
-;;;;;;  545000))
+;;;### (autoloads nil nil ("emojify-pkg.el") (0 0 0 0))
 
 ;;;***
 
@@ -91,5 +106,6 @@ This respects the `emojify-emoji-styles' variable.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; emojify-autoloads.el ends here
