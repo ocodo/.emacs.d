@@ -1,2 +1,0 @@
-;;; -*- no-byte-compile: t -*-
-(define-package "wgrep-ag" "20160923.1103" "Writable ag buffer and apply the changes to files" '((wgrep "2.1.5") (cl-lib "0.5")) :commit "414be70bd313e482cd9f0b70fd2daad4ee23497c" :keywords '("grep" "edit" "extensions") :authors '(("Masahiro Hayashi" . "mhayashi1120@gmail.com")) :maintainer '("Masahiro Hayashi" . "mhayashi1120@gmail.com") :url "http://github.com/mhayashi1120/Emacs-wgrep/raw/master/wgrep-ag.el")
