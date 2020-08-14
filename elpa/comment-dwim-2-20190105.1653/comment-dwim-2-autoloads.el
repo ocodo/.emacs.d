@@ -13,23 +13,21 @@
 (autoload 'comment-dwim-2 "comment-dwim-2" "\
 Call a comment command according to the context.
 
-If the region is active, call `comment-or-uncomment-region' to
-toggle comments.
+If the region is active, toggle commenting according to the value
+of `cd2/region-command'.
 Else, the function applies to the current line and calls a
-different function at each successive call.  The behavior is:
+different function at each successive call.  The algorithm is:
 * First  call : Toggle line commenting
-* Second call : - Kill inline comment if one is present (1)
-                - Insert inline comment otherwise
+* Second call : - Kill end-of-line comment if present (1)
+                - Insert end-of-line comment otherwise
 Given an argument ARG, it reindents the inline comment instead (2).
 
-Please note that the behavior of `comment-dwim-2' when
-encountering an inline comment can be customized.  Setting
-`comment-dwim-2--inline-comment-behavior' to 'reindent-comment
-will swap (1) and (2).
+You can also switch behaviors of (1) and (2) by setting
+`comment-dwim-2--inline-comment-behavior' to 'reindent-comment.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "comment-dwim-2" '("comment-dwim-2--inline-comment-behavior" "cd2/")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "comment-dwim-2" '("cd2/" "comment-dwim-2--inline-comment-behavior")))
 
 ;;;***
 
