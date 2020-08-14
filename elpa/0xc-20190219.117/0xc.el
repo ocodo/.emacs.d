@@ -4,7 +4,8 @@
 
 ;; Author: Adam Niederer <adam.niederer@gmail.com>
 ;; URL: http://github.com/AdamNiederer/0xc
-;; Package-Version: 20170126.353
+;; Package-Version: 20190219.117
+;; Package-Commit: 167e93ce863381a58988655927042514d984ad49
 ;; Version: 0.1
 ;; Keywords: base conversion
 ;; Package-Requires: ((emacs "24.4") (s "1.11.0"))
@@ -74,7 +75,11 @@
   "Refuse to work with bases above this"
   :tag "0xc Maximum Base"
   :group '0xc
-  :type 'integer)
+  :type 'integer
+  :set #'(lambda (sym value)
+           (if (memq value (number-sequence 2 35))
+               (set sym value)
+             (user-error "0xc-max-base must be in range: 2-35"))))
 
 (defcustom 0xc-default-base 10
   "The base to which 0xc-convert-point will convert to if no base is given"
@@ -88,6 +93,10 @@ length is a power of two"
   :tag "0xc Extension Token"
   :group '0xc
   :type 'string)
+
+(defvar 0xc--number-format
+  "^\\([0-9]+:\\|'[bodh]\\|0[btodx]\\)?[[:alnum:]%s]+$"
+  "Format string used to determine if entry is a real number.")
 
 (defun 0xc-number-to-string (number base)
   "Convert an integer number into a different base string"
@@ -115,7 +124,7 @@ provided, additional sanity checks will be performed before converting"
 
 (defun 0xc-string-to-number (number &optional base)
   "Convert a base-whatever number string into base-10 integer"
-  (when (not (s-matches? (format "^\\([0-9]*:?\\|0[bxodt]\\)[0-9A-z%s]+$" (if 0xc-strict 0xc-padding "")) number))
+  (when (not (s-matches? (format 0xc--number-format (if 0xc-strict 0xc-padding "")) number))
     (error "Not a number"))
   (let* ((number (0xc--strip-padding (0xc--extend-number number)))
          (base (or base (0xc--infer-base number))))
@@ -128,15 +137,15 @@ provided, additional sanity checks will be performed before converting"
 
 (defun 0xc--strip-base-hint (number)
   "Return the number string without any base hints (0x, 0b, 3:, etc)"
-  (cond ((s-matches? "^0[bxodt]" number)
+  (cond ((s-matches? "^[0'][bxodth]" number)
          (substring number 2))
-        ((s-matches? "^[0-9]*:" number)
-         (or (nth 1 (s-split ":" number t)) ""))
+        ((string-match "^[0-9]+:\\(.*\\)" number)
+         (match-string 1 number))
         (t number)))
 
 (defun 0xc--infer-base (number)
   "Return the base of a number, based on some heuristics"
-  (when (not (s-matches? (format "^\\([0-9]+:\\|0[bxodt]\\)?[0-9A-z%s]+$" 0xc-padding) number))
+  (when (not (s-matches? (format 0xc--number-format 0xc-padding) number))
     (error "Not a number"))
   (let ((prefix (or (0xc--prefix-base number)))
         (base (0xc--highest-base (0xc--strip-base-hint number))))
@@ -150,14 +159,14 @@ provided, additional sanity checks will be performed before converting"
 (defun 0xc--prefix-base (number)
   "Return the base of a number's prefix, if it has one. Return nil otherwise"
   (let ((prefix (substring number 0 2)))
-    (cond ((equal "0b" prefix) 2)
-          ((equal "0t" prefix) 3)
-          ((equal "0o" prefix) 8)
-          ((equal "0d" prefix) 10)
-          ((equal "0x" prefix) 16)
-          ((s-matches? "^[0-9]+:" number)
-           (string-to-number (car (s-split ":" prefix t))))
-          (t nil))))
+    (if (string-match "^\\([0-9]+\\):" number)
+        (string-to-number (match-string 1 number))
+      (pcase prefix
+        ((or "0b" "'b") 2)
+        ("0t" 3)
+        ((or "0o" "'o") 8)
+        ((or "0d" "'d") 10)
+        ((or "0x" "'h") 16)))))
 
 (defun 0xc--strip-padding (number)
   "Remove every character contained in `0xc-padding' from number, and trim
@@ -197,6 +206,14 @@ to the user's preferences"
   "Return the smallest power of 2 greater than n"
   (expt 2 (ceiling (log n 2))))
 
+(defun 0xc--bounds-of-number-at-point ()
+  "Return the bounds of the number at point as a list."
+  (let* ((bounds (bounds-of-thing-at-point 'word))
+         (beg (car bounds)))
+    (when (eq ?' (char-before beg))
+      (setq beg (1- beg)))
+    (list beg (cdr bounds))))
+
 ;;;###autoload
 (defun 0xc-convert (base &optional number silent)
   "Read a number and a base, and output its representation in said base.
@@ -212,9 +229,12 @@ If SILENT is non-nil, do not output anything"
 (defun 0xc-convert-point (&optional base)
   "Replace the number at point with its representation in base."
   (interactive "P")
-  (let ((bounds (bounds-of-thing-at-point 'word))
-        (number (word-at-point)))
-    (replace-regexp number (0xc-number-to-string (0xc-string-to-number number) (or base 0xc-default-base)) nil (car bounds) (cdr bounds))))
+  (let* ((bounds (0xc--bounds-of-number-at-point))
+         (number (apply 'buffer-substring bounds)))
+    (apply 'replace-string number (0xc-number-to-string
+                                   (0xc-string-to-number number)
+                                   (or base 0xc-default-base))
+           nil bounds)))
 
 (provide '0xc)
 ;;; 0xc.el ends here
