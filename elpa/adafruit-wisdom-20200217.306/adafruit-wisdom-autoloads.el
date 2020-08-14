@@ -17,9 +17,7 @@ Parse assuming the following RSS format:
      ((rss (channel (item ...) (item ...) (item ...) ...)))
 where each item contains:
      (item (title nil \"the quote\") ...)
-and we  need just \"the quote\".
-
-\(fn)" nil nil)
+and we  need just \"the quote\"." nil nil)
 
 (autoload 'adafruit-wisdom "adafruit-wisdom" "\
 Display one of Adafruit's quotes in the minibuffer.
