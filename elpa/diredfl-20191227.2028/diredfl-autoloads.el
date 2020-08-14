@@ -1,15 +1,25 @@
 ;;; diredfl-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "diredfl" "diredfl.el" (23278 48383 0 0))
+;;;### (autoloads nil "diredfl" "diredfl.el" (0 0 0 0))
 ;;; Generated autoloads from diredfl.el
 
 (autoload 'diredfl-mode "diredfl" "\
 Enable additional font locking in `dired-mode'.
 
+If called interactively, enable Diredfl mode if ARG is positive,
+and disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it if
+ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
+
+(put 'diredfl-global-mode 'globalized-minor-mode t)
 
 (defvar diredfl-global-mode nil "\
 Non-nil if Diredfl-Global mode is enabled.
@@ -28,10 +38,12 @@ otherwise, disable it.  If called from Lisp, enable the mode if
 ARG is omitted or nil.
 
 Diredfl mode is enabled in all buffers where
-`(lambda nil (when (derived-mode-p (quote dired-mode)) (diredfl-mode)))' would do it.
+`(lambda nil (when (derived-mode-p 'dired-mode) (diredfl-mode)))' would do it.
 See `diredfl-mode' for more information on Diredfl mode.
 
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "diredfl" '("diredfl-")))
 
 ;;;***
 
@@ -39,5 +51,6 @@ See `diredfl-mode' for more information on Diredfl mode.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; diredfl-autoloads.el ends here

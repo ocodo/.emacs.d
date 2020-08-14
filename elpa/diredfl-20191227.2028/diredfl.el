@@ -5,9 +5,10 @@
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; Author: Drew Adams
 ;; Keywords: faces
+;; Package-Commit: cd052dfef602fe79d8dfbcf9f06e6da74412218b
 ;; URL: https://github.com/purcell/diredfl
 ;; Package-Requires: ((emacs "24"))
-;; Package-Version: 20180211.214
+;; Package-Version: 20191227.2028
 ;; Package-X-Original-Version: 0
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -237,37 +238,48 @@ In particular, inode number, number of hard links, and file size."
   :group 'diredfl)
 (defvar diredfl-write-priv 'diredfl-write-priv)
 
+(defun diredfl-match-ignored-extensions (limit)
+  "A matcher of ignored filename extensions for use in `font-lock-keywords'.
+LIMIT is the extent of the search."
+  (let ((ignored-extensions
+         (append (if (boundp 'dired-omit-extensions)
+                     dired-omit-extensions
+                   completion-ignored-extensions)
+                 (when diredfl-ignore-compressed-flag
+                   diredfl-compressed-extensions))))
+    (when ignored-extensions
+      (re-search-forward
+       (concat "^  \\(.*"
+               (regexp-opt ignored-extensions)
+               ;; Optional executable flag
+               "[*]?\\)$")
+       limit
+       t))))
+
 ;;; Define second level of fontifying.
 (defconst diredfl-font-lock-keywords-1
   (list
    '("^  \\(.+:\\)$" 1 diredfl-dir-heading) ; Directory headers
-   '("^  wildcard.*$" 0 'default)       ; Override others, e.g. `l' for `diredfl-other-priv'.
-   '("^  (No match).*$" 0 'default)     ; Override others, e.g. `t' for `diredfl-other-priv'.
+   '("^  wildcard.*$" 0 'default) ; Override others, e.g. `l' for `diredfl-other-priv'.
+   '("^  (No match).*$" 0 'default) ; Override others, e.g. `t' for `diredfl-other-priv'.
    '("[^ .]\\(\\.[^. /]+\\)$" 1 diredfl-file-suffix) ; Suffix, including `.'.
-   '("\\([^ ]+\\) -> .+$" 1 diredfl-symlink) ; Symbolic links
+   '("\\([^ ]+\\) -> .+$" 1 diredfl-symlink)         ; Symbolic links
 
    ;; 1) Date/time and 2) filename w/o suffix.
    ;;    This is a bear, and it is fragile - Emacs can change `dired-move-to-filename-regexp'.
    `(,dired-move-to-filename-regexp
-     (7 diredfl-date-time t t)         ; Date/time, locale (western or eastern)
-     (2 diredfl-date-time t t)         ; Date/time, ISO
+     (7 diredfl-date-time t t) ; Date/time, locale (western or eastern)
+     (2 diredfl-date-time t t) ; Date/time, ISO
      (,(concat "\\(.+\\)\\(" (concat (funcall #'regexp-opt diredfl-compressed-extensions)
                                      "\\)[*]?$"))
       nil nil (0 diredfl-compressed-file-name keep t))) ; Compressed-file suffix
    `(,dired-move-to-filename-regexp
-     (7 diredfl-date-time t t)         ; Date/time, locale (western or eastern)
-     (2 diredfl-date-time t t)         ; Date/time, ISO
+     (7 diredfl-date-time t t) ; Date/time, locale (western or eastern)
+     (2 diredfl-date-time t t) ; Date/time, ISO
      ("\\(.+\\)$" nil nil (0 diredfl-file-name keep t))) ; Filename (not a compressed file)
 
    ;; Files to ignore
-   (list (concat "^  \\(.*\\("
-                 (mapconcat #'regexp-quote (or (and (boundp 'dired-omit-extensions)  dired-omit-extensions)
-                                               completion-ignored-extensions)
-                            "[*]?\\|")
-                 (and diredfl-ignore-compressed-flag
-                      (concat "\\|" (mapconcat #'regexp-quote diredfl-compressed-extensions "[*]?\\|")))
-                 "[*]?\\)\\)$") ; Allow for executable flag (*).
-         1 diredfl-ignored-file-name t)
+   '(diredfl-match-ignored-extensions 1 diredfl-ignored-file-name t)
 
    ;; Compressed-file (suffix)
    (list (concat "\\(" (concat (funcall #'regexp-opt diredfl-compressed-extensions) "\\)[*]?$"))
@@ -339,9 +351,8 @@ In particular, inode number, number of hard links, and file size."
    (list (concat "^\\([" (char-to-string dired-del-marker) "].*$\\)") ; Deletion-flagged lines
          '(1 diredfl-deletion-file-name prepend))
    (list (concat "^\\([" (char-to-string dired-del-marker) "]\\)") ; Deletion flags (D)
-         '(1 diredfl-deletion prepend))
-
-   ) "2nd level of Dired highlighting.  See `font-lock-maximum-decoration'.")
+         '(1 diredfl-deletion prepend)))
+  "2nd level of Dired highlighting.  See `font-lock-maximum-decoration'.")
 
 
 ;;;###autoload
