@@ -1,12 +1,13 @@
 ;;; loccur.el --- Perform an occur-like folding in current buffer -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2016 Free Software Foundation, Inc
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc
 ;;
 ;; Author: Alexey Veretennikov <alexey.veretennikov@gmail.com>
 ;;
 ;; Created: 2009-09-08
-;; Version: 1.2.3
-;; Package-Version: 20181203.2038
+;; Version: 1.2.4
+;; Package-Version: 20191022.1955
+;; Package-Commit: 4934c0560d2f63e6314b4584211a0cc0a7e671c4
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: matching
 ;; URL: https://github.com/fourier/loccur
@@ -31,13 +32,12 @@
 ;;
 ;; Add the following to your .emacs file:
 ;;
-;; (require 'loccur)
-;; ;; defines shortcut for loccur of the current word
-;; (define-key global-map [(control o)] 'loccur-current)
-;; ;; defines shortcut for the interactive loccur command
-;; (define-key global-map [(control meta o)] 'loccur)
-;; ;; defines shortcut for the loccur of the previously found word
-;; (define-key global-map [(control shift o)] 'loccur-previous-match)
+;;     ;; defines shortcut for loccur of the current word
+;;     (define-key global-map [(control o)] 'loccur-current)
+;;     ;; defines shortcut for the interactive loccur command
+;;     (define-key global-map [(control meta o)] 'loccur)
+;;     ;; defines shortcut for the loccur of the previously found word
+;;     (define-key global-map [(control shift o)] 'loccur-previous-match)
 ;;
 ;;; Issues:
 ;; Using with smooth-scrolling.el sometimes
@@ -46,6 +46,24 @@
 ;;; TODO:
 ;;
 ;;; Change Log:
+;;
+;; 2019-10-22 (1.2.4)
+;;    + Added fix for the issue when the actions to perform
+;;      then the loccur-mode was disactivated were incomplete.
+;;    + Then loccur or loccur-no-highlight are called with universal prefix,
+;;      i.e. with C-u before the command, the currently selected value is
+;;      ignored.
+;;      Then people want this behavior by default, it is better wrap the call
+;;      to loccur with universal prefix, i.e. by implementing a helper
+;;      function like this:
+;;
+;;      (defun loccur-no-selection ()
+;;        (interactive)
+;;          (let ((current-prefix-arg 1))
+;;              (call-interactively
+;;                   'loccur)))
+;;
+;;      And then just call this function instead of loccur.
 ;;
 ;; 2016-12-26 (1.2.3)
 ;;    + Removed empty line in the beginning of the buffer.
@@ -91,7 +109,6 @@
     map)
   "Keymap for the variable `loccur-mode'.")
 
-;;;###autoload
 (define-minor-mode loccur-mode
   "Minor mode for navigating through the file.
 Hides all lines without matches like `occur' does, but without opening
@@ -140,6 +157,7 @@ Default: t"
 (defvar-local loccur-current-search nil
   "The expression to search in the current active mode.")
 
+;;;###autoload
 (defun loccur-current ()
   "Call `loccur' for the current word."
   (interactive)
@@ -170,6 +188,7 @@ REGEX is regexp to search"
       (when (overlay-get ovl loccur-overlay-visible-property-name)
         (overlay-put ovl 'face (if loccur-highlight-matching-regexp 'loccur-face nil))))))
 
+;;;###autoload
 (defun loccur (regex)
   "Perform a simple grep in current buffer.
 
