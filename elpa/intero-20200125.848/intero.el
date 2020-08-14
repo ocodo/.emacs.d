@@ -11,7 +11,8 @@
 ;; Author: Chris Done <chrisdone@fpcomplete.com>
 ;; Maintainer: Chris Done <chrisdone@fpcomplete.com>
 ;; URL: https://github.com/commercialhaskell/intero
-;; Package-Version: 20180703.18
+;; Package-Version: 20200125.848
+;; Package-Commit: fdb0550a2ddb5692d470336aa4a057717d572695
 ;; Created: 3rd June 2016
 ;; Version: 0.1.13
 ;; Keywords: haskell, tools
@@ -73,9 +74,9 @@
 (defcustom intero-package-version
   (cl-case system-type
     ;; Until <https://github.com/haskell/network/issues/313> is fixed:
-    (windows-nt "0.1.32")
-    (cygwin "0.1.32")
-    (t "0.1.32"))
+    (windows-nt "0.1.40")
+    (cygwin "0.1.40")
+    (t "0.1.40"))
   "Package version to auto-install.
 
 This version does not necessarily have to be the latest version
@@ -237,14 +238,22 @@ The buffer's filename (or working directory) is checked against
 `intero-whitelist' and `intero-blacklist'.  If both the whitelist
 and blacklist match, then the whitelist entry wins, and
 `intero-mode' is enabled."
-  (when (and (derived-mode-p 'haskell-mode)
-             (let* ((file (or (buffer-file-name) default-directory))
-                    (blacklisted (intero-directories-contain-file
-                                  file intero-blacklist))
-                    (whitelisted (intero-directories-contain-file
-                                  file intero-whitelist)))
-               (or whitelisted (not blacklisted))))
+  (when (intero-mode-should-start-p)
     (intero-mode 1)))
+
+(defun intero-mode-should-start-p ()
+  "Predicate whether intero should start given user config.
+The buffer's filename (or working directory) is checked against
+`intero-whitelist' and `intero-blacklist'.  If both the whitelist
+and blacklist match, then the whitelist entry wins, and
+`intero-mode' is enabled."
+  (and (derived-mode-p 'haskell-mode)
+       (let* ((file (or (buffer-file-name) default-directory))
+              (blacklisted (intero-directories-contain-file
+                            file intero-blacklist))
+              (whitelisted (intero-directories-contain-file
+                            file intero-whitelist)))
+         (or whitelisted (not blacklisted)))))
 
 ;;;###autoload
 (define-globalized-minor-mode intero-global-mode
@@ -408,15 +417,13 @@ You can use this to kill them or look inside."
 (defun intero-fontify-expression (expression)
   "Return a haskell-fontified version of EXPRESSION."
   (intero-with-temp-buffer
-    (when (fboundp 'haskell-mode)
-      (let ((flycheck-checkers nil)
-            (haskell-mode-hook nil))
-        (haskell-mode)))
-    (insert expression)
-    (if (fboundp 'font-lock-ensure)
-        (font-lock-ensure)
-      (font-lock-fontify-buffer))
-    (buffer-string)))
+   (insert expression)
+   (when (fboundp 'haskell-mode)
+     (delay-mode-hooks (haskell-mode))
+     (if (fboundp 'font-lock-ensure)
+         (font-lock-ensure)
+       (font-lock-fontify-buffer)))
+   (buffer-string)))
 
 (defun intero-uses-at ()
   "Highlight where the identifier at point is used."
@@ -916,10 +923,11 @@ Should only be used in the repl"
   "Company source for intero, with the standard COMMAND and ARG args.
 Other arguments are IGNORED."
   (interactive (list 'interactive))
-  (cl-case command
-    (interactive (company-begin-backend 'intero-company))
-    (prefix
-     (unless (intero-gave-up 'backend)
+  (when (and (or intero-mode (derived-mode-p 'intero-repl-mode))
+             (not (intero-gave-up 'backend)))
+    (cl-case command
+      (interactive (company-begin-backend 'intero-company))
+      (prefix
        (or (let ((hole (intero-grab-hole)))
              (when hole
                (save-excursion
@@ -929,9 +937,8 @@ Other arguments are IGNORED."
              (when prefix-info
                (cl-destructuring-bind
                    (beg end prefix _type) prefix-info
-                 prefix))))))
-    (candidates
-     (unless (intero-gave-up 'backend)
+                 prefix)))))
+      (candidates
        (let ((beg-end (intero-grab-hole)))
          (if beg-end
              (cons :async
@@ -1254,7 +1261,7 @@ be activated after evaluation.  PROMPT-OPTIONS are passed to
 (defun intero-repl-after-load ()
   "Set the command to run after load."
   (interactive)
-  (if (eq major-mode 'intero-repl-mode)
+  (if (derived-mode-p 'intero-repl-mode)
       (setq intero-repl-send-after-load
             (read-from-minibuffer
              "Command to run: "
@@ -1342,7 +1349,9 @@ STORE-PREVIOUS is non-nil, note the caller's buffer in
          (initial-buffer (current-buffer))
          (backend-buffer (intero-buffer 'backend)))
     (with-current-buffer
-        (or (get-buffer name)
+        (or (let ((buf (get-buffer name)))
+              (and (get-buffer-process buf)
+                   buf))
             (with-current-buffer
                 (get-buffer-create name)
               ;; The new buffer doesn't know if the initial buffer was hosted
@@ -1415,9 +1424,12 @@ stack's default)."
              'face 'font-lock-comment-face))
     (let* ((script-buffer
             (with-current-buffer (find-file-noselect (intero-make-temp-file "intero-script"))
+              ;; Commented out this line due to this bug:
+              ;; https://github.com/chrisdone/intero/issues/569
+              ;; GHC 8.4.3 has some bug causing a panic on GHCi.
+              ;; :set -fdefer-type-errors
               (insert ":set prompt \"\"
 :set -fbyte-code
-:set -fdefer-type-errors
 :set -fdiagnostics-color=never
 :set prompt \"\\4 \"
 ")
@@ -1690,14 +1702,15 @@ The path returned is canonicalized and stripped of any text properties."
 
 (defun intero-temp-file-origin-buffer (temp-file)
   "Get the original buffer that TEMP-FILE was created for."
-  (or
-   (gethash (intero-canonicalize-path temp-file)
-            intero-temp-file-buffer-mapping)
-   (cl-loop
-    for buffer in (buffer-list)
-    when (string= (intero-canonicalize-path temp-file)
-                  (buffer-local-value 'intero-temp-file-name buffer))
-    return buffer)))
+  (let ((canonical-path (intero-canonicalize-path temp-file)))
+    (or
+     (gethash canonical-path
+              intero-temp-file-buffer-mapping)
+     (cl-loop
+      for buffer in (buffer-list)
+      when (string= canonical-path
+                    (buffer-local-value 'intero-temp-file-name buffer))
+      return buffer))))
 
 (defun intero-unmangle-file-path (file)
   "If FILE is an intero temp file, return the original source path, otherwise FILE."
@@ -1871,9 +1884,12 @@ type as arguments."
                  (intero-async-call
                   'backend
                   (concat ":load " (intero-path-for-ghci (intero-temp-file-name)))))
-               (intero-async-call
-                'backend
-                ":set -fobject-code")
+               (mapc
+                 (lambda (flag)
+                   (intero-async-call
+                    'backend
+                    (concat ":set " flag)))
+                 (intero-ghci-output-flags))
                (replace-regexp-in-string
                 "\n$" ""
                 (intero-blocking-call
@@ -2229,6 +2245,7 @@ Installing intero-%s for GHC %s ...
            (concat "intero-" intero-package-version)
            "--flag" "haskeline:-terminfo"
            "--resolver" (concat "ghc-" ghc-version)
+           "haskeline-0.7.5.0"
            "ghc-paths-0.1.0.9" "mtl-2.2.2" "network-2.7.0.0" "random-1.1" "syb-0.7"))
       (0
        (message "Installed successfully! Starting Intero in a moment ...")
@@ -2243,9 +2260,11 @@ We don't know why it failed. Please read the above output and try
 installing manually. If that doesn't work, report this as a
 problem.
 
+Guess: You might need the \"tinfo\" package, e.g. libtinfo-dev.
+
 WHAT TO DO NEXT
 
-If you don't want to Intero to try installing itself again for
+If you don't want Intero to try installing itself again for
 this project, just keep this buffer around in your Emacs.
 
 If you'd like to try again next time you try use an Intero
@@ -2292,7 +2311,7 @@ problem.
 
 WHAT TO DO NEXT
 
-If you don't want to Intero to try installing itself again for
+If you don't want Intero to try installing itself again for
 this project, just keep this buffer around in your Emacs.
 
 If you'd like to try again next time you try use an Intero
@@ -2308,27 +2327,15 @@ Automatically performs initial actions in SOURCE-BUFFER, if specified.
 Uses the default stack config file, or STACK-YAML file if given."
   (if (buffer-local-value 'intero-give-up buffer)
       buffer
-    (let* ((options
-            (intero-make-options-list
-             (intero-executable-path stack-yaml)
-             (or targets
-                 (let ((package-name (buffer-local-value 'intero-package-name buffer)))
-                   (unless (equal "" package-name)
-                     (list package-name))))
-             (not (buffer-local-value 'intero-try-with-build buffer))
-             t ;; pass --no-load to stack
-             t ;; pass -ignore-dot-ghci to intero
-             stack-yaml ;; let stack choose a default when nil
-             ))
-           (arguments (cons "ghci" options))
-           (process (with-current-buffer buffer
-                      (when intero-debug
-                        (message "Intero arguments: %s" (combine-and-quote-strings arguments)))
-                      (message "Booting up intero ...")
-                      (apply #'start-file-process "stack" buffer intero-stack-executable
-                             arguments))))
+    (let* ((process-info (intero-start-piped-process buffer targets stack-yaml))
+           (arguments (plist-get process-info :arguments))
+           (options (plist-get process-info :options))
+           (process (plist-get process-info :process)))
       (set-process-query-on-exit-flag process nil)
-      (process-send-string process ":set -fobject-code\n")
+      (mapc
+       (lambda (flag)
+         (process-send-string process (concat ":set " flag "\n")))
+       (intero-ghci-output-flags))
       (process-send-string process ":set -fdefer-type-errors\n")
       (process-send-string process ":set -fdiagnostics-color=never\n")
       (process-send-string process ":set prompt \"\\4\"\n")
@@ -2386,6 +2393,34 @@ Uses the default stack config file, or STACK-YAML file if given."
       (set-process-sentinel process 'intero-sentinel)
       buffer)))
 
+(defun intero-start-piped-process (buffer targets stack-yaml)
+  "Start a piped process that we control in BUFFER.
+Uses the specified TARGETS if supplied.
+Uses the default stack config file, or STACK-YAML file if given."
+  (let* ((options
+          (intero-make-options-list
+           (intero-executable-path stack-yaml)
+           (or targets
+               (let ((package-name (buffer-local-value 'intero-package-name buffer)))
+                 (unless (equal "" package-name)
+                   (list package-name))))
+           (not (buffer-local-value 'intero-try-with-build buffer))
+           t          ;; pass --no-load to stack
+           t          ;; pass -ignore-dot-ghci to intero
+           stack-yaml ;; let stack choose a default when nil
+           ))
+         (arguments (cons "ghci" options))
+         (process
+          (with-current-buffer buffer
+            (when intero-debug
+              (message "Intero arguments: %s" (combine-and-quote-strings arguments)))
+            (message "Booting up intero ...")
+            (apply #'start-file-process intero-stack-executable buffer intero-stack-executable
+                   arguments))))
+    (list :arguments arguments
+          :options options
+          :process process)))
+
 (defun intero-flycheck-buffer ()
   "Run flycheck in the buffer.
 Restarts flycheck in case there was a problem and flycheck is stuck."
@@ -2404,7 +2439,7 @@ default when nil)."
             (list "--stack-yaml" stack-yaml))
           (list "--with-ghc"
                 with-ghc
-                "--docker-run-args=--interactive=true --tty=false"
+                "--docker-run-args=--interactive=true"
                 )
           (when no-build
             (list "--no-build"))
@@ -2419,7 +2454,7 @@ default when nil)."
   "Handle when PROCESS reports a CHANGE.
 This is a standard process sentinel function."
   (when (buffer-live-p (process-buffer process))
-    (when (and (not (process-live-p process)))
+    (unless (process-live-p process)
       (let ((buffer (process-buffer process)))
         (if (with-current-buffer buffer intero-deleting)
             (message "Intero process deleted.")
@@ -2631,6 +2666,14 @@ For debugging purposes, try running the following in your terminal:
     (or intero-ghc-version
         (setq intero-ghc-version
               (intero-ghc-version-raw)))))
+
+(defun intero-ghci-output-flags ()
+  "Get the appropriate ghci output flags for the current GHC version"
+  (with-current-buffer (intero-buffer 'backend)
+    (let ((current-version (mapcar #'string-to-number (split-string (intero-ghc-version) "\\."))))
+    (if (intero-version>= current-version '(8 4 1))
+        '("-fno-code" "-fwrite-interface")
+        '("-fobject-code")))))
 
 (defun intero-ghc-version-raw ()
   "Get the GHC version used by the project."
@@ -3151,10 +3194,11 @@ suggestions are available."
           ;; Add a note if we found a suggestion to make
           (when note
             (setf (flycheck-error-message msg)
-                  (concat text
-                          "\n\n"
-                          (propertize "(Hit `C-c C-r' in the Haskell buffer to apply suggestions)"
-                                      'face 'font-lock-warning-face)))))))
+                  (concat text "\n\n"
+                          (propertize
+                           (substitute-command-keys
+                            "(Hit `\\[intero-apply-suggestions]' in the Haskell buffer to apply suggestions)")
+                           'face 'font-lock-warning-face)))))))
   (setq intero-lighter
         (if (null intero-suggestions)
             " Intero"
@@ -3471,6 +3515,7 @@ Equivalent to 'warn', but label the warning as coming from intero."
                    (intero-help-refresh)))
        'keymap (let ((map (make-sparse-keymap)))
                  (define-key map [mouse-1] 'push-button)
+                 (define-key map (kbd "RET") 'push-button)
                  map))
       (insert " ")
       (insert-text-button
@@ -3478,6 +3523,7 @@ Equivalent to 'warn', but label the warning as coming from intero."
        'buffer (current-buffer)
        'keymap (let ((map (make-sparse-keymap)))
                  (define-key map [mouse-1] 'push-button)
+                 (define-key map (kbd "RET") 'push-button)
                  map)
        'action (lambda (&rest ignore)
                  (setq intero-help-entries
@@ -3489,6 +3535,7 @@ Equivalent to 'warn', but label the warning as coming from intero."
        'buffer (current-buffer)
        'keymap (let ((map (make-sparse-keymap)))
                  (define-key map [mouse-1] 'push-button)
+                 (define-key map (kbd "RET") 'push-button)
                  map)
        'action (lambda (&rest ignore)
                  (pop intero-help-entries)

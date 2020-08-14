@@ -1,27 +1,33 @@
 ;;; intero-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "intero" "intero.el" (23360 14595 487482 107000))
+;;;### (autoloads nil "intero" "intero.el" (0 0 0 0))
 ;;; Generated autoloads from intero.el
 
 (autoload 'intero-mode "intero" "\
 Minor mode for Intero.
+
+If called interactively, enable Intero mode if ARG is positive,
+and disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it if
+ARG is `toggle'; disable the mode otherwise.
 
 \\{intero-mode-map}
 
 \(fn &optional ARG)" t nil)
 
 (autoload 'intero-mode-whitelist "intero" "\
-Run intero-mode when the current project is in `intero-whitelist'.
-
-\(fn)" t nil)
+Run intero-mode when the current project is in `intero-whitelist'." t nil)
 
 (autoload 'intero-mode-blacklist "intero" "\
-Run intero-mode unless the current project is in `intero-blacklist'.
+Run intero-mode unless the current project is in `intero-blacklist'." t nil)
 
-\(fn)" t nil)
+(put 'intero-global-mode 'globalized-minor-mode t)
 
 (defvar intero-global-mode nil "\
 Non-nil if Intero-Global mode is enabled.
@@ -48,7 +54,14 @@ See `intero-mode' for more information on Intero mode.
 (autoload 'intero-highlight-uses-mode "intero" "\
 Minor mode for highlighting and jumping between uses.
 
+If called interactively, enable Intero-Highlight-Uses mode if ARG
+is positive, and disable it if ARG is zero or negative.  If
+called from Lisp, also enable the mode if ARG is omitted or nil,
+and toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "intero" '("intero-")))
 
 ;;;***
 
@@ -56,5 +69,6 @@ Minor mode for highlighting and jumping between uses.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; intero-autoloads.el ends here
