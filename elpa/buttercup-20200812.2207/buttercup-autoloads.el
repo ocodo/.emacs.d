@@ -10,17 +10,13 @@
 ;;; Generated autoloads from buttercup.el
 
 (autoload 'buttercup-run-at-point "buttercup" "\
-Run the buttercup suite at point.
-
-\(fn)" t nil)
+Run the buttercup suite at point." t nil)
 
 (autoload 'buttercup-run-discover "buttercup" "\
 Discover and load test files, then run all defined suites.
 
 Takes directories as command line arguments, defaulting to the
-current directory.
-
-\(fn)" nil nil)
+current directory." nil nil)
 
 (autoload 'buttercup-run-markdown-buffer "buttercup" "\
 Run all test suites defined in MARKDOWN-BUFFERS.
@@ -31,9 +27,7 @@ If MARKDOWN-BUFFERS is empty (nil), use the current buffer.
 
 (autoload 'buttercup-run-markdown "buttercup" "\
 Run all test suites defined in Markdown files passed as arguments.
-A suite must be defined within a Markdown \"lisp\" code block.
-
-\(fn)" nil nil)
+A suite must be defined within a Markdown \"lisp\" code block." nil nil)
 
 (autoload 'buttercup-run-markdown-file "buttercup" "\
 Run all test suites defined in Markdown FILE.
@@ -44,6 +38,11 @@ A suite must be defined within a Markdown \"lisp\" code block.
 (autoload 'buttercup-minor-mode "buttercup" "\
 Activate buttercup minor mode.
 
+If called interactively, enable Buttercup minor mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 With buttercup minor mode active the following is activated:
 
 - `describe' and `it' forms are fontified with
@@ -53,7 +52,7 @@ With buttercup minor mode active the following is activated:
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "buttercup" '("before-" "buttercup-" "spy-" "xdescribe" "xit" "assume" "after-" "describe" "expect")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "buttercup" '("after-" "assume" "before-" "buttercup-" "describe" "expect" "spy-" "xdescribe" "xit")))
 
 ;;;***
 
