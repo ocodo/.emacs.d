@@ -21,7 +21,12 @@ ssh/scp tramp connections.
 
 \(fn DEST)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dired-rsync" '("dired-rsync-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dired-rsync" '("dired-r")))
+
+;;;***
+
+;;;### (autoloads nil nil ("dired-rsync-ert.el" "dired-rsync-pkg.el")
+;;;;;;  (0 0 0 0))
 
 ;;;***
 
