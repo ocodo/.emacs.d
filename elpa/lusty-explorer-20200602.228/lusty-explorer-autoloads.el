@@ -11,14 +11,10 @@
 ;;; Generated autoloads from lusty-explorer.el
 
 (autoload 'lusty-file-explorer "lusty-explorer" "\
-Launch the file/directory mode of LustyExplorer.
-
-\(fn)" t nil)
+Launch the file/directory mode of LustyExplorer." t nil)
 
 (autoload 'lusty-buffer-explorer "lusty-explorer" "\
-Launch the buffer mode of LustyExplorer.
-
-\(fn)" t nil)
+Launch the buffer mode of LustyExplorer." t nil)
 
 (defvar lusty-explorer-mode nil "\
 Non-nil if Lusty-Explorer mode is enabled.
@@ -40,46 +36,39 @@ and recency information.
 \(fn &optional ARG)" t nil)
 
 (autoload 'lusty-highlight-next "lusty-explorer" "\
-Highlight the next match in *Lusty-Matches*.
-
-\(fn)" t nil)
+Highlight the next match in *Lusty-Matches*." t nil)
 
 (autoload 'lusty-highlight-previous "lusty-explorer" "\
-Highlight the previous match in *Lusty-Matches*.
-
-\(fn)" t nil)
+Highlight the previous match in *Lusty-Matches*." t nil)
 
 (autoload 'lusty-highlight-next-column "lusty-explorer" "\
-Highlight the next column in *Lusty-Matches*.
-
-\(fn)" t nil)
+Highlight the next column in *Lusty-Matches*." t nil)
 
 (autoload 'lusty-highlight-previous-column "lusty-explorer" "\
-Highlight the previous column in *Lusty-Matches*.
-
-\(fn)" t nil)
+Highlight the previous column in *Lusty-Matches*." t nil)
 
 (autoload 'lusty-open-this "lusty-explorer" "\
-Open the given file/directory/buffer, creating it if not already present.
-
-\(fn)" t nil)
+Open the given file/directory/buffer, creating it if not already present." t nil)
 
 (autoload 'lusty-select-match "lusty-explorer" "\
-Activate the highlighted match in *Lusty-Matches* - recurse if dir, open if file/buffer.
+Activate the highlighted match in *Lusty-Matches* - recurse if dir, open if file/buffer." t nil)
 
-\(fn)" t nil)
+(autoload 'lusty-yank "lusty-explorer" "\
+A `yank' variant that adds some intuitive behavior in the case where
+`default-directory' is at the root (\"/\") of a remote TRAMP connection and the
+pasted path is absolute (i.e. has a leading \"/\"). The pasted path is
+assumed to be on the remote filesystem rather than the local (that being the
+default behavior, generally less useful).
+
+\(fn ARG)" t nil)
 
 (autoload 'lusty-select-current-name "lusty-explorer" "\
-Open the given file/buffer or create a new buffer with the current name.
-
-\(fn)" t nil)
+Open the given file/buffer or create a new buffer with the current name." t nil)
 
 (autoload 'lusty-launch-dired "lusty-explorer" "\
-Launch dired at the current directory.
+Launch dired at the current directory." t nil)
 
-\(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lusty-explorer" '("LM-" "lusty-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lusty-explorer" '("LM-score" "lusty-")))
 
 ;;;***
 
