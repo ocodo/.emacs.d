@@ -4,7 +4,8 @@
 ;;
 ;; Author: Arthur Andersen <leoc.git@gmail.com>
 ;; URL: http://github.com/leoc/elmine
-;; Package-Version: 20170511.20
+;; Package-Version: 20200520.1237
+;; Package-Commit: c78cc8705c2dffbf649b858f02b5028225943482
 ;; Version: 0.3.1
 ;; Keywords: tools
 ;; Package-Requires: ((s "1.10.0"))
@@ -198,16 +199,36 @@ Either :ok or :unprocessible."
            (signal 'no-such-resource `(:response ,response))))))
 
 (defun elmine/api-get-all (element path &rest filters)
-  (let* ((response-object (apply #'elmine/api-get nil path filters))
+  "Return list of ELEMENT items retrieved from PATH limited by FILTERS.
+
+Limiting items by count can be done using `limit' in FILTERS:
+- If `limit' is t, return all items.
+- If `limit' is number, return items up to that count.
+- Otherwise return up to 25 items (redmine api default)."
+  (let* ((initial-limit (plist-get filters :limit))
+         (initial-limit (when (or
+                               (eq t initial-limit)
+                               (numberp initial-limit))
+                          initial-limit))
+         (limit (if (eq t initial-limit) 100 initial-limit))
+         (response-object (apply #'elmine/api-get nil path (plist-put filters :limit limit)))
          (offset (elmine/get response-object :offset))
          (limit (elmine/get response-object :limit))
          (total-count (elmine/get response-object :total_count))
          (issue-list (elmine/get response-object element)))
     (if (and offset
              limit
-             (< (+ offset limit) total-count))
-        (append issue-list (apply #'elmine/api-get-all element path
-                                  (plist-put filters :offset (+ offset limit))))
+             (< (+ offset limit) total-count)
+             (or (eq t initial-limit)
+                 (and initial-limit (< (+ offset limit) initial-limit))))
+        (let* ((offset (+ offset limit))
+               (limit (if (eq t initial-limit)
+                          t
+                        (- initial-limit offset))))
+          (append issue-list (apply #'elmine/api-get-all element path
+                                    (plist-merge
+                                     filters
+                                     `(:offset ,offset :limit ,limit)))))
       issue-list)))
 
 
@@ -243,12 +264,11 @@ going to be hashtables and JSON arrays are going to be lists."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun elmine/get-issues (&rest filters)
   "Get a list of issues."
-  (let ((filters (plist-merge '(:status_id "open") filters)))
-    (apply #'elmine/api-get-all :issues "/issues.json" filters)))
+  (apply #'elmine/api-get-all :issues "/issues.json" filters))
 
-(defun elmine/get-issue (id)
+(defun elmine/get-issue (id &rest params)
   "Get a specific issue via id."
-  (elmine/api-get :issue (format "/issues/%s.json" id)))
+  (elmine/api-get :issue (format "/issues/%s.json" id) params))
 
 (defun elmine/create-issue (&rest params)
   "Create an issue.
@@ -316,6 +336,11 @@ an issue object to this function."
   (apply #'elmine/api-get-all :versions
          (format "/projects/%s/versions.json" project) filters))
 
+(defun elmine/get-project-memberships (project &rest filters)
+  "Get PROJECT memberships limited by FILTERS."
+  (apply #'elmine/api-get-all :memberships
+         (format "/projects/%s/memberships.json" project) filters))
+
 (defun elmine/get-version (id)
   "Get a specific version."
   (elmine/api-get :version (format "/versions/%s.json" id)))
@@ -378,6 +403,15 @@ an issue object to this function."
 (defun elmine/delete-time-entry (id)
   "Delete a specific time entry."
   (elmine/api-delete (format "/time_entries/%s.json" id)))
+
+(defun elmine/get-users (&rest filters)
+  "Get a list of users limited by FILTERS."
+  (apply #'elmine/api-get-all :users "/users.json" filters))
+
+(defun elmine/get-user (user &rest params)
+  "Get USER. PARAMS can be used to retrieve additional details.
+If USER is `current', get user whose credentials are used."
+  (elmine/api-get :user (format "/users/%s.json" user) params))
 
 (provide 'elmine)
 
