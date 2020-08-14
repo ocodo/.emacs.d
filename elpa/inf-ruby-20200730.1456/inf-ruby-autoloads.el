@@ -1,9 +1,12 @@
 ;;; inf-ruby-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "inf-ruby" "inf-ruby.el" (23278 48194 0 0))
+;;;### (autoloads nil "inf-ruby" "inf-ruby.el" (0 0 0 0))
 ;;; Generated autoloads from inf-ruby.el
 
 (defvar ruby-source-modes '(ruby-mode enh-ruby-mode) "\
@@ -13,12 +16,15 @@ considered a ruby source file by `ruby-load-file'.
 Used by these commands to determine defaults.")
 
 (autoload 'inf-ruby-setup-keybindings "inf-ruby" "\
-Hook up `inf-ruby-minor-mode' to each of `ruby-source-modes'.
-
-\(fn)" nil nil)
+Hook up `inf-ruby-minor-mode' to each of `ruby-source-modes'." nil nil)
 
 (autoload 'inf-ruby-minor-mode "inf-ruby" "\
 Minor mode for interacting with the inferior process buffer.
+
+If called interactively, enable Inf-Ruby minor mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
 
 The following commands are available:
 
@@ -56,16 +62,12 @@ Type \\[describe-mode] in the process buffer for the list of commands.
 
 (autoload 'inf-ruby-switch-setup "inf-ruby" "\
 Modify `rspec-compilation-mode' and `ruby-compilation-mode'
-keymaps to bind `inf-ruby-switch-from-compilation' to `С-x C-q'.
-
-\(fn)" nil nil)
+keymaps to bind `inf-ruby-switch-from-compilation' to `С-x C-q'." nil nil)
 
 (autoload 'inf-ruby-console-auto "inf-ruby" "\
 Run the appropriate Ruby console command.
 The command and the directory to run it from are detected
-automatically.
-
-\(fn)" t nil)
+automatically." t nil)
 
 (autoload 'inf-ruby-console-zeus "inf-ruby" "\
 Run Rails console in DIR using Zeus.
@@ -85,9 +87,7 @@ Gemfile, it should use the `gemspec' instruction.
 \(fn DIR)" t nil)
 
 (autoload 'inf-ruby-auto-enter "inf-ruby" "\
-Switch to `inf-ruby-mode' if the breakpoint pattern matches the current line.
-
-\(fn)" nil nil)
+Switch to `inf-ruby-mode' if the breakpoint pattern matches the current line." nil nil)
 
 (autoload 'inf-ruby-auto-exit "inf-ruby" "\
 Return to the previous compilation mode if INPUT is a debugger exit command.
@@ -110,11 +110,14 @@ Run Pry, or bundle console, in DIR.
 \(fn FILE REGEXP &optional MATCH-GROUP)" nil nil)
  (dolist (mode ruby-source-modes) (add-hook (intern (format "%s-hook" mode)) 'inf-ruby-minor-mode))
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "inf-ruby" '("inf-ruby-" "ruby-" "run-ruby-")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; inf-ruby-autoloads.el ends here

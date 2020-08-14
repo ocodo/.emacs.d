@@ -8,10 +8,11 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;;         Kyle Hargraves <pd@krh.me>
 ;; URL: http://github.com/nonsequitur/inf-ruby
-;; Package-Version: 20180521.648
+;; Package-Version: 20200730.1456
+;; Package-Commit: 9f0f79ff459c7c417e8931ca020db121e24b45b5
 ;; Created: 8 April 1998
 ;; Keywords: languages ruby
-;; Version: 2.5.1
+;; Version: 2.5.2
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -84,13 +85,15 @@ Also see the description of `ielm-prompt-read-only'."
   :group 'inf-ruby)
 
 (defcustom inf-ruby-implementations
-  '(("ruby"     . "irb --prompt default --noreadline -r irb/completion")
+  '(("ruby"     . inf-ruby--irb-command)
     ("jruby"    . "jruby -S irb --prompt default --noreadline -r irb/completion")
     ("rubinius" . "rbx -r irb/completion")
     ("yarv"     . "irb1.9 -r irb/completion")
     ("macruby"  . "macirb -r irb/completion")
     ("pry"      . "pry"))
-  "An alist of ruby implementations to irb executable names."
+  "An alist mapping Ruby implementations to Irb commands.
+CDR of each entry must be either a string or a function that
+returns a string."
   :type '(repeat (cons string string))
   :group 'inf-ruby)
 
@@ -99,6 +102,19 @@ Also see the description of `ielm-prompt-read-only'."
   :type `(choice ,@(mapcar (lambda (item) (list 'const (car item)))
                            inf-ruby-implementations))
   :group 'inf-ruby)
+
+(defun inf-ruby--irb-command ()
+  (let ((command "irb --prompt default --noreadline -r irb/completion"))
+    (when (inf-ruby--irb-needs-nomultiline-p)
+      (setq command (concat command " --nomultiline")))
+    command))
+
+(defun inf-ruby--irb-needs-nomultiline-p ()
+  (let* ((output (shell-command-to-string "irb -v"))
+         (fields (split-string output "[ (]")))
+    (if (equal (car fields) "irb")
+        (version<= "1.2.0" (nth 1 fields))
+      (error "Irb version unknown: %s" output))))
 
 (defcustom inf-ruby-console-environment 'ask
   "Envronment to use for the `inf-ruby-console-*' commands.
@@ -167,7 +183,7 @@ next one.")
 (make-variable-buffer-local 'inf-ruby-last-prompt)
 
 (defconst inf-ruby-error-regexp-alist
-  '(("SyntaxError: \\(?:compile error\n\\)?\\([^\(].*\\):\\([1-9][0-9]*\\):" 1 2)
+  '(("^SyntaxError: \\(?:compile error\n\\)?\\([^\(].*\\):\\([1-9][0-9]*\\):" 1 2)
     ("^\tfrom \\([^\(].*\\):\\([1-9][0-9]*\\)\\(:in `.*'\\)?$" 1 2)))
 
 ;;;###autoload
@@ -362,8 +378,13 @@ Type \\[describe-mode] in the process buffer for the list of commands."
   ;; We're keeping both it and `inf-ruby' for backward compatibility.
   (interactive)
   (run-ruby-or-pop-to-buffer
-   (or command (cdr (assoc inf-ruby-default-implementation
-                           inf-ruby-implementations)))
+   (let ((command
+          (or command
+              (cdr (assoc inf-ruby-default-implementation
+                          inf-ruby-implementations)))))
+     (if (functionp command)
+         (funcall command)
+       command))
    (or name "ruby")
    (or (inf-ruby-buffer)
        inf-ruby-buffer)))
@@ -461,7 +482,8 @@ Must not contain ruby meta characters.")
   "Print the result of the last evaluation in the current buffer."
   (let ((proc (inf-ruby-proc)))
     (insert
-     (with-current-buffer (inf-ruby-buffer)
+     (with-current-buffer (or (inf-ruby-buffer)
+                              inf-ruby-buffer)
        (while (not (and comint-last-prompt
                         (goto-char (car comint-last-prompt))
                         (looking-at inf-ruby-first-prompt-pattern)))
@@ -625,6 +647,8 @@ Then switch to the process buffer."
                    "      OpenStruct.new(:line_buffer => line)) if old_wp;"
                    "    if defined?(_pry_.complete) then"
                    "      puts _pry_.complete(expr)"
+                   "    elsif defined?(pry_instance.complete) then"
+                   "      puts pry_instance.complete(expr)"
                    "    else"
                    "      completer = if defined?(_pry_) then"
                    "        Pry.config.completer.build_completion_proc(binding, _pry_)"
@@ -692,6 +716,9 @@ Returns the selected completion or nil."
 (defvar inf-ruby-orig-process-filter nil
   "Original process filter before switching to `inf-ruby-mode'.")
 
+(defvar inf-ruby-orig-error-regexp-alist nil
+  "Original `compilation-error-regexp-alist' before switching to `inf-ruby-mode.'")
+
 (defun inf-ruby-switch-from-compilation ()
   "Make the buffer writable and switch to `inf-ruby-mode'.
 Recommended for use when the program being executed enters
@@ -701,11 +728,14 @@ interactive mode, i.e. hits a debugger breakpoint."
   (buffer-enable-undo)
   (let ((mode major-mode)
         (arguments compilation-arguments)
-        (orig-mode-line-process mode-line-process))
+        (orig-mode-line-process mode-line-process)
+        (orig-error-alist compilation-error-regexp-alist))
     (inf-ruby-mode)
     (make-local-variable 'inf-ruby-orig-compilation-mode)
     (setq inf-ruby-orig-compilation-mode mode)
     (set (make-local-variable 'compilation-arguments) arguments)
+    (set (make-local-variable 'inf-ruby-orig-error-regexp-alist)
+         orig-error-alist)
     (when orig-mode-line-process
       (setq mode-line-process orig-mode-line-process)))
   (let ((proc (get-buffer-process (current-buffer))))
@@ -727,10 +757,12 @@ Otherwise, just toggle read-only status."
       (let ((orig-mode-line-process mode-line-process)
             (proc (get-buffer-process (current-buffer)))
             (arguments compilation-arguments)
-            (filter inf-ruby-orig-process-filter))
+            (filter inf-ruby-orig-process-filter)
+            (errors inf-ruby-orig-error-regexp-alist))
         (funcall inf-ruby-orig-compilation-mode)
         (setq mode-line-process orig-mode-line-process)
         (set (make-local-variable 'compilation-arguments) arguments)
+        (set (make-local-variable 'compilation-error-regexp-alist) errors)
         (when proc
           (set-process-filter proc filter)))
     (toggle-read-only)))
@@ -830,8 +862,12 @@ automatically."
          (with-bundler (file-exists-p "Gemfile")))
     (inf-ruby-console-run
      (concat (when with-bundler "bundle exec ")
-             "rails console "
-             env)
+             "rails console -e "
+             env
+             ;; Note: this only has effect in Rails < 5.0 or >= 5.1.4
+             ;; https://github.com/rails/rails/pull/29010
+             (when (inf-ruby--irb-needs-nomultiline-p)
+               " -- --nomultiline"))
      "rails")))
 
 (defun inf-ruby-console-rails-env ()
@@ -910,6 +946,8 @@ Gemfile, it should use the `gemspec' instruction."
                  (concat " -r " (file-name-sans-extension file)))
                files
                ""))))
+    (when (inf-ruby--irb-needs-nomultiline-p)
+      (setq base-command (concat base-command " --nomultiline")))
     (inf-ruby-console-run
      (concat base-command args
              " --prompt default --noreadline -r irb/completion")
