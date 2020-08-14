@@ -1,6 +1,6 @@
 ;;; el-search-x.el --- Additional pattern definitions for el-search    -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc
 
 ;; Author: Michael Heerdegen <michael_heerdegen@web.de>
 ;; Maintainer: Michael Heerdegen <michael_heerdegen@web.de>
@@ -95,8 +95,10 @@ Example: the pattern
    (append '(1 2 3) x (app car-safe 7))
 
 matches the list (1 2 3 4 5 6 7 8 9), binding `x' to (4 5 6)."
-  (if (null patterns)
-      '(pred null)
+  (cond
+   ((null patterns)       '(pred null))
+   ((equal patterns '(_)) '(pred listp))
+   (t
     (pcase-let ((`(,pattern . ,more-patterns) patterns))
       (cond
        ((null more-patterns) pattern)
@@ -106,7 +108,7 @@ matches the list (1 2 3 4 5 6 7 8 9), binding `x' to (4 5 6)."
                                      (el-search-make-matcher pattern)
                                      (el-search-make-matcher (car more-patterns)))
                    `(,,pattern ,,(car more-patterns)))))
-       (t `(append ,pattern (append ,@more-patterns)))))))
+       (t `(append ,pattern (append ,@more-patterns))))))))
 
 (defcustom el-search-lazy-l t
   "Whether to interpret symbols and strings specially in `l'.
@@ -224,12 +226,22 @@ The default value is nil."
   "Return a list of files that changed relative to COMMIT.
 COMMIT defaults to HEAD."
   (cl-callf or commit "HEAD")
-  (let ((default-directory repo-root-dir))
-    (mapcar #'expand-file-name
-            (split-string
-             (shell-command-to-string
-              (format "git diff -z --name-only %s --" (shell-quote-argument commit)))
-             "\0" t))))
+  (let ((default-directory repo-root-dir)
+        (message-log-max nil)
+        (current-message (current-message)))
+    (with-temp-message (concat current-message "  [Calling VCS...]")
+      (mapcar #'expand-file-name
+              (cl-nintersection
+               (split-string
+                (shell-command-to-string
+                 (format "git diff -z --name-only %s --" (shell-quote-argument commit)))
+                "\0" t)
+               (split-string
+                (shell-command-to-string
+                 (format "git diff -z --name-only 4b825dc642cb6eb9a060e54bf8d69288fbee4904 %s --"
+                         (shell-quote-argument commit)))
+                "\0" t)
+               :test #'equal)))))
 
 (defvar vc-git-diff-switches)
 (defun el-search--file-changed-p (file revision)
@@ -272,52 +284,59 @@ Uses variable `el-search--cached-changes' for caching."
             (goto-char 1)
             (cdr (setq el-search--cached-changes
                        (cons (list revision (visited-file-modtime))
-                             (and (el-search--file-changed-p buffer-file-name diff-hl-reference-revision)
-                                  (delq nil (mapcar (pcase-lambda (`(,start-line ,nbr-lines ,kind))
-                                                      (if (eq kind 'delete) nil
-                                                        (forward-line (- start-line current-line-nbr))
-                                                        (setq change-beg (point))
-                                                        (forward-line (1- nbr-lines))
-                                                        (setq current-line-nbr (+ start-line nbr-lines -1))
-                                                        (cons (copy-marker change-beg)
-                                                              (copy-marker (line-end-position)))))
-                                                    (ignore-errors
-                                                      (let ((default-directory (file-name-directory buffer-file-name)))
-                                                        (diff-hl-changes)))))))))))))))
+                             (and (el-search--file-changed-p
+                                   buffer-file-name diff-hl-reference-revision)
+                                  (delq nil
+                                        (mapcar (pcase-lambda (`(,start-line ,nbr-lines ,kind))
+                                                  (if (eq kind 'delete) nil
+                                                    (forward-line (- start-line current-line-nbr))
+                                                    (setq change-beg (point))
+                                                    (forward-line (1- nbr-lines))
+                                                    (setq current-line-nbr (+ start-line nbr-lines -1))
+                                                    (cons (copy-marker change-beg)
+                                                          (copy-marker (line-end-position)))))
+                                                (ignore-errors
+                                                  (let ((default-directory
+                                                          (file-name-directory buffer-file-name)))
+                                                    (diff-hl-changes)))))))))))))))
 
 (defun el-search--change-p (posn revision)
   ;; Non-nil when sexp after POSN is part of a change
-  (when (buffer-modified-p)
-    (user-error "Buffer is modified - please save"))
-  (save-restriction
-    (widen)
-    (let ((changes (el-search--changes-from-diff-hl revision))
-          (sexp-end (el-search--end-of-sexp posn))
-          (atomic? (thunk-delay (el-search--atomic-p
-                                 (save-excursion (goto-char posn)
-                                                 (el-search-read (current-buffer)))))))
-      (while (and changes (or (< (cdar changes) posn)
-                              (and
-                               ;; a string spanning multiple lines is a change even when not all
-                               ;; lines are changed
-                               (< (cdar changes) sexp-end)
-                               (not (thunk-force atomic?)))))
-        (pop changes))
-      (and changes (or (<= (caar changes) posn)
-                       (and (thunk-force atomic?)
-                            (<= (caar changes) sexp-end)))))))
+  (if (buffer-modified-p)
+      (if (eq this-command 'el-search-pattern)
+          (user-error "Buffer is modified - please save")
+        nil)
+    (save-restriction
+      (widen)
+      (let ((changes (el-search--changes-from-diff-hl revision))
+            (sexp-end (el-search--end-of-sexp posn))
+            (atomic? (thunk-delay (el-search--atomic-p
+                                   (save-excursion (goto-char posn)
+                                                   (el-search-read (current-buffer)))))))
+        (while (and changes (or (< (cdar changes) posn)
+                                (and
+                                 ;; a string spanning multiple lines is a change even when not all
+                                 ;; lines are changed
+                                 (< (cdar changes) sexp-end)
+                                 (not (thunk-force atomic?)))))
+          (pop changes))
+        (and changes (or (<= (caar changes) posn)
+                         (and (thunk-force atomic?)
+                              (<= (caar changes) sexp-end))))))))
 
 (defun el-search--changed-p (posn revision)
   ;; Non-nil when sexp after POSN contains a change
-  (when (buffer-modified-p)
-    (user-error "Buffer is modified - please save"))
-  (save-restriction
-    (widen)
-    (let ((changes (el-search--changes-from-diff-hl revision)))
-      (while (and changes (<= (cdar changes) posn))
-        (pop changes))
-      (and changes
-           (< (caar changes) (el-search--end-of-sexp posn))))))
+  (if (buffer-modified-p)
+      (if (eq this-command 'el-search-pattern)
+          (user-error "Buffer is modified - please save")
+        nil)
+    (save-restriction
+      (widen)
+      (let ((changes (el-search--changes-from-diff-hl revision)))
+        (while (and changes (<= (cdar changes) posn))
+          (pop changes))
+        (and changes
+             (< (caar changes) (el-search--end-of-sexp posn)))))))
 
 (defun el-search-change--heuristic-matcher (&optional revision)
   (let* ((revision (or revision "HEAD"))
@@ -349,8 +368,15 @@ Uses variable `el-search--cached-changes' for caching."
                                                      revision file))))))))))
     (lambda (file-name-or-buffer _) (funcall file-changed-p file-name-or-buffer))))
 
+(el-search-defpattern change--1 (&optional revision)
+  (declare (heuristic-matcher #'el-search-change--heuristic-matcher))
+  `(guard (el-search--change-p (point) ,(or revision "HEAD"))))
+
 (el-search-defpattern change (&optional revision)
   "Matches the object if its text is part of a file change.
+
+Matches anything that changed relative to REVISION.
+Never matches in a modified buffer.
 
 Requires library \"diff-hl\".  REVISION defaults to the file's
 repository's HEAD commit and is a revision string.  Customize
@@ -359,12 +385,18 @@ REVISION is interpreted.
 
 This pattern-type does currently only work for git versioned
 files."
+  `(and (filename) (change--1 ,revision)))
+
+(el-search-defpattern changed--1 (&optional revision)
   (declare (heuristic-matcher #'el-search-change--heuristic-matcher))
-  `(guard (el-search--change-p (point) ,(or revision "HEAD"))))
+  `(guard (el-search--changed-p (point) ,(or revision "HEAD"))))
 
 (el-search-defpattern changed (&optional revision)
   "Matches the object if its text contains a file change.
 
+Matches anything that textually contains a change relative to
+REVISION.  Never matches in a modified buffer.
+
 Requires library \"diff-hl\".  REVISION defaults to the file's
 repository's HEAD commit and is a revision string.  Customize
 `el-search-change-revision-transformer-function' to control how
@@ -372,8 +404,7 @@ REVISION is interpreted.
 
 This pattern-type does currently only work for git versioned
 files."
-  (declare (heuristic-matcher #'el-search-change--heuristic-matcher))
-  `(guard (el-search--changed-p (point) ,(or revision "HEAD"))))
+  `(and (filename) (changed--1 ,revision)))
 
 
 ;;;; `outermost' and `top-level'
@@ -443,7 +474,8 @@ matches any of these expressions:
   (when (eq (car-safe key-sequence) 'kbd)
     (setq key-sequence (kbd (cadr key-sequence))))
   (el-search-defpattern--check-args
-   "keys" (list key-sequence) (lambda (x) (or (stringp x) (vectorp x))) "argument not a string or vector")
+   "keys" (list key-sequence)
+   (lambda (x) (or (stringp x) (vectorp x))) "argument not a string or vector")
   `(pred (el-search--match-key-sequence ,key-sequence)))
 
 

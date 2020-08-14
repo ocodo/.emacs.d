@@ -1,0 +1,224 @@
+Some of the user visible news were:
+
+
+Version: 1.12.6
+
+  New command 'el-search-repository' to search the worktree or a
+  specified revision of a repository.
+
+Version: 1.12.5
+
+  The prefix argument of 'el-search-pattern' provides now analogue
+  functionalities as for 'el-search-query-replace': It normally
+  resumes the last search; 0 restarts the search and a negative or C-u
+  C-u prefix arg lets you choose an older search to resume.
+
+  'el-search-jump-to-search-head' has been renamed to
+  'el-search-jump'.  The meaning of the prefix arg has been limited to
+  the jump-by-matches applications, everything else can now be
+  accomplished with 'el-search-pattern'.
+
+Version: 1.12.4
+
+  Key syntax cleanup: In some cases the code used to bind some keys
+  twice: it bound events E1 and E2 where in some environments hitting
+  a certain key generates E1 in in others E2 where E2 is normally
+  translated into E1.  For example, the code created bindings for
+  "\C-j" and also for [(meta return)], although binding only "\C-j"
+  would suffice because in environments where [(meta return)] is
+  created it would be immediately translated to "\C-j".
+
+  That means that should you add a binding for the event that is
+  generated only in some environments like [(meta return)] in the
+  respective key map you would get the effect that your binding
+  shadows the el-search binding in some environments and in others
+  not.  If you experience something like that, check your init file if
+  you do something like that.
+
+Version: 1.12.2
+
+  Some changes to the 'el-search-query-replace' prompt to make it
+  shorter.  The keys o and e to show and ediff the replacement changed
+  to e and E ("edit", "Ediff").
+
+Version: 1.12.1
+
+  Like searches, 'el-search-query-replace' sessions are now also
+  internally represented by objects with state, which means you can do
+  similar things: Resuming or restarting sessions can be achieved by
+  calling the command `el-search-query-replace' with a prefix arg.
+  The new command 'el-search-query-replace-to-register' lets you save
+  the current session to a register.
+
+  The 'el-search-query-replace' user interface also got a new key "/"
+  that replaces all remaining matches in the current buffer
+  automatically and then suspends the session.  This gives you the
+  chance to check if everything is alright in that buffer before you
+  continue with the next file or buffer by resuming that session.
+
+Version: 1.11.3
+
+  When copying large parts of an *El Occur* buffer to the kill ring
+  (large here means "includes file headlines"), or you save an
+  *El Occur* buffer, matches are surrounded with --> <-- text markers
+  so that they are better visible when you send the output to someone
+  else, for example.  This can be turned off or be configured with the
+  new user option 'el-search-occur-match-markers'.
+
+Version: 1.11.1
+
+  Eldoc now displays signatures of search patterns for the search
+  pattern prompt.
+
+  Some 'display-buffer' actions have been slightly changed.
+
+Version: 1.10.2
+
+  New help command 'el-search-list-defined-patterns' listing all
+  currently defined pattern types.
+
+Version: 1.10.1
+
+  El-search now shows hints in the search pattern prompt when the new
+  user option 'el-search-display-mb-hints' is non-nil (the default).
+  This includes pointing to errors in the input and showing a match
+  count preview.
+
+Version: 1.9.7
+
+  Changed default binding schemes: For reasons of harmonization, in
+  both searches and in el-search-occur both of basic keys s, r and n, p
+  now move to the next or previous match.
+
+  The default binding of 'el-search-continue-in-next-buffer' therefore
+  has been moved from n to x respectively.
+
+Version: 1.9.5
+
+  'string' and derived pattern types now support expressions evaluting
+  to regexps as arguments.  This means you can use 'rx' to construct
+  regexps in 'string' patterns, for example.
+
+Version: 1.9.0
+
+  This version adds some help commands available through the C-h help
+  prefix.
+
+Version: 1.8.4
+
+  Quitting (C-g) while el-searching now brings you back to the
+  starting point like in isearch.
+
+Version: 1.8.3
+
+  `el-search-query-replace' now adds undo boundaries for each manual
+  replacement so that afterwards `undo' undoes replacements
+  step-by-step similar to vanilla `query-replace'.
+
+Version: 1.8
+
+  Several improvements in `el-search-query-replace':
+
+  It's now possible to edit the replacement in a separate buffer
+  without interrupting `el-search-query-replace', and to ediff the
+  current replacement with the current match (new keys 'o' and 'e').
+ 
+  Hitting the 'r' key now toggles between replacing a match without
+  moving and restoring the match.
+
+  After replacing a match with 'r', the key to go to the next match
+  changed from 'n' to 'y' which should feel more natural.
+
+  Depending on the value of the new user option
+  `el-search-query-replace-stop-for-comments',
+  `el-search-query-replace' can now interrupt automatic replacement
+  when it's not able to unumbigously assign comments in the current
+  match to the replacement.
+
+Version: 1.7.15
+
+  *El Occur* buffers are now initially unfolded.
+
+Version: 1.7.8
+
+  Similar to isearch, el-search now opens invisible text.
+
+Version: 1.7.7
+
+  The new scroll commands `el-search-scroll-down' and
+  `el-search-scroll-up', bound to C-S-next and C-S-prior, or v and V
+  respectively, perform by-match scrolling: `el-search-scroll-down'
+  scrolls the next matches after `window-end' into view, i.e. it
+  selects the first match after `window-end'.  Likewise,
+  `el-search-scroll-up' selects the last match before `window-start'.
+
+  You can now explicitly terminate (pause) search and query-replace
+  sessions by hitting RET.
+
+Version: 1.7.5
+
+  The meaning of the prefix argument of
+  `el-search-jump-to-search-head' (C-J or M-s e j with the default
+  bindings) has been extended: A numeric prefix N jumps to the Nth
+  match after `window-start', while a negative prefix -N jumps to the
+  Nth match before `window-end'.  Prefix 0 jumps to the match
+  following point, which is also useful to resume the current search
+  from any buffer position.  A former search can now be made current
+  with a plain C-u prefix arg.
+
+
+Version: 1.7.3
+
+  Match highlighting faces have been improved to look better on text
+  terminals.  Matches in *El Occur* buffers are now highlighted with a
+  separate face.
+
+Version: 1.7
+
+  Signature and semantics of non-interactive function
+  `el-search-forward' have been further adapted to that of the vanilla
+  search function `search-forward'.  The counterpart
+  `el-search-backward' has been added.
+
+  The new key bindings < and > let you directly jump to the first and
+  to the last match in a buffer.
+
+Version: 1.6.5
+
+  When the new user option `el-search-allow-scroll' is enabled (the
+  default), scrolling doesn't deactivate the current el-search.
+  Unlike isearch you can scroll the current match offscreen - use
+  `el-search-jump-to-search-head' (C-J or M-s e j when using the
+  suggested key bindings) to jump back to the current match.
+
+Version: 1.6.1
+
+  New function `el-search-looking-at', the el-search version of
+  `looking-at'.
+
+Version: 1.5.2
+
+  The new command `el-search-to-register' allows to save the current
+  search (including its state) to a register and later make that
+  search current again with `jump-to-register' (C-x r j).
+
+Version: 1.5.1
+
+  The new command `el-search-ibuffer-marked-buffers' el-searches the
+  marked buffers in *Ibuffer*.
+
+Version: 1.5
+
+  The new function `el-search-install-bindings-under-prefix' can be
+  used to install repeatable versions of the el-search commands under
+  a prefix key.
+
+Version: 1.4.0.15
+
+  The new option value 'ask-multi for el-search-auto-save-buffers,
+  which is also the new default, makes el-search only prompt for
+  whether to save buffers for multi-buffer query-replace sessions.
+  For single buffer sessions, no prompt, and you can/should save
+  yourself.  I find that behavior slightly more convenient than 'ask
+  in most cases.
+

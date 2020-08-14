@@ -1,0 +1,2 @@
+;; Generated package description from el-search.el  -*- no-byte-compile: t -*-
+(define-package "el-search" "1.12.6.1" "Expression based interactive search for Emacs Lisp" '((emacs "25") (stream "2.2.4") (cl-print "1.0")) :url "http://elpa.gnu.org/packages/el-search.html" :keywords '("lisp") :authors '(("Michael Heerdegen" . "michael_heerdegen@web.de")) :maintainer '("Michael Heerdegen" . "michael_heerdegen@web.de"))

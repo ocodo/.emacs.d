@@ -9,6 +9,9 @@
 ;;;### (autoloads nil "el-search" "el-search.el" (0 0 0 0))
 ;;; Generated autoloads from el-search.el
 
+(autoload 'el-search-list-defined-patterns "el-search" "\
+Pop up a help buffer listing defined el-search pattern types." t nil)
+
 (autoload 'el-search-count-matches "el-search" "\
 Like `count-matches' but accepting an el-search PATTERN instead of a regexp.
 
@@ -31,10 +34,7 @@ be preceded by whitespace.
 
 \(fn FUNCTION)" nil nil)
 
-(autoload 'el-search-install-shift-bindings "el-search" "\
-
-
-\(fn)" t nil)
+(autoload 'el-search-install-shift-bindings "el-search" nil t nil)
 
 (autoload 'el-search-install-bindings-under-prefix "el-search" "\
 
@@ -48,6 +48,10 @@ Search current buffer for expressions that are matched by
 PATTERN.  When called from the current search's current search
 buffer, continue that search from point.  Otherwise or when a new
 PATTERN is given, start a new single-buffer search from point.
+
+With prefix arg, generally resume the last search.  With prefix
+arg 0, restart it.  With C-u C-u or negative prefix arg, prompt
+for an older search to resume.
 
 The minibuffer is put into `emacs-lisp-mode' for reading the
 input pattern, and there are some special key bindings:
@@ -65,6 +69,8 @@ See `el-search-defined-patterns' for a list of defined patterns.
 \(fn PATTERN)" t nil)
 
 (function-put 'el-search-pattern 'interactive-only 'el-search-forward)
+
+(defalias 'el-search #'el-search-pattern)
 
 (autoload 'el-search-pattern-backward "el-search" "\
 Search the current buffer backward for matches of PATTERN.
@@ -125,13 +131,30 @@ El-search the buffers marked in *Ibuffer*.
 
 \(fn PATTERN BUFFER-NAMES)" t nil)
 
+(autoload 'el-search-repository "el-search" "\
+El-Search the Git repository under REPO-ROOT-DIR for PATTERN.
+Optional string arg REVISION specifies a repository revision.
+When nil or omitted, search the worktree.  When the second
+optional string argument FILE-REGEXP is specified, it should be a
+regexp, and only matching files will be el-searched.
+
+When called interactively, you are prompted for all arguments.
+
+Searching any REVISION is internally using temporarily files.
+
+\(fn REPO-ROOT-DIR PATTERN &optional REVISION FILE-REGEXP)" t nil)
+
 (autoload 'el-search-query-replace "el-search" "\
 Replace some matches of \"el-search\" pattern FROM-PATTERN.
 
-TO-EXPR is an Elisp expression that is evaluated repeatedly for
-each match with bindings created in FROM-PATTERN in effect to
-produce a replacement expression.  Operate from point
-to (point-max).
+With prefix arg, generally resume the last session; but with
+prefix arg 0 restart the last session, and with negative or plain
+C-u C-u prefix arg, prompt for an older session to resume.
+
+FROM-PATTERN is an el-search pattern to match.  TO-EXPR is an
+Elisp expression that is evaluated repeatedly for each match with
+bindings created in FROM-PATTERN in effect to produce a
+replacement expression.
 
 As each match is found, the user must type a character saying
 what to do with it.  For directions, type ? at that time.
@@ -145,50 +168,47 @@ you can also give an input of the form
 prompt and specify both expressions at once.  This format is also
 used for history entries.
 
-When called directly after a search command, use the current
-search to drive query-replace (like in isearch).  You get a
-multi-buffer query-replace this way when the current search is
-multi-buffer.  When not called after a search command,
-query-replace all matches following point in the current buffer.
+Operate from point to (point-max), unless when called directly
+after a search command; then use the current search to drive
+query-replace (similar to isearch).  You get a multi-buffer
+query-replace this way when the current search is multi-buffer.
 
-It is also possible to replace matches with an arbitrary number
-of expressions (even with zero expressions, effectively deleting
+It is possible to replace matches with an arbitrary number of
+expressions (even with zero expressions, effectively deleting
 matches) by using the \"splicing\" submode that can be toggled
 from the prompt with \"s\".  When splicing mode is on (default
 off), the replacement expression must evaluate to a list, and all
 of the list's elements are inserted in order.
 
-The optional argument TEXTUAL-TO is bound by the interactive form
-to the text form of the replacement expression specified.  It is
-consulted to construct the text form of each replacement.
+In a non-interactive call, FROM-PATTERN can be an
+el-search-query-replace-object to resume.  In this case the remaining
+arguments are ignored.
 
 \(fn FROM-PATTERN TO-EXPR &optional TEXTUAL-TO)" t nil)
 
 (autoload 'el-search-search-from-isearch "el-search" "\
 Switch to an el-search session from isearch.
-Reuse already given input.
-
-\(fn)" t nil)
+Reuse already given input." t nil)
 
 (autoload 'el-search-search-backward-from-isearch "el-search" "\
 Switch to `el-search-pattern-backward' from isearch.
-Reuse already given input.
-
-\(fn)" t nil)
+Reuse already given input." t nil)
 
 (autoload 'el-search-replace-from-isearch "el-search" "\
 Switch to `el-search-query-replace' from isearch.
-Reuse already given input.
-
-\(fn)" t nil)
+Reuse already given input." t nil)
 
 (autoload 'el-search-occur-from-isearch "el-search" "\
 Switch to `el-search-occur' from isearch.
-Reuse already given input.
+Reuse already given input." t nil)
 
-\(fn)" t nil)
+(require 'easymenu)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "el-search" '("el-search-" "copy-el-search-object")))
+(easy-menu-add-item nil '("Tools") `("El-Search" ["Search Directory" el-search-directory] ["Search Directory Recursively" ,(lambda nil (interactive) (let ((current-prefix-arg '(4))) (call-interactively #'el-search-directory)))] ["Search 'load-path'" el-search-load-path] ["Search Emacs Elisp Sources" el-search-emacs-elisp-sources] ["Search Elisp Buffers" el-search-buffers] ["Search Repository" el-search-repository] ["List Patterns" el-search-list-defined-patterns]))
+
+(easy-menu-add-item (lookup-key emacs-lisp-mode-map [menu-bar]) '("Emacs-Lisp") `("El-Search" ["Forward" el-search-pattern] ["Backward" el-search-pattern-backward] ["Sexp at Point" el-search-this-sexp] ["Resume Last Search" el-search-jump :enable el-search--current-search] ["Resume Former Search" ,(lambda nil (interactive) (el-search-jump '(4))) :enable (cdr (ring-elements el-search-history))] ["Query-Replace" el-search-query-replace :enable (not buffer-read-only)] ["Resume Query-Replace" ,(lambda nil (interactive) (el-search-query-replace el-search--current-query-replace nil)) :enable el-search--current-query-replace] ["Occur" ,(lambda nil (interactive) (defvar el-search-occur-flag) (let ((el-search-occur-flag t)) (call-interactively #'el-search-pattern)))]))
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "el-search" '("copy-el-search-object" "el-search-")))
 
 ;;;***
 
