@@ -21,8 +21,9 @@
 ;; SOFTWARE.
 ;;
 ;; Author: DarthFennec <darthfennec@derpymail.org>
-;; Version: 0.8.5
-;; Package-Version: 20181106.1821
+;; Version: 0.9.1
+;; Package-Version: 20200528.2128
+;; Package-Commit: a4f771418e4eed1f3f7879a43af28cf97747d41c
 ;; Package-Requires: ((emacs "24"))
 ;; URL: https://github.com/DarthFennec/highlight-indent-guides
 
@@ -43,7 +44,7 @@
 ;;
 ;;   (setq highlight-indent-guides-method METHOD)
 ;;
-;; Where METHOD is either 'fill, 'column, or 'character.
+;; Where METHOD is either 'fill, 'column, 'character, or 'bitmap.
 ;;
 ;; To change the character used for drawing guide lines with the 'character
 ;; method, use:
@@ -83,7 +84,7 @@
   :group 'highlight-indent-guides)
 
 (defface highlight-indent-guides-character-face '((t nil))
-  "Face to highlight guide line characters."
+  "Face to highlight guide line characters and bitmaps."
   :group 'highlight-indent-guides)
 
 (defface highlight-indent-guides-top-odd-face '((t nil))
@@ -95,7 +96,7 @@
   :group 'highlight-indent-guides)
 
 (defface highlight-indent-guides-top-character-face '((t nil))
-  "Face to highlight guide line characters."
+  "Face to highlight guide line characters and bitmaps."
   :group 'highlight-indent-guides)
 
 (defface highlight-indent-guides-stack-odd-face '((t nil))
@@ -107,7 +108,7 @@
   :group 'highlight-indent-guides)
 
 (defface highlight-indent-guides-stack-character-face '((t nil))
-  "Face to highlight guide line characters."
+  "Face to highlight guide line characters and bitmaps."
   :group 'highlight-indent-guides)
 
 (defcustom highlight-indent-guides-character ?\x2502
@@ -117,8 +118,8 @@
 
 (defcustom highlight-indent-guides-method 'fill
   "Method to use when displaying indent guides.
-This can be `fill', `column', or `character'."
-  :type '(choice (const fill) (const column) (const character))
+This can be `fill', `column', `character', or `bitmap'."
+  :type '(choice (const fill) (const column) (const character) (const bitmap))
   :group 'highlight-indent-guides)
 
 (defcustom highlight-indent-guides-responsive nil
@@ -139,6 +140,16 @@ background color to automatically calculate reasonable indent guide colors."
   :type 'boolean
   :group 'highlight-indent-guides)
 
+(defcustom highlight-indent-guides-suppress-auto-error nil
+  "Whether to suppress the error that sometimes prints when calculating faces.
+When automatically calculating faces, sometimes there will be an error that
+\"`default' face is not set properly\".  If this flag is enabled,
+highlight-indent-guides will not print this error.  This can be helpful in
+situations where faces are calculated correctly, but the error is printed
+anyway, which can be annoying."
+  :type 'boolean
+  :group 'highlight-indent-guides)
+
 (defcustom highlight-indent-guides-highlighter-function
   'highlight-indent-guides--highlighter-default
   "Determine the correct face to use for a given indentation level.
@@ -151,6 +162,20 @@ can be `fill', `column', or `character'.  The return value is either the face to
 apply to the guide character, or nil if the guide should not be displayed at
 all.  The results of this function are cached per indentation character, so the
 function should consistently return the same output given the same input."
+  :type 'function
+  :group 'highlight-indent-guides)
+
+(defcustom highlight-indent-guides-bitmap-function
+  'highlight-indent-guides--bitmap-dots
+  "Determine the shape of the indent guide bitmap.
+Customizable function which 'draws' the indent guide bitmap.  The function is
+called once per indentation character, and takes three parameters: WIDTH and
+HEIGHT are the pixel width and height of the character, and CREP is the
+character that should be used to represent a colored pixel.  The return value is
+a list of strings, with each string representing a row of pixels.  The list
+should be HEIGHT in size, and each string in the list should be WIDTH in size.
+Each character represents a pixel, and should be CREP if the pixel is colored,
+and ?0 if it isn't colored."
   :type 'function
   :group 'highlight-indent-guides)
 
@@ -576,19 +601,19 @@ Uses the LEVEL, RESPONSIVE context, and DISPLAY method to decide on a correct
 face for any given indentation.  This is the default implementation of
 `highlight-indent-guides-highlighter-function'."
   (cond ((null responsive)
-         (cond ((eq display 'character)
+         (cond ((or (eq display 'character) (eq display 'bitmap))
                 'highlight-indent-guides-character-face)
                ((zerop (mod level 2))
                 'highlight-indent-guides-even-face)
                (t 'highlight-indent-guides-odd-face)))
         ((eq responsive 'top)
-         (cond ((eq display 'character)
+         (cond ((or (eq display 'character) (eq display 'bitmap))
                 'highlight-indent-guides-top-character-face)
                ((zerop (mod level 2))
                 'highlight-indent-guides-top-even-face)
                (t 'highlight-indent-guides-top-odd-face)))
         ((eq responsive 'stack)
-         (cond ((eq display 'character)
+         (cond ((or (eq display 'character) (eq display 'bitmap))
                 'highlight-indent-guides-stack-character-face)
                ((zerop (mod level 2))
                 'highlight-indent-guides-stack-even-face)
@@ -629,10 +654,10 @@ The guide's data is given as PROP."
 
 (defun highlight-indent-guides--fill-highlighter ()
   "Apply highlighting to the indentation.
-Return highlighting information for the character at START.  Highlights all
+Return highlighting information for the matched character.  Highlights all
 indentation characters in alternating colors.  This is meant to be used as a
 `font-lock-keywords' face definition."
-  (let* ((prop (get-text-property start 'highlight-indent-guides-prop))
+  (let* ((prop (get-text-property (match-beginning 0) 'highlight-indent-guides-prop))
          (shouldhl (highlight-indent-guides--should-highlight prop)))
     (highlight-indent-guides--cache-highlight
      'fill prop shouldhl
@@ -652,10 +677,10 @@ indentation characters in alternating colors.  This is meant to be used as a
 
 (defun highlight-indent-guides--column-highlighter ()
   "Apply highlighting to the indentation.
-Return highlighting information for the character at START.  Highlights the
+Return highlighting information for the matched character.  Highlights the
 first column of each indentation level in alternating colors.  This is meant to
 be used as a `font-lock-keywords' face definition."
-  (let* ((prop (get-text-property start 'highlight-indent-guides-prop))
+  (let* ((prop (get-text-property (match-beginning 0) 'highlight-indent-guides-prop))
          (shouldhl (highlight-indent-guides--should-highlight prop)))
     (highlight-indent-guides--cache-highlight
      'column prop shouldhl
@@ -677,10 +702,10 @@ be used as a `font-lock-keywords' face definition."
 
 (defun highlight-indent-guides--character-highlighter ()
   "Apply highlighting to the indentation.
-Return highlighting information for the character at START.  Displays a
-character in place of the first column of each indentation level.  This is meant
-to be used as a `font-lock-keywords' face definition."
-  (let* ((prop (get-text-property start 'highlight-indent-guides-prop))
+Return highlighting information for the matched character.  Displays a character
+in place of the first column of each indentation level.  This is meant to be
+used as a `font-lock-keywords' face definition."
+  (let* ((prop (get-text-property (match-beginning 0) 'highlight-indent-guides-prop))
          (shouldhl (highlight-indent-guides--should-highlight prop)))
     (highlight-indent-guides--cache-highlight
      'character prop shouldhl
@@ -709,6 +734,109 @@ to be used as a `font-lock-keywords' face definition."
            (setq facep (1+ facep)))
          `(face nil display ,showstr))))))
 
+(defun highlight-indent-guides--bitmap-highlighter ()
+  "Apply highlighting to the indentation.
+Return highlighting information for the matched character.  Displays a bitmap in
+place of the first column of each indentation level.  This is meant to be used
+as a `font-lock-keywords' face definition."
+  (let* ((prop (get-text-property (match-beginning 0) 'highlight-indent-guides-prop))
+         (shouldhl (highlight-indent-guides--should-highlight prop)))
+    (highlight-indent-guides--cache-highlight
+     'bitmap prop shouldhl
+     (let ((highlighter highlight-indent-guides-highlighter-function)
+           (facep (car prop)) (segs (nth 1 prop))
+           (starter (nth 2 prop)) (cwidth (nth 3 prop))
+           face facelist showbmp)
+       (if (and (null segs) (eq cwidth 1))
+           (progn
+             (setq face (funcall highlighter facep (car shouldhl) 'bitmap))
+             (when face
+               (setq showbmp (highlight-indent-guides--draw-bitmap
+                              (funcall
+                               highlight-indent-guides-bitmap-function
+                               (default-font-width) (default-font-height) ?1)
+                              (list (cons "1" (face-foreground face))))))
+             `(face nil display ,showbmp))
+         (setq facelist (make-list cwidth nil))
+         (when starter
+           (setq face (funcall highlighter facep (pop shouldhl) 'bitmap))
+           (when face (setcar facelist (face-foreground face))))
+         (dolist (seg segs)
+           (setq face (funcall highlighter facep (pop shouldhl) 'bitmap))
+           (when face (setcar (nthcdr seg facelist) (face-foreground face)))
+           (setq facep (1+ facep)))
+         (setq showbmp (highlight-indent-guides--concat-bitmap
+                        (default-font-width) (default-font-height) facelist))
+         `(face nil display ,showbmp))))))
+
+(defun highlight-indent-guides--concat-bitmap (width height facelist)
+  "Build a concatenated XPM image based on FACELIST.
+FACELIST represents characters in the guide block (nil for no guide, and a color
+string for a guide with that color).  WIDTH and HEIGHT are the width and height
+of each character in the block."
+  (let ((res (make-list height ""))
+        (crep 0)
+        colors nextbmp)
+    (while (not (null facelist))
+      (if (null (car facelist))
+          (let ((zlen 0))
+            (while (and (not (null facelist)) (null (car facelist)))
+              (setq zlen (+ zlen width))
+              (setq facelist (cdr facelist)))
+            (dotimes (i height)
+              (setcar (nthcdr i res) (concat (nth i res) (make-string zlen ?0)))))
+        (setq crep (1+ crep))
+        (setq nextbmp (funcall
+                       highlight-indent-guides-bitmap-function
+                       width height (string-to-char (number-to-string crep))))
+        (setq colors (cons (cons (number-to-string crep) (car facelist)) colors))
+        (setq facelist (cdr facelist))
+        (dotimes (i height)
+          (setcar (nthcdr i res) (concat (nth i res) (nth i nextbmp))))))
+    (highlight-indent-guides--draw-bitmap res colors)))
+
+(defun highlight-indent-guides--draw-bitmap (lines colorset)
+  "Using pixel data LINES and color data COLORSET, build an XPM image."
+  (let* ((width (length (car lines)))
+         (height (length lines))
+         (start "/* XPM */\nstatic char *guide[] = {")
+         (size (concat "\"" (number-to-string width) " "
+                       (number-to-string height) " "
+                       (number-to-string (1+ (length colorset))) " 1\","))
+         (colors "\"0 c None\",")
+         (pixels (concat "\"" (mapconcat 'identity lines "\",\"") "\""))
+         (end "};")
+         data csym)
+    (dolist (color colorset)
+      (setq colors (concat colors "\"" (car color) " c color" (car color) "\","))
+      (setq csym (cons (cons (concat "color" (car color)) (cdr color)) csym)))
+    (setq data (concat start size colors pixels end))
+    `(image :type xpm :data ,data :mask heuristic :ascent center
+            :color-symbols ,csym)))
+
+(defun highlight-indent-guides--bitmap-line (width height crep)
+  "Defines a solid guide line, two pixels wide."
+  (let* ((left (/ (- width 2) 2))
+         (right (- width left 2))
+         (row (concat (make-string left ?0) (make-string 2 crep) (make-string right ?0)))
+         rows)
+    (dotimes (i height rows)
+      (setq rows (cons row rows)))))
+
+(defun highlight-indent-guides--bitmap-dots (width height crep)
+  "Defines a dotted guide line, with 2x2 pixel dots, and four dots per row."
+  (let* ((left (/ (- width 2) 2))
+         (right (- width left 2))
+         (space (/ height 4))
+         (space1 (/ (- space 2) 2))
+         (row1 (concat (make-string left ?0) (make-string 2 crep) (make-string right ?0)))
+         (row2 (make-string width ?0))
+         rows)
+    (dotimes (i height rows)
+      (if (let ((x (mod (- i space1) space))) (or (eq x 0) (eq x 1)))
+          (setq rows (cons row1 rows))
+        (setq rows (cons row2 rows))))))
+
 (defun highlight-indent-guides--overdraw (start end)
   "Overdraw the guides in the region from START to END.
 This function is like `font-lock-fontify-region' or `font-lock-ensure', except
@@ -724,12 +852,14 @@ recursively."
                (pcase highlight-indent-guides-method
                  (`fill 'highlight-indent-guides--fill-keyword-matcher)
                  (`column 'highlight-indent-guides--column-keyword-matcher)
-                 (`character 'highlight-indent-guides--column-keyword-matcher)))
+                 (`character 'highlight-indent-guides--column-keyword-matcher)
+                 (`bitmap 'highlight-indent-guides--column-keyword-matcher)))
               (highlight
                (pcase highlight-indent-guides-method
                  (`fill 'highlight-indent-guides--fill-highlighter)
                  (`column 'highlight-indent-guides--column-highlighter)
-                 (`character 'highlight-indent-guides--character-highlighter)))
+                 (`character 'highlight-indent-guides--character-highlighter)
+                 (`bitmap 'highlight-indent-guides--bitmap-highlighter)))
               (inhibit-point-motion-hooks t))
           (unless font-lock-dont-widen (widen))
           (goto-char start)
@@ -768,9 +898,10 @@ This runs whenever a theme is loaded, but it can also be run interactively."
            (scharp highlight-indent-guides-auto-stack-character-face-perc)
            mod fl bl)
       (if (not (and fg bg))
-          (message "Error: %s: %s"
-                   "highlight-indent-guides cannot auto set faces"
-                   "`default' face is not set properly")
+          (unless highlight-indent-guides-suppress-auto-error
+            (message "Error: %s: %s"
+                     "highlight-indent-guides cannot auto set faces"
+                     "`default' face is not set properly"))
         (setq fl (nth 2 (apply 'color-rgb-to-hsl fg)))
         (setq bl (nth 2 (apply 'color-rgb-to-hsl bg)))
         (setq mod (cond ((< fl bl) -1) ((> fl bl) 1) ((< 0.5 bl) -1) (t 1)))
@@ -789,6 +920,13 @@ This runs whenever a theme is loaded, but it can also be run interactively."
 If this feature is enabled, calculate reasonable values for the indent guide
 colors based on the current theme's colorscheme, and set them appropriately.
 This runs whenever a theme is loaded."
+  (highlight-indent-guides-auto-set-faces))
+
+(defadvice disable-theme (after highlight-indent-guides-auto-set-faces disable)
+  "Automatically calculate indent guide faces.
+If this feature is enabled, calculate reasonable values for the indent guide
+colors based on the current theme's colorscheme, and set them appropriately.
+This runs whenever a theme is disabled."
   (highlight-indent-guides-auto-set-faces))
 
 (defun highlight-indent-guides--auto-set-faces-with-frame (frame)
@@ -812,7 +950,10 @@ This function is designed to run from the `after-make-frame-functions' hook."
             0 (highlight-indent-guides--column-highlighter) t)))
         (character-method-keywords
          '((highlight-indent-guides--column-keyword-matcher
-            0 (highlight-indent-guides--character-highlighter) t))))
+            0 (highlight-indent-guides--character-highlighter) t)))
+        (bitmap-method-keywords
+         '((highlight-indent-guides--column-keyword-matcher
+            0 (highlight-indent-guides--bitmap-highlighter) t))))
     (when highlight-indent-guides--idle-timer
       (cancel-timer highlight-indent-guides--idle-timer)
       (setq highlight-indent-guides--idle-timer nil))
@@ -828,6 +969,9 @@ This function is designed to run from the `after-make-frame-functions' hook."
           (ad-enable-advice 'load-theme 'after
                             'highlight-indent-guides-auto-set-faces)
           (ad-activate 'load-theme)
+          (ad-enable-advice 'disable-theme 'after
+                            'highlight-indent-guides-auto-set-faces)
+          (ad-activate 'disable-theme)
           (add-to-list 'font-lock-extra-managed-props 'display)
           (add-to-list 'text-property-default-nonsticky
                        (cons 'highlight-indent-guides-prop t))
@@ -840,7 +984,8 @@ This function is designed to run from the `after-make-frame-functions' hook."
            (pcase highlight-indent-guides-method
              (`fill fill-method-keywords)
              (`column column-method-keywords)
-             (`character character-method-keywords))
+             (`character character-method-keywords)
+             (`bitmap bitmap-method-keywords))
            t)
           (jit-lock-register 'highlight-indent-guides--guide-region))
       (setq after-make-frame-functions
@@ -849,6 +994,9 @@ This function is designed to run from the `after-make-frame-functions' hook."
       (ad-disable-advice 'load-theme 'after
                          'highlight-indent-guides-auto-set-faces)
       (ad-activate 'load-theme)
+      (ad-disable-advice 'disable-theme 'after
+                         'highlight-indent-guides-auto-set-faces)
+      (ad-activate 'disable-theme)
       (font-lock-remove-keywords nil fill-method-keywords)
       (font-lock-remove-keywords nil column-method-keywords)
       (font-lock-remove-keywords nil character-method-keywords)
