@@ -1,9 +1,12 @@
 ;;; elnode-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (or (file-name-directory #$) (car load-path)))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "elnode" "elnode.el" (21721 25886 0 0))
+;;;### (autoloads nil "elnode" "elnode.el" (0 0 0 0))
 ;;; Generated autoloads from elnode.el
 
 (defconst elnode-config-directory (expand-file-name (concat user-emacs-directory "elnode/")) "\
@@ -30,7 +33,7 @@ of your module (which is useful for serving files and such).
 
 \(fn DIR-VAR &rest FEATURES)" nil t)
 
-(put 'elnode-app 'lisp-indent-function '1)
+(function-put 'elnode-app 'lisp-indent-function '1)
 
 (autoload 'elnode-start "elnode" "\
 Start a server using REQUEST-HANDLER.
@@ -81,7 +84,7 @@ The list of SERVICE-MAPPINGS is also used to start ancilliary
 port servers.  Ancilliary port servers should be automatically
 stopped when the main server is stopped.
 
-\(fn REQUEST-HANDLER &key PORT (host \"localhost\") (defer-mode :managed) SERVICE-MAPPINGS)" t nil)
+\(fn REQUEST-HANDLER &key PORT (HOST \"localhost\") (DEFER-MODE :managed) SERVICE-MAPPINGS)" t nil)
 
 (defvar elnode-hostpath-default-table '(("[^/]+//wiki/\\(.*\\)" . elnode-wikiserver) ("[^/]+//\\(.*\\)" . elnode-webserver)) "\
 Defines mappings for `elnode-hostpath-default-handler'.
@@ -148,9 +151,7 @@ load.  If the variable `elnode-init-port' is set then this
 function will launch a server on it.
 
 The server is started with `elnode-hostpath-default-handler' as
-the handler and listening on `elnode-init-host'
-
-\(fn)" t nil)
+the handler and listening on `elnode-init-host'" t nil)
 
 (defvar elnode-do-init nil "\
 Should elnode start a server on load?
@@ -167,10 +168,11 @@ in `elnode-webserver-docroot', which by default is ~/public_html.")
 
 (eval-after-load 'elnode '(if (and (boundp 'elnode-do-init) elnode-do-init (or (not (boundp 'elnode--inited)) (not elnode--inited))) (progn (elnode-init) (setq elnode--inited nil))))
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "elnode" '("ELNODE-FORM-DATA-TYPE" "elnode" "http-referrer" "if-elnode-auth" "should-" "with-")))
+
 ;;;***
 
-;;;### (autoloads nil "elnode-lists" "elnode-lists.el" (21721 25886
-;;;;;;  0 0))
+;;;### (autoloads nil "elnode-lists" "elnode-lists.el" (0 0 0 0))
 ;;; Generated autoloads from elnode-lists.el
 
 (autoload 'elnode-deferred-queue "elnode-lists" "\
@@ -192,10 +194,12 @@ List the currently running Elnode servers.
 
 (defalias 'list-elnode-servers 'elnode-server-list)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "elnode-lists" '("elnode-")))
+
 ;;;***
 
-;;;### (autoloads nil "elnode-log-mode" "elnode-log-mode.el" (21721
-;;;;;;  25886 0 0))
+;;;### (autoloads nil "elnode-log-mode" "elnode-log-mode.el" (0 0
+;;;;;;  0 0))
 ;;; Generated autoloads from elnode-log-mode.el
 
 (autoload 'elnode-log-mode "elnode-log-mode" "\
@@ -207,8 +211,7 @@ For viewing access log files from Elnode.
 
 ;;;***
 
-;;;### (autoloads nil "elnode-proxy" "elnode-proxy.el" (21721 25886
-;;;;;;  0 0))
+;;;### (autoloads nil "elnode-proxy" "elnode-proxy.el" (0 0 0 0))
 ;;; Generated autoloads from elnode-proxy.el
 
 (autoload 'elnode-make-proxy "elnode-proxy" "\
@@ -243,10 +246,26 @@ Interactively use C-u to specify the URL.
 
 \(fn PORT &optional URL)" t nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "elnode-proxy" '("elnode")))
+
 ;;;***
 
-;;;### (autoloads nil "elnode-wiki" "elnode-wiki.el" (21721 25886
-;;;;;;  0 0))
+;;;### (autoloads nil "elnode-rle" "elnode-rle.el" (0 0 0 0))
+;;; Generated autoloads from elnode-rle.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "elnode-rle" '("elnode-" "with-elnode-rle-wait")))
+
+;;;***
+
+;;;### (autoloads nil "elnode-testsupport" "elnode-testsupport.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from elnode-testsupport.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "elnode-testsupport" '("elnode-")))
+
+;;;***
+
+;;;### (autoloads nil "elnode-wiki" "elnode-wiki.el" (0 0 0 0))
 ;;; Generated autoloads from elnode-wiki.el
 
 (defconst elnode-wikiserver-wikiroot-default (expand-file-name (concat elnode-config-directory "wiki/")) "\
@@ -263,9 +282,7 @@ This is where elnode-wikiserver serves wiki files from.")
 (custom-autoload 'elnode-wikiserver-wikiroot "elnode-wiki" t)
 
 (autoload 'elnode-wikiserver-test "elnode-wiki" "\
-Test whether we should serve Wiki or not.
-
-\(fn)" nil nil)
+Test whether we should serve Wiki or not." nil nil)
 
 (autoload 'elnode-wikiserver "elnode-wiki" "\
 Serve Wiki pages from `elnode-wikiserver-wikiroot'.
@@ -277,10 +294,11 @@ provided. Otherwise it will just error.
 
 \(fn HTTPCON)" nil nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "elnode-wiki" '("elnode-wiki")))
+
 ;;;***
 
-;;;### (autoloads nil nil ("elnode-pkg.el" "elnode-rle.el" "elnode-testsupport.el")
-;;;;;;  (21721 25886 245343 0))
+;;;### (autoloads nil nil ("elnode-pkg.el") (0 0 0 0))
 
 ;;;***
 
@@ -288,5 +306,6 @@ provided. Otherwise it will just error.
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; elnode-autoloads.el ends here

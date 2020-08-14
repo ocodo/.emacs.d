@@ -59,6 +59,8 @@ specified path and query."
            (cons "query" (if (s-blank? params) ""
                              (concat "?" params)))
            (cons "params" params)))
+         ;; `aget' here is just a symbol, not a function. It refers to an
+         ;; internal s--aget function.
          (web-url (s-format url 'aget params-alist))
          hdr-sent)
       (process-put

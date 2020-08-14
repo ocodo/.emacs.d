@@ -1,9 +1,10 @@
 ;;; elnode.el --- a simple emacs async HTTP server -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2010, 2011, 2012  Nic Ferrier
+;; Copyright (C) 2019  GitHub user "Jcaw"
 
 ;; Author: Nic Ferrier <nferrier@ferrier.me.uk>
-;; Maintainer: Nic Ferrier <nferrier@ferrier.me.uk>
+;; Maintainer: GitHub user "Jcaw"
 ;; Created: 5th October 2010
 ;; Keywords: lisp, http, hypermedia
 
@@ -25,7 +26,7 @@
 ;;; Source code
 ;;
 ;; elnode's code can be found here:
-;;   http://github.com/nicferrier/elnode
+;;   http://github.com/jcaw/elnode
 
 ;;; Style note
 ;;
@@ -56,7 +57,6 @@
 (require 'mail-parse) ; for mail-header-parse-content-type
 (require 'url-util)
 (require 'kv)
-(require 'assoc) ; for aget - which we could move to kv?
 (require 's)
 (require 'dash)
 (require 'rx)
@@ -1300,7 +1300,7 @@ Serves only to connect the server process to the client processes"
      :name "*elnode-webserver-proc*"
      :buffer an-buf
      :server t
-     :nowait 't
+     :nowait (< emacs-major-version 26)
      :host (cond
              ((equal host "localhost") 'local)
              ((equal host "*") nil)
@@ -1447,7 +1447,7 @@ The port is chosen randomly from the ephemeral ports. "
                     (make-network-process
                      :name "*test-proc*"
                      :server t
-                     :nowait 't
+                     :nowait (< emacs-major-version 26)
                      :host 'local
                      :service port
                      :family 'ipv4))
@@ -1730,8 +1730,8 @@ A is considered the priority (its elements go in first)."
            (let* ((cde
                    (mail-header-parse-content-disposition
                     (kva "content-disposition" alist)))
-                  (name (aget (cdr cde) 'name))
-                  (filename (aget (cdr cde) 'filename))
+                  (name (alist-get 'name (cdr cde)))
+                  (filename (alist-get 'filename (cdr cde)))
                   (pt (point)))
              ;; Find the next end point
              (setq next-boundary
@@ -1746,7 +1746,7 @@ A is considered the priority (its elements go in first)."
 
 (defun elnode--http-post-mp-decode (httpcon parsed-content-type)
   "Decode the HTTP POST multipart thing on HTTPCON."
-  (let ((boundary (aget (cdr parsed-content-type) 'boundary))
+  (let ((boundary (alist-get 'boundary (cdr parsed-content-type)))
         (buf (process-buffer httpcon))
         (hdr-end-pt (process-get httpcon :elnode-header-end)))
     (elnode--http-mp-decode buf hdr-end-pt boundary)))
@@ -3764,7 +3764,7 @@ the key \"token\" with a user's token.  Whatever else the alist
 contains is irrelevant."
   (let ((user (db-get username database)))
     (when user
-      (aget user "token"))))
+      (alist-get "token" user nil nil 'equal))))
 
 (defun* elnode-auth--make-login-handler
     (&key
