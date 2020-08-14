@@ -1,16 +1,19 @@
 ;;; evil-easymotion-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "evil-easymotion" "evil-easymotion.el" (23138
-;;;;;;  48732 770383 954000))
+;;;### (autoloads nil "evil-easymotion" "evil-easymotion.el" (0 0
+;;;;;;  0 0))
 ;;; Generated autoloads from evil-easymotion.el
 
 (autoload 'evilem--collect "evil-easymotion" "\
 Repeatedly execute func, and collect the cursor positions into a list
 
-\(fn FUNC &optional SCOPE ALL-WINDOWS INITIAL-POINT SORT-KEY COLLECT-POSTPROCESS)" nil nil)
+\(fn FUNC &optional SCOPE ALL-WINDOWS INITIAL-POINT SORT-KEY COLLECT-POSTPROCESS INCLUDE-INVISIBLE)" nil nil)
  (autoload 'evilem-motion-forward-word-begin "evil-easymotion" nil t)
  (autoload 'evilem-motion-forward-WORD-begin "evil-easymotion" nil t)
  (autoload 'evilem-motion-forward-word-end "evil-easymotion" nil t)
@@ -45,11 +48,14 @@ Define easymotions for all motions evil defines by default
 
 \(fn PREFIX)" nil nil)
 
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "evil-easymotion" '("evilem-")))
+
 ;;;***
 
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; evil-easymotion-autoloads.el ends here
