@@ -1,2 +1,0 @@
-;;; -*- no-byte-compile: t -*-
-(define-package "evil-snipe" "20180731.1731" "emulate vim-sneak & vim-seek" '((emacs "24.4") (evil "1.2.12") (cl-lib "0.5")) :commit "8dd076cc56eb9b04494e4e303b86a959b048350b" :keywords '("emulation" "vim" "evil" "sneak" "seek") :authors '(("Henrik Lissner <http://github/hlissner>")) :maintainer '("Henrik Lissner" . "henrik@lissner.net") :url "https://github.com/hlissner/evil-snipe")

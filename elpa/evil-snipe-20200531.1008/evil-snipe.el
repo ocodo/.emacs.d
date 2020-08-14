@@ -1,13 +1,14 @@
 ;;; evil-snipe.el --- emulate vim-sneak & vim-seek
 ;;
-;; Copyright (C) 2014-18 Henrik Lissner
+;; Copyright (C) 2014-20 Henrik Lissner
 ;;
 ;; Author: Henrik Lissner <http://github/hlissner>
 ;; Maintainer: Henrik Lissner <henrik@lissner.net>
 ;; Created: December 5, 2014
 ;; Modified: July 31, 2018
 ;; Version: 2.1.2
-;; Package-Version: 20180731.1731
+;; Package-Version: 20200531.1008
+;; Package-Commit: 6dcac7f2516c6137a2de532fc2c052f242559ee3
 ;; Keywords: emulation, vim, evil, sneak, seek
 ;; Homepage: https://github.com/hlissner/evil-snipe
 ;; Package-Requires: ((emacs "24.4") (evil "1.2.12") (cl-lib "0.5"))
@@ -391,6 +392,7 @@ interactive codes. KEYMAP is the transient map to activate afterwards."
   (let ((regex (mapconcat #'cdr data ""))
         result)
     (when (and evil-snipe-skip-leading-whitespace
+               (looking-at-p "[ \t]+")
                (string-match-p "^[ \t]+" (mapconcat #'car data "")))
       (setq regex (concat regex "[^ \t]")))
     (when (setq result (re-search-forward regex scope t count))
@@ -502,11 +504,15 @@ interactive codes. KEYMAP is the transient map to activate afterwards."
   (evil-snipe-repeat (or (and (integerp count) (- count)) -1)))
 
 ;;;###autoload
-(defmacro evil-snipe-def (n type forward-key backward-key)
+(cl-defmacro evil-snipe-def (n type forward-key backward-key
+                               &key forward-fn backward-fn)
   "Define a N-char snipe, and bind it to FORWARD-KEY and BACKWARD-KEY. TYPE can
-be inclusive or exclusive."
-  (let ((forward-fn  (intern (format "evil-snipe-%s" forward-key)))
-        (backward-fn (intern (format "evil-snipe-%s" backward-key)))
+be inclusive or exclusive. Specify FORWARD-FN and/or BACKWARD-FN to explicitly
+choose the function names."
+  (let ((forward-fn  (or forward-fn
+                         (intern (format "evil-snipe-%s" forward-key))))
+        (backward-fn (or backward-fn
+                         (intern (format "evil-snipe-%s" backward-key))))
         (inclusive-p (eq (evil-unquote type) 'inclusive)))
     `(progn
        (evil-define-motion ,forward-fn (count keys)
