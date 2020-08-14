@@ -19,7 +19,8 @@ use ordinary undo to get your code back to its previous state.
 You will need to install external programs to do the formatting.
 If the command can't find the program that it needs, it will try
 to tell you how you might be able to install it on your operating
-system.  Only Emacs Lisp is formatted without an external program.
+system. Only BibTeX, Emacs Lisp and Ledger are formatted without an
+external program.
 
 A suitable formatter is selected according to the `major-mode' of
 the buffer.  Many popular programming languages are supported.
@@ -27,9 +28,7 @@ It is fairly easy to add new languages that have an external
 formatter.
 
 If any errors or warnings were encountered during formatting,
-they are shown in a buffer called *format-all-errors*.
-
-\(fn)" t nil)
+they are shown in a buffer called *format-all-errors*." t nil)
 
 (autoload 'format-all-mode "format-all" "\
 Toggle automatic source code formatting before save.
@@ -66,7 +65,7 @@ or zero, and enabled otherwise.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "format-all" '("format-all-" "shfmt" "sqlformat" "swiftformat" "rufo" "rustfmt" "perltidy" "prettier" "ocp-indent" "mix-format" "ktlint" "html-tidy" "gofmt" "elm-format" "emacs-lisp" "define-format-all-formatter" "dfmt" "crystal" "black" "brittany" "asmfmt")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "format-all" '("asmfmt" "bibtex-mode" "black" "brittany" "buildifier" "cabal-fmt" "cmake-format" "crystal" "dartfmt" "define-format-all-formatter" "dfmt" "dhall" "dockfmt" "elm-format" "emacs-lisp" "fish-indent" "format-all-" "fprettify" "gleam" "gofmt" "html-tidy" "istyle-verilog" "jsonnetfmt" "ktlint" "latexindent" "ledger-mode" "lua-fmt" "mix-format" "nixfmt" "ocp-indent" "perltidy" "prettier" "purty" "rufo" "rustfmt" "scalafmt" "shfmt" "snakefmt" "sqlformat" "styler" "swiftformat" "terraform-fmt")))
 
 ;;;***
 
