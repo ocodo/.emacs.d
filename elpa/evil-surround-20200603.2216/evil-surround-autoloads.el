@@ -28,17 +28,20 @@ overlays OUTER and INNER, which are passed to `evil-surround-delete'.
 (autoload 'evil-surround-mode "evil-surround" "\
 Buffer-local minor mode to emulate surround.vim.
 
+If called interactively, enable Evil-Surround mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (autoload 'turn-on-evil-surround-mode "evil-surround" "\
-Enable evil-surround-mode in the current buffer.
-
-\(fn)" nil nil)
+Enable evil-surround-mode in the current buffer." nil nil)
 
 (autoload 'turn-off-evil-surround-mode "evil-surround" "\
-Disable evil-surround-mode in the current buffer.
+Disable evil-surround-mode in the current buffer." nil nil)
 
-\(fn)" nil nil)
+(put 'global-evil-surround-mode 'globalized-minor-mode t)
 
 (defvar global-evil-surround-mode nil "\
 Non-nil if Global Evil-Surround mode is enabled.

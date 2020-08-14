@@ -1,16 +1,18 @@
 ;;; evil-surround.el --- emulate surround.vim from Vim
 
 ;; Copyright (C) 2010 - 2017 Tim Harper
+;; Copyright (C) 2018 - 2020 The evil-surround.el Contributors
 
 ;; Licensed under the same terms as Emacs (GPLv3)
 
 ;;
 ;; Author: Tim Harper <timcharper at gmail dot com>
-;;      Vegard Øye <vegard_oye at hotmail dot com>
+;;         Vegard Øye <vegard_oye at hotmail dot com>
 ;; Current Maintainer: ninrod (github.com/ninrod)
 ;; Created: July 23 2011
-;; Version: 0.1
-;; Package-Version: 20181020.1248
+;; Version: 1.0.3
+;; Package-Version: 20200603.2216
+;; Package-Commit: 346d4d85fcf1f9517e9c4991c1efe68b4130f93a
 ;; Package-Requires: ((evil "1.2.12"))
 ;; Mailing list: <implementations-list at lists.ourproject.org>
 ;;      Subscribe: http://tinyurl.com/implementations-list
@@ -88,18 +90,26 @@ Each item is of the form (OPERATOR . OPERATION)."
 
 (defvar evil-surround-read-tag-map
   (let ((map (copy-keymap minibuffer-local-map)))
-    (define-key map ">" 'exit-minibuffer)
+    (define-key map ">" (lambda ()
+                          (interactive)
+                          (call-interactively #'self-insert-command)
+                          (exit-minibuffer)))
     map)
   "Keymap used by `evil-surround-read-tag'.")
 
 (defvar evil-surround-record-repeat nil
   "Flag to indicate we're manually recording repeat info.")
 
+(defvar evil-surround-last-deleted-left ""
+  "The previously deleted LEFT region.")
+
 (defun evil-surround-read-from-minibuffer (&rest args)
-  (when evil-surround-record-repeat
+  (when (or evil-surround-record-repeat
+            (evil-repeat-recording-p))
     (evil-repeat-keystrokes 'post))
   (let ((res (apply #'read-from-minibuffer args)))
-    (when evil-surround-record-repeat
+    (when (or evil-surround-record-repeat
+              (evil-repeat-recording-p))
       (evil-repeat-record res))
     res))
 
@@ -124,18 +134,39 @@ Each item is of the form (OPERATOR . OPERATION)."
     (cons (format "%s(" (or fname ""))
           ")")))
 
+(defconst evil-surround-tag-name-re "\\([0-9a-zA-Z\.-]+\\)"
+  "Regexp matching an XML tag name.")
+
+(defun evil-surround-tag-p (string)
+  "Return t if `STRING' looks like a tag."
+  (string-match-p evil-surround-tag-name-re string))
+
 (defun evil-surround-read-tag ()
   "Read a XML tag from the minibuffer."
   (let* ((input (evil-surround-read-from-minibuffer "<" "" evil-surround-read-tag-map))
-         (match (string-match "\\([0-9a-z-]+\\)\\(.*?\\)[>]*$" input))
+         (match (string-match (concat evil-surround-tag-name-re "\\(.*?\\)\\([>]*\\)$") input))
          (tag  (match-string 1 input))
-         (rest (match-string 2 input)))
-    (cons (format "<%s%s>" (or tag "") (or rest ""))
+         (rest (match-string 2 input))
+         (keep-attributes (not (string-match-p ">" input)))
+         (original-tag (when (evil-surround-tag-p evil-surround-last-deleted-left)
+                         (substring evil-surround-last-deleted-left
+                                    (string-match (concat "<" evil-surround-tag-name-re) evil-surround-last-deleted-left)
+                                    (match-end 0))))
+         (original-attributes (when (and keep-attributes original-tag)
+                                (substring evil-surround-last-deleted-left (length original-tag)))))
+    (cons (format "<%s%s%s" (or tag "") (or rest "") (or original-attributes ">"))
           (format "</%s>" (or tag "")))))
 
 (defun evil-surround-valid-char-p (char)
   "Returns whether CHAR is a valid surround char or not."
   (not (memq char '(?\C-\[ ?\C-?))))
+
+(defun evil-surround-delete-char-noop-p (char)
+  "Returns whether CHAR is a noop when used with surround delete."
+  (memq char (list (string-to-char "w")
+                   (string-to-char "W")
+                   (string-to-char "s")
+                   (string-to-char "p"))))
 
 (defun evil-surround-pair (char)
   "Return the evil-surround pair of char.
@@ -151,11 +182,22 @@ This is a cons cell (LEFT . RIGHT), both strings."
      (t
       (cons (format "%c" char) (format "%c" char))))))
 
+(defvar-local evil-surround-local-outer-text-object-map-list nil
+  "Buffer-local list of outer text object keymaps that are added to
+  evil-surround")
+
+(defvar-local evil-surround-local-inner-text-object-map-list nil
+  "Buffer-local list of inner text object keymaps that are added to
+  evil-surround")
+
 (defun evil-surround-outer-overlay (char)
   "Return outer overlay for the delimited range represented by CHAR.
 This overlay includes the delimiters.
 See also `evil-surround-inner-overlay'."
-  (let ((outer (lookup-key evil-outer-text-objects-map (string char))))
+  (let ((outer (lookup-key
+                 (make-composed-keymap
+                   evil-surround-local-outer-text-object-map-list
+                   evil-outer-text-objects-map) (string char))))
     (when (functionp outer)
       (setq outer (funcall outer))
       (when (evil-range-p outer)
@@ -180,7 +222,10 @@ See also `evil-surround-inner-overlay'."
   "Return inner overlay for the delimited range represented by CHAR.
 This overlay excludes the delimiters.
 See also `evil-surround-outer-overlay'."
-  (let ((inner (lookup-key evil-inner-text-objects-map (string char))))
+  (let ((inner (lookup-key
+                 (make-composed-keymap
+                   evil-surround-local-inner-text-object-map-list
+                   evil-inner-text-objects-map) (string char))))
     (when (functionp inner)
       (setq inner (funcall inner))
       (when (evil-range-p inner)
@@ -210,7 +255,8 @@ between these overlays is what is deleted."
   (interactive (evil-surround-input-char))
   (cond
    ((and outer inner)
-    (delete-region (overlay-start outer) (overlay-start inner))
+    (setq evil-surround-last-deleted-left
+          (delete-and-extract-region (overlay-start outer) (overlay-start inner)))
     (delete-region (overlay-end inner) (overlay-end outer))
     (goto-char (overlay-start outer)))
    (t
@@ -232,7 +278,8 @@ overlays OUTER and INNER, which are passed to `evil-surround-delete'."
   (interactive (evil-surround-input-char))
   (cond
    ((and outer inner)
-    (evil-surround-delete char outer inner)
+    (unless (evil-surround-delete-char-noop-p char)
+      (evil-surround-delete char outer inner))
     (let ((key (evil-surround-read-char)))
       (evil-surround-region (overlay-start outer)
                             (overlay-end outer)
@@ -248,8 +295,8 @@ overlays OUTER and INNER, which are passed to `evil-surround-delete'."
 
 (defun evil-surround-interactive-setup ()
   (setq evil-inhibit-operator t)
-     (list (assoc-default evil-this-operator
-                          evil-surround-operator-alist)))
+  (list (assoc-default evil-this-operator
+                       evil-surround-operator-alist)))
 
 (defun evil-surround-setup-surround-line-operators ()
   (define-key evil-operator-shortcut-map "s" 'evil-surround-line)
@@ -332,6 +379,9 @@ Becomes this:
    }"
 
   (interactive (evil-surround-input-region-char))
+  (if evil-this-motion-count
+    (evil-repeat-record (int-to-string evil-this-motion-count)))
+
   (when (evil-surround-valid-char-p char)
     (let* ((overlay (make-overlay beg end nil nil t))
            (pair (or (and (boundp 'pair) pair) (evil-surround-pair char)))
