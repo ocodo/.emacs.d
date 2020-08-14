@@ -4,8 +4,9 @@
 
 ;; Author:     Paul Pogonyshev <pogonyshev@gmail.com>
 ;; Maintainer: Paul Pogonyshev <pogonyshev@gmail.com>
-;; Version:    1.1
-;; Package-Version: 20181028.1645
+;; Version:    1.1.1
+;; Package-Version: 20200617.1905
+;; Package-Commit: 2a6373d4fad1a5ac95272cabb6f5e4af89233d67
 ;; Keywords:   lisp
 ;; Homepage:   https://github.com/doublep/extmap
 ;; Package-Requires: ((emacs "24.1"))
@@ -385,7 +386,7 @@ Only available on Emacs 25, as this requires `generator' package."
           (used-keys                   (make-hash-table :test #'eq)))
       ;; Will be replaced at the end.
       (insert (bindat-pack extmap--header-bindat-spec nil))
-      (write-region (point-min) (point-max) filename nil nil nil (if (plist-get options :overwrite) nil 'excl))
+      (write-region nil nil filename nil 'no-message nil (if (plist-get options :overwrite) nil 'excl))
       (erase-buffer)
       (catch 'end-of-data
         (while t
@@ -406,7 +407,13 @@ Only available on Emacs 25, as this requires `generator' package."
                                   (when canonical-subvalues
                                     (clrhash canonical-subvalues)
                                     (setq value (extmap--compress-value value canonical-subvalues)))
-                                  (prin1-to-string value)))))
+                                  ;; Workaround for Emacs (27?) not using the print circle for
+                                  ;; strings on the first level.  At this point I no longer care to
+                                  ;; report bugs in Emacs.  Fuck it, it's faster and easier to just
+                                  ;; add workarounds
+                                  (if (stringp value)
+                                      (prin1-to-string value)
+                                    (substring (prin1-to-string (list value)) 1 -1))))))
               (unless (or (extmap--plain-string-p value) (condition-case _ (equal (read serialized) value) (error nil)))
                 (error "Value for key `%s' cannot be saved in database: it cannot be read back or is different after reading" key))
               ;; The whole point of this buffer is to be used for
@@ -425,20 +432,20 @@ Only available on Emacs 25, as this requires `generator' package."
                              (insert (bindat-pack extmap--item-short-bindat-spec `((type . 4) (length . ,(length encoded))))
                                      encoded))))
                         (t
-                         (write-region (point-min) (point-max) filename t)
+                         (write-region nil nil filename t 'no-message)
                          (with-current-buffer buffer
                            (insert (bindat-pack extmap--item-bindat-spec `((type . ,(if (extmap--plain-string-p value) 2 3)) (length . ,num-bytes) (offset . ,offset))))
                            (setq offset (+ offset num-bytes))
                            (when shared-values
                              (puthash value key shared-values)))))))))))
-      (write-region (point-min) (point-max) filename t)
+      (write-region nil nil filename t 'no-message)
       ;; Update the header.
       (erase-buffer)
       (insert (bindat-pack extmap--header-bindat-spec `((magic     . #x91f7)
                                                         (version   . 1)
                                                         (num-items . ,(hash-table-count used-keys))
                                                         (offset    . ,offset))))
-      (write-region (point-min) (point-max) filename 0))))
+      (write-region nil nil filename 0 'no-message))))
 
 (defun extmap--plain-string-p (object)
   (and (stringp object)
