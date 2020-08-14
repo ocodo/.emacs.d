@@ -12,7 +12,7 @@
 (autoload 'ace-mc-add-multiple-cursors "ace-mc" "\
 Use AceJump to add or remove multiple cursors.
 
-ace-mc-add-multiple-cursors will prompt your for locations to add
+`ace-mc-add-multiple-cursors' will prompt your for locations to add
 multiple cursors.  If a cursor already exists at that location,
 it will be removed.  This process continues looping until you
 exit, for example by pressing return or escape.
@@ -23,9 +23,9 @@ AceJump jumping mode as described in
 or more \\[universal-argument] prefix arguments PREFIX, use the
 corresponding mode from `ace-jump-mode-submode-list'.  For
 example, by default
-   \\[ace-mc-add-multiple-cursors] ==> ace-jump-word-mode
-   \\[universal-argument] \\[ace-mc-add-multiple-cursors] ==> ace-jump-char-mode
-   \\[universal-argument] \\[universal-argument] \\[ace-mc-add-multiple-cursors] ==> ace-jump-line-mode
+   \\[ace-mc-add-multiple-cursors] ==> `ace-jump-word-mode'
+   \\[universal-argument] \\[ace-mc-add-multiple-cursors] ==> `ace-jump-char-mode'
+   \\[universal-argument] \\[universal-argument] \\[ace-mc-add-multiple-cursors] ==> `ace-jump-line-mode'
 
 If SINGLE-MODE is set to 't', don't loop.
 

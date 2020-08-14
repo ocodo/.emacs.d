@@ -1,10 +1,11 @@
 ;;; ace-mc.el --- Add multiple cursors quickly using ace jump
 
-;; Copyright (C) 2015 Josh Moller-Mara
+;; Copyright (C) 2015-2019 Josh Moller-Mara
 
 ;; Author: Josh Moller-Mara <jmm@cns.nyu.edu>
-;; Version: 1.0
-;; Package-Version: 20160409.37
+;; Version: 1.1
+;; Package-Version: 20190206.749
+;; Package-Commit: 6877880efd99e177e4e9116a364576def3da391b
 ;; Package-Requires: ((ace-jump-mode "1.0") (multiple-cursors "1.0") (dash "2.10.0"))
 ;; Keywords: motion, location, cursor
 ;; URL: https://github.com/mm--/ace-mc
@@ -29,14 +30,14 @@
 
 ;; This package adds two commands: `ace-mc-add-multiple-cursors' and
 ;; `ace-mc-add-single-cursor'.  Both commands act like
-;; `ace-jump-mode', accepting simliar prefix arguments. However,
+;; `ace-jump-mode', accepting simliar prefix arguments.  However,
 ;; instead of jumping to the location, as with ace-jump, the command
-;; will add a new multiple cursor mark. If one is already there, it
-;; will be removed. This makes it easy to remove cursors you've added
+;; will add a new multiple cursor mark.  If one is already there, it
+;; will be removed.  This makes it easy to remove cursors you've added
 ;; accidentally.
 
 ;; `ace-mc-add-multiple-cursors' will continue to keep prompting for
-;; places to add or remove cursors until you hit Enter. The command
+;; places to add or remove cursors until you hit Enter.  The command
 ;; `ace-mc-add-single-cursor' is a non-looping version.
 
 ;; If you have ace-jump bound on C-0, for example, I recommend the
@@ -106,17 +107,28 @@
   (setq ace-mc-marking nil))
 
 (defun ace-mc-do-keyboard-reset ()
-  "Reset when `ace-jump-mode' is cancelled.
+  "Reset when the function `ace-jump-mode' is cancelled.
 Also called when chosen character isn't found while zapping."
   (interactive)
   (ace-mc-reset)
   (ace-jump-done))
 
+(defun ace-mc-quick-exchange ()
+  "Act like `ace-jump-quick-exchange', switching between `ace-jump-char-mode' and `ace-jump-word-mode'."
+  (interactive)
+  (setq ace-mc-ace-mode-function
+	(case ace-jump-current-mode
+	  ('ace-jump-word-mode 'ace-jump-char-mode)
+	  ('ace-jump-char-mode 'ace-jump-word-mode)
+	  (t ace-mc-ace-mode-function)))
+  (ace-jump-done)
+  (ace-mc-add-char ace-mc-query-char))
+
 ;;;###autoload
 (defun ace-mc-add-multiple-cursors (&optional prefix single-mode)
   "Use AceJump to add or remove multiple cursors.
 
-ace-mc-add-multiple-cursors will prompt your for locations to add
+`ace-mc-add-multiple-cursors' will prompt your for locations to add
 multiple cursors.  If a cursor already exists at that location,
 it will be removed.  This process continues looping until you
 exit, for example by pressing return or escape.
@@ -127,9 +139,9 @@ AceJump jumping mode as described in
 or more \\[universal-argument] prefix arguments PREFIX, use the
 corresponding mode from `ace-jump-mode-submode-list'.  For
 example, by default
-   \\[ace-mc-add-multiple-cursors] ==> ace-jump-word-mode
-   \\[universal-argument] \\[ace-mc-add-multiple-cursors] ==> ace-jump-char-mode
-   \\[universal-argument] \\[universal-argument] \\[ace-mc-add-multiple-cursors] ==> ace-jump-line-mode
+   \\[ace-mc-add-multiple-cursors] ==> `ace-jump-word-mode'
+   \\[universal-argument] \\[ace-mc-add-multiple-cursors] ==> `ace-jump-char-mode'
+   \\[universal-argument] \\[universal-argument] \\[ace-mc-add-multiple-cursors] ==> `ace-jump-line-mode'
 
 If SINGLE-MODE is set to 't', don't loop.
 
@@ -183,6 +195,7 @@ documentation there."
 	(funcall ace-mc-ace-mode-function query-char)
       (funcall ace-mc-ace-mode-function))
     (when overriding-local-map
+      (define-key overriding-local-map (kbd "C-c C-c") 'ace-mc-quick-exchange)
       (define-key overriding-local-map [t] 'ace-mc-do-keyboard-reset))))
 
 ;; Prevent keyboard-reset from being added to mc-list
@@ -194,7 +207,9 @@ documentation there."
 	ace-mc-do-keyboard-reset
 	ace-mc-add-multiple-cursors
 	ace-mc-add-single-cursor
-	ace-jump-move))
+	ace-mc-quick-exchange
+	ace-jump-move
+	ace-jump-done))
 
 (provide 'ace-mc)
 ;;; ace-mc.el ends here
