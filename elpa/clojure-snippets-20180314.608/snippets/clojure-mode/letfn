@@ -1,8 +1,0 @@
-# -*- coding: utf-8 -*-
-# name: letfn
-# key: letfn
-# --
-(letfn [($1 [$2]
-          $3)]$>
-        $4)$>
-$0

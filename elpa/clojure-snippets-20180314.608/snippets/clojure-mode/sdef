@@ -1,4 +1,0 @@
-# name: sdef
-# key: sdef
-# --
-(s/def ::$0 $1)
