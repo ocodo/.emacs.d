@@ -20,6 +20,18 @@ Major mode for editing Kotlin.
 
 ;;;***
 
+;;;### (autoloads nil "kotlin-mode-lexer" "kotlin-mode-lexer.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from kotlin-mode-lexer.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "kotlin-mode-lexer" '("kotlin-mode--")))
+
+;;;***
+
+;;;### (autoloads nil nil ("kotlin-mode-pkg.el") (0 0 0 0))
+
+;;;***
+
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
