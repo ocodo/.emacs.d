@@ -1,22 +1,30 @@
 ;;; esup-child.el --- lisp file for child Emacs to run. -*- lexical-binding: t -*-
-;; Copyright (C) 2014-2017 Joe Schafer
+
+;; Copyright (C) 2014, 2015, 2016, 2017, 2018, 2019, 2020 Joe Schafer
 
 ;; Author: Joe Schafer <joe@jschaf.com>
-;; Version: 0.6
-;; Keywords:  convenience
+;; Maintainer: Serghei Iakovlev <egrep@protonmail.ch>
+;; Version: 0.7.1
+;; URL: https://github.com/jschaf/esup
+;; Keywords: convenience, processes
+;; Package-Requires: ((cl-lib "0.5") (s "1.2") (emacs "25.1"))
 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
+;; This file is NOT part of GNU Emacs.
 
-;; This program is distributed in the hope that it will be useful,
+;;;; License
+
+;; This file is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License
+;; as published by the Free Software Foundation; either version 3
+;; of the License, or (at your option) any later version.
+
+;; This file is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this file.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -28,6 +36,8 @@
 
 (require 'benchmark)
 (require 'eieio)
+(require 's)
+(require 'seq)
 
 ;; We don't use :accesssor for class slots because it cause a
 ;; byte-compiler error even if we use the accessor.  This is fixed in
@@ -179,6 +189,19 @@ a complete result.")
     (setq str (replace-match "" t t str)))
   str)
 
+(defun esup-child-unindent (str)
+  "Remove common leading whitespace from each line of STR.
+If STR contains only whitespace, return an empty string."
+  (let* ((lines (s-lines str))
+         (non-whitespace-lines (seq-filter (lambda (s) (< 0 (length (s-trim-left s))))
+                                           lines))
+         (n-to-trim (apply #'min (mapcar (lambda (s) (- (length s) (length (s-trim-left s))))
+                                         (or non-whitespace-lines [""]))))
+         (result (s-join "\n"
+                         (mapcar (lambda (s) (substring (s-pad-left n-to-trim " " s) n-to-trim))
+                                 lines))))
+    (if (= 0 (length (esup-child-chomp result))) "" result)))
+
 (defmacro with-esup-child-increasing-depth (&rest body)
   "Run BODY and with an incremented depth level.
 Decrement the depth level after complete."
@@ -187,7 +210,7 @@ Decrement the depth level after complete."
      (setq esup-child-last-call-intercept-results '())
      (prog1
          ;; This is cleared after `esup-child-profile-string' completes.
-         (setq esup-child-last-call-intercept-results 
+         (setq esup-child-last-call-intercept-results
                (progn ,@body))
        (setq esup-child-current-depth
              (1- esup-child-current-depth)))))
@@ -273,7 +296,7 @@ BUFFER defaults to the current buffer."
 
 (defun esup-child-profile-buffer (buffer)
   "Profile BUFFER and return the benchmarked expressions."
-  (condition-case error-message
+  (condition-case-unless-debug error-message
       (with-current-buffer buffer
         (goto-char (point-min))
         (forward-comment (buffer-size))
@@ -307,7 +330,7 @@ BUFFER defaults to the current buffer."
 (defun esup-child-profile-sexp (start end)
   "Profile the sexp between START and END in the current buffer.
 Returns a list of class `esup-result'."
-  (let* ((sexp-string (esup-child-chomp (buffer-substring start end)))
+  (let* ((sexp-string (esup-child-unindent (buffer-substring start end)))
          (line-number (line-number-at-pos start))
          (file-name (buffer-file-name))
          sexp
@@ -317,7 +340,7 @@ Returns a list of class `esup-result'."
      (esup-child-create-location-info-string)
      (buffer-substring-no-properties start (min end (+ 30 start))))
 
-    (condition-case error-message
+    (condition-case-unless-debug error-message
         (progn
           (setq sexp (if (string-equal sexp-string "")
                          ""
@@ -365,7 +388,7 @@ SEXP-STRING appears in FILE-NAME."
 
           ;; Otherwise, use the normal profile results.
           (list
-           (esup-result "esup-result"
+           (esup-result (when (<= emacs-major-version 25) "esup-result")
                         :file file-name
                         :expression-string sexp-string
                         :start-point start-point :end-point end-point
@@ -378,7 +401,7 @@ SEXP-STRING appears in FILE-NAME."
 
 
 (defun esup-child-require-feature-to-filename (feature &optional filename)
-  "Given a require FEATURE, return the corresponding file-name."
+  "Given a require FEATURE, return the corresponding FILENAME."
   (esup-child-send-log
    "converting require to file-name feature='%s' filename='%s'"
    feature filename)
@@ -398,17 +421,17 @@ SEXP-STRING appears in FILE-NAME."
   "Serialize an ESUP-RESULT into a `read'able string.
 We need this because `prin1-to-string' isn't stable between Emacs 25 and 26."
   (concat
-   "(esup-result \"esup-result\" "
+   "(esup-result (when (<= emacs-major-version 25) \"esup-result\") "
    (format ":file %s "
-           (prin1-to-string (oref esup-result :file)))
-   (format ":start-point %d " (oref esup-result :start-point))
-   (format ":line-number %d " (oref esup-result :line-number))
+           (prin1-to-string (slot-value esup-result 'file)))
+   (format ":start-point %d " (slot-value esup-result 'start-point))
+   (format ":line-number %d " (slot-value esup-result 'line-number))
    (format ":expression-string %s "
-           (prin1-to-string (oref esup-result :expression-string)))
-   (format ":end-point %d " (oref esup-result :end-point))
-   (format ":exec-time %f " (oref esup-result :exec-time))
-   (format ":gc-number %d " (oref esup-result :gc-number))
-   (format ":gc-time %f" (oref esup-result :gc-time))
+           (prin1-to-string (slot-value esup-result 'expression-string)))
+   (format ":end-point %d " (slot-value esup-result 'end-point))
+   (format ":exec-time %f " (slot-value esup-result 'exec-time))
+   (format ":gc-number %d " (slot-value esup-result 'gc-number))
+   (format ":gc-time %f" (slot-value esup-result 'gc-time))
    ")"))
 
 (defun esup-child-serialize-results (esup-results)
@@ -421,4 +444,3 @@ We need this because `prin1-to-string' isn't stable between Emacs 25 and 26."
 
 (provide 'esup-child)
 ;;; esup-child.el ends here
-
