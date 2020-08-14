@@ -1,11 +1,13 @@
 ;;; hackernews.el --- Hacker News Client for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2018 Lincoln de Sousa <lincoln@comum.org>
+;; Copyright (C) 2012-2020 The Hackernews.el Authors
 
 ;; Author: Lincoln de Sousa <lincoln@comum.org>
-;;         Basil L. Contovounesios <contovob@tcd.ie>
+;; Maintainer: Basil L. Contovounesios <contovob@tcd.ie>
 ;; Keywords: comm hypermedia news
-;; Version: 0.4.0
+;; Package-Version: 20200604.1557
+;; Package-Commit: 019a727b41e2726516841048a2b5b04f2ed2301a
+;; Version: 0.6.0
 ;; Homepage: https://github.com/clarete/hackernews.el
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -32,7 +34,6 @@
 (require 'browse-url)
 (require 'cus-edit)
 (require 'format-spec)
-(require 'json)
 (require 'url)
 
 (defgroup hackernews nil
@@ -40,7 +41,7 @@
   :group 'external
   :prefix "hackernews-")
 
-;;; Faces
+;;;; Faces
 
 (define-obsolete-face-alias 'hackernews-link-face
   'hackernews-link "0.4.0")
@@ -49,6 +50,12 @@
   '((t :inherit link :underline nil))
   "Face used for links to stories."
   :package-version '(hackernews . "0.4.0")
+  :group 'hackernews)
+
+(defface hackernews-link-visited
+  '((t :inherit link-visited :underline nil))
+  "Face used for visited links to stories."
+  :package-version '(hackernews . "0.5.0")
   :group 'hackernews)
 
 (define-obsolete-face-alias 'hackernews-comment-count-face
@@ -60,6 +67,12 @@
   :package-version '(hackernews . "0.4.0")
   :group 'hackernews)
 
+(defface hackernews-comment-count-visited
+  '((t :inherit hackernews-link-visited))
+  "Face used for visited comment counts."
+  :package-version '(hackernews . "0.5.0")
+  :group 'hackernews)
+
 (define-obsolete-face-alias 'hackernews-score-face
   'hackernews-score "0.4.0")
 
@@ -69,7 +82,7 @@
   :package-version '(hackernews . "0.4.0")
   :group 'hackernews)
 
-;;; User options
+;;;; User options
 
 (define-obsolete-variable-alias 'hackernews-top-story-limit
   'hackernews-items-per-page "0.4.0")
@@ -89,6 +102,7 @@
     ("job"  . "job stories"))
   ;; TODO: Should the keys all be symbols?
   "Map feed types as strings to their display names.")
+;; As per Info node `(elisp) Basic Completion'
 (put 'hackernews-feed-names 'risky-local-variable t)
 
 (defcustom hackernews-default-feed "top"
@@ -96,9 +110,9 @@
 See `hackernews-feed-names' for supported feed types."
   :package-version '(hackernews . "0.4.0")
   :group 'hackernews
-  :type (cons 'radio (mapcar (lambda (feed)
-                               (list 'const :tag (cdr feed) (car feed)))
-                             hackernews-feed-names)))
+  :type (cons 'choice (mapcar (lambda (feed)
+                                (list 'const :tag (cdr feed) (car feed)))
+                              hackernews-feed-names)))
 
 ;; TODO: Allow the following `*-format' options to take on function values?
 
@@ -187,8 +201,25 @@ See `browse-url-browser-function' for some possible options."
   :group 'hackernews
   :type (cons 'radio (butlast (cdr (custom-variable-type
                                     'browse-url-browser-function)))))
+
+(defcustom hackernews-show-visited-links t
+  "Whether to visually distinguish links that have been visited.
+For example, when a link with the `hackernews-link' face is
+visited and the value of this variable is non-nil, that link's
+face is changed to `hackernews-link-visited'."
+  :package-version '(hackernews . "0.5.0")
+  :group 'hackernews
+  :type 'boolean)
+
+(defcustom hackernews-visited-links-file
+  (locate-user-emacs-file "hackernews/visited-links.el")
+  "Name of file used to remember which links have been visited.
+When nil, visited links are not persisted across sessions."
+  :package-version '(hackernews . "0.5.0")
+  :group 'hackernews
+  :type '(choice file (const :tag "None" nil)))
 
-;;; Internal definitions
+;;;; Internal definitions
 
 (defconst hackernews-api-version "v0"
   "Currently supported version of the Hacker News API.")
@@ -213,6 +244,9 @@ See `browse-url-browser-function' for some possible options."
 (defvar hackernews-feed-history ()
   "Completion history of hackernews feeds switched to.")
 
+(define-obsolete-variable-alias 'hackernews-map
+  'hackernews-mode-map "0.4.0")
+
 (defvar hackernews-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "f"             #'hackernews-switch-feed)
@@ -227,31 +261,46 @@ See `browse-url-browser-function' for some possible options."
     map)
   "Keymap used in hackernews buffer.")
 
-(define-obsolete-variable-alias 'hackernews-map
-  'hackernews-mode-map "0.4.0")
-
 (defvar hackernews-button-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map button-map)
+    (define-key map "R" #'hackernews-button-mark-as-unvisited)
+    (define-key map "r" #'hackernews-button-mark-as-visited)
     (define-key map "t" #'hackernews-button-browse-internal)
     map)
   "Keymap used on hackernews links.")
 
 (define-button-type 'hackernews-link
-  'action      #'hackernews-browse-url-action
-  'face        'hackernews-link
-  'follow-link t
-  'keymap      hackernews-button-map)
+  'action                  #'hackernews-browse-url-action
+  'follow-link             t
+  'hackernews-face         'hackernews-link
+  'hackernews-visited-face 'hackernews-link-visited
+  'keymap                  hackernews-button-map)
 
 (define-button-type 'hackernews-comment-count
-  'face      'hackernews-comment-count
-  'supertype 'hackernews-link)
+  'hackernews-face         'hackernews-comment-count
+  'hackernews-visited-face 'hackernews-comment-count-visited
+  'supertype               'hackernews-link)
 
-;; Emulate `define-error'
+;; Use `font-lock-face' on creation instead.
+(button-type-put 'hackernews-link          'face nil)
+(button-type-put 'hackernews-comment-count 'face nil)
+
+;; Remove `hackernews-link' as `supertype' so that
+;; `hackernews--forward-button' can distinguish between
+;; `hackernews-link' and `hackernews-comment-count'.
+(button-type-put 'hackernews-comment-count 'supertype 'button)
+
+(defvar hackernews--visited-ids
+  (mapcar #'list '(hackernews-link hackernews-comment-count))
+  "Map link button types to their visited ID sets.
+Values are initially nil and later replaced with a hash table.")
+
+;; Emulate `define-error' for Emacs < 24.4.
 (put 'hackernews-error 'error-conditions '(hackernews-error error))
 (put 'hackernews-error 'error-message    "Hackernews error")
 
-;;; Utils
+;;;; Utils
 
 (defun hackernews--get (prop)
   "Extract value of PROP from `hackernews--feed-state'."
@@ -290,27 +339,19 @@ This is intended as an :annotation-function in
 `completion-extra-properties'."
   (let ((name (hackernews--feed-name feed)))
     (and name (concat " - " name))))
-
-(defalias 'hackernews--signum
-  (if (and (require 'cl-lib nil t)
-           (fboundp 'cl-signum))
-      #'cl-signum
-    (lambda (x)
-      (cond ((> x 0)  1)
-            ((< x 0) -1)
-            (t        0))))
-  "Compatibility shim for `cl-signum'.")
 
-;;; Motion
+;;;; Motion
 
 (defun hackernews--forward-button (n type)
   "Move to Nth next button of TYPE (previous if N is negative)."
   (let ((pos  (point))
-        (sign (hackernews--signum n))
+        (sign (cond ((> n 0)  1)
+                    ((< n 0) -1)
+                    (t        0)))
         msg)
     (while (let ((button (ignore-errors (forward-button sign))))
              (when button
-               (when (eq (button-type button) type)
+               (when (button-has-type-p button type)
                  (setq pos (button-start button))
                  (setq msg (button-get button 'help-echo))
                  (setq n   (- n sign)))
@@ -349,24 +390,138 @@ N defaults to 1."
   (goto-char (point-min))
   (hackernews-next-item))
 
-;;; UI
+;;;; UI
+
+(defun hackernews--read-visited-links ()
+  "Read and return contents of `hackernews-visited-links-file'.
+On error, display a warning for the user and return nil."
+  (when (and hackernews-visited-links-file
+             (file-exists-p hackernews-visited-links-file))
+    (condition-case err
+        (with-temp-buffer
+          (insert-file-contents hackernews-visited-links-file)
+          (read (current-buffer)))
+      (error
+       (ignore
+        (lwarn 'hackernews :error
+               "Could not read `hackernews-visited-links-file':\n      %s%s"
+               (error-message-string err)
+               (substitute-command-keys "
+N.B.  Any valid data in the file will be overwritten next time
+      Emacs is killed.  To avoid data loss, type
+      \\[hackernews-load-visited-links] after fixing the error
+      above.
+      Alternatively, you can set `hackernews-visited-links-file'
+      to nil: the file will not be overwritten, but any links
+      visited in the current Emacs session will not be saved.")))))))
+
+(defun hackernews-load-visited-links ()
+  "Merge visited links on file with those in memory.
+This command tries to reread `hackernews-visited-links-file',
+which may be useful when, for example, the contents of the file
+change and you want to update the hackernews display without
+restarting Emacs, or the file could not be read initially and
+risks being overwritten next time Emacs is killed."
+  (interactive)
+  ;; Ensure `hackernews--visited-ids' is initialized
+  (dolist (entry hackernews--visited-ids)
+    (unless (cdr entry)
+      (setcdr entry (make-hash-table))))
+  ;; Merge with `hackernews-visited-links-file'
+  (dolist (entry (hackernews--read-visited-links))
+    (let ((table (cdr (assq (car entry) hackernews--visited-ids))))
+      (maphash (lambda (k newv)
+                 (let ((oldv (gethash k table)))
+                   (when (or (not oldv)
+                             (time-less-p (plist-get oldv :last-visited)
+                                          (plist-get newv :last-visited)))
+                     (puthash k newv table))))
+               (cdr entry)))))
+
+(defun hackernews-save-visited-links ()
+  "Write visited links to `hackernews-visited-links-file'."
+  (when hackernews-visited-links-file
+    (condition-case err
+        (with-temp-file hackernews-visited-links-file
+          (let ((dir (file-name-directory hackernews-visited-links-file)))
+            ;; Ensure any parent directories exist
+            (when dir (make-directory dir t)))
+          (hackernews-load-visited-links)
+          (prin1 hackernews--visited-ids (current-buffer)))
+      (error (lwarn 'hackernews :error
+                    "Could not write `hackernews-visited-links-file': %s"
+                    (error-message-string err))))))
+
+(defun hackernews--init-visited-links ()
+  "Set up tracking of visited links.
+Do nothing if `hackernews--visited-ids' is already initialized."
+  (unless (cdar hackernews--visited-ids)
+    (hackernews-load-visited-links)
+    (add-hook 'kill-emacs-hook #'hackernews-save-visited-links)))
+
+(defun hackernews--visit (button fn &optional unvisit)
+  "Visit URL of BUTTON by passing it to FN.
+If UNVISIT is non-nil, mark BUTTON as unvisited."
+  (let* ((id    (button-get button 'id))
+         (type  (button-type button))
+         (face  (cond (unvisit 'hackernews-face)
+                      (hackernews-show-visited-links
+                       'hackernews-visited-face)))
+         (table (cdr (assq type hackernews--visited-ids)))
+         (val   (gethash id table))
+         (val   (plist-put val :visited      (not unvisit)))
+         (val   (plist-put val :last-visited (current-time)))
+         (inhibit-read-only t))
+    (puthash id val table)
+    (when face
+      (button-put button 'font-lock-face (button-type-get type face))))
+  (funcall fn (button-get button 'shr-url)))
 
 (defun hackernews-browse-url-action (button)
   "Pass URL of BUTTON to `browse-url'."
-  (browse-url (button-get button 'shr-url)))
+  (hackernews--visit button #'browse-url))
 
 (defun hackernews-button-browse-internal ()
   "Open URL of button under point within Emacs.
 The URL is passed to `hackernews-internal-browser-function',
 which see."
   (interactive)
-  (funcall hackernews-internal-browser-function
-           (button-get (button-at (point)) 'shr-url)))
+  (hackernews--visit (point) hackernews-internal-browser-function))
 
-(defun hackernews--button-string (type label url)
-  "Return button string of TYPE pointing to URL with LABEL."
-  (make-text-button label nil 'type type 'help-echo url 'shr-url url)
-  label)
+(defun hackernews-button-mark-as-visited ()
+  "Mark button under point as visited."
+  (interactive)
+  (hackernews--visit (point) #'ignore))
+
+(defun hackernews-button-mark-as-unvisited ()
+  "Mark button under point as unvisited."
+  (interactive)
+  (hackernews--visit (point) #'ignore t))
+
+(defalias 'hackernews--text-button
+  ;; Emacs 24.4 was the first to return BEG when it's a string, so
+  ;; earlier versions can't return the result of `make-text-button'.
+  ;; Emacs 28.1 started modifying a copy of BEG when it's a string, so
+  ;; subsequent versions must return the result of `make-text-button'.
+  (if (version< "24.3" emacs-version)
+      #'make-text-button
+    (lambda (beg end &rest properties)
+      (apply #'make-text-button beg end properties)
+      beg))
+  "Like `make-text-button', but always return BEG.
+This is for compatibility with various Emacs versions.
+\n(fn BEG END &rest PROPERTIES)")
+
+(defun hackernews--button-string (type label url id)
+  "Make LABEL a text button of TYPE for item ID and URL."
+  (let* ((props (and hackernews-show-visited-links
+                     (gethash id (cdr (assq type hackernews--visited-ids)))))
+         (face  (button-type-get type (if (plist-get props :visited)
+                                          'hackernews-visited-face
+                                        'hackernews-face))))
+    (hackernews--text-button label nil
+                             'type type 'font-lock-face face
+                             'id id 'help-echo url 'shr-url url)))
 
 (defun hackernews--render-item (item)
   "Render Hacker News ITEM in current buffer.
@@ -385,17 +540,19 @@ their respective URLs."
          (comments-url (hackernews--comments-url id)))
     (insert
      (format-spec hackernews-item-format
-                  (format-spec-make
-                   ?s (propertize (format hackernews-score-format score)
-                                  'face 'hackernews-score)
-                   ?t (hackernews--button-string
-                       'hackernews-link
-                       (format hackernews-title-format title)
-                       (or item-url comments-url))
-                   ?c (hackernews--button-string
-                       'hackernews-comment-count
-                       (format hackernews-comments-format (or descendants 0))
-                       comments-url))))))
+                  `((?s . ,(propertize (format hackernews-score-format score)
+                                       'font-lock-face 'hackernews-score))
+                    (?t . ,(hackernews--button-string
+                            'hackernews-link
+                            (format hackernews-title-format title)
+                            (or item-url comments-url)
+                            id))
+                    (?c . ,(hackernews--button-string
+                            'hackernews-comment-count
+                            (format hackernews-comments-format
+                                    (or descendants 0))
+                            comments-url
+                            id)))))))
 
 (defun hackernews--display-items ()
   "Render items associated with, and pop to, the current buffer."
@@ -426,6 +583,35 @@ their respective URLs."
 (define-derived-mode hackernews-mode special-mode "HN"
   "Mode for browsing Hacker News.
 
+Summary of key bindings:
+
+key		binding
+---		-------
+\\<hackernews-button-map>
+\\[push-button]\
+		Open link at point in default (external) browser.
+\\[hackernews-button-browse-internal]\
+		Open link at point in text-based browser within Emacs.
+\\<hackernews-mode-map>
+\\[hackernews-next-item]\
+		Move to next title link.
+\\[hackernews-previous-item]\
+		Move to previous title link.
+\\[hackernews-next-comment]\
+		Move to next comments count link.
+\\[hackernews-previous-comment]\
+		Move to previous comments count link.
+\\[hackernews-load-more-stories]\
+		Load more stories.
+\\[hackernews-reload]\
+		Reload stories.
+\\[hackernews-switch-feed]\
+		Prompt user for a feed to switch to.
+\\[quit-window]\
+		Quit.
+
+Official major mode key bindings:
+
 \\{hackernews-mode-map}"
   :group 'hackernews
   (setq hackernews--feed-state ())
@@ -437,15 +623,19 @@ their respective URLs."
   (unless (derived-mode-p #'hackernews-mode)
     (signal 'hackernews-error '("Not a hackernews buffer"))))
 
-;;; Retrieval
+;;;; Retrieval
 
 (defalias 'hackernews--parse-json
   (if (fboundp 'json-parse-buffer)
       (lambda ()
         (json-parse-buffer :object-type 'alist))
+    (require 'json)
+    (defvar json-array-type)
+    (defvar json-object-type)
+    (declare-function json-read "json")
     (lambda ()
-      (let ((json-object-type 'alist)
-            (json-array-type  'vector))
+      (let ((json-array-type  'vector)
+            (json-object-type 'alist))
         (json-read))))
   "Read JSON object from current buffer starting at point.
 Objects are decoded as alists and arrays as vectors.")
@@ -486,6 +676,7 @@ off.  At most N of FEED's items starting at OFFSET are then
 rendered at the end of the hackernews buffer."
   ;; TODO: * Allow negative N?
   ;;       * Make asynchronous?
+  (hackernews--init-visited-links)
   (let* ((name   (hackernews--feed-name feed))
          (offset (or (car append) 0))
          (ids    (if append
@@ -513,7 +704,7 @@ rendered at the end of the hackernews buffer."
       (hackernews--retrieve-items)
       (hackernews--display-items))))
 
-;;; Feeds
+;;;; Feeds
 
 ;;;###autoload
 (defun hackernews (&optional n)
@@ -528,10 +719,10 @@ and N defaults to `hackernews-items-per-page'."
 N defaults to `hackernews-items-per-page'."
   (interactive "P")
   (hackernews--ensure-major-mode)
-  (let ((feed (hackernews--get :feed)))
-    (if feed
-        (hackernews--load-stories feed n)
-      (signal 'hackernews-error '("Buffer unassociated with feed")))))
+  (hackernews--load-stories
+   (or (hackernews--get :feed)
+       (signal 'hackernews-error '("Buffer unassociated with feed")))
+   n))
 
 (defun hackernews-load-more-stories (&optional n)
   "Load N more stories into hackernews buffer.
