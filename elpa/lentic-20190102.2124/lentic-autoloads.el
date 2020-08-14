@@ -14,9 +14,7 @@ All functions that can be used as `lentic-init' function.")
 
 (autoload 'lentic-default-init "lentic" "\
 Default init function.
-see `lentic-init' for details.
-
-\(fn)" nil nil)
+see `lentic-init' for details." nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic" '("lentic-")))
 
@@ -26,22 +24,13 @@ see `lentic-init' for details.
 ;;;;;;  0 0))
 ;;; Generated autoloads from lentic-asciidoc.el
 
-(autoload 'lentic-clojure-asciidoc-init "lentic-asciidoc" "\
+(autoload 'lentic-clojure-asciidoc-init "lentic-asciidoc" nil nil nil)
 
-
-\(fn)" nil nil)
-
-(autoload 'lentic-asciidoc-clojure-init "lentic-asciidoc" "\
-
-
-\(fn)" nil nil)
+(autoload 'lentic-asciidoc-clojure-init "lentic-asciidoc" nil nil nil)
 
 (add-to-list 'lentic-init-functions 'lentic-asciidoc-clojure-init)
 
-(autoload 'lentic-asciidoc-el-init "lentic-asciidoc" "\
-
-
-\(fn)" nil nil)
+(autoload 'lentic-asciidoc-el-init "lentic-asciidoc" nil nil nil)
 
 (add-to-list 'lentic-init-functions 'lentic-asciidoc-el-init)
 
@@ -71,60 +60,35 @@ Run the change functions out of the command loop.
 Using this function is the easiest way to test an new
 `lentic-clone' method, as doing so in the command loop is
 painful for debugging. Set variable `lentic-emergency' to
-true to disable command loop functionality.
-
-\(fn)" t nil)
+true to disable command loop functionality." t nil)
 
 (autoload 'lentic-dev-post-command-hook "lentic-dev" "\
 Run the post-command functions out of the command loop.
 Using this function is the easiest way to test an new
 `lentic-convert' method, as doing so in the command loop is
 painful for debugging. Set variable `lentic-emergency' to
-true to disable command loop functionality.
+true to disable command loop functionality." t nil)
 
-\(fn)" t nil)
+(autoload 'lentic-dev-after-save-hook "lentic-dev" nil t nil)
 
-(autoload 'lentic-dev-after-save-hook "lentic-dev" "\
+(autoload 'lentic-dev-mode-buffer-list-update-hook "lentic-dev" nil t nil)
 
+(autoload 'lentic-dev-kill-buffer-hook "lentic-dev" nil t nil)
 
-\(fn)" t nil)
-
-(autoload 'lentic-dev-mode-buffer-list-update-hook "lentic-dev" "\
-
-
-\(fn)" t nil)
-
-(autoload 'lentic-dev-kill-buffer-hook "lentic-dev" "\
-
-
-\(fn)" t nil)
-
-(autoload 'lentic-dev-kill-emacs-hook "lentic-dev" "\
-
-
-\(fn)" t nil)
+(autoload 'lentic-dev-kill-emacs-hook "lentic-dev" nil t nil)
 
 (autoload 'lentic-dev-reinit "lentic-dev" "\
 Recall the init function regardless of current status.
 This can help if you have change the config object and need
-to make sure there is a new one.
-
-\(fn)" t nil)
+to make sure there is a new one." t nil)
 
 (autoload 'lentic-dev-random-face "lentic-dev" "\
-Change the insertion face to a random one.
-
-\(fn)" t nil)
+Change the insertion face to a random one." t nil)
 
 (autoload 'lentic-dev-enable-insertion-marking "lentic-dev" "\
-Enable font locking properties for inserted text.
+Enable font locking properties for inserted text." t nil)
 
-\(fn)" t nil)
-
-(autoload 'lentic-dev-enable-insertion-pulse "lentic-dev" "\
-
-
-\(fn)" t nil)
+(autoload 'lentic-dev-enable-insertion-pulse "lentic-dev" nil t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-dev" '("lentic-dev-")))
 
@@ -141,25 +105,13 @@ Enable font locking properties for inserted text.
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from lentic-latex-code.el
 
-(autoload 'lentic-clojure-latex-init "lentic-latex-code" "\
+(autoload 'lentic-clojure-latex-init "lentic-latex-code" nil nil nil)
 
+(autoload 'lentic-latex-clojure-init "lentic-latex-code" nil nil nil)
 
-\(fn)" nil nil)
+(autoload 'lentic-clojure-latex-delayed-init "lentic-latex-code" nil nil nil)
 
-(autoload 'lentic-latex-clojure-init "lentic-latex-code" "\
-
-
-\(fn)" nil nil)
-
-(autoload 'lentic-clojure-latex-delayed-init "lentic-latex-code" "\
-
-
-\(fn)" nil nil)
-
-(autoload 'lentic-haskell-latex-init "lentic-latex-code" "\
-
-
-\(fn)" nil nil)
+(autoload 'lentic-haskell-latex-init "lentic-latex-code" nil nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-latex-code" '("lentic-")))
 
@@ -174,63 +126,43 @@ Enable font locking properties for inserted text.
 \(fn &optional FORCE)" t nil)
 
 (autoload 'lentic-mode-next-lentic-buffer "lentic-mode" "\
-Move the lentic buffer into the current window, creating if necessary.
-
-\(fn)" t nil)
+Move the lentic buffer into the current window, creating if necessary." t nil)
 
 (autoload 'lentic-mode-split-window-below "lentic-mode" "\
-Move lentic buffer to the window below, creating if needed.
-
-\(fn)" t nil)
+Move lentic buffer to the window below, creating if needed." t nil)
 
 (autoload 'lentic-mode-split-window-right "lentic-mode" "\
-Move lentic buffer to the window right, creating if needed.
+Move lentic buffer to the window right, creating if needed." t nil)
 
-\(fn)" t nil)
-
-(autoload 'lentic-mode-show-all-lentic "lentic-mode" "\
-
-
-\(fn)" t nil)
+(autoload 'lentic-mode-show-all-lentic "lentic-mode" nil t nil)
 
 (autoload 'lentic-mode-move-lentic-window "lentic-mode" "\
 Move the next lentic buffer into the current window.
 If the lentic is currently being displayed in another window,
 then the current-buffer will be moved into that window. See also
-`lentic-mode-swap-buffer-windows' and `lentic-mode-next-buffer'.
-
-\(fn)" t nil)
+`lentic-mode-swap-buffer-windows' and `lentic-mode-next-buffer'." t nil)
 
 (autoload 'lentic-mode-swap-lentic-window "lentic-mode" "\
 Swap the window of the buffer and lentic.
 If both are current displayed, swap the windows they
 are displayed in, which keeping current buffer.
-See also `lentic-mode-move-lentic-window'.
+See also `lentic-mode-move-lentic-window'." t nil)
 
-\(fn)" t nil)
+(autoload 'lentic-mode-create-new-view-in-selected-window "lentic-mode" nil t nil)
 
-(autoload 'lentic-mode-create-new-view-in-selected-window "lentic-mode" "\
+(autoload 'lentic-mode-toggle-auto-sync-point "lentic-mode" nil t nil)
 
+(autoload 'lentic-mode-doc-eww-view "lentic-mode" nil t nil)
 
-\(fn)" t nil)
-
-(autoload 'lentic-mode-toggle-auto-sync-point "lentic-mode" "\
-
-
-\(fn)" t nil)
-
-(autoload 'lentic-mode-doc-eww-view "lentic-mode" "\
-
-
-\(fn)" t nil)
-
-(autoload 'lentic-mode-doc-external-view "lentic-mode" "\
-
-
-\(fn)" t nil)
+(autoload 'lentic-mode-doc-external-view "lentic-mode" nil t nil)
 
 (autoload 'lentic-mode "lentic-mode" "\
 Documentation
+
+If called interactively, enable Lentic mode if ARG is positive,
+and disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it if
+ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -240,6 +172,8 @@ Documentation
 
 
 \(fn INIT-FUNCTION)" t nil)
+
+(put 'global-lentic-mode 'globalized-minor-mode t)
 
 (defvar global-lentic-mode nil "\
 Non-nil if Global Lentic mode is enabled.
@@ -270,45 +204,21 @@ See `lentic-mode' for more information on Lentic mode.
 ;;;### (autoloads nil "lentic-org" "lentic-org.el" (0 0 0 0))
 ;;; Generated autoloads from lentic-org.el
 
-(autoload 'lentic-org-el-init "lentic-org" "\
+(autoload 'lentic-org-el-init "lentic-org" nil nil nil)
 
+(autoload 'lentic-el-org-init "lentic-org" nil nil nil)
 
-\(fn)" nil nil)
+(autoload 'lentic-org-orgel-init "lentic-org" nil nil nil)
 
-(autoload 'lentic-el-org-init "lentic-org" "\
+(autoload 'lentic-orgel-org-init "lentic-org" nil nil nil)
 
+(autoload 'lentic-org-clojure-init "lentic-org" nil nil nil)
 
-\(fn)" nil nil)
+(autoload 'lentic-clojure-org-init "lentic-org" nil nil nil)
 
-(autoload 'lentic-org-orgel-init "lentic-org" "\
+(autoload 'lentic-org-python-init "lentic-org" nil nil nil)
 
-
-\(fn)" nil nil)
-
-(autoload 'lentic-orgel-org-init "lentic-org" "\
-
-
-\(fn)" nil nil)
-
-(autoload 'lentic-org-clojure-init "lentic-org" "\
-
-
-\(fn)" nil nil)
-
-(autoload 'lentic-clojure-org-init "lentic-org" "\
-
-
-\(fn)" nil nil)
-
-(autoload 'lentic-org-python-init "lentic-org" "\
-
-
-\(fn)" nil nil)
-
-(autoload 'lentic-python-org-init "lentic-org" "\
-
-
-\(fn)" nil nil)
+(autoload 'lentic-python-org-init "lentic-org" nil nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-org" '("lentic-")))
 
@@ -333,24 +243,15 @@ See `lentic-mode' for more information on Lentic mode.
 
 (eval '(defun lentic-script-hook (mode-hook init) (add-to-list 'lentic-init-functions init) (add-hook mode-hook (lambda nil (unless lentic-init (setq lentic-init init))))) t)
 
-(autoload 'lentic-python-script-init "lentic-script" "\
-
-
-\(fn)" nil nil)
+(autoload 'lentic-python-script-init "lentic-script" nil nil nil)
 
 (lentic-script-hook 'python-mode-hook 'lentic-python-script-init)
 
-(autoload 'lentic-bash-script-init "lentic-script" "\
-
-
-\(fn)" nil nil)
+(autoload 'lentic-bash-script-init "lentic-script" nil nil nil)
 
 (lentic-script-hook 'shell-mode-hook 'lentic-bash-script-init)
 
-(autoload 'lentic-lua-script-init "lentic-script" "\
-
-
-\(fn)" nil nil)
+(autoload 'lentic-lua-script-init "lentic-script" nil nil nil)
 
 (lentic-script-hook 'lua-mode-hook #'lentic-lua-script-init)
 
