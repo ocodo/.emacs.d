@@ -1,7 +1,0 @@
-autocomplete [HTML5]
-
-This attribute indicates whether the value of the control can be automatically completed by the browser. Possible values are:
-  off: The user must explicitly enter a value into this field for every use, or the document provides its own auto-completion method; the browser does not automatically complete the entry.
-  on: The browser can automatically complete the value based on values that the user has entered during previous uses.
-
-If the autocomplete attribute is not specified on an textarea element, then the browser uses the autocomplete attribute value of the <textarea> element's form owner. The form owner is either the form element that this <textarea> element is a descendant of or the form element whose id is specified by the form attribute of the input element. For more information, see the autocomplete attribute in <form>.

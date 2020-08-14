@@ -1,2 +1,0 @@
-cite cite\n\nA URI for a resource that explains the change (for example, meeting minutes).
-datetime datetime\n\nThis attribute indicates the time and date of the change and must be a valid date with an optional time string. If the value cannot be parsed as a date with an optional time string, the element does not have an associated time stamp.

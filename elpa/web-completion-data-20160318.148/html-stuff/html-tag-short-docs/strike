@@ -1,6 +1,0 @@
-!OBSOLETE!
-
-The HTML Strikethrough Element (<strike>) renders text with a strikethrough, or a line through it.
-
-Usage Note: 
-As with all purely styling elements, <strike> has been deprecated in HTML 4 and XHTML 1, and obsoleted in HTML5. If semantically appropriate, i.e., if it represents deleted content, use the <del> instead; in all other cases use a <span> element and style it with the CSS text-decoration property, with the line-through value.

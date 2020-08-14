@@ -1,3 +1,0 @@
-disabled
-form form [HTML5]\n\nThis attribute has the value of the id attribute of the <form> element its related to. Its default value is the id of the nearest <form> element it is a descendant of.
-name name [HTML5]\n\nThe name associated with the group, which is submitted with the form data.\n\nThe label for the field set is given by the first <legend> element that is a child of this field set.

@@ -1,4 +1,0 @@
-name name\n\nName of the parameter.
-type type [Trashed]\n\nOnly used if the valuetype is set to "ref". Specifies the MIME type of values found at the URI specified by value.
-value value\n\nSpecifies the value of the parameter.
-valuetype

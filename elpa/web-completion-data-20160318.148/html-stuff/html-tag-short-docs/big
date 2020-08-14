@@ -1,6 +1,0 @@
-The HTML Big Element (<big>) makes the text font size one size bigger (for example, from small to medium, or from large to x-large) up to the browser's maximum font size.
-
-OBSOLETE
-
-Usage note: 
-As it was purely presentational, this element has been removed in HTML5 and shouldn't be used anymore. Instead web developers should use CSS properties.

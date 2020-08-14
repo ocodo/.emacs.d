@@ -1,5 +1,0 @@
-autocorrect [!]
-
-This is a nonstandard attribute supported by Safari that is used to control whether autocorrection should be enabled when the user is entering/editing the text value of the <input>. Possible attribute values are:
-  on: Enable autocorrection
-  off: Disable autocorrection

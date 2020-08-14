@@ -1,9 +1,0 @@
-sizes [HTML5]
-
-This attribute defines the sizes of the icons for visual media contained in the resource. It must be present only if the rel contains the icon link types value. It may have the following values:
-  any, meaning that the icon can be scaled to any size as it is in a vectorial format, like image/svg+xml.
-  a white-space separated list of sizes, each in the format <width in pixels>x<height in pixels> or <width in pixels>X<height in pixels>. Each of these sizes must be contained in the resource.
-
-Usage note:
-  Most icon format are only able to store one single icon; therefore most of the time the sizes contains only one entry. Among the major browsers, only the Apple's ICNS format allows the storage of multiple icons, and this format is only supported in WebKit.
-  Apple's iOS does not support this attribute, hence Apple's iPhone and iPad use special, non-standard link types values to define icon to be used as Web Clip or start-up placeholder: apple-touch-icon and apple-touch-startup-icon.

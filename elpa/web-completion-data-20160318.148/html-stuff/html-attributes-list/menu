@@ -1,3 +1,0 @@
-label label\n\nThe name of the menu as shown to the user. Used within nested menus, to provide a label through which the submenu can be accessed. Must only be specified when the parent element is a <menu> in the popup menu state.
-onshow [HTML5]\n\nFires when a <menu> element is shown as a context menu
-type

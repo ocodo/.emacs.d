@@ -1,3 +1,0 @@
-webkitallowfullscreen [!] [Deprecated]
-
-Use allowfullscreen instead. In Chrome 17 or later (and maybe earlier), this attribute can be set to true if the frame is allowed to be placed into full screen mode by calling its element.webkitRequestFullScreen() method. If this isn't set, the element can't be placed into full screen mode.

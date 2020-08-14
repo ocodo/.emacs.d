@@ -1,6 +1,0 @@
-ismap
-
-This Boolean attribute indicates that the image is part of a server-side map. If so, the precise coordinates of a click are sent to the server.
-
-Usage note: 
-This attribute is allowed only if the <img> element is a descendant of an <a> element with a valid href attribute.

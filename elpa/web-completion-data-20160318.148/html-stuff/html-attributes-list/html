@@ -1,2 +1,0 @@
-manifest manifest [HTML5]\n\nSpecifies the URI of a resource manifest indicating resources that should be cached locally. See Using the application cache for details.
-version

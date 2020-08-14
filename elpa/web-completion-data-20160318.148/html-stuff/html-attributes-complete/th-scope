@@ -1,4 +1,0 @@
-col Specifies that the cell is a header for a column
-colgroup Specifies that the cell is a header for a group of columns
-row Specifies that the cell is a header for a row
-rowgroup Specifies that the cell is a header for a group of rows

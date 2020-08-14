@@ -1,6 +1,0 @@
-autofocus
-challenge challenge\n\nA challenge string that is submitted along with the public key. Defaults to an empty string if not specified.
-disabled disabled\n\nThis Boolean attribute indicates that the form control is not available for interaction.
-form
-keytype keytype\n\nThe type of key generated. The default value is RSA.
-name name\n\nThe name of the control, which is submitted with the form data.

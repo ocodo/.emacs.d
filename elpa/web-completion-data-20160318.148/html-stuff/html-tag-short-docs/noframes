@@ -1,6 +1,0 @@
-<noframes> is an HTML element which is used to supporting browsers which are not able to support <frame> elements or configured to do so.
-
-You can use any HTML element inside of <noframes> which are expected to be seen inside of <body> element, except <frameset> and <frame> elements.
-
-Note: 
-Because of the fact that all mainstream browsers support frames, usage of this element is not necessary in general cases. It is also entirely obsolete in HTML5 and should be avoided to conform to the standard.

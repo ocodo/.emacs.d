@@ -1,3 +1,0 @@
-align
-bgcolor
-span span\n\nThis attribute contains a positive integer indicating the number of consecutive columns the <col> element spans. If not present, its default value is 1.

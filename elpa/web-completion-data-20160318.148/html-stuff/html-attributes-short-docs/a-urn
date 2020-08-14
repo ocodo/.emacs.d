@@ -1,3 +1,0 @@
-urn [!]
-
-This supposedly Microsoft-supported attribute relates a uniform resource name (URN) with the link. While it is based on standards work years back, the meaning of URNs is still not well defined, so this attribute is meaningless. urn Property (MSDN)

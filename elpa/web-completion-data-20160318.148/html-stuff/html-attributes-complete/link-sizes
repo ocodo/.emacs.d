@@ -1,4 +1,0 @@
-16x16 <link rel="icon" href="favicon.png" sizes="16x16" type="image/png"> (1 size)
-32x32 <link rel="icon" href="favicon.png" sizes="32x32" type="image/png"> (2 size)
-64x64
-any Specifies that the icon is scalable (like an SVG image)\nExamples:\n  <link rel="icon" href="icon.svg" sizes="any" type="image/svg+xml"> (any size)

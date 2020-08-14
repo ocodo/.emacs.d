@@ -1,8 +1,0 @@
-accept
-
-If the value of the type attribute is file, this attribute indicates the types of files that the server accepts; otherwise it is ignored. The value must be a comma-separated list of unique content type specifiers:
-  A file extension starting with the STOP character (U+002E). (E.g.: ".jpg,.png,.doc")
-  A valid MIME type with no extensions
-  audio/* representing sound files HTML5
-  video/* representing video files HTML5
-  image/* representing image files HTML5

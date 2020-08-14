@@ -1,6 +1,0 @@
-disabled disabled\n\nIf set, disables (does not apply) the style rules to the Document that are specified within the element.
-media media\n\nWhich media should this style apply to. Should be a media query, see http://dev.w3.org/csswg/css3-mediaqueries.
-onerror [HTML5]\n\nFires when an error occurs while loading an external file
-scoped scoped\n\nIf this attribute is present, then the style applies only to its parent element. If absent, the style applies to the whole document.
-title title\n\nSpecifies alternative style sheet sets.
-type type\n\nThis attribute defines the styling language as a MIME type (charset should not be specified). 'text/css' is assumed if this attribute is absent.

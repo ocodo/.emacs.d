@@ -1,9 +1,0 @@
-autocomplete [HTML5]
-
-This attribute indicates whether the value of the control can be automatically completed by the browser. This attribute is ignored if the value of the type attribute is hidden, password, checkbox, radio, file, or a button type (button, submit, reset, image). Possible values are:
-  off: The user must explicitly enter a value into this field for every use, or the document provides its own auto-completion method; the browser does not automatically complete the entry.
-  on: The browser can automatically complete the value based on values that the user has entered during previous uses.
-
-If the autocomplete attribute is not specified on an input element, then the browser uses the autocomplete attribute value of the <input> element's form owner. The form owner is either the form element that this <input> element is a descendant of or the form element whose id is specified by the form attribute of the input element. For more information, see the autocomplete attribute in <form>.
-
-The autocomplete attribute also controls whether Firefox will, unlike other browsers, persist the dynamic disabled state and (if applicable) dynamic checkedness of an <input> across page loads. The persistence feature is enabled by default. Setting the value of the autocomplete attribute to off disables this feature; this works even when the autocomplete attribute would normally not apply to the <input> by virtue of its type. See bug 654072.

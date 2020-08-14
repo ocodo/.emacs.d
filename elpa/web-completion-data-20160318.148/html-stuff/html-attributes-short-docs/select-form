@@ -1,3 +1,0 @@
-form [HTML5]
-
-The form element that the select element is associated with (its "form owner"). If this attribute is specified, its value must be the ID of a form element in the same document. This enables you to place select elements anywhere within a document, not just as descendants of their form elements.

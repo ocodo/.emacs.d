@@ -1,8 +1,0 @@
-!OBSOLETE!
-
-The HTML directory element (<dir>) represents a directory, namely a collection of filenames.
-
-This feature is obsolete. Although it may still work in some browsers, its use is discouraged since it could be removed at any time. Try to avoid using it.
-
-Usage note: 
-Do not use this element. Though present in the early HTML specification, it has been deprecated in HTML 4, then is obsolete in HTML5. Use the <ul> instead.

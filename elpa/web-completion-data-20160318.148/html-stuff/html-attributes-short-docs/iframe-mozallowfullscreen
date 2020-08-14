@@ -1,3 +1,0 @@
-mozallowfullscreen [!] [Deprecated]
-
-Use allowfullscreen instead. In Gecko 9.0 or later, this attribute can be set to true if the frame is allowed to be placed into full screen mode by calling its element.mozRequestFullScreen() method. If this isn't set, the element can't be placed into full screen mode.

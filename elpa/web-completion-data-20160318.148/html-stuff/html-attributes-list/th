@@ -1,4 +1,0 @@
-colspan
-headers headers\n\nThis attributes a list of space-separated strings, each corresponding to the id attribute of the <th> elements that applies to this element.
-rowspan
-scope

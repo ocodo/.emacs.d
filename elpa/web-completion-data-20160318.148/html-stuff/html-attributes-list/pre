@@ -1,3 +1,0 @@
-cols cols [!] [Trashed]\n\nContains the preferred count of characters that a line should have. It was a non-standard synonym of width. To achieve such an effect, use CSS styling instead.
-width width [Trashed]\n\nContains the preferred count of characters that a line should have. Though technically still implemented, this attribute has no visual effect; to achieve such an effect, use CSS styling instead.
-wrap wrap [!]\n\nIs a hint indicating how the overflow must happen. In modern browser this hint is ignored and no visual effect results in its present; to achieve such an effect, use CSS styling instead.
