@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/flycheck-pkg-config-20200409.501/flycheck-pkg-config.el  -*- no-byte-compile: t -*-
+(define-package "flycheck-pkg-config" "20200409.501" "configure flycheck using pkg-config" '((dash "2.8.0") (s "1.9.0") (flycheck "29")) :commit "b76b24ea1f4800f5fb96ce9c6c4788e0e63133d3" :keywords '("flycheck") :authors '(("Wilfred Hughes" . "me@wilfred.me.uk")) :maintainer '("Wilfred Hughes" . "me@wilfred.me.uk"))
