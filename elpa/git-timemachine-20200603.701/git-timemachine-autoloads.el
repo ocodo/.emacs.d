@@ -11,14 +11,10 @@
 ;;; Generated autoloads from git-timemachine.el
 
 (autoload 'git-timemachine-toggle "git-timemachine" "\
-Toggle git timemachine mode.
-
-\(fn)" t nil)
+Toggle git timemachine mode." t nil)
 
 (autoload 'git-timemachine "git-timemachine" "\
-Enable git timemachine for file of current buffer.
-
-\(fn)" t nil)
+Enable git timemachine for file of current buffer." t nil)
 
 (autoload 'git-timemachine-switch-branch "git-timemachine" "\
 Enable git timemachine for current buffer, switching to GIT-BRANCH.
