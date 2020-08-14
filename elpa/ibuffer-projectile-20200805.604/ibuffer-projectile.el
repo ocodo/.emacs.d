@@ -1,12 +1,13 @@
-;;; ibuffer-projectile.el --- Group ibuffer's list by projectile root
+;;; ibuffer-projectile.el --- Group ibuffer's list by projectile root  -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2011-2014 Steve Purcell
 ;;
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; Keywords: convenience
-;; Package-Requires: ((projectile "0.11.0") (emacs "24"))
-;; URL: http://github.com/purcell/ibuffer-projectile
-;; Package-Version: 20181202.352
+;; Package-Commit: ecbe482804a217b1471593f6c7a8b3d64f3cdc47
+;; Package-Requires: ((projectile "0.11.0") (emacs "24.1"))
+;; URL: https://github.com/purcell/ibuffer-projectile
+;; Package-Version: 20200805.604
 ;; Package-X-Original-Version: 0
 ;;
 ;; This program is free software; you can redistribute it and/or modify

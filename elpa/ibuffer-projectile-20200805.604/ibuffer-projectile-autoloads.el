@@ -14,16 +14,12 @@
  (autoload 'ibuffer-make-column-project-relative-file "ibuffer-projectile")
 
 (autoload 'ibuffer-projectile-generate-filter-groups "ibuffer-projectile" "\
-Create a set of ibuffer filter groups based on the projectile root dirs of buffers.
-
-\(fn)" nil nil)
+Create a set of ibuffer filter groups based on the projectile root dirs of buffers." nil nil)
 
 (autoload 'ibuffer-projectile-set-filter-groups "ibuffer-projectile" "\
-Set the current filter groups to filter by projectile root dir.
+Set the current filter groups to filter by projectile root dir." t nil)
 
-\(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ibuffer-projectile" '("project" "ibuffer-projectile-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ibuffer-projectile" '("ibuffer-projectile-" "project")))
 
 ;;;***
 
