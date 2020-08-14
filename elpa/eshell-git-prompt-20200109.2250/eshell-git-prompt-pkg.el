@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/eshell-git-prompt-20200109.2250/eshell-git-prompt.el  -*- no-byte-compile: t -*-
+(define-package "eshell-git-prompt" "20200109.2250" "Some Eshell prompt for Git users" '((emacs "24.1") (cl-lib "0.5") (dash "2.11.0")) :commit "48ee35774c9b8d0e2d96110e3ae84bac60f43dfd" :keywords '("eshell" "git") :authors '(("Chunyang Xu" . "mail@xuchunyang.me")) :maintainer '("Chunyang Xu" . "mail@xuchunyang.me") :url "https://github.com/xuchunyang/eshell-git-prompt")
