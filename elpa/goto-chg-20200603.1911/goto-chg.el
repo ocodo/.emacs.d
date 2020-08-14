@@ -15,16 +15,18 @@
 ;;
 ;; You should have received a copy of the GNU General Public
 ;; License along with this program; if not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-;; MA 02111-1307 USA
+;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301 USA
 ;;
 ;;-------------------------------------------------------------------
 ;;
 ;; Author: David Andersson <l.david.andersson(at)sverige.nu>
-;; Maintainer: Vasilij Schneidermann <v.schneidermann@github.com>
+;; Maintainer: Vasilij Schneidermann <mail@vasilij.de>
 ;; Created: 16 May 2002
-;; Version: 1.7.2
-;; Package-Version: 20180105.1033
+;; Version: 1.7.3
+;; Package-Version: 20200603.1911
+;; Package-Commit: 85fca9f7d8b04be3fbb37cc5d42416f3c4d32830
+;; Package-Requires: ((undo-tree "0.1.3"))
 ;; Keywords: convenience, matching
 ;; URL: https://github.com/emacs-evil/goto-chg
 ;;
@@ -51,6 +53,8 @@
 ;;--------------------------------------------------------------------
 ;; History
 ;;
+;; Ver 1.7.3 2019-01-07 Vasilij Schneidermann
+;;    Fix errors when used with persistent undo
 ;; Ver 1.7.2 2018-01-05 Vasilij Schneidermann
 ;;    Fix byte-compiler warnings again
 ;; Ver 1.7.1 2017-12-31 Vasilij Schneidermann
@@ -96,12 +100,27 @@
 
 ;;; Code:
 
+(require 'undo-tree)
+
 (defvar glc-default-span 8 "*goto-last-change don't visit the same point twice. glc-default-span tells how far around a visited point not to visit again.")
 (defvar glc-current-span 8 "Internal for goto-last-change.\nA copy of glc-default-span or the ARG passed to goto-last-change.")
 (defvar glc-probe-depth 0 "Internal for goto-last-change.\nIt is non-zero between successive goto-last-change.")
 (defvar glc-direction 1 "Direction goto-last-change moves towards.")
 
 ;;todo: Find begin and end of line, then use it somewhere
+
+(defun glc-fixup-edit (e)
+  "Convert an Emacs 27.1-style combined change to a regular edit."
+  (when (and (consp e)
+             (eq (car e) 'apply)
+             (not (functionp (cadr e)))
+             (eq (nth 4 e) 'undo--wrap-and-run-primitive-undo))
+    (let ((args (last e)))
+      (when (and (consp args) (= (length args) 1)
+                 (consp (car args)) (= (length (car args)) 1)
+                 (consp (caar args)) (numberp (car (caar args))) (numberp (cdr (caar args))))
+        (setq e (caar args)))))
+  e)
 
 (defun glc-center-ellipsis (str maxlen &optional ellipsis)
   "Truncate STRING in the middle to length MAXLEN.
@@ -137,6 +156,7 @@ Exception: return nil if POS is closer than `glc-current-span' to the edit E.
 \nInsertion edits before POS returns a larger value.
 Deletion edits before POS returns a smaller value.
 \nThe edit E is an entry from the `buffer-undo-list'. See for details."
+  (setq e (glc-fixup-edit e))
   (cond ((atom e)                       ; nil==cmd boundary, or, num==changed pos
          pos)
         ((numberp (car e))              ; (beg . end)==insertion
@@ -172,6 +192,7 @@ or nil if the point was closer than `glc-current-span' to some edit in R.
   "If E represents an edit, return a position value in E, the position
 where the edit took place. Return nil if E represents no real change.
 \nE is an entry in the buffer-undo-list."
+  (setq e (glc-fixup-edit e))
   (cond ((numberp e) e)                 ; num==changed position
         ((atom e) nil)                  ; nil==command boundary
         ((numberp (car e)) (cdr e))     ; (beg . end)==insertion
@@ -184,6 +205,7 @@ where the edit took place. Return nil if E represents no real change.
   "If E represents an edit, return a short string describing E.
 Return nil if E represents no real change.
 \nE is an entry in the buffer-undo-list."
+  (setq e (glc-fixup-edit e))
   (let ((nn (or (format "T-%d: " n) "")))
     (cond ((numberp e) "New position")  ; num==changed position
           ((atom e) nil)                ; nil==command boundary
@@ -211,11 +233,6 @@ Return nil if E represents no real change.
   "Return t if E indicates a buffer became \"modified\",
 that is, it was previously saved or unchanged. Nil otherwise."
   (and (listp e) (eq (car e) t)))
-
-(defvar buffer-undo-tree)
-(declare-function undo-tree-current "undo-tree.el")
-(declare-function undo-tree-node-undo "undo-tree.el")
-(declare-function undo-tree-node-previous "undo-tree.el")
 
 ;;;###autoload
 (defun goto-last-change (arg)
@@ -249,7 +266,7 @@ discarded. See variable `undo-limit'."
                glc-current-span glc-default-span)
          (if (< (prefix-numeric-value arg) 0)
              (error "Negative arg: Cannot reverse as the first operation"))))
-  (cond ((null buffer-undo-list)
+  (cond ((and (null buffer-undo-list) (null buffer-undo-tree))
          (error "Buffer has not been changed"))
         ((eq buffer-undo-list t)
          (error "No change info (undo is disabled)")))
@@ -297,6 +314,7 @@ discarded. See variable `undo-limit'."
                   ((or passed-save-entry (glc-is-filetime (car l)))
                    (setq passed-save-entry t)))
             (setq l (cdr l)))
+        (undo-list-transfer-to-tree)
         (when (not glc-seen-canary)
           (while (and (not (null l)) (not glc-seen-canary) (< n new-probe-depth))
             (cond ((eq 'undo-tree-canary (car l))  ; used by buffer-undo-tree
@@ -311,7 +329,7 @@ discarded. See variable `undo-limit'."
             (when (not glc-seen-canary)
               (setq l (cdr l)))))
         (when glc-seen-canary
-          (while (< n new-probe-depth)
+          (while (and (< n new-probe-depth) (undo-tree-node-p l))
             (cond ((null l)
                    ;(setq this-command t)	; Disrupt repeat sequence
                    (error "No further change info"))
