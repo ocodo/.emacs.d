@@ -1,2 +1,0 @@
-;;; -*- no-byte-compile: t -*-
-(define-package "visual-regexp" "20170301.116" "A regexp/replace command for Emacs with interactive visual feedback" '((cl-lib "0.2")) :commit "b3096c2d391ff4e28a2a4e8cd82efbf11071ea85" :keywords '("regexp" "replace" "visual" "feedback") :authors '(("Marko Bencun" . "mbencun@gmail.com")) :maintainer '("Marko Bencun" . "mbencun@gmail.com") :url "https://github.com/benma/visual-regexp.el/")
