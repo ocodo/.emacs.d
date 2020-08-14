@@ -6,7 +6,8 @@
 ;; Mantainer: Roman Gonzalez <romanandreg@gmail.com>
 ;; Created: 13 Oct 2012
 ;; Keywords: Window Resizing
-;; Package-Version: 20150819.1120
+;; Package-Version: 20191028.1732
+;; Package-Commit: 007911d8a431b72670f5fe5f0e5b4380c2777a31
 ;; Version: 0.0.4
 
 ;; Code inspired by ideas from Tatsuhiro Ujihisa
@@ -81,6 +82,11 @@ will not cause the window to be resized to the golden ratio."
   :group 'golden-ratio
   :type 'boolean)
 
+(defcustom golden-ratio-max-width nil
+  "Set a maximum column width on the active window."
+  :group 'golden-ratio
+  :type 'integer)
+
 (defcustom golden-ratio-exclude-buffer-regexp nil
   "A list of regexp's used to match buffer names.
 Switching to a buffer whose name matches one of these regexps
@@ -115,8 +121,11 @@ will prevent the window to be resized to the golden ratio."
 
 (defun golden-ratio--dimensions ()
   (list (floor (/ (frame-height) golden-ratio--value))
-        (floor  (* (/ (frame-width)  golden-ratio--value)
-                   (golden-ratio--scale-factor)))))
+        (let ((width (floor  (* (/ (frame-width)  golden-ratio--value)
+                                (golden-ratio--scale-factor)))))
+          (if golden-ratio-max-width
+              (min golden-ratio-max-width width)
+            width))))
 
 (defun golden-ratio--resize-window (dimensions &optional window)
   (with-selected-window (or window (selected-window))
@@ -153,10 +162,12 @@ will prevent the window to be resized to the golden ratio."
           (golden-ratio-mode nil))
       ;; Always disable `golden-ratio-mode' to avoid
       ;; infinite loop in `balance-windows'.
-      (balance-windows)
-      (golden-ratio--resize-window dims)
-      (when golden-ratio-recenter
-        (scroll-right) (recenter)))))
+      (let (window-configuration-change-hook)
+        (balance-windows)
+        (golden-ratio--resize-window dims)
+        (when golden-ratio-recenter
+          (scroll-right) (recenter)))
+      (run-hooks 'window-configuration-change-hook))))
 
 ;; Should return nil
 (defadvice other-window
@@ -172,8 +183,8 @@ will prevent the window to be resized to the golden ratio."
   (when (or (memq this-command golden-ratio-extra-commands)
             (and (consp this-command) ; A lambda form.
                  (loop for com in golden-ratio-extra-commands
-                       thereis (or (memq com this-command)
-                                   (memq (car-safe com) this-command)))))
+                       thereis (or (member com this-command)
+                                   (member (car-safe com) this-command)))))
     ;; This is needed in emacs-25 to avoid this error from `recenter':
     ;; `recenter'ing a window that does not display current-buffer.
     ;; This doesn't happen in emacs-24.4 and previous versions.
