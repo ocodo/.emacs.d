@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: receive
-# key: receive
-# --
-receive do
-$0
-end
