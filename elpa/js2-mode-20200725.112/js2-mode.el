@@ -7,7 +7,7 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;; URL:  https://github.com/mooz/js2-mode/
 ;;       http://code.google.com/p/js2-mode/
-;; Version: 20180301
+;; Version: 20190219
 ;; Keywords: languages, javascript
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 
@@ -60,11 +60,13 @@
 
 ;;   (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
 
-;; Support for JSX is available via the derived mode `js2-jsx-mode'.  If you
-;; also want JSX support, use that mode instead:
+;; Use Emacs 27 and want to write JSX?  Then use `js2-minor-mode' as described
+;; above.  Use Emacs 26 or earlier?  Then use `js2-jsx-mode':
 
 ;;   (add-to-list 'auto-mode-alist '("\\.jsx?\\'" . js2-jsx-mode))
 ;;   (add-to-list 'interpreter-mode-alist '("node" . js2-jsx-mode))
+
+;; Note that linting of JSX code may fail in both modes.
 
 ;; To customize how it works:
 ;;   M-x customize-group RET js2-mode RET
@@ -158,6 +160,21 @@
             ;; Window
             window alert confirm document java navigator prompt screen
             self top requestAnimationFrame cancelAnimationFrame
+
+            ;; Window or WorkerGlobalScope with support in Chromium and Firefox:
+            ;; https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope
+            ;; properties
+            caches indexedDB isSecureContext origin
+            ;; methods
+            atob btoa clearInterval clearTimeout
+            createImageBitmap fetch queueMicrotask setInterval
+            setTimeout
+
+            ;; from jslint "browser"
+            history location
+
+            ;; HTML element constructors
+            Audio Image Option
 
             ;; W3C CSS
             CSSCharsetRule CSSFontFace CSSFontFaceRule
@@ -633,9 +650,11 @@ which doesn't seem particularly useful, but Rhino permits it."
 (defvar js2-AWAIT 169)  ; await (pseudo keyword)
 
 (defvar js2-HOOK 170)          ; conditional (?:)
-(defvar js2-EXPON 171)
+(defvar js2-OPTIONAL-CHAINING 171) ; optional chaining (?.prop obj?.[expr] func?.())
+(defvar js2-EXPON 172)
+(defvar js2-NULLISH-COALESCING 173) ; nullish coalescing (obj.value ?? obj.defaultValue ?? 0))
 
-(defconst js2-num-tokens (1+ js2-EXPON))
+(defconst js2-num-tokens (1+ js2-NULLISH-COALESCING))
 
 (defconst js2-debug-print-trees nil)
 
@@ -1249,6 +1268,9 @@ First match-group is the leading whitespace.")
 (defvar js2-mode-verbose-parse-p js2-mode-dev-mode-p
   "Non-nil to emit status messages during parsing.")
 
+(defvar js2-mode-change-syntax-p t
+  "Non-nil to set the syntax-table text property on certain literals.")
+
 (defvar js2-mode-functions-hidden nil "Private variable.")
 (defvar js2-mode-comments-hidden nil "Private variable.")
 
@@ -1650,6 +1672,9 @@ the correct number of ARGS must be provided."
 
 (js2-msg "msg.no.colon.cond"
          "missing : in conditional expression")
+
+(js2-msg "msg.bad.optional.chaining"
+         "missing property name or [ or ( after optional chaining operator")
 
 (js2-msg "msg.no.paren.arg"
          "missing ) after argument list")
@@ -3458,6 +3483,7 @@ The type field inherited from `js2-node' holds the operator."
                (cons js2-COLON ":")
                (cons js2-OR "||")
                (cons js2-AND "&&")
+               (cons js2-NULLISH-COALESCING "??")
                (cons js2-INC "++")
                (cons js2-DEC "--")
                (cons js2-BITOR "|")
@@ -5110,7 +5136,8 @@ You should use `js2-print-tree' instead of this function."
        ((= tt js2-COMMA)
         (js2-node-has-side-effects (js2-infix-node-right node)))
        ((or (= tt js2-AND)
-            (= tt js2-OR))
+            (= tt js2-OR)
+            (= tt js2-NULLISH-COALESCING))
         (or (js2-node-has-side-effects (js2-infix-node-right node))
             (js2-node-has-side-effects (js2-infix-node-left node))))
        ((= tt js2-HOOK)
@@ -6069,7 +6096,11 @@ its relevant fields and puts it into `js2-ti-tokens'."
                           (?,
                            (throw 'return js2-COMMA))
                           (??
-                           (throw 'return js2-HOOK))
+                           (if (js2-match-char ??)
+                               (throw 'return js2-NULLISH-COALESCING)
+                             (if (js2-match-char ?.)
+                                 (throw 'return js2-OPTIONAL-CHAINING)
+                               (throw 'return js2-HOOK))))
                           (?:
                            (if (js2-match-char ?:)
                                js2-COLONCOLON
@@ -6345,8 +6376,9 @@ its relevant fields and puts it into `js2-ti-tokens'."
         flags
         (continue t)
         (token (js2-new-token 0)))
-    (js2-record-text-property start-pos (1+ start-pos)
-                              'syntax-table (string-to-syntax "\"/"))
+    (when js2-mode-change-syntax-p
+      (js2-record-text-property start-pos (1+ start-pos)
+                                'syntax-table (string-to-syntax "\"/")))
     (setq js2-ts-string-buffer nil)
     (if (eq start-tt js2-ASSIGN_DIV)
         ;; mis-scanned /=
@@ -6373,8 +6405,9 @@ its relevant fields and puts it into `js2-ti-tokens'."
             (setq in-class nil)))
           (js2-add-to-string c))))
     (unless err
-      (js2-record-text-property (1- js2-ts-cursor) js2-ts-cursor
-                                'syntax-table (string-to-syntax "\"/"))
+      (when js2-mode-change-syntax-p
+        (js2-record-text-property (1- js2-ts-cursor) js2-ts-cursor
+                                  'syntax-table (string-to-syntax "\"/")))
       (while continue
         (cond
          ((js2-match-char ?g)
@@ -7168,7 +7201,8 @@ key of a literal object."
       ;; ignore later
       (when (and (not declared)
                  (js2-object-prop-node-p parent)
-                 (eq node (js2-object-prop-node-left parent)))
+                 (eq node (js2-object-prop-node-left parent))
+                 (not (eq node (js2-object-prop-node-right parent))))
         (setq object-key t)))
     ;; Maybe this is a for loop and the variable is one of its iterators?
     (unless assigned
@@ -7188,10 +7222,41 @@ key of a literal object."
                                 finally return syms))))))
     (list declared assigned object-key)))
 
+(defun js2--is-param (var-node params)
+  "Recursively determine whether VAR-NODE is contained in PARAMS."
+  (cond ((js2-object-prop-node-p params)
+         (eq var-node (js2-object-prop-node-left params)))
+        ((js2-name-node-p params)
+         (eq var-node params))
+        (t
+         (let ((isparam (if (listp params)
+                            (memq var-node params)
+                          (cl-loop with found = nil
+                                   for p in (js2-node-child-list params)
+                                   while (null found)
+                                   do (setq found (eq var-node p))))))
+           (unless isparam
+             (let ((kids (if (listp params)
+                             params
+                           (js2-node-child-list params))))
+               (cl-loop for p in kids
+                        while (null isparam)
+                        do (setq isparam (js2--is-param var-node p)))))
+           isparam))))
+
+(defun js2--is-function-param (parent var-node)
+  "Determine whether VAR-NODE is a function parameter."
+  (while (and parent (not (js2-function-node-p parent)))
+    (if (or (js2-var-init-node-p parent)
+            (js2-assign-node-p parent))
+        (setq parent nil)
+    (setq parent (js2-node-parent parent))))
+  (when parent
+    (js2--is-param var-node (js2-function-node-params parent))))
+
 (defun js2--classify-variable (parent node vars)
-  "Classify the single variable NODE, a js2-name-node."
-  (let ((function-param (and (js2-function-node-p parent)
-                             (memq node (js2-function-node-params parent)))))
+  "Classify the single variable NODE, a js2-name-node, updating the VARS collection."
+  (let ((function-param (js2--is-function-param parent node)))
     (if (js2-prop-get-node-p parent)
         ;; If we are within a prop-get, e.g. the "bar" in "foo.bar",
         ;; just mark "foo" as used
@@ -7252,6 +7317,9 @@ key of a literal object."
                ((js2-namespace-import-node-p parent)
                 (setq assigned t
                       used nil))
+               ((js2-class-node-p parent)
+                (setq declared t
+                      assigned t))
                (assign-node
                 (setq assigned (memq node
                                      (js2--collect-target-symbols
@@ -7639,7 +7707,8 @@ For instance, processing a nested scope requires a parent function node."
   (let (result fn parent-qname p elem)
     (dolist (entry js2-imenu-recorder)
       ;; function node goes first
-      (cl-destructuring-bind (current-fn &rest (&whole chain head &rest)) entry
+      (cl-destructuring-bind
+          (current-fn &rest (&whole chain head &rest rest)) entry
         ;; Examine head's defining scope:
         ;; Pre-processed chain, or top-level/external, keep as-is.
         (if (or (stringp head) (js2-node-top-level-decl-p head))
@@ -9869,7 +9938,7 @@ If NODE is non-nil, it is the AST node associated with the symbol."
 
 (defun js2-parse-cond-expr ()
   (let ((pos (js2-current-token-beg))
-        (pn (js2-parse-or-expr))
+        (pn (js2-parse-nullish-coalescing-expr))
         test-expr
         if-true
         if-false
@@ -9952,6 +10021,15 @@ FIXME: The latter option is unused?"
       (setq pn (js2-make-binary js2-BITAND
                                 pn
                                 'js2-parse-eq-expr)))
+    pn))
+
+
+(defun js2-parse-nullish-coalescing-expr ()
+  (let ((pn (js2-parse-or-expr)))
+    (when (js2-match-token js2-NULLISH-COALESCING)
+      (setq pn (js2-make-binary js2-NULLISH-COALESCING
+                                pn
+                                'js2-parse-nullish-coalescing-expr)))
     pn))
 
 (defconst js2-parse-eq-ops
@@ -10234,6 +10312,24 @@ Returns the list in reverse order.  Consumes the right-paren token."
         (setf (js2-node-len pn) (- end beg)))  ; end outer if
     (js2-parse-member-expr-tail allow-call-syntax pn)))
 
+(defun js2-parse-optional-chaining-operator (allow-call-syntax pn)
+  (let ((tt (js2-peek-token)))
+    (cond
+     ((eq tt js2-NAME)
+      (setq pn (js2-parse-property-access js2-DOT pn)))
+     ((eq tt js2-LB)
+      ;; skip left bracket token
+      (js2-get-token)
+      (setq pn (js2-parse-element-get pn)))
+     ((and (eq tt js2-LP) allow-call-syntax)
+      ;; unget optional chaining operator
+      ;; so current token is function name and could be highlighted
+      (js2-unget-token)
+      (setq pn (js2-parse-function-call pn t)))
+     (t
+      (js2-report-error "msg.bad.optional.chaining")))
+    pn))
+
 (defun js2-parse-member-expr-tail (allow-call-syntax pn)
   "Parse a chain of property/array accesses or function calls.
 Includes parsing for E4X operators like `..' and `.@'.
@@ -10246,6 +10342,9 @@ Returns an expression tree that includes PN, the parent node."
       (cond
        ((or (= tt js2-DOT) (= tt js2-DOTDOT))
         (setq pn (js2-parse-property-access tt pn)))
+       ((= tt js2-OPTIONAL-CHAINING)
+        (setq pn (js2-parse-optional-chaining-operator allow-call-syntax pn))
+        (unless pn (setq continue nil)))
        ((= tt js2-DOTQUERY)
         (setq pn (js2-parse-dot-query pn)))
        ((= tt js2-LB)
@@ -10323,11 +10422,14 @@ Last token parsed must be `js2-RB'."
   (when (eq (js2-token-type token) js2-NAME)
     (js2-record-face 'js2-function-call token)))
 
-(defun js2-parse-function-call (pn)
+(defun js2-parse-function-call (pn &optional use-optional-chaining-p)
   (js2-highlight-function-call (js2-current-token))
   (js2-get-token)
   (let (args
         (pos (js2-node-pos pn)))
+    (when use-optional-chaining-p
+      ;; skip optional chaining operator
+      (js2-get-token))
     (setq pn (make-js2-call-node :pos pos
                                  :target pn
                                  :lp (- (js2-current-token-beg) pos)))
@@ -10815,7 +10917,7 @@ If ONLY-OF-P is non-nil, only the 'for (foo of bar)' form is allowed."
         (_ (js2-must-match-name "msg.unnamed.class.stmt"))
         (name (js2-create-name-node t)))
     (js2-set-face (js2-node-pos name) (js2-node-end name)
-                  'font-lock-function-name-face 'record)
+                  'font-lock-type-face 'record)
     (let ((node (js2-parse-class pos 'CLASS_STATEMENT name)))
       (js2-record-imenu-functions node name)
       (js2-define-symbol js2-FUNCTION
@@ -10888,6 +10990,14 @@ expression)."
         elem-key-string previous-elem-key-string
         after-comma previous-token)
     (while continue
+      ;; Clear out any lookahead tokens (possibly wrong modifier).
+      ;; FIXME: Deal with this problem in a more systematic fashion.
+      ;; Perhaps by making this modifier affect not how the token
+      ;; struct value is constructed, but what js2-get-token returns
+      ;; based on it.
+      (when (> js2-ti-lookahead 0)
+        (setq js2-ti-lookahead 0)
+        (setq js2-ts-cursor (js2-current-token-end)))
       (setq tt (js2-get-prop-name-token)
             static nil
             elem nil
@@ -11537,6 +11647,7 @@ highlighting features of `js2-mode'."
   (setq js2-mode-buffer-dirty-p t
         js2-mode-parsing nil)
   (set (make-local-variable 'js2-highlight-level) 0) ; no syntax highlighting
+  (set (make-local-variable 'js2-mode-change-syntax-p) nil)
   (add-hook 'after-change-functions #'js2-minor-mode-edit nil t)
   (add-hook 'change-major-mode-hook #'js2-minor-mode-exit nil t)
   (when js2-include-jslint-globals
@@ -11588,7 +11699,7 @@ highlighting features of `js2-mode'."
         (let ((inhibit-read-only t))
           (erase-buffer)
           (dolist (err all-errs)
-            (cl-destructuring-bind ((msg-key beg _end &rest) type line) err
+            (cl-destructuring-bind ((msg-key beg _end &rest rest) type line) err
               (insert-text-button
                (format "line %d: %s" line (js2-get-msg msg-key))
                'face type
@@ -11721,11 +11832,12 @@ Selecting an error will jump it to the corresponding source-buffer error.
     ;; Schedule parsing for after when the mode hooks run.
     (js2-mode-reset-timer)))
 
-;; We may eventually want js2-jsx-mode to derive from js-jsx-mode, but that'd be
-;; a bit more complicated and it doesn't net us much yet.
 ;;;###autoload
 (define-derived-mode js2-jsx-mode js2-mode "JSX-IDE"
-  "Major mode for editing JSX code.
+  "Major mode for editing JSX code in Emacs 26 and earlier.
+
+To edit JSX code in Emacs 27, use `js-mode' as your major mode
+with `js2-minor-mode' enabled.
 
 To customize the indentation for this mode, set the SGML offset
 variables (`sgml-basic-offset' et al) locally, like so:
@@ -11733,6 +11845,15 @@ variables (`sgml-basic-offset' et al) locally, like so:
   (defun set-jsx-indentation ()
     (setq-local sgml-basic-offset js2-basic-offset))
   (add-hook \\='js2-jsx-mode-hook #\\='set-jsx-indentation)"
+  (unless (version< emacs-version "27.0")
+    ;; Emacs 27 causes a regression in this mode since JSX indentation
+    ;; begins to rely on js-mode’s `syntax-propertize-function', which
+    ;; JS2 is not currently using.
+    ;; https://github.com/mooz/js2-mode/issues/529 should address
+    ;; this.  https://github.com/mooz/js2-mode/issues/530 also has a
+    ;; piece related to the design of `js2-jsx-mode'.  Until these
+    ;; issues are addressed, ward Emacs 27 users away from this mode.
+    (display-warning 'js2-mode "For JSX support, use js-mode with js2-minor-mode"))
   (set (make-local-variable 'indent-line-function) #'js2-jsx-indent-line))
 
 (defun js2-mode-exit ()
@@ -11820,8 +11941,9 @@ buffer will only rebuild its `js2-mode-ast' if the buffer is dirty."
                            (with-silent-modifications
                              ;; if parsing is interrupted, comments and regex
                              ;; literals stay ignored by `parse-partial-sexp'
-                             (remove-text-properties (point-min) (point-max)
-                                                     '(syntax-table))
+                             (when js2-mode-change-syntax-p
+                               (remove-text-properties (point-min) (point-max)
+                                                       '(syntax-table)))
                              (js2-mode-apply-deferred-properties)
                              (js2-mode-remove-suppressed-warnings)
                              (js2-mode-show-warnings)

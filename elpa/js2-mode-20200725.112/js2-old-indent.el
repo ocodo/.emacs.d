@@ -1,4 +1,4 @@
-;;; js2-old-indent.el --- Indentation code kept for compatibility
+;;; js2-old-indent.el --- Indentation code kept for compatibility  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015  Free Software Foundation, Inc.
 
@@ -480,7 +480,7 @@ indentation is aligned to that column."
         (+ 1 (current-column))
       0)))
 
-(defun js2-indent-line (&optional bounce-backwards)
+(defun js2-indent-line (&optional _bounce-backwards)
   "Indent the current line as JavaScript source text."
   (interactive)
   (let (parse-status offset
