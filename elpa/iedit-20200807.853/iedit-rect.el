@@ -2,12 +2,12 @@
 
 ;; Copyright (C) 2010, 2011, 2012 Victor Ren
 
-;; Time-stamp: <2018-09-19 11:10:37 Victor Ren>
+;; Time-stamp: <2020-07-21 11:35:39 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous rectangle refactoring
 ;; Version: 0.9.9.9
-;; X-URL: https://www.emacswiki.org/emacs/Iedit
-;;        https://github.com/victorhge/iedit
+;; X-URL: https://github.com/victorhge/iedit
+;;        https://www.emacswiki.org/emacs/Iedit
 ;; Compatibility: GNU Emacs: 22.x, 23.x, 24.x, 25.x
 
 ;; This file is not part of GNU Emacs, but it is distributed under
@@ -41,7 +41,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+;; (eval-when-compile (require 'cl-lib))
 (require 'rect) ;; kill-rectangle
 (require 'iedit-lib)
 
@@ -121,7 +121,6 @@ Commands:
   (setq beg (copy-marker beg))
   (setq end (copy-marker end t))
   (setq iedit-occurrences-overlays nil)
-  (setq iedit-initial-string-local nil)
   (setq iedit-occurrence-keymap iedit-rect-keymap)
   (save-excursion
     (let ((beg-col (progn (goto-char beg) (current-column)))
@@ -147,6 +146,7 @@ Commands:
                  (number-to-string (length iedit-occurrences-overlays)))
          'face
          'font-lock-warning-face))
+  (iedit-lib-start)
   (force-mode-line-update)
   (add-hook 'before-revert-hook 'iedit-rectangle-done nil t)
   (add-hook 'kbd-macro-termination-hook 'iedit-rectangle-done nil t)
@@ -159,7 +159,7 @@ Save the current occurrence string locally and globally.  Save
 the initial string globally."
   (when iedit-buffering
     (iedit-stop-buffering))
-  (iedit-cleanup)
+  (iedit-lib-cleanup)
   (setq iedit-rectangle-mode nil)
   (force-mode-line-update)
   (remove-hook 'before-revert-hook 'iedit-rectangle-done t)
