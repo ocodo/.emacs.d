@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/kill-or-bury-alive-20190713.1340/kill-or-bury-alive.el  -*- no-byte-compile: t -*-
+(define-package "kill-or-bury-alive" "20190713.1340" "Precise control over buffer killing in Emacs" '((emacs "24.4") (cl-lib "0.5")) :commit "7db85a3f3004ff400e24105d1875f4e3a6eec7a6" :keywords '("buffer" "killing" "convenience") :authors '(("Mark Karpov" . "markkarpov92@gmail.com")) :maintainer '("Mark Karpov" . "markkarpov92@gmail.com") :url "https://github.com/mrkkrp/kill-or-bury-alive")

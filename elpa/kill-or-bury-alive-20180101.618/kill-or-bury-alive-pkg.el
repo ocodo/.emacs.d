@@ -1,2 +1,0 @@
-;;; -*- no-byte-compile: t -*-
-(define-package "kill-or-bury-alive" "20180101.618" "Precise control over buffer killing in Emacs" '((emacs "24.4") (cl-lib "0.5")) :commit "0ba8f44efe60058ef66b10a059fd30489b42546f" :keywords '("buffer" "killing" "convenience") :authors '(("Mark Karpov" . "markkarpov92@gmail.com")) :maintainer '("Mark Karpov" . "markkarpov92@gmail.com") :url "https://github.com/mrkkrp/kill-or-bury-alive")
