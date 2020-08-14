@@ -1,13 +1,14 @@
 ;;; ace-window.el --- Quickly switch windows. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015  Free Software Foundation, Inc.
+;; Copyright (C) 2015-2020  Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; Maintainer: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-window
-;; Package-Version: 20181008.1549
-;; Version: 0.9.0
-;; Package-Requires: ((avy "0.2.0"))
+;; Package-Version: 20200606.1259
+;; Package-Commit: c7cb315c14e36fded5ac4096e158497ae974bec9
+;; Version: 0.10.0
+;; Package-Requires: ((avy "0.5.0"))
 ;; Keywords: window, location
 
 ;; This file is part of GNU Emacs.
@@ -97,10 +98,9 @@ For example, to make SPC do the same as ?a, use
   "When non-nil, also display `ace-window-mode' string in the minibuffer when ace-window is active."
   :type 'boolean)
 
-(defcustom aw-ignored-buffers '("*Calc Trail*" "*LV*")
+(defcustom aw-ignored-buffers '("*Calc Trail*" " *LV*")
   "List of buffers and major-modes to ignore when choosing a window from the window list.
-Active only when `aw-ignore-on' is non-nil.  Windows displaying these
-buffers can still be chosen by typing their specific labels."
+Active only when `aw-ignore-on' is non-nil."
   :type '(repeat string))
 
 (defcustom aw-ignore-on t
@@ -160,13 +160,17 @@ Consider changing this if the overlay tends to overlap with other things."
   '((?x aw-delete-window "Delete Window")
     (?m aw-swap-window "Swap Windows")
     (?M aw-move-window "Move Window")
+    (?c aw-copy-window "Copy Window")
     (?j aw-switch-buffer-in-window "Select Buffer")
     (?n aw-flip-window)
     (?u aw-switch-buffer-other-window "Switch Buffer Other Window")
-    (?c aw-split-window-fair "Split Fair Window")
+    (?e aw-execute-command-other-window "Execute Command Other Window")
+    (?F aw-split-window-fair "Split Fair Window")
     (?v aw-split-window-vert "Split Vert Window")
     (?b aw-split-window-horz "Split Horz Window")
     (?o delete-other-windows "Delete Other Windows")
+    (?T aw-transpose-frame "Transpose Frame")
+    ;; ?i ?r ?t are used by hyperbole.el
     (?? aw-show-dispatch-help))
   "List of actions for `aw-dispatch-default'.
 Each action is a list of either:
@@ -198,6 +202,10 @@ or
     (t (:foreground "gray100" :underline nil)))
   "Face for each window's leading char.")
 
+(defface aw-minibuffer-leading-char-face
+  '((t :inherit aw-leading-char-face))
+  "Face for minibuffer leading char.")
+
 (defface aw-background-face
   '((t (:foreground "gray40")))
   "Face for whole window background during selection.")
@@ -218,6 +226,8 @@ or
            (or (memq (buffer-local-value 'major-mode (window-buffer window))
                      aw-ignored-buffers)
                (member (buffer-name (window-buffer window)) aw-ignored-buffers)))
+      ;; ignore child frames
+      (and (fboundp 'frame-parent) (frame-parent (window-frame window)))
       ;; Ignore selected window if `aw-ignore-current' is non-nil.
       (and aw-ignore-current
            (equal window (selected-window)))
@@ -266,6 +276,14 @@ or
   "Store the read-only empty buffers which had to be modified.
 Modify them back eventually.")
 
+(defvar aw--windows-hscroll nil
+  "List of (window . hscroll-columns) items, each listing a window whose
+  horizontal scroll will be restored upon ace-window action completion.")
+
+(defvar aw--windows-points nil
+  "List of (window . point) items. The point position had to be
+  moved in order to display the overlay.")
+
 (defun aw--done ()
   "Clean up mode line and overlays."
   ;; mode line
@@ -279,7 +297,23 @@ Modify them back eventually.")
       (when (string= (buffer-string) " ")
         (let ((inhibit-read-only t))
           (delete-region (point-min) (point-max))))))
-  (setq aw-empty-buffers-list nil))
+  (setq aw-empty-buffers-list nil)
+  (aw--restore-windows-hscroll)
+  (let (c)
+    (while (setq c (pop aw--windows-points))
+      (with-selected-window (car c)
+        (goto-char (cdr c))))))
+
+(defun aw--restore-windows-hscroll ()
+  "Restore horizontal scroll of windows from `aw--windows-hscroll' list."
+  (let (wnd hscroll)
+    (mapc (lambda (wnd-and-hscroll)
+            (setq wnd (car wnd-and-hscroll)
+                  hscroll (cdr wnd-and-hscroll))
+            (when (window-live-p wnd)
+              (set-window-hscroll wnd hscroll)))
+          aw--windows-hscroll))
+  (setq aw--windows-hscroll nil))
 
 (defun aw--overlay-str (wnd pos path)
   "Return the replacement text for an overlay in WND at POS,
@@ -310,39 +344,70 @@ accessible by typing PATH."
              (max 0 (1- (string-width old-str)))
              ?\ ))))))
 
+(defun aw--point-visible-p ()
+  "Return non-nil if point is visible in the selected window.
+Return nil when horizontal scrolling has moved it off screen."
+  (and (>= (- (current-column) (window-hscroll)) 0)
+       (< (- (current-column) (window-hscroll))
+          (window-width))))
+
 (defun aw--lead-overlay (path leaf)
   "Create an overlay using PATH at LEAF.
 LEAF is (PT . WND)."
-  (let ((wnd (cdr leaf)))
+  ;; Properly adds overlay in visible region of most windows except for any one
+  ;; receiving output while this function is executing, since that moves point,
+  ;; potentially shifting the added overlay outside the window's visible region.
+  (let ((wnd (cdr leaf))
+        ;; Prevent temporary movement of point from scrolling any window.
+        (scroll-margin 0))
     (with-selected-window wnd
       (when (= 0 (buffer-size))
         (push (current-buffer) aw-empty-buffers-list)
         (let ((inhibit-read-only t))
           (insert " ")))
-
-      (let* ((pt (car leaf))
+      ;; If point is not visible due to horizontal scrolling of the
+      ;; window, this next expression temporarily scrolls the window
+      ;; right until point is visible, so that the leading-char can be
+      ;; seen when it is inserted.  When ace-window's action finishes,
+      ;; the horizontal scroll is restored by (aw--done).
+      (while (and (not (aw--point-visible-p))
+                  (not (zerop (window-hscroll)))
+                  (progn (push (cons (selected-window) (window-hscroll)) aw--windows-hscroll) t)
+                  (not (zerop (scroll-right)))))
+      (let* ((ws (window-start))
+             (prev nil)
+             (vertical-pos (if (eq aw-char-position 'left) -1 0))
+             (horizontal-pos (if (zerop (window-hscroll)) 0 (1+ (window-hscroll))))
+             (old-pt (point))
+             (pt
+              (progn
+                ;; If leading-char is to be displayed at the top-left, move
+                ;; to the first visible line in the window, otherwise, move
+                ;; to the last visible line.
+                (move-to-window-line vertical-pos)
+                (move-to-column horizontal-pos)
+                ;; Find a nearby point that is not at the end-of-line but
+                ;; is visible so have space for the overlay.
+                (setq prev (1- (point)))
+                (while (and (>= prev ws) (/= prev (point)) (eolp))
+                  (setq prev (point))
+                  (unless (bobp)
+                    (line-move -1 t)
+                    (move-to-column horizontal-pos)))
+                (recenter vertical-pos)
+                (point)))
              (ol (make-overlay pt (1+ pt) (window-buffer wnd))))
+        (if (= (aw--face-rel-height) 1)
+            (goto-char old-pt)
+          (when (/= pt old-pt)
+            (goto-char (+ pt 1))
+            (push (cons wnd old-pt) aw--windows-points)))
         (overlay-put ol 'display (aw--overlay-str wnd pt path))
-        (overlay-put ol 'face 'aw-leading-char-face)
+        (if (window-minibuffer-p wnd)
+            (overlay-put ol 'face 'aw-minibuffer-leading-char-face)
+          (overlay-put ol 'face 'aw-leading-char-face))
         (overlay-put ol 'window wnd)
-        (push ol avy--overlays-lead))
-
-      (when (eq aw-char-position 'left)
-        (let* ((pt
-                (save-excursion
-                  ;; Move to the start of the last visible line in the buffer.
-                  (move-to-window-line -1)
-                  (move-beginning-of-line nil)
-                  ;; If this line is empty, use the previous line so we
-                  ;; have space for the overlay.
-                  (when (equal (point) (point-max))
-                    (forward-line -1))
-                  (point)))
-               (ol (make-overlay pt (1+ pt) (window-buffer wnd))))
-          (overlay-put ol 'display (aw--overlay-str wnd pt path))
-          (overlay-put ol 'face 'aw-leading-char-face)
-          (overlay-put ol 'window wnd)
-          (push ol avy--overlays-lead))))))
+        (push ol avy--overlays-lead)))))
 
 (defun aw--make-backgrounds (wnd-list)
   "Create a dim background overlay for each window on WND-LIST."
@@ -356,10 +421,6 @@ LEAF is (PT . WND)."
                       (overlay-put ol 'face 'aw-background-face)
                       ol))
                   wnd-list))))
-
-(define-obsolete-variable-alias
-    'aw-flip-keys 'aw--flip-keys "0.1.0"
-    "Use `aw-dispatch-alist' instead.")
 
 (defvar aw-dispatch-function 'aw-dispatch-default
   "Function to call when a character not in `aw-keys' is pressed.")
@@ -429,7 +490,7 @@ The new frame is set to the same size as the previous frame, offset by
               (avy-mouse-event-window char)))
         ((= char (aref (kbd "C-g") 0))
          (throw 'done 'exit))
-        ((= char aw-make-frame-char)
+        ((and aw-make-frame-char (= char aw-make-frame-char))
          ;; Make a new frame and perform any action on its window.
          (let ((start-win (selected-window))
                (end-win (frame-selected-window (aw-make-frame))))
@@ -448,12 +509,20 @@ The new frame is set to the same size as the previous frame, offset by
                  (if (and fn description)
                      (prog1 (setq aw-action fn)
                        (aw-set-mode-line (format " Ace - %s" description)))
-                   (funcall fn)
+                   (if (commandp fn)
+                       (call-interactively fn)
+                     (funcall fn))
                    (throw 'done 'exit)))
              (aw-clean-up-avy-current-path)
              ;; Prevent any char from triggering an avy dispatch command.
              (let ((avy-dispatch-alist))
                (avy-handler-default char)))))))
+
+(defcustom aw-display-mode-overlay t
+  "When nil, don't display overlays. Rely on the mode line instead."
+  :type 'boolean)
+
+(defvar ace-window-display-mode)
 
 (defun aw-select (mode-line &optional action)
   "Return a selected other window.
@@ -477,7 +546,8 @@ Amend MODE-LINE to the mode line for the duration of the selection."
                    (when (eq aw-action 'exit)
                      (setq aw-action nil)))
                  (or (car wnd-list) start-window))
-                ((and (<= (length wnd-list) aw-dispatch-when-more-than)
+                ((and (<= (+ (length wnd-list) (if (aw-ignored-p start-window) 1 0))
+                          aw-dispatch-when-more-than)
                       (not aw-dispatch-always)
                       (not aw-ignore-current))
                  (let ((wnd (next-window nil nil next-window-scope)))
@@ -498,8 +568,12 @@ Amend MODE-LINE to the mode line for the duration of the selection."
                    (unwind-protect
                         (let* ((avy-handler-function aw-dispatch-function)
                                (avy-translate-char-function aw-translate-char-function)
+                               (transient-mark-mode nil)
                                (res (avy-read (avy-tree candidate-list aw-keys)
-                                              #'aw--lead-overlay
+                                              (if (and ace-window-display-mode
+                                                       (null aw-display-mode-overlay))
+                                                  (lambda (_path _leaf))
+                                                #'aw--lead-overlay)
                                               #'avy--remove-leading-chars)))
                           (if (eq res 'exit)
                               (setq aw-action nil)
@@ -539,8 +613,26 @@ Amend MODE-LINE to the mode line for the duration of the selection."
   (aw-select " Ace - Delete Other Windows"
              #'delete-other-windows))
 
-(define-obsolete-function-alias
-    'ace-maximize-window 'ace-delete-other-windows "0.10.0")
+;;;###autoload
+(defun ace-display-buffer (buffer alist)
+  "Make `display-buffer' and `pop-to-buffer' select using `ace-window'.
+See sample config for `display-buffer-base-action' and `display-buffer-alist':
+https://github.com/abo-abo/ace-window/wiki/display-buffer."
+  (let* ((aw-ignore-current (cdr (assq 'inhibit-same-window alist)))
+         (rf (cdr (assq 'reusable-frames alist)))
+         (aw-scope (cl-case rf
+                     ((nil) 'frame)
+                     (visible 'visible)
+                     ((0 t) 'global))))
+    (unless (or (<= (length (aw-window-list)) 1)
+                (not aw-scope))
+      (window--display-buffer
+       buffer (aw-select "Ace - Display Buffer") 'reuse))))
+
+(declare-function transpose-frame "ext:transpose-frame")
+(defun aw-transpose-frame (w)
+  "Select any window on frame and `tranpose-frame'."
+  (transpose-frame (window-frame w)))
 
 ;;;###autoload
 (defun ace-window (arg)
@@ -548,6 +640,7 @@ Amend MODE-LINE to the mode line for the duration of the selection."
 Perform an action based on ARG described below.
 
 By default, behaves like extended `other-window'.
+See `aw-scope' which extends it to work with frames.
 
 Prefixed with one \\[universal-argument], does a swap between the
 selected window and the current window, so that the selected
@@ -557,11 +650,11 @@ selected window).
 Prefixed with two \\[universal-argument]'s, deletes the selected
 window."
   (interactive "p")
+  (setq avy-current-path "")
   (cl-case arg
     (0
-     (setq aw-ignore-on
-           (not aw-ignore-on))
-     (ace-select-window))
+     (let ((aw-ignore-on (not aw-ignore-on)))
+       (ace-select-window)))
     (4 (ace-swap-window))
     (16 (ace-delete-window))
     (t (ace-select-window))))
@@ -581,13 +674,16 @@ window."
   "Return true if WND1 is less than WND2.
 This is determined by their respective window coordinates.
 Windows are numbered top down, left to right."
-  (let ((f1 (window-frame wnd1))
-        (f2 (window-frame wnd2))
-        (e1 (window-edges wnd1))
-        (e2 (window-edges wnd2)))
-    (cond ((< (car (frame-position f1)) (car (frame-position f2)))
+  (let* ((f1 (window-frame wnd1))
+         (f2 (window-frame wnd2))
+         (e1 (window-edges wnd1))
+         (e2 (window-edges wnd2))
+         (p1 (frame-position f1))
+         (p2 (frame-position f2))
+         (nl (or (null (car p1)) (null (car p2)))))
+    (cond ((and (not nl) (< (car p1) (car p2)))
            (not aw-reverse-frame-list))
-          ((> (car (frame-position f1)) (car (frame-position f2)))
+          ((and (not nl) (> (car p1) (car p2)))
            aw-reverse-frame-list)
           ((< (car e1) (car e2))
            t)
@@ -657,8 +753,9 @@ Windows are numbered top down, left to right."
     (mapc #'delete-overlay aw-overlays-back)
     (call-interactively 'ace-window)))
 
-(defun aw-delete-window (window)
-  "Delete window WINDOW."
+(defun aw-delete-window (window &optional kill-buffer)
+  "Delete window WINDOW.
+When KILL-BUFFER is non-nil, also kill the buffer."
   (let ((frame (window-frame window)))
     (when (and (frame-live-p frame)
                (not (eq frame (selected-frame))))
@@ -666,7 +763,10 @@ Windows are numbered top down, left to right."
     (if (= 1 (length (window-list)))
         (delete-frame frame)
       (if (window-live-p window)
-          (delete-window window)
+          (let ((buffer (window-buffer window)))
+            (delete-window window)
+            (when kill-buffer
+              (kill-buffer buffer)))
         (error "Got a dead window %S" window)))))
 
 (defun aw-switch-buffer-in-window (window)
@@ -717,6 +817,16 @@ Switch the current window to the previous buffer."
     (aw-switch-to-window window)
     (switch-to-buffer buffer)))
 
+(defun aw-copy-window (window)
+  "Copy the current buffer to WINDOW - including window-start and point."
+  (let ((buffer (current-buffer))
+        (window-start (window-start))
+        (point (point)))
+    (aw-switch-to-window window)
+    (switch-to-buffer buffer)
+    (set-window-start (frame-selected-window) window-start)
+    (goto-char point)))
+
 (defun aw-split-window-vert (window)
   "Split WINDOW vertically."
   (select-window window)
@@ -743,10 +853,33 @@ Modify `aw-fair-aspect-ratio' to tweak behavior."
       (aw-split-window-vert window))))
 
 (defun aw-switch-buffer-other-window (window)
-  "Switch buffer in WINDOW without selecting WINDOW."
+  "Switch buffer in WINDOW."
   (aw-switch-to-window window)
-  (aw--switch-buffer)
-  (aw-flip-window))
+  (unwind-protect
+      (aw--switch-buffer)
+    (aw-flip-window)))
+
+(defun aw-execute-command-other-window (window)
+  "Execute a command in WINDOW."
+  (aw-switch-to-window window)
+  (unwind-protect
+      (funcall
+       (key-binding
+        (read-key-sequence
+         "Enter key sequence: ")))
+    (aw-flip-window)))
+
+(defun aw--face-rel-height ()
+  (let ((h (face-attribute 'aw-leading-char-face :height)))
+    (cond
+      ((eq h 'unspecified)
+       1)
+      ((floatp h)
+       (max (floor h) 1))
+      ((integerp h)
+       1)
+      (t
+       (error "unexpected: %s" h)))))
 
 (defun aw-offset (window)
   "Return point in WINDOW that's closest to top left corner.
@@ -755,16 +888,25 @@ The point is writable, i.e. it's not part of space after newline."
         (beg (window-start window))
         (end (window-end window))
         (inhibit-field-text-motion t))
-    (with-current-buffer
-        (window-buffer window)
+    (with-current-buffer (window-buffer window)
       (save-excursion
         (goto-char beg)
+        (forward-line (1-
+                       (min
+                        (count-lines
+                         (point)
+                         (point-max))
+                        (aw--face-rel-height))))
         (while (and (< (point) end)
                     (< (- (line-end-position)
                           (line-beginning-position))
                        h))
           (forward-line))
         (+ (point) h)))))
+
+(defun aw--after-make-frame (f)
+  (aw-update)
+  (make-frame-visible f))
 
 ;;* Mode line
 ;;;###autoload
@@ -784,14 +926,14 @@ The point is writable, i.e. it's not part of space after newline."
         (force-mode-line-update t)
         (add-hook 'window-configuration-change-hook 'aw-update)
         ;; Add at the end so does not precede select-frame call.
-        (add-hook 'after-make-frame-functions (lambda (_) (aw-update)) t))
+        (add-hook 'after-make-frame-functions #'aw--after-make-frame t))
     (set-default
      'mode-line-format
      (assq-delete-all
       'ace-window-display-mode
       (default-value 'mode-line-format)))
     (remove-hook 'window-configuration-change-hook 'aw-update)
-    (remove-hook 'after-make-frame-functions 'aw-update)))
+    (remove-hook 'after-make-frame-functions 'aw--after-make-frame)))
 
 (defun aw-update ()
   "Update ace-window-path window parameter for all windows.
