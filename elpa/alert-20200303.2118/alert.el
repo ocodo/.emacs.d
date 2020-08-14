@@ -6,7 +6,8 @@
 ;; Created: 24 Aug 2011
 ;; Updated: 16 Mar 2015
 ;; Version: 1.2
-;; Package-Version: 20181022.1742
+;; Package-Version: 20200303.2118
+;; Package-Commit: 7046393272686c7a1a9b3e7f7b1d825d2e5250a6
 ;; Package-Requires: ((gntp "0.1") (log4e "0.3.0") (cl-lib "0.5"))
 ;; Keywords: notification emacs message
 ;; X-URL: https://github.com/jwiegley/alert
@@ -135,7 +136,7 @@
 ;;   notifier      - Uses terminal-notifier on OS X, if it is on the PATH
 ;;   osx-notifier  - Native OSX notifier using AppleScript
 ;;   toaster       - Use the toast notification system
-;;   x11 -         - Changes the urgency property of the window in the X Window System
+;;   x11           - Changes the urgency property of the window in the X Window System
 ;;
 ;; * Defining new styles
 ;;
@@ -252,7 +253,7 @@ This is used by styles external to Emacs that don't understand faces."
 
 (defcustom alert-persist-idle-time 900
   "If idle this many seconds, all alerts become persistent.
-This can be overriden with the Never Persist option (:never-persist)."
+This can be overridden with the Never Persist option (:never-persist)."
   :type 'integer
   :group 'alert)
 
@@ -407,7 +408,7 @@ For user customization, see `alert-user-configuration'.")
   :group 'alert)
 
 (defface alert-trivial-face
-  '((t (:foreground "Dark Purple")))
+  '((t (:foreground "Dark Violet")))
   "Trivial alert face."
   :group 'alert)
 
@@ -733,7 +734,7 @@ strings."
                                     (if urgency
                                         (symbol-name urgency)
                                       "normal")))
-               alert-libnotify-additional-args))
+               (copy-tree alert-libnotify-additional-args)))
              (category (plist-get info :category)))
         (nconc args
                (list "--expire-time"
@@ -804,7 +805,7 @@ strings."
   "Internal store of notification ids returned by the `notifications' backend.
 Used for replacing notifications with the same id.  The key is
 the value of the :id keyword to `alert'.  An id is only stored
-here if there `alert' was called ith an :id keyword and handled
+here if there `alert' was called with an :id keyword and handled
 by the `notifications' style.")
 
 (when (featurep 'notifications)
@@ -816,7 +817,11 @@ by the `notifications' style.")
                                     :timeout (if (plist-get info :persistent) 0 -1)
                                     :replaces-id (gethash (plist-get info :id) alert-notifications-ids)
                                     :urgency (cdr (assq (plist-get info :severity)
-                                                        alert-notifications-priorities)))))
+                                                        alert-notifications-priorities))
+                                    :actions '("default" "Open corresponding buffer")
+                                    :on-action (lambda (id action)
+                                                 (when (string= action "default")
+                                                   (switch-to-buffer (plist-get info :buffer)))))))
       (when (plist-get info :id)
         (puthash (plist-get info :id) id alert-notifications-ids)))
     (alert-message-notify info))
@@ -864,6 +869,14 @@ From https://github.com/julienXX/terminal-notifier."
                        (alert-encode-string (plist-get info :message))
                        (alert-encode-string (plist-get info :title)))))
   (alert-message-notify info))
+
+(when (fboundp 'mac-do-applescript)
+  ;; Use built-in AppleScript support when possible.
+  (defun alert-osx-notifier-notify (info)
+    (mac-do-applescript (format "display notification %S with title %S"
+                                (alert-encode-string (plist-get info :message))
+                                (alert-encode-string (plist-get info :title))))
+    (alert-message-notify info)))
 
 (alert-define-style 'osx-notifier :title "Notify using native OSX notification" :notifier #'alert-osx-notifier-notify)
 
