@@ -1,11 +1,12 @@
 ;;; go-dlv.el --- Go Delve - Debug Go programs interactively with the GUD.
 
-;; Copyright (C) 2015 Marko Bencun
+;; Copyright (C) 2015, 2019 Marko Bencun
 
 ;; Author: Marko Bencun <mbencun@gmail.com>
 ;; URL: https://github.com/benma/go-dlv.el/
-;; Package-Version: 20160517.2046
-;; Version: 0.1
+;; Package-Version: 20200713.1202
+;; Package-Commit: 69b86c1bdb73d78fb3404f2f1eefbc9a93b1aba6
+;; Version: 0.4
 ;; Package-Requires: ((go-mode "1.3.1"))
 ;; Keywords: Go, debug, debugger, delve, interactive, gud
 
@@ -41,10 +42,13 @@
 (require 'gud)
 (require 'go-mode)
 
-;; Sample marker line:
+;; Sample marker lines:
 ;; > main.main() ./test.go:10 (hits goroutine(5):1 total:1)
+;; > [unrecovered-panic] runtime.fatalpanic() /usr/lib/golang/src/runtime/panic.go:681 (hits goroutine(16):1 total:1) (PC: 0x435140)
+;; Frame 2: /usr/lib/golang/src/testing/testing.go:792 (PC: 50fc82)
 (defvar go-dlv-marker-regexp
-  "^> .+(.*) \\(.+\\)\\:\\([0-9]+\\).*?$")
+  "^\\(?:\\(?:> .+?(.*?) \\)\\|\\(?:Frame [0-9]+: \\)\\)\\(.+?\\)\\:\\([0-9]+\\)")
+
 (defvar go-dlv-marker-regexp-file-group 1)
 (defvar go-dlv-marker-regexp-line-group 2)
 
@@ -105,7 +109,10 @@
 
     output))
 
-(defcustom go-dlv-command-name "dlv"
+(define-obsolete-variable-alias 'go-dlv-command-name
+  'gud-dlv-command-name)
+
+(defcustom gud-dlv-command-name "dlv"
   "File name for executing the Go Delve debugger.
 This should be an executable on your path, or an absolute file name."
   :type 'string
@@ -122,13 +129,16 @@ and source-file directory for your debugger."
   (gud-common-init command-line nil 'go-dlv-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'dlv)
 
-  (gud-def gud-break  "break %d%f:%l"  "\C-b" "Set breakpoint at current line.")
-  (gud-def gud-trace  "trace %d%f:%l"  "\C-t" "Set trace at current line.")
-  (gud-def gud-remove "clearall %d%f:%l"  "\C-d" "Remove breakpoint at current line")
-  (gud-def gud-step   "step"         "\C-s" "Step one source line with display.")
-  (gud-def gud-next   "next"         "\C-n" "Step one line (skip functions).")
-  (gud-def gud-cont   "continue"     "\C-r" "Continue with display.")
+  (gud-def gud-break  "break %d%f:%l"    "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-trace  "trace %d%f:%l"    "\C-t" "Set trace at current line.")
+  (gud-def gud-remove "clearall %d%f:%l" "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-step   "step"             "\C-s" "Step one source line with display.")
+  (gud-def gud-finish "stepout"          "\C-f" "Finish executing current function.")
+  (gud-def gud-next   "next"             "\C-n" "Step one line (skip functions).")
+  (gud-def gud-cont   "continue"         "\C-r" "Continue running program.")
   (gud-def gud-print  "print %e"         "\C-p" "Evaluate Go expression at point.")
+  (gud-def gud-up     "up %p"            "<"    "Up N stack frames (numeric arg).")
+  (gud-def gud-down   "down %p"          ">"    "Down N stack frames (numeric arg).")
 
   (setq comint-prompt-regexp "^(Dlv) *")
   (setq paragraph-start comint-prompt-regexp)
@@ -138,27 +148,33 @@ and source-file directory for your debugger."
 (defun dlv-current-func ()
   "Debug the current program or test stopping at the beginning of the current function."
   (interactive)
-  (let (current-test-name current-func-loc)
+  (let (current-test-name current-bench-name current-func-loc)
     ;; find the location of the current function and (if it is a test function) its name
     (save-excursion
       (when (go-beginning-of-defun)
         (setq current-func-loc (format "%s:%d" buffer-file-name (line-number-at-pos)))
-        ;; if we are looking at the test function populate current-test-name
+        ;; Check for Test or Benchmark function, set current-test-name/current-bench-name
         (when (looking-at go-func-regexp)
           (let ((func-name (match-string 1)))
-            (when (and (string-match-p "_test\.go$" buffer-file-name)
-                       (string-match-p "^Test\\|^Example" func-name))
-              (setq current-test-name func-name))))))
+            (when (string-match-p "_test\.go$" buffer-file-name)
+              (cond
+               ((string-match-p "^Test\\|^Example" func-name)
+                (setq current-test-name func-name))
+               ((string-match-p "^Benchmark" func-name)
+                (setq current-bench-name func-name))))))))
 
     (if current-func-loc
         (let (gud-buffer-name dlv-command)
-          (if current-test-name
-              (progn
-                (setq gud-buffer-name "*gud-test*")
-                (setq dlv-command (concat go-dlv-command-name " test -- -test.run " current-test-name)))
-            (progn
-              (setq gud-buffer-name "*gud-debug*")
-              (setq dlv-command (concat go-dlv-command-name " debug"))))
+          (cond
+           (current-test-name
+            (setq gud-buffer-name "*gud-test*")
+            (setq dlv-command (concat gud-dlv-command-name " test -- -test.run " current-test-name)))
+           (current-bench-name
+            (setq gud-buffer-name "*gud-test*")
+            (setq dlv-command (concat gud-dlv-command-name " test -- -test.run='^$' -test.bench=" current-bench-name)))
+           (t
+            (setq gud-buffer-name "*gud-debug*")
+            (setq dlv-command (concat gud-dlv-command-name " debug"))))
 
           ;; stop the current active dlv session if any
           (let ((gud-buffer (get-buffer gud-buffer-name)))

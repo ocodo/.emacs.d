@@ -1,9 +1,12 @@
 ;;; go-dlv-autoloads.el --- automatically extracted autoloads
 ;;
 ;;; Code:
-(add-to-list 'load-path (directory-file-name (or (file-name-directory #$) (car load-path))))
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
+
 
-;;;### (autoloads nil "go-dlv" "go-dlv.el" (22474 20490 0 0))
+;;;### (autoloads nil "go-dlv" "go-dlv.el" (0 0 0 0))
 ;;; Generated autoloads from go-dlv.el
 
 (autoload 'dlv "go-dlv" "\
@@ -14,9 +17,9 @@ and source-file directory for your debugger.
 \(fn COMMAND-LINE)" t nil)
 
 (autoload 'dlv-current-func "go-dlv" "\
-Debug the current program or test stopping at the beginning of the current function.
+Debug the current program or test stopping at the beginning of the current function." t nil)
 
-\(fn)" t nil)
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "go-dlv" '("go-dlv-marker-" "gud-dlv-command-name")))
 
 ;;;***
 
@@ -24,5 +27,6 @@ Debug the current program or test stopping at the beginning of the current funct
 ;; version-control: never
 ;; no-byte-compile: t
 ;; no-update-autoloads: t
+;; coding: utf-8
 ;; End:
 ;;; go-dlv-autoloads.el ends here
