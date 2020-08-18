@@ -1,0 +1,21 @@
+# -*- mode: snippet -*-
+# name: pod
+# key: pod
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
+# --
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ${1:myapp}
+  labels:
+    name: $1
+spec:
+  containers:
+  - name: $1
+    image: ${2:<Image>}
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    ports:
+      - containerPort: ${3:<Port>}

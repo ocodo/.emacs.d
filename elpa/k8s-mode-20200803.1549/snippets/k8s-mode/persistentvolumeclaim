@@ -1,0 +1,24 @@
+# -*- mode: snippet -*-
+# name: persistentvolumeclaim
+# key: pvc
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
+# --
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ${1:name}
+  labels:
+    # insert any desired labels to identify your claim
+    app: ${2:app}
+    tier: ${3:tier}
+  ${4:annotations:
+    volume.beta.kubernetes.io/storage-class: standard
+}spec:
+  # The metadata.name field from the PersistentVolume to match
+  volumeName: ${5:volumeName}
+  accessModes:
+    - ${6:ReadWriteMany}
+  resources:
+    requests:
+      # The amount of the volume's storage to request
+      storage: ${7:20Gi}

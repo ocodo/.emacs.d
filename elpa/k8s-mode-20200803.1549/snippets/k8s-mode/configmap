@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: configmap
+# key: configmap
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
+# --
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ${1:myapp}
+data:
+  ${2:key}: ${3:value}

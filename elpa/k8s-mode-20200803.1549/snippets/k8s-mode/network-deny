@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: network-deny
+# key: network-deny
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
+# --
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ${1:deny-all}
+spec:
+  podSelector: {}
+  policyTypes:
+  - ${2:Egress|Ingress}

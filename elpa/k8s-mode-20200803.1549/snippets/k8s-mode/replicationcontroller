@@ -1,0 +1,28 @@
+# -*- mode: snippet -*-
+# name: replicationcontroller
+# key: rc
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
+# --
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: ${1:enter-controller-name}
+  namespace: ${2:default}
+spec:
+  replicas: ${2:1}
+  template:
+    metadata:
+      labels:
+        app: $1
+        tier: $3
+    spec:
+      containers:
+      - name: ${4:name}
+        image: ${5:nginx}
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        ports:
+        - containerPort: 8080

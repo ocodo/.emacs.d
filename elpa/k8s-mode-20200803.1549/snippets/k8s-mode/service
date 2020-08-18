@@ -1,0 +1,15 @@
+# -*- mode: snippet -*-
+# name: service
+# key: service
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
+# --
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${1:myapp}
+spec:
+  selector:
+    app: $1
+  ports:
+  - port: ${2:<Port>}
+    targetPort: ${3:<Target Port>}

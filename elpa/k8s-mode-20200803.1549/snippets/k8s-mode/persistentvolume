@@ -1,0 +1,20 @@
+# -*- mode: snippet -*-
+# name: persistentvolume
+# key: pv
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
+# --
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ${1:name}
+  labels:
+    app: ${2:app}
+    tier: ${3:tier}
+spec:
+  capacity:
+    storage: ${4:20Gi}
+  accessModes:
+    - ${5:ReadWriteMany}
+  nfs:
+    server: ${6:NameOrIP}
+    path: ${7:"/share/path/on/server"}

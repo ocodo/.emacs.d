@@ -1,0 +1,21 @@
+# -*- mode: snippet -*-
+# name: ingress
+# key: ingress
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
+# --
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ${1}
+  annotations:
+    #ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ${2:tls:
+  - secretName: ${3:secret}}
+  rules:
+  - http:
+    paths:
+    - path: ${4:/}
+      backend:
+        serviceName: ${5:service}
+        servicePort: ${6:80}

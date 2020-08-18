@@ -1,0 +1,37 @@
+# -*- mode: snippet -*-
+# name: deamonset
+# key: deamonset
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
+# --
+apiVersion: apps/v1
+kind: Daemonset
+metadata:
+  namespace: ${1:default}
+  name: ${2:name}
+  labels:
+    app: $2
+spec:
+  template:
+    metadata:
+      namespace: ${1:default}
+      labels:
+        app: $2
+    spec:
+      containers:
+      - name: ${2}
+        image: ${3:<image>}
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200Mi
+        #env:
+        #- name: ENV_NAME
+        #  value: ENV_VALUE
+        #volumeMounts:
+        #- name: varlog
+        #  value: /var/log
+        #  readOnly: false
+      #volumes:
+      #- name: varlog
+      #  hostPath:
+      #  path: /var/log
