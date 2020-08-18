@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/ivy-emms-20200629.801/ivy-emms.el  -*- no-byte-compile: t -*-
+(define-package "ivy-emms" "20200629.801" "Ivy interface to emms tracks" '((ivy "0.13.0") (emms "0.0") (emacs "24.4")) :commit "6f547f9f3dcbf0d5b88595760b3505c7195dc96b" :keywords '("multimedia") :authors '(("Fran Burstall" . "fran.burstall@gmail.com")) :maintainer '("Fran Burstall" . "fran.burstall@gmail.com") :url "https://github.com/franburstall/ivy-emms")
