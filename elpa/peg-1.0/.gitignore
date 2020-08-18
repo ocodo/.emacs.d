@@ -1,0 +1,3 @@
+*.elc
+peg-autoloads.el
+peg-pkg.el
