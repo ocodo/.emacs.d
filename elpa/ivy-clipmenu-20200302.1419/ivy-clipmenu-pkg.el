@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/ivy-clipmenu-20200302.1419/ivy-clipmenu.el  -*- no-byte-compile: t -*-
+(define-package "ivy-clipmenu" "20200302.1419" "Ivy client for clipmenu" '((emacs "26.1") (f "0.20.0") (s "1.12.0") (dash "2.16.0") (ivy "0.13.0")) :commit "ef25acf3f058fe1ede3a29fae2e9cdac8b08cd17" :authors '(("William Carroll" . "wpcarro@gmail.com")) :maintainer '("William Carroll" . "wpcarro@gmail.com") :url "https://github.com/wpcarro/ivy-clipmenu.el")
