@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/ivy-fuz-20191222.946/ivy-fuz.el  -*- no-byte-compile: t -*-
+(define-package "ivy-fuz" "20191222.946" "Integration between fuz and ivy." '((emacs "25.1") (fuz "1.3.0") (ivy "0.13.0")) :commit "f171ac73422a4bae1503d63d804e691482ed35b2" :keywords '("convenience") :authors '(("Zhu Zihao" . "all_but_last@163.com")) :maintainer '("Philippe Vaucher" . "philippe.vaucher@gmail.com") :url "https://github.com/Silex/ivy-fuz.el")
