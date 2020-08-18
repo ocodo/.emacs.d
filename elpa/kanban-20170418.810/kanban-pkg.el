@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/kanban-20170418.810/kanban.el  -*- no-byte-compile: t -*-
+(define-package "kanban" "20170418.810" "Parse org-todo headlines to use org-tables as Kanban tables" 'nil :commit "dd11d722b20ae720f29b8aa93a3b1cad87650b33" :keywords '("outlines" "convenience") :authors '(("Arne Babenhauserheide" . "arne_bab@web.de")) :maintainer '("Arne Babenhauserheide" . "arne_bab@web.de"))
