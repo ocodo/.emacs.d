@@ -1,0 +1,58 @@
+2019-02-24  Tino Calancha  <tino.calancha@gmail.com>
+
+	Support sort by size on ls-lisp for the directory sizes
+
+	* packages/dired-du/dired-du.el: Use the recursive size of the
+	directories when sorting by size with ls-lisp. Bump version to v0.5.2.
+	* packages/dired-du/dired-du-tests.el: Add test.
+
+2018-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Remove redundant nil keywords to define-minor-mode. Sprinkle some FIXMEs
+	for good measure. Add some cosmetic changes. Fix copyright notice. Bump
+	verion to v0.5.1.
+	* packages/dired-du/dired-du.el (dired-du): Fix dired-du group.
+
+	(dired-du--toggle-human-readable, dired-du-mode): Use `add-function' for
+	`dired-du--revert'.
+
+	(dired-du--revert): Try and avoid hiding arguments behind other
+	arguments.
+
+	(dired-du-local-subdir-header,
+	dired-du-get-recursive-dir-size-in-parallel)
+	(dired-du--change-human-sizes, dired-du--cache-dir-info)
+	(dired-du--count-sizes-2): Prefer the return form of a `let' or `while'
+	on its own line.
+
+	(dired-du-run-in-parallel, (dired-du--create-or-check-dir-info)
+	(dired-du--change-human-sizes, dired-du--drop-unexistent-files)
+	(dired-du--replace, (dired-du-insert-marked-dirs): Use `function'
+	instead of `quote' with `mapcar'.
+
+	(dired-du-dir-info, dired-du--user-warned)
+	(dired-du-on-find-dired-ok, dired-du-find-dired-buffer): Remove
+	redundant :group args.
+
+2018-09-24  Tino Calancha  <tino.calancha@gmail.com>
+
+	Speed up the load of the dired buffer
+
+	It has been noted that we can significantly speed up the load of the
+	Dired buffer by checking more often the completion of the
+	`du' processes. Problem reported by Pierre Neidhardt here: 
+	https://github.com/calancha/dired-du/issues/1
+	* packages/dired-du/dired-du.el
+	(dired-du-get-recursive-dir-size-in-parallel): check for `du' process
+	completion more often.
+
+2017-05-27  Tino Calancha  <tino.calancha@gmail.com>
+
+	Add command to update cache size for the marked files
+
+	* dired-du.el (dired-du-update-dir-info): New command.
+
+2017-05-26  Tino Calancha  <tino.calancha@gmail.com>
+
+	Add library dired-du
+
