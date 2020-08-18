@@ -639,7 +639,7 @@
 		   ("Eric Abrahamsen" . "eric@ericabrahamsen.net"))
 		  (:maintainer "Eric Abrahamsen" . "eric@ericabrahamsen.net"))])
  (ediprolog .
-	    [(1 2)
+	    [(2 1)
 	     nil "Emacs Does Interactive Prolog" single
 	     ((:keywords "languages" "processes")
 	      (:authors
@@ -1646,9 +1646,11 @@
 	     (:maintainer "Feng Shu" . "tumashu@163.com")
 	     (:url . "https://github.com/tumashu/posframe"))])
  (project .
-	  [(0 5 0)
+	  [(0 5 1)
 	   ((emacs
-	     (26 3)))
+	     (26 3))
+	    (xref
+	     (1 0 2)))
 	   "Operations on the current project" single
 	   ((:url . "http://elpa.gnu.org/packages/project.html"))])
  (psgml .
@@ -1996,6 +1998,16 @@
 	      ("	Matthias Blume" . "blume@cs.princeton.edu")
 	      ("	(Stefan Monnier)" . "monnier@iro.umontreal.ca"))
 	     (:maintainer "Stefan Monnier" . "monnier@iro.umontreal.ca"))])
+ (so-long .
+	  [(1 0)
+	   ((emacs
+	     (24 4)))
+	   "Say farewell to performance problems with minified code." single
+	   ((:keywords "convenience")
+	    (:authors
+	     ("Phil Sainty" . "psainty@orcon.net.nz"))
+	    (:maintainer "Phil Sainty" . "psainty@orcon.net.nz")
+	    (:url . "https://savannah.nongnu.org/projects/so-long"))])
  (soap-client .
 	      [(3 1 5)
 	       ((cl-lib
@@ -2466,11 +2478,9 @@
 	("Mattias Engdegård" . "mattiase@acm.org"))
        (:keywords "lisp" "regexps"))])
  (xref .
-       [(1 0 1)
+       [(1 0 2)
 	((emacs
-	  (26 3))
-	 (project
-	  (0 1 1)))
+	  (26 3)))
 	"Cross-referencing commands" single
 	((:url . "http://elpa.gnu.org/packages/xref.html"))])
  (yasnippet .
