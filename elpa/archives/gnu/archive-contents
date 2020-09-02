@@ -179,7 +179,9 @@
  (bbdb .
        [(3 2)
 	((emacs
-	  (24)))
+	  (24))
+	 (cl-lib
+	  (0 5)))
 	"core of BBDB" tar
 	((:maintainer "Roland Winkler" . "winkler@gnu.org")
 	 (:url . "http://elpa.gnu.org/packages/bbdb.html"))])
@@ -685,7 +687,7 @@
 	      (:keywords "lisp")
 	      (:url . "http://elpa.gnu.org/packages/el-search.html"))])
  (eldoc .
-	[(1 8 0)
+	[(1 9 0)
 	 ((emacs
 	   (26 3)))
 	 "Show function arglist or variable docstring in echo area" single
@@ -1335,7 +1337,7 @@
 	      ("Michael Abraham Shulman" . "viritrilbia@gmail.com"))
 	     (:keywords "convenience" "faces" "languages" "tools"))])
  (modus-operandi-theme .
-		       [(0 11 0)
+		       [(0 12 0)
 			((emacs
 			  (26 1)))
 			"Accessible light theme (WCAG AAA)" single
@@ -1345,7 +1347,7 @@
 			 (:maintainer "Protesilaos Stavrou" . "info@protesilaos.com")
 			 (:url . "https://gitlab.com/protesilaos/modus-themes"))])
  (modus-vivendi-theme .
-		      [(0 11 0)
+		      [(0 12 0)
 		       ((emacs
 			 (26 1)))
 		       "Accessible dark theme (WCAG AAA)" single
@@ -1457,8 +1459,12 @@
 	       ("Felix Lee <felix8a@gmail.com>, Michal Nazarewicz" . "mina86@mina86.com"))
 	      (:maintainer "Michal Nazarewicz" . "mina86@mina86.com"))])
  (oauth2 .
-	 [(0 13)
-	  nil "OAuth 2.0 Authorization Protocol" single
+	 [(0 14)
+	  ((cl-lib
+	    (0 5))
+	   (nadvice
+	    (0 3)))
+	  "OAuth 2.0 Authorization Protocol" single
 	  ((:url . "http://elpa.gnu.org/packages/oauth2.html")
 	   (:keywords "comm")
 	   (:authors
@@ -2172,7 +2178,7 @@
 	  ("Oleh Krehel" . "ohwoeowho@gmail.com"))
 	 (:keywords "convenience"))])
  (tramp .
-	[(2 4 4 1)
+	[(2 4 4 2)
 	 ((emacs
 	   (24 4)))
 	 "Transparent Remote Access, Multiple Protocol" tar
@@ -2478,7 +2484,7 @@
 	("Mattias Engdegård" . "mattiase@acm.org"))
        (:keywords "lisp" "regexps"))])
  (xref .
-       [(1 0 2)
+       [(1 0 3)
 	((emacs
 	  (26 3)))
 	"Cross-referencing commands" single
