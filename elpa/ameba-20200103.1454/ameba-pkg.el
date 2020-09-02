@@ -1,0 +1,2 @@
+;;; Generated package description from /Users/jason/.emacs.d/elpa/ameba-20200103.1454/ameba.el  -*- no-byte-compile: t -*-
+(define-package "ameba" "20200103.1454" "An interface to Crystal Ameba linter" '((emacs "24.4")) :commit "0c4925ae0e998818326adcb47ed27ddf9761c7dc" :keywords '("convenience") :authors '(("Vitalii Elenhaupt")) :maintainer '("Vitalii Elenhaupt") :url "https://github.com/crystal-ameba/ameba.el")
