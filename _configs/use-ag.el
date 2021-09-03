@@ -9,7 +9,7 @@
     (add-to-list 'ag-arguments "--hidden")
     (setq ag-group-matches nil)
     (bind-key
-     "C-x g" (defhydra ag-hydra (:hint nil) "
+     "C-x f" (defhydra ag-hydra (:hint nil) "
 [_g_] : Ag Search for string       [_r_] : Ag Search for regex
 [_d_] : Ag Dired search for string [_f_] : Ag Dired search for regex
 [_k_] : Ag Close all Ag buffers    [Powered by Ag / The Silver Searcher]"
