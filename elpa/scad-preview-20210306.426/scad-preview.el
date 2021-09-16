@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; scad-preview.el --- Preview SCAD models in real-time within Emacs
 
 ;; Copyright (C) 2013-2015 zk_phi
@@ -17,10 +18,11 @@
 ;; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 ;; Author: zk_phi
-;; URL: http://hins11.yu-yake.com/
-;; Package-Version: 20160206.1336
-;; Package-Requires: ((scad-mode "91.0"))
-;; Version: 0.1.1
+;; URL: http://zk-phi.gitub.io/
+;; Package-Version: 20210306.426
+;; Package-Commit: 8b2e7feb722ab2bde1ce050fe040f72ae0b05cad
+;; Package-Requires: ((scad-mode "91.0") (emacs "24.4"))
+;; Version: 0.1.2
 
 ;;; Commentary:
 
@@ -52,6 +54,7 @@
 
 ;; 0.1.0 test release
 ;; 0.1.1 fix relative path issue
+;; 0.1.2 Emacs 24.4 support
 
 ;;; Code:
 
@@ -59,7 +62,7 @@
 (require 'compile)
 (require 'scad-mode)
 
-(defconst scad-preview-version "0.1.1")
+(defconst scad-preview-version "0.1.2")
 
 ;; + customs
 
@@ -69,27 +72,33 @@
 
 (defcustom scad-preview-default-camera-parameters '(0 0 0 50 0 20 500)
   "Default parameters for the Gimbal camera."
+  :type '(list integer)
   :group 'scad-preview)
 
 (defcustom scad-preview-refresh-delay 1.5
   "Delay in seconds until updating preview."
+  :type 'number
   :group 'scad-preview)
 
 (defcustom scad-preview-image-size '(450 . 450)
   "Size of preview image."
+  :type '(cons integer integer)
   :group 'scad-preview)
 
 (defcustom scad-preview-window-position 'right
   "Position of the preview window. The value can be either 'right,
   'left, 'below, or 'above."
+  :type 'symbol
   :group 'scad-preview)
 
 (defcustom scad-preview-window-size 65
   "Size in columns(lines) of the preview window."
+  :type 'integer
   :group 'scad-preview)
 
 (defcustom scad-preview-colorscheme "Cornfield"
   "Colorscheme for rendering preview."
+  :type 'string
   :group 'scad-preview)
 
 ;; + core functions/variables
@@ -303,7 +312,7 @@ preview buffer."
   "Rotate preview image interactively."
   (interactive)
   (message "Use arrow keys (+[CM]) to rotate image.")
-  (set-temporary-overlay-map scad-preview--image-mode-map t))
+  (set-transient-map scad-preview--image-mode-map t))
 
 (defun scad-preview-export ()
   "Render and export current SCAD model."

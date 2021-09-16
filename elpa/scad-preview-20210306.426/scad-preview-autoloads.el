@@ -10,9 +10,7 @@
 ;;; Generated autoloads from scad-preview.el
 
 (autoload 'scad-preview-mode "scad-preview" "\
-Preview SCAD models in real-time within Emacs.
-
-\(fn)" t nil)
+Preview SCAD models in real-time within Emacs." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "scad-preview" '("scad-preview-")))
 
