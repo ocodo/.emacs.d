@@ -1,12 +1,12 @@
 ;;; pythonic.el --- Utility functions for writing pythonic emacs package.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2019 by Artem Malyshev
+;; Copyright (C) 2015-2021 by Artem Malyshev
 
 ;; Author: Artem Malyshev <proofit404@gmail.com>
 ;; URL: https://github.com/proofit404/pythonic
-;; Package-Version: 20200806.434
-;; Package-Commit: 51233ec7ec9fbafd13e2b0479c7b2ee0930ccca5
-;; Version: 0.1.1
+;; Package-Version: 20210122.1247
+;; Package-Commit: fe75bc17baae314bf8f5e0b12aad3fccfc6c5397
+;; Version: 0.2
 ;; Package-Requires: ((emacs "25.1") (s "1.9") (f "0.17.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
