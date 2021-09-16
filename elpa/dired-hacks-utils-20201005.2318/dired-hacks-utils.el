@@ -5,8 +5,8 @@
 ;; Author: Matúš Goljer <matus.goljer@gmail.com>
 ;; Maintainer: Matúš Goljer <matus.goljer@gmail.com>
 ;; Keywords: files
-;; Package-Version: 20190522.950
-;; Package-Commit: f49a8bbf95f70671a74a24f7f4de453b2686be46
+;; Package-Version: 20201005.2318
+;; Package-Commit: 7c0ef09d57a80068a11edc74c3568e5ead5cc15a
 ;; Version: 0.0.1
 ;; Created: 14th February 2014
 ;; Package-requires: ((dash "2.5.0"))
@@ -183,7 +183,7 @@ Each car in ALIST is a string representing file extension
     (forward-line)
     (let ((inhibit-read-only t)
           (limit (line-end-position)))
-      (while (re-search-forward "\\(?:directory\\|available\\) \\(\\<[0-9]+\\>\\)" nil t)
+      (while (re-search-forward "\\(?:directory\\|available\\) \\(\\<[0-9]+$\\>\\)" nil t)
         (replace-match
          (save-match-data
            (propertize (dired-utils--string-trim
