@@ -68,7 +68,11 @@ buffer.
 \(fn &optional SESSION)" t nil)
 
 (autoload 'sesman-unlink "sesman" "\
-Break any of the previously created links." t nil)
+Break sesman LINKS.
+If LINKS is nil, ask interactively for a link. With a prefix argument break all
+links.
+
+\(fn &optional LINKS)" t nil)
  (autoload 'sesman-map "sesman" "Session management prefix keymap." t 'keymap)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "sesman" '("sesman-")))
