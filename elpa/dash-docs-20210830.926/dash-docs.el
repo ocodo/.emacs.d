@@ -7,8 +7,6 @@
 ;;         Bryan Gilbert <bryan@bryan.sh>
 ;;
 ;; URL: http://github.com/areina/helm-dash
-;; Package-Version: 20200516.1943
-;; Package-Commit: dafc8fc9f1ddb2e4e39e0b8d066c42d5d7ce8d06
 ;; Version: 1.4.0
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5") (async "1.9.3"))
 ;; Keywords: docs
@@ -575,6 +573,9 @@ Get required params to call `dash-docs-result-url' from SEARCH-RESULT."
   (when (>= (length pattern) dash-docs-min-length)
     (cl-loop for docset in (dash-docs-maybe-narrow-docsets pattern)
              appending (dash-docs-search-docset docset pattern))))
+
+;; Extend use package with :dash keyword if available
+(when (featurep 'use-package) (require 'use-package-dash-docs))
 
 (provide 'dash-docs)
 

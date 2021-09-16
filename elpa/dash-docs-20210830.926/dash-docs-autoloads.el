@@ -58,6 +58,26 @@ Given a string PATTERN, query docsets and retrieve result.
 
 ;;;***
 
+;;;### (autoloads nil "use-package-dash-docs" "use-package-dash-docs.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from use-package-dash-docs.el
+
+(autoload 'use-package-normalize/:dash "use-package-dash-docs" "\
+Normalize use-package customize keyword.
+
+\(fn NAME-SYMBOL KEYWORD ARG)" nil nil)
+
+(autoload 'use-package-handler/:dash "use-package-dash-docs" "\
+Generate use-package customize keyword code.
+
+\(fn NAME KEYWORD ARGS REST STATE)" nil nil)
+
+;;;***
+
+;;;### (autoloads nil nil ("dash-docs-pkg.el") (0 0 0 0))
+
+;;;***
+
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
