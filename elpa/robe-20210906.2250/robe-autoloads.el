@@ -39,7 +39,7 @@ A `company-mode' completion back-end for `robe-mode'.
 (autoload 'robe-mode "robe" "\
 Improved navigation for Ruby.
 
-If called interactively, enable robe mode if ARG is positive, and
+If called interactively, enable Robe mode if ARG is positive, and
 disable it if ARG is zero or negative.  If called from Lisp, also
 enable the mode if ARG is omitted or nil, and toggle it if ARG is
 `toggle'; disable the mode otherwise.

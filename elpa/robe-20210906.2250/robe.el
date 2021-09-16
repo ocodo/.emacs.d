@@ -1,7 +1,7 @@
 ;;; robe.el --- Code navigation, documentation lookup and completion for Ruby -*- lexical-binding: t -*-
 
 ;; Copyright © 2012 Phil Hagelberg
-;; Copyright © 2012-2020 Dmitry Gutov
+;; Copyright © 2012-2021 Dmitry Gutov
 
 ;; Author: Dmitry Gutov
 ;; URL: https://github.com/dgutov/robe
@@ -103,6 +103,10 @@ nil means to use the global value of `completing-read-function'."
   :type 'hook
   :group 'robe)
 
+(defcustom robe-rspec-support t
+  "Non-nil to recognize RSpec/Minitest spec files."
+  :type 'boolean)
+
 (defun robe-completing-read (&rest args)
   (let ((completing-read-function
          ; 1) allow read-function override
@@ -180,7 +184,13 @@ project."
              robe-load-path (mapcar #'file-name-as-directory
                                     (robe-request "load_path")))
        (when (file-exists-p ".robe")
-         (ruby-load-file ".robe")))
+         (let ((last-pos (point-max)))
+           (ruby-load-file ".robe")
+           (accept-process-output (inf-ruby-proc) 0.01)
+           (when (string-match-p "Error\\>"
+                                 (buffer-substring last-pos (point-max)))
+             (ruby-switch-to-inf t)
+             (error "Some problem loading .robe")))))
       (message "Robe connection established"))))
 
 (defun robe-start-call ()
@@ -365,7 +375,7 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                   alist)))))
 
 (defun robe-jump-modules (thing context)
-  (cl-destructuring-bind (target module instance ctx) context
+  (cl-destructuring-bind (target module instance ctx _vars) context
     (let (super)
       (unless target
         (when (string= thing "super")
@@ -376,18 +386,111 @@ If invoked with a prefix or no symbol at point, delegate to `robe-ask'."
                        robe-jump-conservative))))
 
 (defun robe-call-context ()
-  (let* ((target (save-excursion
+  (let* ((ctx (robe-context))
+         (in-instance-def (nth 1 ctx))
+         (variables (robe-complete--variables in-instance-def (nth 2 ctx)))
+         (target (save-excursion
                    (and (progn (ignore-errors (beginning-of-thing 'symbol))
                                (eq ?. (char-before)))
                         (progn (forward-char -1)
                                (skip-chars-backward " \n\r\t")
-                               (or (robe--jump-thing)
-                                   "!")))))
-         (ctx (robe-context))
+                               (or
+                                (let ((type (robe-call-target-type)))
+                                  (if type (cons t type)))
+                                (let ((thing (robe--jump-thing))
+                                      var)
+                                  (if (setq var (cl-find-if
+                                                 (lambda (var)
+                                                   (and
+                                                    (robe--variable-type var)
+                                                    (equal (robe--variable-name var)
+                                                           thing)))
+                                                 variables))
+                                      (cons t (robe--variable-type var))
+                                    thing))
+                                "!")))))
          (module (car ctx))
-         (_ (when (string= target "self") (setq target nil)))
-         (instance (unless target (nth 1 ctx))))
-    (list target module instance ctx)))
+         (_ (when (equal target "self") (setq target nil)))
+         (instance (unless target in-instance-def)))
+    (when (eq (car-safe target) t)
+      (setq target (cdr target)
+            instance t))
+    (when (and module (not target) (not in-instance-def) (robe-context-self-unknown-p))
+      (setq module nil))
+    (list target module instance ctx variables)))
+
+(defun robe-context-self-unknown-p ()
+  ;; Heuristic to find out whether we are inside some DSL-style block,
+  ;; where it's popular to change the value of 'self' to something
+  ;; more convenient, but impossible to determine statically.
+  ;; Assume being outside of any method definitions (that check is
+  ;; performed by the caller).
+  (save-excursion
+    (let ((start (point))
+          (re (rx (or (sequence line-start (* (in " \t"))
+                                (group
+                                 (or "def" "module" "class"))
+                                symbol-end)
+                      (sequence (or (syntax ?w) (syntax ?_) (syntax ?\))
+                                    (syntax ?\") (syntax ?|))
+                                (+ (in " \t"))
+                                (group
+                                 (or
+                                  (sequence "do" symbol-end)
+                                  ?\{))))))
+          res)
+      (while (and (not res)
+                  (re-search-backward re nil 'move))
+        (when (robe--not-in-string-or-comment)
+          (cond
+           ((match-beginning 1)
+            (setq res 'def))
+           ((save-excursion
+              (goto-char (match-beginning 2))
+              (ignore-errors (forward-sexp))
+              (>= (point) start))
+            (setq res 'block)))))
+      (eq res 'block))))
+
+(defun robe-call-target-type ()
+  (save-excursion
+    (let (forward-sexp-function)
+      (cond
+       ((and (eq (char-before) ?\])
+             (save-excursion
+               (backward-sexp)
+               (or (looking-at-p "%[wWiI]")
+                   (robe--beginning-of-expr-p))))
+        "Array")
+       ;; FIXME: Handle percent literals better, e.g. %w().
+       ((nth 3 (parse-partial-sexp (1- (point)) (point)))
+        "String")
+       ((and (eq (char-before) ?\})
+             (save-excursion
+               (backward-sexp)
+               (robe--beginning-of-expr-p)))
+        "Hash")
+       ((and (progn
+               (when (eq (char-before) ?\))
+                 (backward-sexp))
+               (equal (thing-at-point 'symbol) "new"))
+             (progn
+               (skip-syntax-backward "w_")
+               (skip-chars-backward " \n\r\t")
+               (eq ?. (char-before)))
+             (progn
+               (forward-char -1)
+               (skip-chars-backward " \n\r\t")
+               (let ((bounds (robe-complete-bounds)))
+                 (and bounds
+                      (not (eq (char-before (car bounds)) ?:))
+                      (buffer-substring (car bounds) (cdr bounds)))))))))))
+
+(defun robe--beginning-of-expr-p ()
+  ;; Does not account for the possibility of condinuation method call
+  ;; (. on the previous line), but neither caller allows that.
+  (skip-chars-backward " \t")
+  (memq (char-before) '(?, ?\; ?= ?\( ?> ?: ?{ ?| ?\n nil)))
 
 (defun robe-decorate-modules (list)
   (cl-loop for spec in list
@@ -551,7 +654,7 @@ Only works with Rails, see e.g. `rinari-console'."
         (insert (robe-signature spec))
         (when file
           (insert " is defined in ")
-          (insert-text-button (file-name-nondirectory file)
+          (insert-text-button (robe-doc-format-file-name file)
                               'type 'robe-method-def
                               'help-args (list spec t)))
         (when (equal visibility "public")
@@ -563,6 +666,17 @@ Only works with Rails, see e.g. `rinari-console'."
         (when visibility
           (insert "\nVisibility: " visibility)))
       (visual-line-mode 1))))
+
+(defun robe-doc-format-file-name (file)
+  ;; TODO: Resolve this dynamically, perhaps (only when no match is
+  ;; found?), or update on a timer.
+  (let* ((lp (robe-with-inf-buffer robe-load-path))
+         (dir (cl-find-if
+               (lambda (lpe) (string-prefix-p lpe file))
+               lp)))
+    (if dir
+        (file-relative-name file dir)
+      (file-name-nondirectory file))))
 
 (defun robe-doc-fontify-regions ()
   (let (last-pos)
@@ -630,6 +744,8 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-signature-params (params &optional arg-num)
   (when params
+    (when (equal (last params 2) '(("rest" "*") ("block" "&")))
+      (setq params (nconc (butlast params 2) '(("forward" "...")))))
     (let ((cnt 0) args)
       (dolist (pair params)
         (let ((kind (intern (car pair)))
@@ -642,16 +758,18 @@ Only works with Rails, see e.g. `rinari-console'."
                     (block "block")
                     (t (format "arg%s" cnt)))))
           (push (propertize (format (cl-case kind
-                                      (rest "%s...")
+                                      (rest "*%s")
                                       (block "&%s")
                                       (opt "[%s]")
                                       (keyreq "%s:")
                                       (key "[%s:]")
-                                      (t "%s")) name)
+                                      (keyrest "**%s")
+                                      (t "%s"))
+                                    name)
                             'face (if (and arg-num
                                            (not (memq kind '(keyreq key)))
                                            (or (= arg-num cnt)
-                                               (and (eq kind 'rest)
+                                               (and (memq kind '(rest forward))
                                                     (> arg-num cnt))))
                                       (list robe-em-face 'bold)
                                     robe-em-face))
@@ -699,7 +817,7 @@ Only works with Rails, see e.g. `rinari-console'."
         (catch 'stop
           (unless (eobp) (forward-char 1))
           (while (re-search-backward "\\S-\\([ ]+\\)\\S-" nil t)
-            (let ((state (parse-partial-sexp start (match-beginning 1))))
+            (let ((state (parse-partial-sexp (match-beginning 1) start)))
               (goto-char (match-beginning 1))
               (when (and (zerop (nth 0 state)) (not (nth 8 state)))
                 (cond
@@ -728,6 +846,7 @@ Only works with Rails, see e.g. `rinari-console'."
 (defun robe-eldoc ()
   (when (robe-running-p)
     (let* ((context nil)
+           (inhibit-redisplay t)
            (call (save-excursion
                    (prog1
                        (robe-call-at-point)
@@ -761,13 +880,10 @@ Only works with Rails, see e.g. `rinari-console'."
               (substring msg 0 (min (frame-width) (length msg))))))))))
 
 (defun robe-complete-symbol-p (beginning)
-  (not (or (and
-            ;; Implement symbol completion using Symbol.all_symbols.
-            (eq (char-after beginning) ?:)
-            (not (eq (char-after (1+ beginning)) ?:)))
+  (not (or (eq (char-before beginning) ?:)
+           ;; TODO: Implement symbol completion using Symbol.all_symbols.
            (memq (get-text-property beginning 'face)
-                 (list font-lock-keyword-face
-                       font-lock-function-name-face
+                 (list font-lock-function-name-face
                        font-lock-comment-face
                        font-lock-string-face)))))
 
@@ -776,6 +892,8 @@ Only works with Rails, see e.g. `rinari-console'."
    (save-excursion
      (while (or (not (zerop (skip-syntax-backward "w_")))
                 (not (zerop (skip-chars-backward ":")))))
+     (when (looking-at-p ":[^:]")
+       (forward-char 1))
      (skip-chars-backward "@")
      (point))
    (save-excursion
@@ -811,20 +929,27 @@ Only works with Rails, see e.g. `rinari-console'."
 
 (defun robe-complete-thing (thing)
   (robe-start)
-  (if (robe-const-p thing)
-      (progn
-        (robe-complete-exit)
-        (robe-request "complete_const" thing (car (robe-context))))
+  (cond
+   ((and non-essential
+         (not (eq ?. (char-before (- (point) (length thing)))))
+         (or (member thing ruby-block-beg-keywords)
+             (member thing ruby-block-mid-keywords)
+             (member thing ruby-block-op-keywords)
+             (member thing '("in" "next" "end"))))
+    (list thing))
+   ((robe-const-p thing)
+    (robe-complete-exit)
+    (robe-request "complete_const" thing (car (robe-context))))
+   (t
     (cl-destructuring-bind
-        (target module instance (_ instance-method? name)) (robe-call-context)
+        (target module instance _ctx vars) (robe-call-context)
       (append
        (unless target
          ;; For company-robe mostly.  capf will call all-completions anyway.
-         (all-completions
-          thing
-          (robe-complete--variable-names instance-method? name)))
+         (delete-dups
+          (all-completions thing (robe-complete--variable-names vars))))
        (let ((gc-cons-threshold most-positive-fixnum))
-         (robe-complete--methods thing target module instance))))))
+         (robe-complete--methods thing target module instance)))))))
 
 (defun robe-complete--methods (thing target module instance)
   (setq robe-specs-cache (make-hash-table :test 'equal))
@@ -842,36 +967,74 @@ Only works with Rails, see e.g. `rinari-console'."
           (reverse
            (robe-request "complete_method" thing target module instance))))
 
-(defun robe-complete--variable-names (instance-method? method-name)
-  (let* ((instance-vars (and instance-method?
-                             (robe-complete--instance-variables)))
-         (local-vars (robe-complete--local-variables method-name))
-         (local-vars (cl-delete-if-not
-                      (lambda (v) (< (+ (robe--variable-position v)
-                                   (length (robe--variable-name v)))
-                                (point)))
-                      local-vars)))
-    (mapcar
-     (lambda (str)
-       (put-text-property 0 1 'robe-type 'variable str)
-       str)
-     (cl-delete-duplicates
-      (mapcar #'robe--variable-name
-              (nconc instance-vars local-vars))))))
+(defun robe-complete--variable-names (vars)
+  (delete-dups
+   (mapcar
+    (lambda (var)
+      (let ((str (robe--variable-name var)))
+        (put-text-property 0 1 'robe-type (robe--variable-kind var) str)
+        (put-text-property 0 1 'robe-variable-type (robe--variable-type var) str)
+        str))
+    vars)))
 
 (defun robe-complete--variables (instance-method? method-name)
   (let ((instance-vars (and instance-method?
                             (robe-complete--instance-variables)))
-        (local-vars (robe-complete--local-variables method-name)))
-    (nconc instance-vars local-vars)))
+        (local-vars (robe-complete--local-variables method-name))
+        (spec-bindings (and robe-rspec-support
+                            buffer-file-name
+                            (string-match-p "_spec\\.rb\\'" buffer-file-name)
+                            (robe-complete--rspec-bindings))))
+    (nconc instance-vars
+           spec-bindings
+           (cl-delete-if
+            (lambda (v) (>= (robe--variable-end v) (point)))
+            local-vars))))
 
 (cl-defstruct (robe--variable
-               (:constructor robe--make-variable (name position)))
-  name position)
+               (:constructor robe--make-variable (name position end type
+                                                       &key (kind 'variable))))
+  name position end type kind)
 
 (defun robe--matched-variable ()
-  (robe--make-variable (match-string-no-properties 1)
-                       (match-beginning 1)))
+  (let ((name (match-string-no-properties 1))
+        (pos (match-beginning 1))
+        (end (match-end 1))
+        type)
+    (save-excursion
+      (goto-char end)
+      (when (looking-at "\\(?::\\| *=>\\| *|\\{0,2\\}=\\) *")
+        (goto-char (match-end 0))
+        (setq type (robe--matched-variable-type))))
+    (robe--make-variable name pos end type)))
+
+(defun robe--matched-variable-type ()
+  (let (case-fold-search)
+    (cond
+     ((eq (char-after) ?\[)
+      (when (robe--matched-variable-eostmt-p t)
+        "Array"))
+     ;; FIXME: Handle percent literals better, e.g. %w().
+     ((nth 3 (prog1 (parse-partial-sexp (point) (1+ (point)))
+               (forward-char -1)))
+      (when (robe--matched-variable-eostmt-p t)
+        "String"))
+     ((eq (char-after) ?\{)
+      (when (robe--matched-variable-eostmt-p t)
+        "Hash"))
+     ((and
+       (looking-at "\\(\\(?::\\{0,2\\}[A-Z][A-Za-z0-9]*\\)+\\)\\.new\\_>")
+       (let ((type (match-string 1)))
+         (goto-char (match-end 0))
+         (when (robe--matched-variable-eostmt-p (eq (char-after) ?\())
+           type)))))))
+
+(defun robe--matched-variable-eostmt-p (forward-sexp-p)
+  (when forward-sexp-p
+    (let (forward-sexp-function)
+      (forward-sexp)))
+  (skip-chars-forward " \t\n\r")
+  (not (eq (char-after) ?.)))
 
 (defun robe-complete--instance-variables ()
   (let ((bol (line-beginning-position))
@@ -897,8 +1060,8 @@ Only works with Rails, see e.g. `rinari-console'."
           (push (robe--matched-variable) vars))))
     vars))
 
-(defun robe--not-in-string-or-comment ()
-  (not (save-match-data (nth 8 (syntax-ppss)))))
+(defun robe--not-in-string-or-comment (&optional pos)
+  (not (save-match-data (nth 8 (syntax-ppss (or pos (point)))))))
 
 (defun robe-complete--local-variables (method-name)
   (let ((method-regexp (concat
@@ -908,12 +1071,11 @@ Only works with Rails, see e.g. `rinari-console'."
                          "def"
                          (* (in " \t"))
                          (optional (+ (in "a-z" "A-Z" ?:)) ?.))
-                        method-name
-                        (rx (* (in " \t"))
-                            (or eol ?\( (syntax ?w)))))
+                        (and method-name (regexp-quote method-name))
+                        (rx symbol-end)))
         (block-regexp (rx
                        (or
-                        (syntax ?w) (syntax ?_) ?\))
+                        (syntax ?w) (syntax ?_) (syntax ?\)) (syntax ?\") (syntax ?|))
                        (+ (in " \t"))
                        (or
                         (sequence "do" symbol-end)
@@ -943,6 +1105,7 @@ Only works with Rails, see e.g. `rinari-console'."
                          (* ?\s)
                          (+ (or (syntax ?w) (syntax ?_)))
                          (* ?\s))))
+                      (* ?|)
                       ?=
                       (not (in "=>~"))))
         (eol (line-end-position))
@@ -950,8 +1113,10 @@ Only works with Rails, see e.g. `rinari-console'."
     (save-excursion
       (when (and method-name
                  (re-search-backward method-regexp nil)
-                 (eq ?\( (char-before (match-end 0))))
-        (goto-char (1- (match-end 0)))
+                 (progn
+                   (goto-char (match-end 0))
+                   (skip-chars-forward " \t")
+                   (eq ?\( (char-after))))
         (let* ((beg (1+ (point)))
                (forward-sexp-function nil)
                (end (progn
@@ -984,6 +1149,83 @@ Only works with Rails, see e.g. `rinari-console'."
                 (push (robe--matched-variable) vars)))))))
     vars))
 
+(defun robe-complete--rspec-bindings ()
+  (let ((example-re (rx (sequence
+                         line-start
+                         (* (in " \t"))
+                         (or "it" "example" "specify" "before" "after" "around"
+                             "let" "let!" "subject" "subject!")
+                         (* any)
+                         (group
+                          (or "{"
+                              (sequence symbol-start "do" symbol-end))))))
+        (context-re (rx (sequence
+                         line-start
+                         (* (in " \t"))
+                         (or
+                          (sequence
+                           (or "context" "describe") ?\s (or ?\" ?')
+                           (* any) " do" (* ?\s) (or ?\# line-end))
+                          (sequence
+                           (group
+                            (or "let" "let!" "subject" "subject!"))
+                           (\?
+                            (sequence
+                             ?\( ?:
+                             (group (* (or (syntax ?w) (syntax ?_))))
+                             ?\)))
+                           (* ?\s)
+                           (or "do" "{"))))))
+        (start (point))
+        res
+        indent)
+    (save-excursion
+      (when (and (re-search-backward example-re nil t)
+                 (robe--not-in-string-or-comment (match-beginning 1))
+                 (save-excursion
+                   (ignore-errors (forward-sexp))
+                   (>= (point) start)))
+        (setq indent (current-indentation))
+        (while (re-search-backward context-re nil t)
+          (when (<= (current-indentation) indent)
+            (setq indent (current-indentation))
+            (when (match-beginning 1)
+              (let ((name (or (match-string 2) "subject"))
+                    (pos (or (match-beginning 2) (match-beginning 1)))
+                    (end (or (match-end 2) (match-beginning 1)))
+                    type)
+                (save-excursion
+                  (if (match-beginning 2)
+                      (goto-char (1+ (match-end 2)))
+                    (goto-char (match-end 1)))
+                  (skip-chars-forward " ")
+                  (when (looking-at "do\\|{")
+                    (goto-char (match-end 0))
+                    (skip-chars-forward " \t\r\n")
+                    (setq type (or (robe--matched-variable-type)
+                                   (robe--rspec-described-class)))
+                    (push
+                     (robe--make-variable name pos end type :kind 'memo)
+                     res)))))
+            ))
+        ;; To put the later definitions closer.
+        (nreverse res)))))
+
+(defun robe--rspec-described-class ()
+  (and
+   (looking-at "described_class\\.new\\_>")
+   (goto-char (match-end 0))
+   (when (robe--matched-variable-eostmt-p (eq (char-after) ?\())
+     (save-excursion
+       (goto-char (point-min))
+       (when (re-search-forward (rx (? (sequence "RSpec" ?.))
+                                    "describe" ?\s
+                                    (group
+                                     (+ (? "::") (any "A-Z")
+                                        (* (any "A-Z" "a-z" "0-9")))))
+                                500 t)
+         (match-string 1))))))
+
 (defvar robe-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "M-.") 'robe-jump)
@@ -999,7 +1241,7 @@ Only works with Rails, see e.g. `rinari-console'."
 The following commands are available:
 
 \\{robe-mode-map}"
-  nil " robe" robe-mode-map
+  :lighter " robe"
   (if robe-mode
       (progn
         (add-hook 'completion-at-point-functions 'robe-complete-at-point nil t)

@@ -15,6 +15,7 @@
     (location (let ((spec (company-robe--choose-spec arg)))
                 (cons (robe-spec-file spec)
                       (robe-spec-line spec))))
+    (kind (company-robe--kind arg))
     (annotation (robe-complete-annotation arg))
     (doc-buffer (let ((spec (company-robe--choose-spec arg)))
                   (when spec
@@ -24,10 +25,12 @@
                       (get-buffer "*robe-doc*")))))))
 
 (defun company-robe--meta (completion)
-  (or
-   (get-text-property 0 'robe-type completion)
-   (let ((spec (car (robe-cached-specs completion))))
-     (when spec (robe-signature spec)))))
+  (if-let ((type (get-text-property 0 'robe-type completion)))
+      (if-let ((vtype (get-text-property 0 'robe-variable-type completion)))
+          (format "%s => %s" type (propertize vtype 'face 'font-lock-type-face))
+        type)
+    (let ((spec (car (robe-cached-specs completion))))
+      (when spec (robe-signature spec)))))
 
 (defun company-robe--prefix ()
   (let ((bounds (robe-complete-bounds)))
@@ -46,5 +49,18 @@
                              collect (cons module spec))))
             (cdr (assoc (robe-completing-read "Module: " alist nil t) alist)))
         (car specs)))))
+
+(defun company-robe--kind (arg)
+  (let (case-fold-search)
+    (cond
+     ((string-match "\\(?:\\`\\|::\\)\\(?:[A-Z_0-9]*\\|\\([A-Z][A-Z_a-z0-9]*\\)\\)\\'" arg)
+      (if (match-beginning 1)
+          'module
+        'constant))
+     ((string-match-p "\\`@" arg)
+      'variable)
+     ((get-text-property 0 'robe-type arg)
+      'value)
+     (t 'method))))
 
 (provide 'company-robe)

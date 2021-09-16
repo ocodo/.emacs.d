@@ -14,11 +14,15 @@ module Robe
 
         if (obj = target_module(name, mod))
           methods = obj.methods(false).map { |m| obj.method(m) } +
-                    obj.__instance_methods__(false).map { |m| obj.instance_method(m) }
+                    (obj.__instance_methods__(false) +
+                     obj.private_instance_methods(false)).map { |m| obj.instance_method(m) }
 
           methods.each do |m|
             if (loc = m.source_location)
               path = loc[0]
+
+              next if path.start_with?('<internal:') # Kernel.instance_method(:warn).source_location[0], Ruby 3
+
               locations[path] ||= 0
               locations[path] += 1
             end
@@ -37,7 +41,7 @@ module Robe
         return filtered if filtered.any?
 
         # TODO: Deal with toplevel non-module constants.
-        return [] if obj.nil?
+        return [] if obj.nil? || obj.name.nil?
 
         full_scan(obj)
       end
@@ -65,7 +69,7 @@ module Robe
       end
 
       def filter_locations_by_module(files, obj)
-        return files if obj.nil?
+        return files if obj.nil? || obj.name.nil?
         re = definition_re(obj)
         files.select { |file| File.read(file).match(re) }
       end
@@ -73,7 +77,7 @@ module Robe
       # Ugly hack. Fix this.
       def target_module(name, mod)
         obj = visor.resolve_context(name, mod)
-        return obj if obj.is_a?(Module)
+        return obj if obj.is_a?(Module) || obj.nil?
         try_name = name[/^(.*)::[^:]*?/, 1]
         obj = visor.resolve_context(try_name, mod)
         return obj if obj.is_a?(Module)
