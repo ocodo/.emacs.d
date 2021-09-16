@@ -3,9 +3,9 @@
 ;; Copyright (C) 2015 Free Software Foundation, Inc.
 
 ;; Author: David Shepherd <davidshepherd7@gmail.com>
-;; Version: 0.4
-;; Package-Version: 20190710.929
-;; Package-Commit: 295d55d6056e6f79b68283f7631f6438ea8a7b5f
+;; Version: 0.9
+;; Package-Version: 20201223.819
+;; Package-Commit: a0a2f8538c80ac08e497dea784fcb90c93ab465b
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: convenience
 ;; URL: https://github.com/davidshepherd7/fill-function-arguments
@@ -84,11 +84,14 @@ e.g. as used in lisps like `(foo x
 
 (defcustom fill-function-arguments-indent-after-fill
   nil
-  "If non-nill after converting to multiline form, re-indent the affected lines.
+  "If non-nil then after converting to multiline form re-indent the affected lines.
 
-The indentation uses `indent-region' "
-  :group 'fill-function-arguments-indent-after-fill
-  :type 'boolean)
+If set to a function, the function is called to indent the region, otherwise `indent-region' is used.
+
+In either case the indentation function is called with arguments `start' and `end' which are the point
+of the opening and closing brackets respectively."
+  :group 'fill-function-arguments
+  :type '(choice 'boolean 'function))
 
 
 
@@ -215,7 +218,9 @@ Borrowed from s.el to avoid a dependency"
           (insert "\n"))
 
         (when fill-function-arguments-indent-after-fill
-          (indent-region (point-min) (point-max)))))))
+          (if (functionp fill-function-arguments-indent-after-fill)
+              (funcall fill-function-arguments-indent-after-fill (point-min) (point-max))
+            (indent-region (point-min) (point-max))))))))
 
 ;;;###autoload
 (defun fill-function-arguments-dwim ()
