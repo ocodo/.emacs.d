@@ -1,13 +1,14 @@
 ;;; persp-projectile.el --- Perspective integration with Projectile
 
-;; Copyright (C) 2014-2016 Daniel Wu, Bozhidar Batsov
+;; Copyright (C) 2014-2021 Daniel Wu, Bozhidar Batsov
 
 ;; Author: Daniel Wu
 ;; Created: 2014-04-14
 ;; Keywords: project, convenience
-;; Package-Version: 20180616.1944
-;; Version: 0.2.0
-;; Package-Requires: ((perspective "1.9") (projectile "0.11.0") (cl-lib "0.3"))
+;; Package-Version: 20210618.708
+;; Package-Commit: 4e374d7650c7e041df5af5ac280a44d4a4ec705a
+;; Version: 1.0.0
+;; Package-Requires: ((perspective "1.9") (projectile "2.4") (cl-lib "0.3"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -48,7 +49,7 @@
 (require 'perspective)
 (require 'projectile)
 
-;; TODO this may be incompatible helm which let's you find stuff in new frame
+;; TODO: this may be incompatible helm which let's you find stuff in new frame
 (defmacro projectile-persp-bridge (func-name)
   "Create advice to create a perspective before invoking function FUNC-NAME.
 The advice provides bridge between perspective and projectile
@@ -83,6 +84,10 @@ perspective."
      ;; project-specific perspective already exists
      ((and persp (not (equal persp (persp-curr))))
       (persp-switch name))
+     ;; persp exists but not match with projectile-name
+     ((and persp (not (equal persp name)))
+      (persp-switch name)
+      (projectile-switch-project-by-name project-to-switch))
      ;; project-specific perspective doesn't exist
      ((not persp)
       (let ((frame (selected-frame)))
