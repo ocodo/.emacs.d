@@ -1,11 +1,11 @@
-(define-package "libgit" "20200515.1759" "Thin bindings to libgit2."
+(define-package "libgit" "20210620.2017" "Thin bindings to libgit2."
   '((emacs "25.1"))
-  :commit "0ef8b13aef011a98b7da756e4f1ce3bb18e4d55a" :keywords
-  '("git" "vc")
-  :authors
+  :commit "77bd28aeaa2a49962e8f714741f5a69b656a2183" :authors
   '(("Eivind Fonn" . "evfonn@gmail.com"))
   :maintainer
   '("Eivind Fonn" . "evfonn@gmail.com")
+  :keywords
+  '("git" "vc")
   :url "https://github.com/magit/libegit2")
 ;; Local Variables:
 ;; no-byte-compile: t

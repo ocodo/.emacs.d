@@ -41,7 +41,7 @@
   "Directory where the libegit2 dynamic module file should be built.")
 
 (defvar libgit--module-file
-  (expand-file-name (concat "libegit2" module-file-suffix) libgit--build-dir)
+  (expand-file-name "libegit2.so" libgit--build-dir)
   "Path to the libegit2 dynamic module file.")
 
 (defun libgit--configure ()
@@ -90,7 +90,7 @@ If the module is not available, then offer to build it."
    ((file-exists-p libgit--module-file)
     (libgit--load))
    ((and (not noninteractive)
-	 (y-or-n-p "libgit must be built, do so now?"))
+         (y-or-n-p "libgit must be built, do so now?"))
     (libgit--configure))
    (noninteractive
     (message "libgit was not loaded!"))
