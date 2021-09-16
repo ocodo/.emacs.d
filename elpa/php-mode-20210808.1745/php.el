@@ -4,7 +4,7 @@
 
 ;; Author: USAMI Kenta <tadsan@zonu.me>
 ;; Created: 5 Dec 2018
-;; Version: 1.23.0
+;; Version: 1.24.0
 ;; Keywords: languages, php
 ;; Homepage: https://github.com/emacs-php/php-mode
 ;; License: GPL-3.0-or-later
@@ -27,7 +27,8 @@
 ;; This file provides common variable and functions for PHP packages.
 
 ;;; Code:
-(require 'cl-lib)
+(eval-when-compile
+  (require 'cl-lib))
 (require 'flymake)
 (require 'php-project)
 (require 'rx)
@@ -46,7 +47,7 @@
   :tag "PHP Executable"
   :type 'string)
 
-(defcustom php-site-url "https://php.net/"
+(defcustom php-site-url "https://www.php.net/"
   "Default PHP.net site URL.
 
 The URL to use open PHP manual and search word."
@@ -77,6 +78,70 @@ You can replace \"en\" with your ISO language code."
   :tag "PHP Search URL"
   :type '(choice (string :tag "URL to search PHP documentation")
                  (const  :tag "Use `php-site-url' variable" nil)))
+
+(defcustom php-completion-file ""
+  "Path to the file which contains the function names known to PHP."
+  :type 'string)
+
+(defcustom php-manual-path ""
+  "Path to the directory which contains the PHP manual."
+  :type 'string)
+
+(defcustom php-search-documentation-function #'php-search-web-documentation
+  "Function to search PHP Manual at cursor position."
+  :group 'php
+  :tag "PHP Search Documentation Function"
+  :type '(choice (const :tag "Use online documentation" #'php-search-web-documentation)
+                 (const :tag "Use local documentation" #'php-local-manual-search)
+                 (function :tag "Use other function")))
+
+(defcustom php-search-documentation-browser-function nil
+  "Function to display PHP documentation in a WWW browser.
+
+If non-nil, this shadows the value of `browse-url-browser-function' when
+calling `php-search-documentation' or `php-search-local-documentation'."
+  :group 'php
+  :tag "PHP Search Documentation Browser Function"
+  :type '(choice (const :tag "default" nil) function)
+  :link '(variable-link browse-url-browser-function))
+
+;; Define function for browsing manual
+(defun php-browse-documentation-url (url)
+  "Browse a documentation URL using the configured browser function.
+
+See `php-search-documentation-browser-function'."
+  (let ((browse-url-browser-function
+         (or php-search-documentation-browser-function
+             browse-url-browser-function)))
+    (browse-url url)))
+
+(defun php-browse-manual ()
+  "Bring up manual for PHP."
+  (interactive)
+  (browse-url (if (stringp php-manual-url)
+                  php-manual-url
+                (format "%smanual/%s/" php-site-url php-manual-url))))
+
+(defun php-search-web-documentation (word)
+  "Return URL to search PHP manual search by `WORD'."
+  (interactive (list (current-word)))
+  (php-browse-documentation-url (concat (or php-search-url php-site-url) word)))
+
+(defun php-search-documentation (&optional word)
+  "Search PHP documentation for the `WORD' at point.
+
+If `php-manual-path' has a non-empty string value then the command
+will first try searching the local documentation.  If the requested
+documentation does not exist it will fallback to searching the PHP
+website.
+
+With a prefix argument, prompt for a documentation word to search
+for.  If the local documentation is available, it is used to build
+a completion list."
+  (interactive)
+  (if (called-interactively-p 'interactive)
+      (call-interactively php-search-documentation-function)
+    (funcall php-search-documentation-function word)))
 
 (defcustom php-class-suffix-when-insert "::"
   "Suffix for inserted class."
@@ -155,15 +220,24 @@ it is the character that will terminate the string, or t if the string should be
 
 (defsubst php-in-poly-php-html-mode ()
   "Return T if current buffer is in `poly-html-mode'."
-  (and (boundp 'poly-php-html-mode)
-       (symbol-value 'poly-php-html-mode)))
+  (bound-and-true-p poly-php-html-mode))
 
 (defconst php-beginning-of-defun-regexp
-  "^\\s-*\\(?:\\(?:abstract\\|final\\|private\\|protected\\|public\\|static\\)\\s-+\\)*function\\s-+&?\\(\\(\\sw\\|\\s_\\)+\\)\\s-*("
+  (eval-when-compile
+    (rx bol
+        (* (syntax whitespace))
+        (* (or "abstract" "final" "private" "protected" "public" "static")
+           (+ (syntax whitespace)))
+        "function"
+        (+ (syntax whitespace))
+        (? "&" (* (syntax whitespace)))
+        (group (+ (or (syntax word) (syntax symbol))))
+        (* (syntax whitespace))
+        "("))
   "Regular expression for a PHP function.")
 
 (eval-when-compile
-  (defun php-create-regexp-for-method (&optional visibility)
+  (cl-defun php-create-regexp-for-method (&optional visibility &key include-args)
     "Make a regular expression for methods with the given VISIBILITY.
 
 VISIBILITY must be a string that names the visibility for a PHP
@@ -178,22 +252,25 @@ which will be the name of the method."
       (setq visibility (list visibility)))
     (rx-to-string `(: line-start
                       (* (syntax whitespace))
-                      ,@(if visibility
-                            `((* (or "abstract" "final" "static")
-                                 (+ (syntax whitespace)))
-                              (or ,@visibility)
-                              (+ (syntax whitespace))
-                              (* (or "abstract" "final" "static")
-                                 (+ (syntax whitespace))))
-                          '((* (* (or "abstract" "final" "static"
-                                      "private" "protected" "public")
-                                  (+ (syntax whitespace))))))
-                      "function"
-                      (+ (syntax whitespace))
-                      (? "&" (* (syntax whitespace)))
-                      (group (+ (or (syntax word) (syntax symbol))))
-                      (* (syntax whitespace))
-                      "(")))
+                      (group
+                       ,@(if visibility
+                             `((* (or "abstract" "final" "static")
+                                  (+ (syntax whitespace)))
+                               (or ,@visibility)
+                               (+ (syntax whitespace))
+                               (* (or "abstract" "final" "static")
+                                  (+ (syntax whitespace))))
+                           '((* (* (or "abstract" "final" "static"
+                                       "private" "protected" "public")
+                                   (+ (syntax whitespace))))))
+                       "function"
+                       (+ (syntax whitespace))
+                       (? "&" (* (syntax whitespace)))
+                       (group (+ (or (syntax word) (syntax symbol))))
+                       (* (syntax whitespace))
+                       "("
+                       ,@(when include-args
+                           '((* any) line-end))))))
 
   (defun php-create-regexp-for-classlike (type)
     "Accepts a `TYPE' of a 'classlike' object as a string, such as
@@ -211,7 +288,101 @@ can be used to match against definitions for that classlike."
      ;; this is not necessarily correct for all values of `type'.
      "\\s-+\\(\\(?:\\sw\\|\\\\\\|\\s_\\)+\\)")))
 
-(defconst php-imenu-generic-expression
+(defconst php-imenu-generic-expression-default
+  (eval-when-compile
+    `(("Methods"
+       ,(php-create-regexp-for-method nil :include-args t) 1)
+      ("Properties"
+       ,(rx line-start
+            (* (syntax whitespace))
+            (group
+             (+ (or "public" "protected" "private" "static" "var")
+                (+ (syntax whitespace)))
+             (* (? (? (or "|" "?"))
+                   (or "\\" (syntax word) (syntax symbol))
+                   (+ (syntax whitespace))))
+             "$" (+ (or (syntax word) (syntax symbol)))
+             word-boundary))
+       1)
+      ("Constants"
+       ,(rx line-start
+            (* (syntax whitespace))
+            (group
+             (* (or "public" "protected" "private")
+                (+ (syntax whitespace)))
+             "const"
+             (+ (syntax whitespace))
+             (+ (or (syntax word) (syntax symbol)))
+             (* (syntax whitespace))
+             (? "=" (* (syntax whitespace))
+                (repeat 0 40 any))))
+       1)
+      ("Functions"
+       ,(rx line-start
+            (* (syntax whitespace))
+            (group
+             "function"
+             (+ (syntax whitespace))
+             (+ (or (syntax word) (syntax symbol)))
+             (* (syntax whitespace))
+             "("
+             (repeat 0 100 any)))
+       1)
+      ("Import"
+       ,(rx line-start
+            ;; (* (syntax whitespace))
+            (group
+             "use"
+             (+ (syntax whitespace))
+             (repeat 0 100 any)))
+       1)
+      ("Classes"
+       ,(php-create-regexp-for-classlike "\\(?:class\\|interface\\|trait\\|enum\\)") 0)
+      ("Namespace"
+       ,(php-create-regexp-for-classlike "namespace") 1)))
+  "Imenu generic expression for PHP Mode.  See `imenu-generic-expression'.")
+
+(defconst php-imenu-generic-expression-simple
+  (eval-when-compile
+    `(("Methods"
+       ,(php-create-regexp-for-method nil) 2)
+      ("Properties"
+       ,(rx line-start
+            (* (syntax whitespace))
+            (+ (or "public" "protected" "private" "static" "var")
+               (+ (syntax whitespace)))
+            (* (? (? (or "|" "?"))
+                  (or "\\" (syntax word) (syntax symbol))
+                  (+ (syntax whitespace))))
+            (group
+             "$" (+ (or (syntax word) (syntax symbol))))
+            word-boundary)
+       1)
+      ("Constants"
+       ,(rx line-start
+            (* (syntax whitespace))
+            (group
+             (* (or "public" "protected" "private")
+                (+ (syntax whitespace)))
+             "const"
+             (+ (syntax whitespace))
+             (+ (or (syntax word) (syntax symbol)))))
+       1)
+      ("Functions"
+       ,(rx line-start
+            (* (syntax whitespace))
+            "function"
+            (+ (syntax whitespace))
+            (group
+             (+ (or (syntax word) (syntax symbol)))))
+       1)
+      ("Classes"
+       ,(php-create-regexp-for-classlike "\\(?:class\\|interface\\|trait\\|enum\\)") 1)
+      ("Namespace"
+       ,(php-create-regexp-for-classlike "namespace") 1)))
+  "Imenu generic expression for PHP Mode.  See `imenu-generic-expression'.")
+
+(defconst php-imenu-generic-expression-legacy
   (eval-when-compile
     `(("Namespaces"
        ,(php-create-regexp-for-classlike "namespace") 1)
@@ -224,16 +395,24 @@ can be used to match against definitions for that classlike."
       ("All Methods"
        ,(php-create-regexp-for-method) 1)
       ("Private Methods"
-       ,(php-create-regexp-for-method '("private")) 1)
+       ,(php-create-regexp-for-method '("private")) 2)
       ("Protected Methods"
-       ,(php-create-regexp-for-method '("protected"))  1)
+       ,(php-create-regexp-for-method '("protected"))  2)
       ("Public Methods"
-       ,(php-create-regexp-for-method '("public")) 1)
+       ,(php-create-regexp-for-method '("public")) 2)
       ("Anonymous Functions"
        "\\<\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*=\\s-*f\\(unctio\\)?n\\s-*(" 1)
       ("Named Functions"
        "^\\s-*function\\s-+\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*(" 1)))
   "Imenu generic expression for PHP Mode.  See `imenu-generic-expression'.")
+
+(defcustom php-imenu-generic-expression 'php-imenu-generic-expression-default
+  "Default Imenu generic expression for PHP Mode.  See `imenu-generic-expression'."
+  :type '(choice (alist :key-type string :value-type list)
+                 (const 'php-imenu-generic-expression-legacy)
+                 (const 'php-imenu-generic-expression-simple)
+                 variable)
+  :group 'php)
 
 (defconst php--re-namespace-pattern
   (eval-when-compile
@@ -249,6 +428,28 @@ can be used to match against definitions for that classlike."
     (save-match-data
       (when (re-search-backward re-pattern nil t)
         (match-string-no-properties 1)))))
+
+(defun php-get-pattern ()
+  "Find the pattern we want to complete.
+`find-tag-default' from GNU Emacs etags.el"
+  (save-excursion
+    (save-match-data
+      (while (looking-at "\\sw\\|\\s_")
+        (forward-char 1))
+      (when (or (re-search-backward "\\sw\\|\\s_"
+                                    (save-excursion (beginning-of-line) (point))
+                                    t)
+                (re-search-forward "\\(\\sw\\|\\s_\\)+"
+                                   (save-excursion (end-of-line) (point))
+                                   t))
+        (goto-char (match-end 0))
+        (buffer-substring-no-properties
+         (point)
+         (progn
+           (forward-sexp -1)
+           (while (looking-at "\\s'")
+             (forward-char 1))
+           (point)))))))
 
 ;;; Provide support for Flymake so that users can see warnings and
 ;;; errors in real-time as they write code.

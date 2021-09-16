@@ -77,7 +77,18 @@ toggle it if ARG is `toggle'; disable the mode otherwise.
 ;;;;;;  0 0 0))
 ;;; Generated autoloads from php-local-manual.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "php-local-manual" '("php-local-manual-search")))
+(autoload 'php-local-manual-search "php-local-manual" "\
+Search the local PHP documentation (i.e. in `php-manual-path') for
+the word at point.  The function returns t if the requested documentation
+exists, and nil otherwise.
+
+With a prefix argument, prompt (with completion) for a word to search for.
+
+\(fn WORD)" t nil)
+
+(define-obsolete-function-alias 'php-search-local-documentation #'php-local-manual-search "2.0.0")
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "php-local-manual" '("php-local-manual-")))
 
 ;;;***
 
@@ -86,7 +97,7 @@ toggle it if ARG is `toggle'; disable the mode otherwise.
 
 (let ((loads (get 'php-mode 'custom-loads))) (if (member '"php-mode" loads) nil (put 'php-mode 'custom-loads (cons '"php-mode" loads))))
 
-(if (version< emacs-version "24.4") (dolist (i '("php" "php5" "php7")) (add-to-list 'interpreter-mode-alist (cons i 'php-mode))) (add-to-list 'interpreter-mode-alist (cons "php\\(?:-?[3457]\\(?:\\.[0-9]+\\)*\\)?" 'php-mode)))
+(add-to-list 'interpreter-mode-alist (cons "php\\(?:-?[34578]\\(?:\\.[0-9]+\\)*\\)?" 'php-mode))
 
 (define-obsolete-variable-alias 'php-available-project-root-files 'php-project-available-root-files "1.19.0")
 
