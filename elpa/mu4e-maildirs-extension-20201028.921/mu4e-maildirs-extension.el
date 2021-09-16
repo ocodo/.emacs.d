@@ -6,8 +6,8 @@
 
 ;; Filename: mu4e-maildirs-extension.el
 ;; Version: 0.1
-;; Package-Version: 20200508.712
-;; Package-Commit: 4d2ece2226fa69a0e0bb23517a418145b92bd573
+;; Package-Version: 20201028.921
+;; Package-Commit: 1167bc6e08996f866e73e9a02f563fd21ac317fd
 ;; Author: Andreu Gil Pàmies <agpchil@gmail.com>
 ;; Created: 22-07-2013
 ;; Description: Show mu4e maildirs summary in mu4e-main-view with unread and
@@ -309,31 +309,6 @@ If set to `nil' it won't be displayed."
 
 (defvar mu4e-maildirs-extension-main-view-func
   'mu4e-maildirs-extension-main-view-handler)
-
-(define-obsolete-variable-alias
-  'mu4e-maildirs-extension-submaildir-indent
-  'mu4e-maildirs-extension-maildir-indent
-  "0.9")
-
-(define-obsolete-variable-alias
-  'mu4e-maildirs-extension-maildir-separator
-  'mu4e-maildirs-extension-maildir-collapsed-prefix
-  "0.9")
-
-(define-obsolete-variable-alias
-  'mu4e-maildirs-extension-submaildir-separator
-  'mu4e-maildirs-extension-maildir-default-prefix
-  "0.9")
-
-(define-obsolete-variable-alias
-  'mu4e-maildirs-extension-maildir-unread-face
-  'mu4e-maildirs-extension-maildir-hl-face
-  "0.9")
-
-(define-obsolete-variable-alias
-  'mu4e-maildirs-extension-cached-maildirs-data
-  'mu4e-maildirs-extension-maildirs
-  "0.9")
 
 (defun mu4e-maildirs-extension-index-updated-handler ()
   "Handler for `mu4e-index-updated-hook'."
