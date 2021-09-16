@@ -215,7 +215,12 @@ to 'auto, tags may not be properly aligned. "
 
 ;;;;; ahs
      `(ahs-face ((,class (:background ,highlight))))
+     `(ahs-face-unfocused ((,class (:background ,highlight))))
+     `(ahs-definition-face ((,class (:background ,highlight))))
+     `(ahs-definition-face-unfocused ((,class (:background ,highlight))))
      `(ahs-plugin-whole-buffer-face ((,class (:background ,mat :foreground ,bg1))))
+     `(ahs-plugin-default-face ((,class (:background ,highlight))))
+     `(ahs-plugin-default-face-unfocused ((,class (:background ,highlight))))
 
 ;;;;; anzu-mode
      `(anzu-mode-line ((,class (:foreground ,yellow :inherit bold))))
@@ -583,7 +588,7 @@ to 'auto, tags may not be properly aligned. "
      `(info-title-4 ((,class (:height 1.2))))
 
 ;;;;; ivy
-     `(ivy-current-match ((,class (:background ,highlight :inherit bold))))
+     `(ivy-current-match ((,class (:background ,highlight :inherit bold :extend t))))
      `(ivy-minibuffer-match-face-1 ((,class (:inherit bold))))
      `(ivy-minibuffer-match-face-2 ((,class (:foreground ,head1 :underline t))))
      `(ivy-minibuffer-match-face-3 ((,class (:foreground ,head4 :underline t))))
@@ -746,7 +751,7 @@ to 'auto, tags may not be properly aligned. "
      `(org-block-end-line ((,class (:background ,cblk-ln-bg :foreground ,cblk-ln :extend t))))
      `(org-clock-overlay ((,class (:foreground ,comp))))
      `(org-code ((,class (:foreground ,cyan))))
-     `(org-column ((,class (:background ,highlight))))
+     `(org-column ((,class (:background ,highlight :inherit ,(if spacemacs-theme-org-height 'default)))))
      `(org-column-title ((,class (:background ,highlight))))
      `(org-date ((,class (:underline t :foreground ,var))))
      `(org-date-selected ((,class (:background ,func :foreground ,bg1))))
@@ -840,6 +845,10 @@ to 'auto, tags may not be properly aligned. "
      `(rcirc-track-keyword ((,class (:background ,green :foreground ,bg1))))
      `(rcirc-url ((,class (:inherit link))))
 
+;;;;; sh-mode
+     `(sh-heredoc ((,class :foreground ,str)))
+     `(sh-quoted-exec ((,class :foreground ,func)))
+
 ;;;;; shm
      `(shm-current-face ((,class (:background ,green-bg-s))))
      `(shm-quarantine-face ((,class (:background ,red-bg-s))))
@@ -929,6 +938,12 @@ to 'auto, tags may not be properly aligned. "
      `(treemacs-git-ignored-face ((,class (:foreground ,yellow))))
      `(treemacs-git-modified-face ((,class (:foreground ,blue :background ,blue-bg))))
      `(treemacs-git-untracked-face ((,class (:foreground ,aqua :background ,aqua-bg))))
+
+;;;;; tab-bar-mode
+     `(tab-bar ((,class (:foreground ,base :background ,bg1))))
+     `(tab-bar-tab ((,class (:foreground ,base :background ,bg1 :weight bold))))
+     `(tab-line ((,class (:foreground ,base :background ,bg1))))
+     `(tab-bar-tab-inactive ((,class (:foreground ,base-dim :background ,bg2 :weight light))))
 
 ;;;;; web-mode
      `(web-mode-builtin-face ((,class (:inherit ,font-lock-builtin-face))))
