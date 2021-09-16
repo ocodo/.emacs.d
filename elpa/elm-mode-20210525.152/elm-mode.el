@@ -1,4 +1,4 @@
-;;; elm-mode.el --- Major mode for Elm
+;;; elm-mode.el --- Major mode for Elm  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2013, 2014  Joseph Collard
 ;; Copyright (C) 2015, 2016  Bogdan Popa
@@ -34,8 +34,11 @@
 (require 'elm-format)
 (require 'elm-imenu)
 (require 'elm-indent)
+(require 'elm-indent-simple)
 (require 'elm-interactive)
 (require 'elm-font-lock)
+(require 'project)
+(require 'rx)
 
 (defgroup elm nil
   "Support for the elm programming language."
@@ -137,42 +140,55 @@ Find the roots of this function in the c-awk-mode."
     (define-key map (kbd "C-c C-d") 'elm-documentation-lookup)
     (define-key map (kbd "C-c C-i") 'elm-import)
     (define-key map (kbd "C-c C-s") 'elm-sort-imports)
-    (define-key map (kbd "C-c C-t") 'elm-oracle-type-at-point)
-    (define-key map (kbd "C-c M-d") 'elm-oracle-doc-at-point)
     (define-key map (kbd "C-c C-v") 'elm-test-project)
+    (easy-menu-define elm-mode-map map
+      "Elm Mode Menu"
+      '("Elm"
+        ["Format Buffer" elm-format t]
+        "--"
+        ["Load Current File in REPL" elm-repl-load t]
+        ["Push Region to REPL" elm-repl-push t]
+        "--"
+        ["Sort Imports" elm-sort-imports t]
+        ["View Doc in Browser" elm-documentation-lookup t]
+        "--"
+        ["Generate TAGS" elm-mode-generate-tags t]))
     map)
   "Keymap for Elm major mode.")
 
 ;;;###autoload
+(defcustom elm-mode-hook '(elm-indent-mode)
+  "Hook called by `elm-mode'."
+  :type 'hook
+  :group 'elm)
+
+;;;###autoload
 (define-derived-mode elm-mode prog-mode "Elm"
   "Major mode for editing Elm source code."
-  (setq-local indent-tabs-mode nil)
+  :group 'elm
+  :syntax-table elm--syntax-table
 
+  ;; Indentation
   ;; Elm is not generally suitable for electric indentation, since
   ;; there is no unambiguously correct indent level for any given
   ;; line.
-  (when (boundp 'electric-indent-inhibit)
-    (setq-local electric-indent-inhibit t))
+  (when (boundp 'electric-indent-inhibit) (setq electric-indent-inhibit t))
 
   (setq-local comment-start "--")
   (setq-local comment-end "")
   (setq-local imenu-create-index-function #'elm-imenu-create-index)
+  (setq-local comment-start-skip "-- ")
+
   (setq-local paragraph-start (concat " *{-\\| *-- |\\|" page-delimiter))
   (setq-local paragraph-separate (concat " *$\\| *\\({-\\|-}\\) *$\\|" page-delimiter))
+
   (setq-local beginning-of-defun-function #'elm-beginning-of-defun)
   (setq-local end-of-defun-function #'elm-end-of-defun)
-
-  (add-function :before-until (local 'eldoc-documentation-function) #'elm-eldoc)
 
   (when elm-format-on-save
     (elm-format-on-save-mode))
   (add-hook 'after-save-hook #'elm-mode-after-save-handler nil t)
-
   (elm--font-lock-enable))
-
-;; We enable intelligent indenting, but users can remove this from the
-;; hook if they prefer.
-(add-hook 'elm-mode-hook 'elm-indent-mode)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.elm\\'" . elm-mode))

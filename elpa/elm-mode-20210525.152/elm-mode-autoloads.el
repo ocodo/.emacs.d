@@ -62,6 +62,24 @@ Invokes `elm-indent-hook' if not nil.
 
 ;;;***
 
+;;;### (autoloads nil "elm-indent-simple" "elm-indent-simple.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from elm-indent-simple.el
+
+(autoload 'elm-indent-simple-mode "elm-indent-simple" "\
+\"Stupid\" Elm indentation mode.
+
+If called interactively, enable Elm-Indent-Simple mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
+\(fn &optional ARG)" t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "elm-indent-simple" '("elm-indent-simple-")))
+
+;;;***
+
 ;;;### (autoloads nil "elm-interactive" "elm-interactive.el" (0 0
 ;;;;;;  0 0))
 ;;; Generated autoloads from elm-interactive.el
@@ -161,34 +179,6 @@ Special mode for elm-package.
 
 \(fn)" t nil)
 
-(autoload 'elm-oracle-type-at-point "elm-interactive" "\
-Print the type of the function at point to the minibuffer." t nil)
-
-(autoload 'elm-eldoc "elm-interactive" "\
-Get the type of the function at point for eldoc." nil nil)
-
-(autoload 'elm-oracle-doc-at-point "elm-interactive" "\
-Show the documentation of the value at point." t nil)
-
-(autoload 'elm-oracle-completion-at-point-function "elm-interactive" "\
-Completion at point function for elm-oracle." nil nil)
-
-(autoload 'elm-oracle-setup-completion "elm-interactive" "\
-Set up standard completion.
-Add this function to your `elm-mode-hook' to enable an
-elm-specific `completion-at-point' function." nil nil)
-
-(autoload 'elm-oracle-setup-ac "elm-interactive" "\
-Set up auto-complete support.
-Add this function to your `elm-mode-hook'." nil nil)
-
-(autoload 'elm-company "elm-interactive" "\
-Provide completion info according to COMMAND and ARG.  IGNORED is not used.
-
-\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
-
-(define-obsolete-function-alias 'company-elm 'elm-company "2020-04")
-
 (autoload 'elm-test-project "elm-interactive" "\
 Run the elm-test command on the current project." t nil)
 
@@ -198,6 +188,11 @@ Run the elm-test command on the current project." t nil)
 
 ;;;### (autoloads nil "elm-mode" "elm-mode.el" (0 0 0 0))
 ;;; Generated autoloads from elm-mode.el
+
+(defvar elm-mode-hook '(elm-indent-mode) "\
+Hook called by `elm-mode'.")
+
+(custom-autoload 'elm-mode-hook "elm-mode" t)
 
 (autoload 'elm-mode "elm-mode" "\
 Major mode for editing Elm source code.

@@ -1,10 +1,10 @@
-(define-package "elm-mode" "20200602.500" "Major mode for Elm"
+(define-package "elm-mode" "20210525.152" "Major mode for Elm"
   '((f "0.17")
     (s "1.7.0")
     (emacs "25.1")
     (dash "2.13.0")
     (reformatter "0.3"))
-  :commit "363da4b47c9de1ff091a8caf95fccc34188d59a3" :authors
+  :commit "f2e2d0053f3272d9fc0c2e16c8d17d97724cf524" :authors
   '(("Joseph Collard"))
   :maintainer
   '("Joseph Collard")
