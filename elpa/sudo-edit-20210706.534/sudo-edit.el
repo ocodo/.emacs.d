@@ -4,10 +4,10 @@
 
 ;; Author: Nathaniel Flath <flat0103@gmail.com>
 ;; URL: https://github.com/nflath/sudo-edit
-;; Package-Version: 20200625.142
-;; Package-Commit: 0e2c32b5e5242d30f8780cbe8e1b1649476cac4d
+;; Package-Version: 20210706.534
+;; Package-Commit: 23b78a39053088839f281bc0c3134203d7e04e50
 ;; Keywords: convenience
-;; Version: 0.0.1a
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 
 ;; This file is not part of GNU Emacs.
@@ -101,6 +101,21 @@ attention to case differences."
   :type 'string
   :group 'sudo-edit)
 
+(defcustom sudo-edit-local-method "sudo"
+  "Tramp method to use with `sudo-edit' for local files."
+  :type '(choice
+          (const "sudo")
+          (const "su"))
+  :group 'sudo-edit)
+
+(defcustom sudo-edit-remote-method nil
+  "Tramp method to use with `sudo-edit' for remote files."
+  :type '(choice
+          (const :tag "Use local medthod" nil)
+          (const "sudo")
+          (const "su"))
+  :group 'sudo-edit)
+
 (defface sudo-edit-header-face
   '((t (:foreground "white" :background "red3")))
   "*Face use to display header-lines for files opened as root."
@@ -175,15 +190,16 @@ This function is suitable to add to `find-file-hook' and `dired-file-hook'."
                    (tramp-file-name-host vec)
                    (tramp-file-name-port vec)
                    ""
-                   (tramp-file-name-hop vec))))
+                   (tramp-file-name-hop vec)))
+             (remote-method (or sudo-edit-remote-method sudo-edit-local-method)))
         (setq hop (string-remove-prefix (if (fboundp 'tramp-prefix-format) (tramp-prefix-format) (bound-and-true-p tramp-prefix-format)) hop))
         (setq hop (string-remove-suffix (if (fboundp 'tramp-postfix-host-format) (tramp-postfix-host-format) (bound-and-true-p tramp-postfix-host-format)) hop))
         (setq hop (concat hop tramp-postfix-hop-format))
         (if (and (string= user (tramp-file-name-user vec))
                  (string-match tramp-local-host-regexp (tramp-file-name-host vec)))
             (tramp-file-name-localname vec)
-          (sudo-edit-make-tramp-file-name "sudo" user (tramp-file-name-domain vec) (tramp-file-name-host vec) (tramp-file-name-port vec) (tramp-file-name-localname vec) hop)))
-    (sudo-edit-make-tramp-file-name "sudo" user nil "localhost" nil (expand-file-name filename))))
+          (sudo-edit-make-tramp-file-name remote-method user (tramp-file-name-domain vec) (tramp-file-name-host vec) (tramp-file-name-port vec) (tramp-file-name-localname vec) hop)))
+    (sudo-edit-make-tramp-file-name sudo-edit-local-method user nil "localhost" nil (expand-file-name filename))))
 
 ;;;###autoload
 (defun sudo-edit (&optional arg)
@@ -212,7 +228,7 @@ for a file to visit if current buffer is not visiting a file."
   (cl-assert (not (string-blank-p sudo-edit-user)) nil "User must not be a empty string")
   (find-file (sudo-edit-filename filename sudo-edit-user)))
 
-(define-obsolete-function-alias 'sudo-edit-current-file 'sudo-edit)
+(define-obsolete-function-alias 'sudo-edit-current-file 'sudo-edit "2016-09-05")
 
 (provide 'sudo-edit)
 ;;; sudo-edit.el ends here
