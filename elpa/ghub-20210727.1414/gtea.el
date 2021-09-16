@@ -1,10 +1,11 @@
-;;; buck.el --- minuscule client library for the Bitbucket API  -*- lexical-binding: t -*-
+;;; gtea.el --- minuscule client library for the Gitea API  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2020  Jonas Bernoulli
+;; Copyright (C) 2016-2021  Jonas Bernoulli
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Homepage: https://github.com/magit/ghub
 ;; Keywords: tools
+;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; This file is not part of GNU Emacs.
 
@@ -22,12 +23,12 @@
 
 ;;; Commentary:
 
-;; Buck is a library that provides basic support for using the Bitbucket API
+;; Gtea is a library that provides basic support for using the Gitea API
 ;; from Emacs packages.  It abstracts access to API resources using only
 ;; a handful of functions that are not resource-specific.
 
-;; This library is implemented on top of Ghub.  Unlike Ghub, Buck does
-;; not support the guided creation of tokens because Bitbucket lacks the
+;; This library is implemented on top of Ghub.  Unlike Ghub, Gtea does
+;; not support the guided creation of tokens because Gitea lacks the
 ;; features that would be necessary to implement that.  Users have to
 ;; create tokens through the web interface.
 
@@ -35,94 +36,106 @@
 
 (require 'ghub)
 
-(defconst buck-default-host "api.bitbucket.org/2.0"
-  "The default host that is used if `buck.host' is not set.")
+(defconst gtea-default-host "localhost:3000/api/v1"
+  "The default Gitea host.")
 
-;; HEAD and PATCH are not supported according to
-;; https://developer.atlassian.com/bitbucket/api/2/reference/meta/uri-uuid
+;; HEAD does not appear to be supported.
 
-(cl-defun buck-get (resource &optional params
+(cl-defun gtea-get (resource &optional params
                              &key query payload headers
                              silent unpaginate noerror reader
                              username auth host
                              callback errorback extra)
   "Make a `GET' request for RESOURCE, with optional query PARAMS.
 Like calling `ghub-request' (which see) with \"GET\" as METHOD
-and `bitbucket' as FORGE."
-  (ghub-request "GET" resource params :forge 'bitbucket
+and `gitea' as FORGE."
+  (ghub-request "GET" resource params :forge 'gitea
                 :query query :payload payload :headers headers
                 :silent silent :unpaginate unpaginate
                 :noerror noerror :reader reader
                 :username username :auth auth :host host
                 :callback callback :errorback errorback :extra extra))
 
-(cl-defun buck-put (resource &optional params
+(cl-defun gtea-put (resource &optional params
                              &key query payload headers
                              silent unpaginate noerror reader
                              username auth host
                              callback errorback extra)
   "Make a `PUT' request for RESOURCE, with optional payload PARAMS.
 Like calling `ghub-request' (which see) with \"PUT\" as METHOD
-and `bitbucket' as FORGE."
-  (ghub-request "PUT" resource params :forge 'bitbucket
+and `gitea' as FORGE."
+  (ghub-request "PUT" resource params :forge 'gitea
                 :query query :payload payload :headers headers
                 :silent silent :unpaginate unpaginate
                 :noerror noerror :reader reader
                 :username username :auth auth :host host
                 :callback callback :errorback errorback :extra extra))
 
-(cl-defun buck-post (resource &optional params
+(cl-defun gtea-post (resource &optional params
                               &key query payload headers
                               silent unpaginate noerror reader
                               username auth host
                               callback errorback extra)
   "Make a `POST' request for RESOURCE, with optional payload PARAMS.
 Like calling `ghub-request' (which see) with \"POST\" as METHOD
-and `bitbucket' as FORGE."
-  (ghub-request "POST" resource params :forge 'bitbucket
+and `gitea' as FORGE."
+  (ghub-request "POST" resource params :forge 'gitea
                 :query query :payload payload :headers headers
                 :silent silent :unpaginate unpaginate
                 :noerror noerror :reader reader
                 :username username :auth auth :host host
                 :callback callback :errorback errorback :extra extra))
 
-(cl-defun buck-delete (resource &optional params
+(cl-defun gtea-patch (resource &optional params
+                               &key query payload headers
+                               silent unpaginate noerror reader
+                               username auth host
+                               callback errorback extra)
+  "Make a `PATCH' request for RESOURCE, with optional payload PARAMS.
+Like calling `ghub-request' (which see) with \"PATCH\" as METHOD
+and `gitea' as FORGE."
+  (ghub-request "PATCH" resource params :forge 'gitea
+                :query query :payload payload :headers headers
+                :silent silent :unpaginate unpaginate
+                :noerror noerror :reader reader
+                :username username :auth auth :host host
+                :callback callback :errorback errorback :extra extra))
+
+(cl-defun gtea-delete (resource &optional params
                                 &key query payload headers
                                 silent unpaginate noerror reader
                                 username auth host
                                 callback errorback extra)
   "Make a `DELETE' request for RESOURCE, with optional payload PARAMS.
 Like calling `ghub-request' (which see) with \"DELETE\" as METHOD
-and `bitbucket' as FORGE."
-  (ghub-request "DELETE" resource params :forge 'bitbucket
+and `gitea' as FORGE."
+  (ghub-request "DELETE" resource params :forge 'gitea
                 :query query :payload payload :headers headers
                 :silent silent :unpaginate unpaginate
                 :noerror noerror :reader reader
                 :username username :auth auth :host host
                 :callback callback :errorback errorback :extra extra))
 
-(cl-defun buck-request (method resource &optional params
+(cl-defun gtea-request (method resource &optional params
                                &key query payload headers
                                silent unpaginate noerror reader
                                username auth host
                                callback errorback extra)
   "Make a request for RESOURCE and return the response body.
-Like calling `ghub-request' (which see) with `bitbucket' as FORGE."
-  (ghub-request method resource params :forge 'bitbucket
+Like calling `ghub-request' (which see) with `gitea' as FORGE."
+  (ghub-request method resource params :forge 'gitea
                 :query query :payload payload :headers headers
                 :silent silent :unpaginate unpaginate
                 :noerror noerror :reader reader
                 :username username :auth auth :host host
                 :callback callback :errorback errorback :extra extra))
 
-(cl-defun buck-repository-id (owner name &key username auth host)
+(cl-defun gtea-repository-id (owner name &key username auth host)
   "Return the id of the repository specified by OWNER, NAME and HOST."
-  (substring (cdr (assq 'uuid
-                        (buck-get (format "/repositories/%s/%s" owner name)
-                                  nil
-                                  :username username :auth auth :host host)))
-             1 -1))
+  (number-to-string
+   (cdr (assq 'id (gtea-get (format "/repos/%s/%s" owner name)
+                            nil :username username :auth auth :host host)))))
 
 ;;; _
-(provide 'buck)
-;;; buck.el ends here
+(provide 'gtea)
+;;; gtea.el ends here

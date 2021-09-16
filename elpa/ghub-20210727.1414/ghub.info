@@ -1,6 +1,6 @@
-This is ghub.info, produced by makeinfo version 6.5 from ghub.texi.
+This is ghub.info, produced by makeinfo version 6.7 from ghub.texi.
 
-     Copyright (C) 2017-2020 Jonas Bernoulli <jonas@bernoul.li>
+     Copyright (C) 2017-2021 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
      of the GNU General Public License as published by the Free Software
@@ -24,11 +24,11 @@ Ghub User and Developer Manual
 ******************************
 
 Ghub is an Emacs library that is used by various packages to access the
-APIs of various instances of various Git forge implementation.
+APIs of various instances of various Git forge implementations.
 
-This manual is for Ghub version 3.4.1.
+This manual is for Ghub version 3.5.3 (v3.5.3-4-g39f9a5b+1).
 
-     Copyright (C) 2017-2020 Jonas Bernoulli <jonas@bernoul.li>
+     Copyright (C) 2017-2021 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
      of the GNU General Public License as published by the Free Software
@@ -86,7 +86,7 @@ File: ghub.info,  Node: Introduction,  Next: Getting Started,  Prev: Top,  Up: T
 **************
 
 Ghub is an Emacs library that is used by various packages to access the
-APIs of various instances of various Git forge implementation.
+APIs of various instances of various Git forge implementations.
 
    A forge is a web-based collaborative software platform for developing
 and distributing computer applications.  Examples include Github and
@@ -105,7 +105,7 @@ this:
      (ghub-request "GET" "/user")
 
    To be able to do that, Ghub needs to know who you want to talk to,
-who you are, and how you are going to proof the latter to the former.
+who you are, and how you are going to prove the latter to the former.
 
    Additionally Ghub wants to know on behalf of which Emacs package it
 is making a request.  So the question of "who is making the request" has
@@ -123,7 +123,7 @@ be used, or failed, then it made things _more_ complicated.
    So now it is necessary for users to read some documentation and
 because many things can go wrong, those instructions have to be fairly
 detailed.  You can of course skip over most of this, but if things go
-wrong, then I would like to kindly requested that you take another look
+wrong, then I would like to kindly request that you take another look
 before asking me for help.
 
 * Menu:
@@ -222,7 +222,7 @@ variable exist for these two forges:
    • ‘gitea.host’ specifies the ‘gitea’ host, unless the HOST argument
      is non-nil
 
-   • ‘gogs.user’ is *not* used because no canonical ‘gitea’ instance
+   • ‘gogs.user’ is *not* used because no canonical ‘gogs’ instance
      exists.
 
    • ‘gogs.HOST.user’ specifies the user for the HOST ‘gogs’ instance.
@@ -241,8 +241,8 @@ it to connect to.  For each host a different Git variable has to be set
 to specify the username on that host.  More than one variable is needed
 because you might use different usernames on different hosts.
 
-2.2.1 Setting your Github.com Username
---------------------------------------
+Setting your Github.com Username
+--------------------------------
 
 To inform Ghub about your "github.com" username do this:
 
@@ -254,8 +254,8 @@ then you have to set that variable locally:
      cd /path/to/repo
      git config --local github.user USERNAME
 
-2.2.2 Setting your Gitlab.com Username
---------------------------------------
+Setting your Gitlab.com Username
+--------------------------------
 
 To inform Ghub about your "gitlab.com" username do this:
 
@@ -270,8 +270,8 @@ then you have to set that variable locally:
    Make sure you use the correct USERNAME for this forge/host.  It might
 not be the same as on "github.com"!
 
-2.2.3 Setting your Github Enterprise Username
----------------------------------------------
+Setting your Github Enterprise Username
+---------------------------------------
 
 For Github Enterprise instances you have to specify where the API can be
 accessed and a different variable has to be used to set the username.
@@ -291,8 +291,8 @@ like so:
      cd /path/to/repo
      git config --local github.host example.com/api/v3
 
-2.2.4 Setting your Username for Other Hosts and/or Forges
----------------------------------------------------------
+Setting your Username for Other Hosts and/or Forges
+---------------------------------------------------
 
 To inform Ghub about your username on HOST (a FORGE instance) do this:
 
@@ -310,7 +310,7 @@ endpoint of the API and may contain path components, e.g.:
 then you have to set that variable locally:
 
      cd /path/to/repo
-     git config --global FORGE.HOST.user USERNAME
+     git config --local FORGE.HOST.user USERNAME
 
 
 File: ghub.info,  Node: Creating and Storing a Token,  Next: Github Configuration Variables,  Prev: Setting the Username,  Up: Getting Started
@@ -329,20 +329,20 @@ File: ghub.info,  Node: Creating a Token,  Next: Storing a Token,  Up: Creating 
 2.3.1 Creating a Token
 ----------------------
 
-To create a token use the web interface of the forge/host you want to
+To create a token, use the web interface of the forge/host you want to
 connect to.  Here is a list of pages to do this for certain popular
 hosts:
 
    • <https://github.com/settings/tokens>
 
-   • <https://gitlab.com/profile/personal_access_tokens>
+   • <https://gitlab.com/-/profile/personal_access_tokens>
 
    For other forges we cannot provide a functioning URL because they
 contain unknown values such as your name.  Just go to the general
 settings page of the respective host and then go from there.
 
    Except on ‘gitea’ and ‘gogs’ each token can be limited to certain
-"scopes", i.e.  it is possible to limit for which purposes any given
+"scopes", i.e., it is possible to limit for which purposes any given
 token can be used.
 
    Before you create a token to be used for a certain package, you
@@ -383,14 +383,16 @@ into those three slots, and it does that by using "USERNAME^PACKAGE" as
 the "login".
 
    Assuming your *Github* username is "ziggy", the package is named
-"forge", and you want to access *Github.com*, an entry in one of the
-three mentioned files would then look like this:
+"forge", and you want to access *Github.com* with the *token*
+"012345abcdef...", an entry in one of the three mentioned files would
+then look like this:
 
      machine api.github.com login ziggy^forge password 012345abcdef...
 
    Assuming your *Gitlab* username is "ziggy", the package is named
-"forge", and you want to access *Gitlab.com*, an entry in one of the
-three mentioned files would then look like this:
+"forge", and you want to access *Gitlab.com* with the *token*
+"012345abcdef...", an entry in one of the three mentioned files would
+then look like this:
 
      machine gitlab.com/api/v4 login ziggy^forge password 012345abcdef...
 
@@ -1181,26 +1183,30 @@ Appendix B Variable Index
 
 Tag Table:
 Node: Top764
-Node: Introduction2287
-Node: Getting Started2691
-Node: Basic Concepts Arguments and Variables4375
-Node: Setting the Username8245
-Node: Creating and Storing a Token11137
-Node: Creating a Token11401
-Node: Storing a Token12419
-Node: Github Configuration Variables14194
-Node: API15908
-Node: Their APIs16146
-Node: Making REST Requests16877
-Node: Making GraphQL Requests26309
-Node: Github Convenience Wrappers32943
-Node: Non-Github Convenience Wrappers36650
-Node: Notes42156
-Node: Using Ghub in Personal Scripts42363
-Node: Using Ghub in Your Own Package43254
-Node: Forge Limitations and Notes44189
-Node: Function Index45162
-Node: Variable Index50811
+Node: Introduction2310
+Node: Getting Started2715
+Node: Basic Concepts Arguments and Variables4397
+Node: Setting the Username8266
+Ref: Setting your Githubcom Username8750
+Ref: Setting your Gitlabcom Username9106
+Ref: Setting your Github Enterprise Username9572
+Ref: Setting your Username for Other Hosts and/or Forges10303
+Node: Creating and Storing a Token11109
+Node: Creating a Token11373
+Node: Storing a Token12394
+Node: Github Configuration Variables14239
+Node: API15953
+Node: Their APIs16191
+Node: Making REST Requests16922
+Node: Making GraphQL Requests26354
+Node: Github Convenience Wrappers32988
+Node: Non-Github Convenience Wrappers36695
+Node: Notes42201
+Node: Using Ghub in Personal Scripts42408
+Node: Using Ghub in Your Own Package43299
+Node: Forge Limitations and Notes44234
+Node: Function Index45207
+Node: Variable Index50856
 
 End Tag Table
 
