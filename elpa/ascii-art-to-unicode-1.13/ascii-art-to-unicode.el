@@ -1,10 +1,10 @@
 ;;; ascii-art-to-unicode.el --- a small artist adjunct -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>
-;; Version: 1.12
+;; Version: 1.13
 ;; Keywords: ascii, unicode, box-drawing
 ;; URL: http://www.gnuvola.org/software/aa2u/
 
@@ -154,8 +154,13 @@ The char is a string (of length one), with two properties:
   aa2u-components
 
 Their values are STRINGIFIER and COMPONENTS, respectively."
-  (let ((s (string (aa2u--lookup-char (apply stringifier components)
-                                      (ucs-names)))))
+  (let* ((store (ucs-names))
+         (key (apply stringifier components))
+         (s (string (if (hash-table-p store)
+                        ;; modern: hash table
+                        (gethash key store)
+                      ;; classic: alist
+                      (cdr (assoc-string key store))))))
     (propertize s
                 'aa2u-stringifier stringifier
                 'aa2u-components components)))
@@ -337,6 +342,25 @@ are START (top left) and END (bottom right)."
 
 ;;;; ChangeLog:
 
+;; 2020-11-24  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	[aa2u] Release: 1.13
+;; 
+;; 	* packages/ascii-art-to-unicode/ascii-art-to-unicode.el
+;; 	[Version]: Bump to "1.13".
+;; 
+;; 2020-11-24  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	[aa2u maint] Update years in copyright notice; nfc.
+;; 
+;; 2020-11-24  Thien-Thi Nguyen  <ttn@gnu.org>
+;; 
+;; 	[aa2u] Handle modern ‘ucs-names’ being a hash table.
+;; 
+;; 	* packages/ascii-art-to-unicode/ascii-art-to-unicode.el (aa2u-1c): If
+;; 	the ‘ucs-names’ returns a hash table, use ‘gethash’; otherwise, fall
+;; 	back to classic ‘assoc-string’.
+;; 
 ;; 2018-04-29  Thien-Thi Nguyen  <ttn@gnu.org>
 ;; 
 ;; 	[aa2u] Release: 1.12
