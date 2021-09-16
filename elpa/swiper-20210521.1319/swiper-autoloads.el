@@ -10,7 +10,7 @@
 ;;; Generated autoloads from swiper.el
 
 (autoload 'swiper-avy "swiper" "\
-Jump to one of the current swiper candidates." t nil)
+Jump to one of the current swiper candidates with `avy'." t nil)
 
 (autoload 'swiper-backward "swiper" "\
 `isearch-backward' with an overview.
