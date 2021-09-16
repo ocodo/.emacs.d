@@ -54,5 +54,15 @@
    (t
     (electric-spacing-insert "%"))))
 
+(defun electric-spacing-python-mode-= ()
+  "See `electric-spacing-insert'."
+  (cond
+   ;; no space around keyword/parameter equals
+   ((or (looking-back "[(,] *[a-zA-Z0-9_]+" nil)
+        (looking-back ",\n.*" nil))
+    (insert "="))
+   (t
+    (electric-spacing-insert "="))))
+
 (provide 'electric-spacing-python-mode)
 ;;; electric-spacing-python-mode.el ends here

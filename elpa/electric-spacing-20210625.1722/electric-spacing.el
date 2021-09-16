@@ -52,21 +52,6 @@
   :type 'boolean
   :group 'electricity)
 
-(defcustom electric-spacing-control-statement-parens t
-  "Enable electric-spacing for '(' in control statements like if, for, while, etc.
-
-See `electric-spacing-parens' to enable everywhere."
-  :type 'boolean
-  :group 'electricity)
-
-(defcustom electric-spacing-parens nil
-  "Enable electric-spacing for '(' everywhere.
-
-See `electric-spacing-control-statement-parens'
-to enable only in control statements."
-  :type 'boolean
-  :group 'electricity)
-
 (defvar electric-spacing-rules
   '((?= . electric-spacing-self-insert-command)
     (?< . electric-spacing-<)
@@ -84,7 +69,7 @@ to enable only in control statements."
     (?~ . electric-spacing-~)
     (?. . electric-spacing-.)
     (?! . electric-spacing-!)
-    (?\( . electric-spacing-left-paren)
+    (?\( . electric-spacing-\()
     (?^ . electric-spacing-self-insert-command)))
 
 (defvar electric-spacing-operators '(?= ?< ?> ?% ?+ ?- ?* ?/ ?& ?| ?: ?? ?, ?~ ?. ?\( ?^ ?\; ?!))
@@ -135,7 +120,7 @@ is very handy for many programming languages."
          (electric-spacing-insert-1 op only-where))))
 
 (defun electric-spacing-insert-1 (op &optional only-where)
-  "Insert operator OP with surrounding spaces.
+  "Insert operator OP with surrounding spaces (and clean other redundant spaces).
 e.g., `=' becomes ` = ', `+=' becomes ` += '.
 
 When `only-where' is 'after, we will insert space at back only;
@@ -195,11 +180,11 @@ so let's not get too insert-happy."
            electric-spacing-rules)))
 
 (defun electric-spacing-get-fun-throw (char mode tag)
-  (setq fn (intern (format "electric-spacing%s-%c"
-                           (if mode (format "-%s" mode) "")
-                           char)))
-  (when (fboundp fn)
-    (throw tag fn)))
+  (let ((fn (intern (format "electric-spacing%s-%c"
+                            (if mode (format "-%s" mode) "")
+                            char))))
+    (when (fboundp fn)
+      (throw tag fn))))
 
 (defun electric-spacing-find-mode-specific-tuning (char)
   (catch 'ret
@@ -226,27 +211,12 @@ so let's not get too insert-happy."
   (electric-spacing-insert ";" 'after)
   (indent-according-to-mode))
 
-(defun electric-spacing-left-paren ()
+(defun electric-spacing-\( ()
   "See `electric-spacing-insert'."
-  (cond ((derived-mode-p 'emacs-lisp-mode)
-	 ;; Do nothing in Emacs lisp mode
-	 (insert "("))
-	((looking-back "[,;] *" nil)
-	 (electric-spacing-insert "(" 'before))
-	((looking-back "[({!~] *" nil)
-	 (electric-spacing-insert "(" 'middle))
-	((or electric-spacing-parens
-	     (and electric-spacing-control-statement-parens
-		  (looking-back
-		   (concat "\\("
-			   (regexp-opt
-			    '("if" "elif" "switch" "for" "while"))
-			   "\\)\\ *")
-		   (line-beginning-position))))
-	 (electric-spacing-insert "(" 'before))
-	(t
-	 (insert "("))))
-
+  (if (looking-back (regexp-opt '("if" "else" "for" "while" "switch")))
+      (insert " ()")
+    (insert "()"))
+  (goto-char (1- (point))))
 
 (defun electric-spacing-. ()
   "See `electric-spacing-insert'."

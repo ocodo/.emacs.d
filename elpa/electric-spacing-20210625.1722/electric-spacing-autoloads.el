@@ -34,6 +34,22 @@ is very handy for many programming languages.
 
 ;;;***
 
+;;;### (autoloads nil "electric-spacing-emacs-lisp-mode" "electric-spacing-emacs-lisp-mode.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from electric-spacing-emacs-lisp-mode.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "electric-spacing-emacs-lisp-mode" '("electric-spacing-emacs-lisp-mode-")))
+
+;;;***
+
+;;;### (autoloads nil "electric-spacing-org-mode" "electric-spacing-org-mode.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from electric-spacing-org-mode.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "electric-spacing-org-mode" '("electric-spacing-org-mode-")))
+
+;;;***
+
 ;;;### (autoloads nil "electric-spacing-python-mode" "electric-spacing-python-mode.el"
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from electric-spacing-python-mode.el
