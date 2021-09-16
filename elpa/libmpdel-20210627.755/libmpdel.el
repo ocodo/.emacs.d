@@ -1,12 +1,12 @@
 ;;; libmpdel.el --- Communication with an MPD server  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2020  Damien Cassou
+;; Copyright (C) 2017-2021  Damien Cassou
 
 ;; Author: Damien Cassou <damien@cassou.me>
 ;; Keywords: multimedia
-;; Url: https://gitlab.petton.fr/mpdel/libmpdel
+;; Url: https://gitea.petton.fr/mpdel/libmpdel
 ;; Package-requires: ((emacs "25.1"))
-;; Version: 1.2.0
+;; Version: 1.3.0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -42,26 +42,42 @@
   :group 'comm)
 
 (defcustom libmpdel-hostname "localhost"
-  "MPD server location to connect to.  Also see `libmpdel-port'."
+  "MPD server location to connect to.  Also see `libmpdel-port'.
+If this string starts with a slash, it means connect to a local
+Unix socket with such absolute filename.  Please see the MPD
+server documentation for server configuration info.
+
+The advantage of such a setup is that file and/or directory
+permission modes can be used to enforce access control,
+without the need for a password."
   :type 'string)
 
 (defcustom libmpdel-port 6600
   "MPD server port to connect to.  Also see `libmpdel-hostname'."
   :type 'integer)
 
-(defcustom libmpdel-profiles (list (list "Local server" libmpdel-hostname libmpdel-port))
-  "List of (HOST . PORT) when using several MPD servers."
+(defcustom libmpdel-family 'ipv4
+  "MPD address family when connecting via TCP connections.
+
+For more information see `libmpdel-hostname'."
+  :type '(choice (const :tag "IPv4" ipv4)
+                 (const :tag "IPv6" ipv6)))
+
+(defcustom libmpdel-profiles (list (list "Local server" libmpdel-hostname libmpdel-port libmpdel-family))
+  "List of (NAME HOST PORT . FAMILY) when using several MPD servers."
   :type '(repeat (list
                   :tag "Profile"
                   :value ("Local server" "localhost" 6600)
                   (string :tag "name")
                   (string :tag "host")
-                  (integer :tag "port"))))
+                  (integer :tag "port")
+                  (choice (const :tag "IPv4" ipv4)
+                          (const :tag "IPv6" ipv6)))))
 
 (defcustom libmpdel-music-directory "~/Music"
   "MPD `music_directory' variable's value.
 
-This is used to map MPD's music files to the filesystem."
+This is used to map MPD's music files to the file-system."
   :type 'directory)
 
 (defcustom libmpdel-current-playlist-changed-hook nil
@@ -91,7 +107,7 @@ See `libmpdel-current-song-id'."
 
 (defvar libmpdel--connection nil
   "Current connection to the MPD server.
-The logs of this connection are accessible in the *mpd* buffer.")
+The logs of this connection are accessible in the `*mpd*' buffer.")
 
 (defconst libmpdel--response-regexp
   (rx line-start
@@ -134,10 +150,10 @@ notifications in the server.  When we want to send a command to
 the server (for example to change the current song), we always
 have to (1) cancel the IDLE first (with a \"noidle\"
 command), (2) send the command we want, and (3) send the IDLE
-command again.  Cancelling the current \"idle\" command is done
+command again.  Canceling the current \"idle\" command is done
 in `mpdel-send-command'.  Sending \"idle\" again is done in the
 handler for \"idle\" that will be triggered when the empty answer
-for the cancelled \"idle\" arrives.
+for the canceled \"idle\" arrives.
 
 Because MPD answers in the order the commands are sent, we know
 that the first handler is the one to execute when we receive a
@@ -220,7 +236,7 @@ message from the server.")
   (libmpdel--song-album song))
 
 (cl-defgeneric libmpdel-entity-name (entity)
-  "Return basename of ENTITY.")
+  "Return the name of ENTITY.")
 
 (cl-defmethod libmpdel-entity-name ((artist libmpdel-artist))
   "Return ARTIST's name."
@@ -231,8 +247,11 @@ message from the server.")
   (libmpdel--album-name album))
 
 (cl-defmethod libmpdel-entity-name ((song libmpdel-song))
-  "Return SONG's name."
-  (libmpdel--song-name song))
+  "Return SONG's name.
+
+If the SONG's name is nil, return the filename instead."
+  (or (libmpdel--song-name song)
+      (libmpdel--song-file song)))
 
 (cl-defmethod libmpdel-entity-name ((_entity (eql stored-playlists)))
   "Return a string describing the `stored-playlists' entity."
@@ -353,6 +372,24 @@ message from the server.")
   "Return the buffer associated with the connection process."
   (process-buffer (libmpdel--process)))
 
+(defsubst libmpdel--connection-address-local-p ()
+  "Return non-nil if the MPD server address is a local family address."
+  (eq ?/ (aref libmpdel-hostname 0)))
+
+(defsubst libmpdel--open-stream ()
+  "Open and return connection to the MPD process."
+  (if (not (libmpdel--connection-address-local-p))
+      (make-network-process
+       :name "mpd"
+       :buffer "*mpd*"
+       :host libmpdel-hostname
+       :service libmpdel-port
+       :family libmpdel-family
+       :type nil)
+    (make-network-process
+     :name "mpd" :buffer "*mpd*"
+     :family 'local :service  libmpdel-hostname)))
+
 (defun libmpdel--connect ()
   "Create a new connection with the MPD server."
   ;; The *mpd* buffer will contain all the communication logs
@@ -362,11 +399,7 @@ message from the server.")
     (setq-local buffer-read-only t)
     (let ((inhibit-read-only t))
       (erase-buffer)))
-  (setq libmpdel--connection (tq-create (open-network-stream
-                                         "mpd" "*mpd*"
-                                         libmpdel-hostname
-                                         libmpdel-port
-                                         :type 'plain)))
+  (setq libmpdel--connection (tq-create (libmpdel--open-stream)))
   (set-process-coding-system (libmpdel--process) 'utf-8-unix 'utf-8-unix)
   (set-process-query-on-exit-flag (libmpdel--process) nil)
   ;; Take care of the initial welcome message from server that we
@@ -388,7 +421,8 @@ Interactively, let the user choose PROFILE from `libmpdel-profiles'.
 If a connection already exists, terminate it first."
   (interactive (list (libmpdel--select-profile)))
   (let* ((libmpdel-hostname (cl-second profile))
-         (libmpdel-port (cl-third profile)))
+         (libmpdel-port (cl-third profile))
+         (libmpdel-family (cl-fourth profile)))
     (when (libmpdel-connected-p)
       (libmpdel-disconnect))
     (libmpdel--connect)))
@@ -531,7 +565,7 @@ VALUE-DESC is a string describing the kind of value accepted for
 this state.
 
 SET-BODY is a list of forms to put in the generated setter
-function.  During executiong of SET-BODY, a variable NEW-VALUE is
+function.  During execution of SET-BODY, a variable NEW-VALUE is
 bound containing the value to set."
   (declare (indent 1))
   `(progn
@@ -605,7 +639,7 @@ bound containing the value to set."
          (t 'never))))
 
 (defun libmpdel-time-to-string (time)
-  "Return a string represeting TIME, a number in a string."
+  "Return a string representing TIME, a number in a string."
   (if (not time)
       "0"
     (let* ((time (string-to-number time))
@@ -615,17 +649,22 @@ bound containing the value to set."
 
 (defun libmpdel-completing-read (prompt entities &optional transformer)
   "PROMPT user to select one entity among ENTITIES.
+Return the selected entity.
 
 Transform each entity to a string with TRANSFORMER,
-`libmpdel-entity-name' if nil."
+`libmpdel-entity-name' if nil.
+
+The user is allowed to exit by typing a string not matching any
+entity.  In this case, the user must confirm and the typed string
+is returned."
   (let* ((transformer (or transformer #'libmpdel-entity-name))
          (map (make-hash-table :test 'equal :size (length entities)))
          (entity-strings (mapcar (lambda (entity) (funcall transformer entity)) entities)))
     (cl-mapcar (lambda (entity entity-string)
                  (puthash entity-string entity map))
                entities entity-strings)
-    (let ((entity-string (completing-read prompt entity-strings nil t)))
-      (gethash entity-string map))))
+    (let ((entity-string (completing-read prompt entity-strings nil 'confirm)))
+      (gethash entity-string map entity-string))))
 
 (defun libmpdel-completing-read-entity (function prompt entity &optional transformer)
   "Call FUNCTION after prompting for an element of ENTITY.
@@ -640,9 +679,18 @@ Pass PROMPT, the elements of ENTITY and TRANSFORMER to
 
 (defun libmpdel-funcall-on-stored-playlist (function)
   "Pass a stored playlist as parameter to FUNCTION.
-The user is asked to choose for a stored playlist first."
+The user is asked to choose for a stored playlist first.
+
+The user is allowed to enter a name for a non-existing stored
+playlist.  In this case, the user must confirm and the stored
+playlist is created before being passed as parameter to
+FUNCTION."
   (libmpdel-completing-read-entity
-   function
+   (lambda (stored-playlist)
+     (let ((stored-playlist (if (stringp stored-playlist)
+                                (libmpdel--stored-playlist-create :name stored-playlist)
+                              stored-playlist)))
+       (funcall function stored-playlist)))
    "Stored playlist: "
    'stored-playlists))
 
@@ -1018,6 +1066,14 @@ ENTITY can also be a list of entities to add.")
                    song-position))
          song-positions))))))
 
+(defun libmpdel-stored-playlists-delete (stored-playlists)
+  "Remove STORED-PLAYLISTS."
+  (libmpdel-send-commands
+   (mapcar
+    (lambda (s)
+      (format "rm %S" (libmpdel-entity-name s)))
+    stored-playlists)))
+
 (defun libmpdel-playlist-move-up (songs)
   "Move up SONGS in current playlist."
   ;; We should move up from first in playlist to last
@@ -1190,3 +1246,5 @@ not specify it, everything is updated."
 ;; Local Variables:
 ;; checkdoc-arguments-in-order-flag: nil
 ;; End:
+
+; LocalWords:  mpd noidle
