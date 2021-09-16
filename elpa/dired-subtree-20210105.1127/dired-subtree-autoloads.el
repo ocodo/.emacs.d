@@ -10,9 +10,7 @@
 ;;; Generated autoloads from dired-subtree.el
 
 (autoload 'dired-subtree-narrow "dired-subtree" "\
-Narrow the buffer to this subtree.
-
-\(fn)" t nil)
+Narrow the buffer to this subtree." t nil)
 
 (autoload 'dired-subtree-up "dired-subtree" "\
 Jump up one directory.
@@ -35,14 +33,10 @@ Go to the previous sibling.
 \(fn &optional ARG)" t nil)
 
 (autoload 'dired-subtree-beginning "dired-subtree" "\
-Go to the first file in this subtree.
-
-\(fn)" t nil)
+Go to the first file in this subtree." t nil)
 
 (autoload 'dired-subtree-end "dired-subtree" "\
-Go to the first file in this subtree.
-
-\(fn)" t nil)
+Go to the first file in this subtree." t nil)
 
 (autoload 'dired-subtree-mark-subtree "dired-subtree" "\
 Mark all files in this subtree.
@@ -64,24 +58,16 @@ recursively.
 Revert the subtree.
 
 This means reinserting the content of this subtree and all its
-children.
-
-\(fn)" t nil)
+children." t nil)
 
 (autoload 'dired-subtree-insert "dired-subtree" "\
-Insert subtree under this directory.
-
-\(fn)" t nil)
+Insert subtree under this directory." t nil)
 
 (autoload 'dired-subtree-remove "dired-subtree" "\
-Remove subtree at point.
-
-\(fn)" t nil)
+Remove subtree at point." t nil)
 
 (autoload 'dired-subtree-toggle "dired-subtree" "\
-Insert subtree at point or remove it if it was not present.
-
-\(fn)" t nil)
+Insert subtree at point or remove it if it was not present." t nil)
 
 (autoload 'dired-subtree-cycle "dired-subtree" "\
 Org-mode like cycle visibility:
@@ -115,9 +101,7 @@ This depends on `dired-filter' package.
 
 It works exactly the same as global dired filters, only
 restricted to a subtree.  The global filter is also applied to
-the subtree.  The filter action is read from `dired-filter-map'.
-
-\(fn)" t nil)
+the subtree.  The filter action is read from `dired-filter-map'." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dired-subtree" '("dired-")))
 
