@@ -1,13 +1,13 @@
 ;;; hackernews.el --- Hacker News Client for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2020 The Hackernews.el Authors
+;; Copyright (C) 2012-2021 The Hackernews.el Authors
 
 ;; Author: Lincoln de Sousa <lincoln@comum.org>
 ;; Maintainer: Basil L. Contovounesios <contovob@tcd.ie>
 ;; Keywords: comm hypermedia news
-;; Package-Version: 20200604.1557
-;; Package-Commit: 019a727b41e2726516841048a2b5b04f2ed2301a
-;; Version: 0.6.0
+;; Package-Version: 20210226.1226
+;; Package-Commit: 46d41c55485b7ab5a759182987d61b310da1490b
+;; Version: 0.6.1
 ;; Homepage: https://github.com/clarete/hackernews.el
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -362,6 +362,7 @@ This is intended as an :annotation-function in
 (defun hackernews-next-item (&optional n)
   "Move to Nth next story link (previous if N is negative).
 N defaults to 1."
+  (declare (modes hackernews-mode))
   (interactive "p")
   ;; N is kept optional for backward compatibility
   (hackernews--forward-button (or n 1) 'hackernews-link))
@@ -375,17 +376,20 @@ N defaults to 1."
 (defun hackernews-next-comment (&optional n)
   "Move to Nth next comments link (previous if N is negative).
 N defaults to 1."
+  (declare (modes hackernews-mode))
   (interactive "p")
   (hackernews--forward-button (or n 1) 'hackernews-comment-count))
 
 (defun hackernews-previous-comment (&optional n)
   "Move to Nth previous comments link (next if N is negative).
 N defaults to 1."
+  (declare (modes hackernews-mode))
   (interactive "p")
   (hackernews-next-comment (- (or n 1))))
 
 (defun hackernews-first-item ()
   "Move point to first story link in hackernews buffer."
+  (declare (modes hackernews-mode))
   (interactive)
   (goto-char (point-min))
   (hackernews-next-item))
@@ -485,16 +489,19 @@ If UNVISIT is non-nil, mark BUTTON as unvisited."
   "Open URL of button under point within Emacs.
 The URL is passed to `hackernews-internal-browser-function',
 which see."
+  (declare (modes hackernews-mode))
   (interactive)
   (hackernews--visit (point) hackernews-internal-browser-function))
 
 (defun hackernews-button-mark-as-visited ()
   "Mark button under point as visited."
+  (declare (modes hackernews-mode))
   (interactive)
   (hackernews--visit (point) #'ignore))
 
 (defun hackernews-button-mark-as-unvisited ()
   "Mark button under point as unvisited."
+  (declare (modes hackernews-mode))
   (interactive)
   (hackernews--visit (point) #'ignore t))
 
@@ -523,6 +530,8 @@ This is for compatibility with various Emacs versions.
                              'type type 'font-lock-face face
                              'id id 'help-echo url 'shr-url url)))
 
+(autoload 'xml-substitute-special "xml")
+
 (defun hackernews--render-item (item)
   "Render Hacker News ITEM in current buffer.
 The user options `hackernews-score-format',
@@ -538,6 +547,7 @@ their respective URLs."
          (item-url     (cdr (assq 'url         item)))
          (descendants  (cdr (assq 'descendants item)))
          (comments-url (hackernews--comments-url id)))
+    (setq title (xml-substitute-special title))
     (insert
      (format-spec hackernews-item-format
                   `((?s . ,(propertize (format hackernews-score-format score)
@@ -614,6 +624,7 @@ Official major mode key bindings:
 
 \\{hackernews-mode-map}"
   :group 'hackernews
+  :interactive nil
   (setq hackernews--feed-state ())
   (setq truncate-lines t)
   (buffer-disable-undo))
@@ -717,6 +728,7 @@ and N defaults to `hackernews-items-per-page'."
 (defun hackernews-reload (&optional n)
   "Reload top N Hacker News stories from current feed.
 N defaults to `hackernews-items-per-page'."
+  (declare (modes hackernews-mode))
   (interactive "P")
   (hackernews--ensure-major-mode)
   (hackernews--load-stories
@@ -727,6 +739,7 @@ N defaults to `hackernews-items-per-page'."
 (defun hackernews-load-more-stories (&optional n)
   "Load N more stories into hackernews buffer.
 N defaults to `hackernews-items-per-page'."
+  (declare (modes hackernews-mode))
   (interactive "P")
   (hackernews--ensure-major-mode)
   (let ((feed (hackernews--get :feed))
@@ -738,6 +751,14 @@ N defaults to `hackernews-items-per-page'."
 End of feed; type \\[hackernews-reload] to load new items."))
       (hackernews--load-stories feed n reg))))
 
+(defalias 'hackernews--prompt
+  (if (fboundp 'format-prompt)
+      #'format-prompt
+    (lambda (prompt default)
+      (format "%s (default %s): " prompt default)))
+  "Compatibility shim for `format-prompt' in Emacs < 28.
+\n(fn PROMPT DEFAULT)")
+
 (defun hackernews-switch-feed (&optional n)
   "Read top N Hacker News stories from a different feed.
 The Hacker News feed is determined by the user with completion
@@ -747,7 +768,7 @@ and N defaults to `hackernews-items-per-page'."
    (let ((completion-extra-properties
           (list :annotation-function #'hackernews--feed-annotation)))
      (completing-read
-      (format "Hacker News feed (default %s): " hackernews-default-feed)
+      (hackernews--prompt "Hacker News feed" hackernews-default-feed)
       hackernews-feed-names nil t nil 'hackernews-feed-history
       hackernews-default-feed))
    n))
