@@ -4,8 +4,6 @@
 
 ;; Author: Adam Niederer <adam.niederer@gmail.com>
 ;; URL: http://github.com/AdamNiederer/0xc
-;; Package-Version: 20190219.117
-;; Package-Commit: 167e93ce863381a58988655927042514d984ad49
 ;; Version: 0.1
 ;; Keywords: base conversion
 ;; Package-Requires: ((emacs "24.4") (s "1.11.0"))
@@ -77,9 +75,9 @@
   :group '0xc
   :type 'integer
   :set #'(lambda (sym value)
-           (if (memq value (number-sequence 2 35))
+           (if (memq value (number-sequence 2 36))
                (set sym value)
-             (user-error "0xc-max-base must be in range: 2-35"))))
+             (user-error "0xc-max-base must be in range: 2-36"))))
 
 (defcustom 0xc-default-base 10
   "The base to which 0xc-convert-point will convert to if no base is given"
@@ -95,8 +93,12 @@ length is a power of two"
   :type 'string)
 
 (defvar 0xc--number-format
-  "^\\([0-9]+:\\|'[bodh]\\|0[btodx]\\)?[[:alnum:]%s]+$"
-  "Format string used to determine if entry is a real number.")
+  (concat "^\\([0-9]+:\\|'[bodh]\\|0[btodx]\\)?\\([[:alnum:]%s]\\|" (regexp-quote 0xc-extension) "\\)+$")
+  "Format string used to determine if a string is a real number.")
+
+(defvar 0xc--only-extension-format
+  (concat "^\\([0-9]+:\\|'[bodh]\\|0[btodx]\\)?" (regexp-quote 0xc-extension) "$")
+  "Format string used to determine if a string only contains an extension token.")
 
 (defun 0xc-number-to-string (number base)
   "Convert an integer number into a different base string"
@@ -122,13 +124,18 @@ provided, additional sanity checks will be performed before converting"
   (if (string-empty-p number) 0
     (+ (* base (0xc--string-to-number (substring number 1) base)) (0xc--digit-value (substring number 0 1)))))
 
+(defun 0xc--is-number-string (string)
+  "Return whether string looks like a number, according to `0xc--number-format'"
+  (and (s-matches? (format 0xc--number-format (if 0xc-strict "" 0xc-padding)) string)
+       (not (s-matches? 0xc--only-extension-format string))))
+
 (defun 0xc-string-to-number (number &optional base)
   "Convert a base-whatever number string into base-10 integer"
-  (when (not (s-matches? (format 0xc--number-format (if 0xc-strict 0xc-padding "")) number))
+  (when (not (0xc--is-number-string number))
     (error "Not a number"))
-  (let* ((number (0xc--strip-padding (0xc--extend-number number)))
-         (base (or base (0xc--infer-base number))))
-    (0xc--string-to-number (0xc--reverse-string (0xc--strip-base-hint number)) base)))
+  (let* ((base (or base (0xc--infer-base number)))
+         (number (0xc--strip-padding (0xc--extend-number (0xc--strip-base-hint number)))))
+    (0xc--string-to-number (0xc--reverse-string number) base)))
 
 (defun 0xc--reverse-string (string)
   "Returns the reverse of a string"
@@ -147,7 +154,7 @@ provided, additional sanity checks will be performed before converting"
   "Return the base of a number, based on some heuristics"
   (when (not (s-matches? (format 0xc--number-format 0xc-padding) number))
     (error "Not a number"))
-  (let ((prefix (or (0xc--prefix-base number)))
+  (let ((prefix (or (0xc--base-prefix number)))
         (base (0xc--highest-base (0xc--strip-base-hint number))))
     (cond ((> (max (or prefix 0) base) 0xc-max-base) (error "Number exceeds maximum allowed base: %s" 0xc-max-base))
           ((and prefix (> base prefix)) (error "Number has a digit of a higher base than its prefix"))
@@ -156,17 +163,28 @@ provided, additional sanity checks will be performed before converting"
           ((and 0xc-clamp-hex (>= 16 base 3)) 16)
           (t base))))
 
-(defun 0xc--prefix-base (number)
+(defun 0xc--base-prefix (number)
   "Return the base of a number's prefix, if it has one. Return nil otherwise"
-  (let ((prefix (substring number 0 2)))
-    (if (string-match "^\\([0-9]+\\):" number)
-        (string-to-number (match-string 1 number))
-      (pcase prefix
+  (cond
+   ((<= (length number) 2) nil)
+   ((string-match "^\\([0-9]+\\):.+" number)
+    (string-to-number (match-string 1 number)))
+   (t (pcase (substring number 0 2)
         ((or "0b" "'b") 2)
         ("0t" 3)
         ((or "0o" "'o") 8)
         ((or "0d" "'d") 10)
         ((or "0x" "'h") 16)))))
+
+(defun 0xc--prefix-for-base (base)
+  "Return the prefix for a given base"
+  (pcase base
+    (2 "0b")
+    (3 "0t")
+    (8 "0o")
+    (10 "0d")
+    (16 "0x")
+    (_ (format "%s:" base))))
 
 (defun 0xc--strip-padding (number)
   "Remove every character contained in `0xc-padding' from number, and trim

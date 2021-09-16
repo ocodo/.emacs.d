@@ -24,6 +24,20 @@ Replace the number at point with its representation in base.
 
 ;;;***
 
+;;;### (autoloads nil "0xc-live" "0xc-live.el" (0 0 0 0))
+;;; Generated autoloads from 0xc-live.el
+
+(autoload '0xc-live-convert "0xc-live" "\
+Show all possible conversions of a number in another buffer as you type it." t nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "0xc-live" '("0xc-live-")))
+
+;;;***
+
+;;;### (autoloads nil nil ("0xc-pkg.el") (0 0 0 0))
+
+;;;***
+
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
