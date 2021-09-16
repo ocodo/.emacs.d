@@ -1,2 +1,2 @@
-;;; Generated package description from /Users/jason/.emacs.d/elpa/edn-20160215.1219/edn.el  -*- no-byte-compile: t -*-
-(define-package "edn" "20160215.1219" "Support for reading and writing the edn data format from elisp" '((cl-lib "0.3") (emacs "24.1") (peg "0.6")) :commit "be9e32d1b49e35247b263b0243df7cfdc8d413ab" :keywords '("edn" "clojure") :authors '(("Lars Andersen" . "expez@expez.com")) :maintainer '("Lars Andersen" . "expez@expez.com") :url "https://www.github.com/expez/edn.el")
+;;; Generated package description from edn.el  -*- no-byte-compile: t -*-
+(define-package "edn" "20160215.1219" "Support for reading and writing the edn data format from elisp" '((cl-lib "0.3") (emacs "24.1") (peg "0.6")) :commit "21e120a6914ee9a694be0a051f9f2af34ef055e4" :authors '(("Lars Andersen" . "expez@expez.com")) :maintainer '("Lars Andersen" . "expez@expez.com") :keywords '("edn" "clojure") :url "https://www.github.com/expez/edn.el")

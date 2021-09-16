@@ -2,8 +2,8 @@
 
 ;; Author: Wanderson Ferreira <iagwanderson@gmail.com>
 ;; URL: https://github.com/wandersoncferreira/ivy-clojuredocs
-;; Package-Version: 20200714.1111
-;; Package-Commit: 0ea57b70a144ecfa80fbd2ec383ebabedb524c37
+;; Package-Version: 20201129.2355
+;; Package-Commit: 8b6de19b3578c72d2b88f898e2290d94c04350f9
 ;; Package-Requires: ((edn "1.1.2") (ivy "0.12.0") (emacs "24.4"))
 ;; Version: 0.1
 ;; Keywords: matching
@@ -33,7 +33,7 @@
 
 (require 'ivy)
 (require 'browse-url)
-(require 'edn)
+(require 'parseedn)
 (require 'cl-lib)
 (require 'subr-x)
 
@@ -64,7 +64,7 @@
 
 (defun ivy-clojuredocs--parse-response-buffer (buffer)
   "Get the BUFFER with the response content and parse each returned entry."
-  (cl-loop for i in (edn-read buffer)
+  (cl-loop for i in (parseedn-read-str buffer)
            collect (ivy-clojuredocs--parse-entry i) into result
            finally return result))
 

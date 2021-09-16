@@ -434,6 +434,11 @@ the buffer."
     (backward-word))
   (kill-word 1))
 
+(defun switch-to-message-buffer ()
+    "Switch to the message buffer."
+    (interactive)
+    (switch-to-buffer "*Messages*"))
+
 (defun sass-hex-color-to-var ()
   "Find a hex color, and replace it with a newly created variable name.
 Place the created variable at the top of the file.  Name it based
@@ -498,12 +503,46 @@ css-value to the hex color found."
 (defun reload-current-chrome-tab-osx ()
   "Run a simple applescript to reload the current Google Chrome tab.
 
-OSX specific of course."
+OSX specific."
   (interactive)
   (shell-command "echo 'tell application \"Google Chrome\"
                              reload active tab of window 1
                         end tell' | osascript" nil nil)
   (message "refreshed active Google Chrome tab"))
+
+(defun generate-untitled-name ()
+  "Generate a name with pattern untitled-n."
+  (let ((n 1))
+    (while
+        (member (format "untitled-%i" n)
+                (mapcar
+                 (lambda (it) (buffer-name it))
+                 (buffer-list)))
+
+      (setq n (+ n 1)))
+    (format "untitled-%i" n)))
+
+(defun new-untitled-buffer ()
+    "Open a new buffer called untitled-n."
+    (interactive)
+    (switch-to-buffer (generate-untitled-name)))
+
+(defun kill-untitled-buffers ()
+  "Kill untitled buffers."
+  (interactive)
+  (mapcar (lambda (n)
+            (message "Buffer: %s" (buffer-name n))
+            (when (string-prefix-p "untitled-" (buffer-name n))
+              (if (buffer-modified-p n)
+                  (when
+                      (y-or-n-p
+                       (format "Kill buffer: '%s' (modified)? "
+                               (buffer-name n)))
+                    (kill-buffer n)
+                    (message "  > Kill %s (modified)" (buffer-name n)))
+                (message "  > Kill %s" (buffer-name n))
+                (kill-buffer n))))
+          (buffer-list)))
 
 (defun get-osx-display-resolution ()
   "Get the current display resolution in OSX."

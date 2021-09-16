@@ -62,6 +62,9 @@
     (bind-keys
      ("<S-s-return>" . toggle-fullscreen)
      ("s-o"          . find-file)
+     ("s-n"          . new-untitled-buffer)
+     ("M-s-c"        . switch-to-message-buffer)
+     ;; ("M-s-m"        . select-common-mode) -- TODO
      ("s-8"          . rotate-window)
      ("s-7"          . rotate-layout)
      ("s-S"          . write-file)

@@ -11,21 +11,8 @@
 # ~/.emacs.d/bin/iterm-emacsclient +\2 \1
 #
 
-EMACS_APP_MACOS=/Applications/Emacs.app/Contents/MacOS
-EMACS_APP_EMACSCLIENT=$EMACS_APP_MACOS/bin/emacsclient
-
-if [[ -f $EMACS_APP_MACOS/Emacs ]];then
-  EMACS_BIN=$EMACS_APP_MACOS/Emacs
-else
-  EMACS_BIN=emacs
-fi
-
 if [[ $1 == "+" ]]; then
   shift
 fi
 
-if [[ -f $EMACS_APP_EMACSCLIENT ]]; then
-  $EMACS_APP_EMACSCLIENT $1 $2 -n -a $EMACS_BIN
-else
-  emacsclient $1 $2 -n -a $EMACS_BIN
-fi
+emacsclient -n $1 $2
