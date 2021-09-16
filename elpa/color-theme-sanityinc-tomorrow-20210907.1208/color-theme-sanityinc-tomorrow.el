@@ -192,7 +192,7 @@ names to which it refers are bound."
       (font-lock-variable-name-face (:foreground ,yellow))
       (font-lock-warning-face (:weight bold :foreground ,red))
       (shadow (:foreground ,comment))
-      (fill-column-indicator (:foreground ,low-contrast-bg))
+      (fill-column-indicator (:foreground ,contrast-bg))
       (success (:foreground ,green))
       (error (:foreground ,red))
       (warning (:foreground ,orange))
@@ -486,6 +486,12 @@ names to which it refers are bound."
       (info-title-4 (:weight bold :foreground ,purple))
       (info-xref-visited (:foreground ,comment :underline t))
 
+      ;; j-mode
+      (j-verb-face (:inherit font-lock-constant-face))
+      (j-adverb-face (:inherit font-lock-function-name-face))
+      (j-conjunction-face (:inherit font-lock-keyword-face))
+      (j-other-face (:inherit font-lock-preprocessor-face))
+
       ;; kaocha-runner
       (kaocha-runner-error-face (:foreground ,red))
       (kaocha-runner-success-face (:foreground ,green))
@@ -513,6 +519,12 @@ names to which it refers are bound."
       (nxml-delimiter-face (:foreground unspecified :inherit font-lock-keyword-face))
       (nxml-delimited-data-face (:foreground unspecified :inherit font-lock-string-face))
       (rng-error-face (:underline ,red))
+
+      ;; orderless
+      (orderless-match-face-0 (:foreground ,aqua))
+      (orderless-match-face-1 (:foreground ,yellow))
+      (orderless-match-face-2 (:foreground ,orange))
+      (orderless-match-face-3 (:foreground ,blue))
 
       ;; org-mode (built-in)
       (org-agenda-structure (:foreground ,purple))
@@ -544,6 +556,8 @@ names to which it refers are bound."
       (org-habit-overdue-future-face (:foreground ,background :background ,red))
       (org-habit-ready-face (:foreground ,background :background ,aqua))
       (org-habit-ready-future-face (:foreground ,background :background ,green))
+      (org-headline-done (:foreground nil :strike-through t))
+      (org-headline-todo (:foreground ,orange))
       (org-link (:foreground ,blue :underline t))
       (org-mode-line-clock-overrun (:inherit mode-line :background ,red))
       (org-scheduled (:foreground ,green))
@@ -756,6 +770,13 @@ names to which it refers are bound."
       (bmkp-t-mark (:foreground ,purple))
       (bmkp-url (:foreground ,blue :underline t))
       (bmkp-variable-list (:foreground ,green))
+
+      ;; Caml
+      (caml-types-def-face (:inherit highlight :box (:color ,blue :line-width -1)))
+      (caml-types-occ-face (:inherit highlight :box (:color ,yellow :line-width -1)))
+      (caml-types-expr-face (:inherit highlight :box (:color ,aqua :line-width -1)))
+      (caml-types-scope-face (:inherit highlight :box (:color ,green :line-width -1)))
+      (caml-types-typed-face (:inherit highlight :box (:color ,purple :line-width -1)))
 
       ;; CIDER
       (cider-debug-code-overlay-face (:background ,contrast-bg))
@@ -1281,6 +1302,10 @@ names to which it refers are bound."
       (markup-typewriter-face (:inherit shadow))
       (markup-verbatim-face (:inherit shadow :background ,background))
 
+      ;; Merlin (ocaml)
+      (merlin-compilation-error-face (:inherit flycheck-error))
+      (merlin-compilation-warning-face (:inherit flycheck-warning))
+
       ;; mu4e
       (mu4e-header-highlight-face (:underline nil :inherit region))
       (mu4e-header-marks-face (:underline nil :foreground ,yellow))
@@ -1306,6 +1331,9 @@ names to which it refers are bound."
       (mmm-code-submode-face (:background ,contrast-bg))
       (mmm-comment-submode-face (:inherit font-lock-comment-face))
       (mmm-output-submode-face (:background ,contrast-bg))
+
+      ;; mini-modeline
+      (mini-modeline-mode-line (:inherit mode-line :height 0.1 :box nil))
 
       ;; neotree
       (neo-banner-face (:foreground ,blue :weight bold))
@@ -1338,6 +1366,9 @@ names to which it refers are bound."
 
       ;; Parenthesis dimming (parenface)
       (paren-face (:foreground ,comment :background nil))
+
+      ;; Perspective
+      (persp-selected-face (:foreground ,yellow :weight bold))
 
       ;; Powerline
       (powerline-active1 (:foreground ,foreground :background ,highlight))
@@ -1393,6 +1424,12 @@ names to which it refers are bound."
       (rpm-spec-tag-face (:foreground ,blue))
       (rpm-spec-var-face (:foreground ,red))
 
+      ;; Selectrum
+      (selectrum-current-candidate (:background ,contrast-bg))
+      (selectrum-primary-highlight (:foreground ,aqua))
+      (selectrum-secondary-highlight (:foreground ,yellow))
+      (selectrum-completion-docsig (:inherit completions-annotation :underline t))
+
       ;; SLIME
       (slime-highlight-edits-face (:weight bold))
       (slime-repl-input-face (:weight normal :underline nil))
@@ -1443,6 +1480,18 @@ names to which it refers are bound."
       (transient-enabled-suffix (:foreground ,low-contrast-bg :background ,green :weight bold))
       (transient-disabled-suffix (:foreground ,foreground :background ,red :weight bold))
 
+      ;; tuareg-mode (ocaml)
+      (tuareg-font-lock-constructor-face (:inherit default :weight bold))
+      (tuareg-font-lock-governing-face (:inherit font-lock-keyword-face :weight bold))
+      (tuareg-font-lock-multistage-face (:inherit font-lock-preprocessor-face))
+      (tuareg-font-lock-line-number-face (:foreground ,comment))
+      (tuareg-font-lock-operator-face (:inherit font-lock-preprocessor-face))
+      (tuareg-font-lock-interactive-error-face (:inherit error))
+      (tuareg-font-double-semicolon-face (:inherit warning :slant italic))
+      (tuareg-font-lock-error-face (:inherit error :slant italic))
+      (tuareg-font-lock-interactive-output-face)
+      (tuareg-font-lock-interactive-directive-face)
+
       ;; twittering-mode
       (twittering-username-face (:inherit erc-pal-face))
       (twittering-uri-face (:foreground ,blue :inherit link))
@@ -1454,6 +1503,9 @@ names to which it refers are bound."
       (undo-tree-visualizer-current-face (:foreground ,green :weight bold))
       (undo-tree-visualizer-active-branch-face (:foreground ,red))
       (undo-tree-visualizer-register-face (:foreground ,yellow))
+
+      ;; vertico
+      (vertico-current (:background ,contrast-bg :extend t))
 
       ;; visual-regexp
       (vr/match-0 (:foreground ,yellow :background ,background :inverse-video t))
