@@ -1,16 +1,16 @@
-;;; haxe-mode.el --- An Emacs major mode for Haxe
+;;; haxe-mode.el --- Major mode for editing Haxe files
+
+;; Copyright (C) 2006-2007 Jens Peter Secher <jpsecher@gmail.com>
+;; Copyright (C) 2019-2021 Shen, Jen-Chieh <jcs090218@gmail.com>
 
 ;; Author: Jens Peter Secher (original)
 ;; Maintainer: Jen-Chieh Shen <jcs090218@gmail.com>
-;; URL: https://github.com/elpa-host/haxe-mode
-;; Package-Version: 20200204.1015
-;; Package-Commit: 9449b2b8bc733faa130d3ab68b97ac1ae1db3bff
-;; Version: 0.3.2
+;; URL: https://github.com/emacsorphanage/haxe-mode
+;; Package-Version: 20210108.1835
+;; Package-Commit: 6057c05154464bfb88d2ba119cdc8d4c7e767541
+;; Version: 0.3.3
 
-;;; Commentary:
-
-;; ------------------------------------------------------------------------
-;; Copyright (C) 2006-2007 Jens Peter Secher
+;; This file is NOT part of GNU Emacs.
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -24,15 +24,14 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-;; ------------------------------------------------------------------------
+
+;;; Commentary:
 
 ;; This is haxe-mode, an Emacs major mode for the Haxe programming
 ;; language (http://haxe.org).
 
 ;; haxe-mode is built on top of the excellent cc-mode, inspired by the
 ;; guide http://cc-mode.sourceforge.net/derived-mode-ex.el.
-
-;; haxe-mode is NOT part of GNU Emacs.
 
 ;;; Versions:
 ;;
@@ -47,6 +46,7 @@
 ;;    0.3.0 - Switched to GPLv3 license because that is what cc-mode is using.
 ;;    0.3.1 - Fix compile problem with emacs23.
 ;;    0.3.2 - Fix autoload issue.
+;;    0.3.3 - Fix copyright information.
 ;;
 
 ;;; Usage:
@@ -337,5 +337,4 @@ Key bindings:
   (c-update-modeline))
 
 (provide 'haxe-mode)
-
-;;; haxe-mode.el ends here.
+;;; haxe-mode.el ends here
