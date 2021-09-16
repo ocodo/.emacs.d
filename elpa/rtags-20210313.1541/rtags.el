@@ -5,9 +5,9 @@
 ;; Author: Jan Erik Hanssen <jhanssen@gmail.com>
 ;;         Anders Bakken <agbakken@gmail.com>
 ;; Package-Requires: ((emacs "24.3"))
-;; Package-Version: 20200810.2326
-;; Package-Commit: b57b36039f6411f23009c4ec0315ca5a7adb6824
-;; Version: 2.38.130
+;; Package-Version: 20210313.1541
+;; Package-Commit: cdff9b47fc17710aad7815652490c3c620b5e792
+;; Version: 2.41.133
 
 ;; URL: https://github.com/Andersbakken/rtags
 ;; This file is not part of GNU Emacs.
@@ -67,7 +67,7 @@
 ;; Constants
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defconst rtags-protocol-version 128)
-(defconst rtags-package-version "2.38")
+(defconst rtags-package-version "2.41")
 (defconst rtags-popup-available (require 'popup nil t))
 (defconst rtags-supported-major-modes '(c-mode c++-mode objc-mode) "Major modes RTags supports.")
 (defconst rtags-verbose-results-delimiter "------------------------------------------")
@@ -418,7 +418,7 @@ appropriate format string for `error'. For example,
   :type 'boolean
   :safe 'booleanp)
 
-(defcustom rtags-display-current-error-as-tooltip nil
+(defcustom rtags-display-current-error-as-tooltip rtags-popup-available
   "Display error under cursor using `popup-tip' (requires 'popup)."
   :type 'boolean
   :safe 'booleanp)
@@ -428,7 +428,7 @@ appropriate format string for `error'. For example,
   :type 'boolean
   :safe 'booleanp)
 
-(defcustom rtags-tooltips-enabled (and rtags-popup-available t)
+(defcustom rtags-tooltips-enabled rtags-popup-available
   "Display help / summary text when hovering over symbols."
   :type 'boolean
   :safe 'booleanp)
@@ -1008,11 +1008,12 @@ to case differences."
      nil)))
 
 (defun rtags-reset-bookmarks ()
+  (interactive)
   (setq rtags-buffer-bookmarks 0)
   (let ((bookmark-save-flag t))
-    (mapcar (lambda (bookmark)
-              (when (string-match "^RTags_" bookmark) (bookmark-delete bookmark)))
-            (rtags-bookmark-all-names))))
+    (mapc (lambda (bookmark)
+            (when (string-match "^RTags_" bookmark) (bookmark-delete bookmark)))
+          (rtags-bookmark-all-names))))
 
 ;;;###autoload
 (defun rtags-next-match () (interactive) (rtags-next-prev-match 1 nil))
@@ -4690,7 +4691,7 @@ definition."
        (and rtags-autostart-diagnostics (rtags-diagnostics))
        (set-process-query-on-exit-flag rtags-rdm-process nil)
        (set-process-sentinel rtags-rdm-process 'rtags-sentinel)))))
-(define-obsolete-function-alias 'rtags-start-process-maybe 'rtags-start-process-unless-running)
+(define-obsolete-function-alias 'rtags-start-process-maybe 'rtags-start-process-unless-running "v2.2")
 
 (defun rtags-sentinel (process _event)
   "Watch the activity of RTags process (rdm)."
