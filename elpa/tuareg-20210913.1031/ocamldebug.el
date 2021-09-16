@@ -38,9 +38,10 @@
 
 (require 'comint)
 (require 'shell)
-(require 'tuareg (expand-file-name
-                  "tuareg" (file-name-directory (or load-file-name
-                                                    byte-compile-current-file))))
+(require 'tuareg (expand-file-name "tuareg" (file-name-directory
+                                             (or load-file-name
+                                                 byte-compile-current-file
+                                                 buffer-file-name))))
 (require 'derived)
 
 ;;; Variables.
@@ -102,17 +103,16 @@
 (defvar ocamldebug-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c" ocamldebug-prefix-map)
-    (define-key map "\C-l" 'ocamldebug-refresh)
+    (define-key map "\C-l" #'ocamldebug-refresh)
     ;; This is already the default anyway!
     ;;(define-key map "\t" 'comint-dynamic-complete)
     (define-key map "\M-?"
       ;; FIXME: This binding is wrong since comint-dynamic-list-completions
       ;; is a function, not a command.
-      'comint-dynamic-list-completions)
+      #'comint-dynamic-list-completions)
     map))
 
 (define-derived-mode ocamldebug-mode comint-mode "OCaml-Debugger"
-
   "Major mode for interacting with an ocamldebug process.
 
 The following commands are available:
@@ -184,7 +184,7 @@ representation is simply concatenated with the COMMAND."
                (interactive "P")
                (ocamldebug-call ,name ,args
                                 (ocamldebug-numeric-arg arg))))
-       (define-key ocamldebug-prefix-map ,key ',fun))))
+       (define-key ocamldebug-prefix-map ,key #',fun))))
 
 (def-ocamldebug "step"	"\C-s"	"Step one source line with display.")
 (def-ocamldebug "run"	"\C-r"	"Run the program.")
@@ -202,11 +202,10 @@ representation is simply concatenated with the COMMAND."
   "@ \"%m\" # %c")
 
 (defun ocamldebug-kill-filter (string)
-  ;gob up stupid questions :-)
+  ;; Gob up stupid questions :-)
   (setq ocamldebug-filter-accumulator
 	(concat ocamldebug-filter-accumulator string))
-  (when (string-match "\\(.* \\)(y or n) "
-                      ocamldebug-filter-accumulator)
+  (when (string-match "\\(.* \\)(y or n) " ocamldebug-filter-accumulator)
     (setq ocamldebug-kill-output
 	  (cons t (match-string 1 ocamldebug-filter-accumulator)))
     (setq ocamldebug-filter-accumulator ""))
@@ -225,7 +224,7 @@ representation is simply concatenated with the COMMAND."
 (defun ocamldebug-kill ()
   "Kill the program."
   (interactive)
-  (let ((ocamldebug-kill-output))
+  (let (ocamldebug-kill-output)
     (with-current-buffer ocamldebug-current-buffer
       (let ((proc (get-buffer-process (current-buffer)))
 	    (ocamldebug-filter-function #'ocamldebug-kill-filter))
@@ -240,25 +239,32 @@ representation is simply concatenated with the COMMAND."
 ;;FIXME: ocamldebug doesn't output the Hide marker on kill
 
 (defun ocamldebug-goto-filter (string)
-  ;accumulate onto previous output
+  ;; Accumulate onto previous output
   (setq ocamldebug-filter-accumulator
 	(concat ocamldebug-filter-accumulator string))
-  (when (or (string-match (concat
-                           "\\(\n\\|\\`\\)[ \t]*\\([0-9]+\\)[ \t]+"
-                           ocamldebug-goto-position
-                           "-[0-9]+[ \t]*\\(before\\).*\n")
-                          ocamldebug-filter-accumulator)
-            (string-match (concat
-                           "\\(\n\\|\\`\\)[ \t]*\\([0-9]+\\)[ \t]+[0-9]+-"
-                           ocamldebug-goto-position
-                           "[ \t]*\\(after\\).*\n")
-                          ocamldebug-filter-accumulator))
-    (setq ocamldebug-goto-output
-	  (match-string 2 ocamldebug-filter-accumulator))
+  ;;    Address  Characters        Kind      Repr.
+  ;;     14452     64-82      before/fun
+  ;;     14584    182-217      after/ret
+  ;;0:     30248     -1--1          pseudo
+  ;;0:     30076     64-82      before/fun
+  (when (or (string-match
+             (concat "\\(?:\n\\|\\`\\)[ \t]*"
+                     "\\([0-9]+\\)\\(?::[ \t]*\\([0-9]+\\)\\)?[ \t]+"
+                     ocamldebug-goto-position
+                     "-[0-9]+[ \t]*before.*\n")
+             ocamldebug-filter-accumulator)
+            (string-match
+             (concat "\\(?:\n\\|\\`\\)[ \t]*"
+                     "\\([0-9]+\\)\\(?::[ \t]*\\([0-9]+\\)\\)?[ \t]+[0-9]+-"
+                     ocamldebug-goto-position
+                     "[ \t]*after.*\n")
+             ocamldebug-filter-accumulator))
+    (let ((id (match-string 1 ocamldebug-filter-accumulator))
+          (pos (match-string 2 ocamldebug-filter-accumulator)))
+      (setq ocamldebug-goto-output (if pos (concat id ":" pos) id)))
     (setq ocamldebug-filter-accumulator
 	  (substring ocamldebug-filter-accumulator (1- (match-end 0)))))
-  (when (string-match comint-prompt-regexp
-                      ocamldebug-filter-accumulator)
+  (when (string-match comint-prompt-regexp ocamldebug-filter-accumulator)
     (setq ocamldebug-goto-output (or ocamldebug-goto-output 'fail))
     (setq ocamldebug-filter-accumulator ""))
   (when (string-match "\n\\(.*\\)\\'" ocamldebug-filter-accumulator)
@@ -268,17 +274,15 @@ representation is simply concatenated with the COMMAND."
 
 (def-ocamldebug "goto" "\C-g")
 (defun ocamldebug-goto (&optional time)
-
   "Go to the execution time TIME.
 
 Without TIME, the command behaves as follows: In the ocamldebug buffer,
-if the point at buffer end, goto time 0\; otherwise, try to obtain the
+if the point at buffer end, goto time 0; otherwise, try to obtain the
 time from context around point.  In an OCaml buffer, try to find the
 time associated in execution history with the current point location.
 
 With a negative TIME, move that many lines backward in the ocamldebug
 buffer, then try to obtain the time from context around point."
-
   (interactive "P")
   (cond
    (time
@@ -287,64 +291,70 @@ buffer, then try to obtain the time from context around point."
 	(save-selected-window
 	  (select-window (get-buffer-window ocamldebug-current-buffer))
 	  (save-excursion
-	    (if (re-search-backward "^Time : [0-9]+ - pc : [0-9]+ "
-				    nil t (- 1 ntime))
-		(ocamldebug-goto nil)
-	      (error "I don't have %d times in my history"
-		     (- 1 ntime))))))))
+            (if (re-search-backward
+                 "^Time *: [0-9]+ - pc *: [0-9]+\\(?::[0-9]+\\)? "
+                 nil t (- 1 ntime))
+                (ocamldebug-goto nil)
+              (error "I don't have %d times in my history"
+                     (- 1 ntime))))))))
    ((eq (current-buffer) ocamldebug-current-buffer)
-      (let ((time (cond
-		   ((eobp) 0)
-		   ((save-excursion
-		      (beginning-of-line 1)
-		      (looking-at "^Time : \\([0-9]+\\) - pc : [0-9]+ "))
-		    (string-to-number (match-string 1)))
-		   ((string-to-number (ocamldebug-format-command "%e"))))))
-	(ocamldebug-call "goto" nil time)))
+    (let ((time (cond
+                 ((eobp) 0)
+                 ((save-excursion
+                    (beginning-of-line 1)
+                    (looking-at
+                     "^Time *: \\([0-9]+\\) - pc *: [0-9]+\\(?::[0-9]+\\)? "))
+                  (string-to-number (match-string 1)))
+                 ((string-to-number (ocamldebug-format-command "%e"))))))
+      (ocamldebug-call "goto" nil time)))
    (t
     (let ((module (ocamldebug-module-name (buffer-file-name)))
-	  (ocamldebug-goto-position (int-to-string (1- (point))))
-	  (ocamldebug-goto-output) (address))
-      ;get a list of all events in the current module
+          (ocamldebug-goto-position (int-to-string (1- (point))))
+          ocamldebug-goto-output address)
+      ;; Get a list of all events in the current module
       (with-current-buffer ocamldebug-current-buffer
-	(let* ((proc (get-buffer-process (current-buffer)))
-	       (ocamldebug-filter-function #'ocamldebug-goto-filter))
-	  (ocamldebug-call-1 (concat "info events " module))
-	  (while (not (and ocamldebug-goto-output
-		      (zerop (length ocamldebug-filter-accumulator))))
-	    (accept-process-output proc))
-	  (setq address (unless (eq ocamldebug-goto-output 'fail)
-			  (re-search-backward
-			   (concat "^Time : \\([0-9]+\\) - pc : "
-				   ocamldebug-goto-output
-				   " - module "
-				   module "$")
+        (let* ((proc (get-buffer-process (current-buffer)))
+               (ocamldebug-filter-function #'ocamldebug-goto-filter))
+          (ocamldebug-call-1 (concat "info events " module))
+          (while (not (and ocamldebug-goto-output
+                           (zerop (length ocamldebug-filter-accumulator))))
+            (accept-process-output proc))
+          (setq address (unless (eq ocamldebug-goto-output 'fail)
+                          (re-search-backward
+                           (concat "^Time *: \\([0-9]+\\) - pc *: "
+                                   ocamldebug-goto-output
+                                   " - module "
+                                   module "$")
                            nil t)
-			  (match-string 1)))))
+                          (match-string 1)))))
       (if address (ocamldebug-call "goto" nil (string-to-number address))
-	(error "No time at %s at %s" module ocamldebug-goto-position))))))
+        (error "No time at %s at %s" module ocamldebug-goto-position))))))
 
 
 (defun ocamldebug-delete-filter (string)
   (setq ocamldebug-filter-accumulator
-	(concat ocamldebug-filter-accumulator string))
+        (concat ocamldebug-filter-accumulator string))
   (when (string-match
-         (concat "\\(\n\\|\\`\\)[ \t]*\\([0-9]+\\)[ \t]+[0-9]+[ \t]*in "
+         ;; Num    Address  Where
+         ;;  1      14552  file u.ml, line 5, characters 1-34
+         ;;  1 0:     30176  file u.ml, line 5, characters 1-34
+         (concat "\\(?:\n\\|\\`\\)[ \t]*\\([0-9]+\\)[ \t]+"
+                 "[0-9]+\\(?::[ \t]*[0-9]+\\)?[ \t]+file +"
                  (regexp-quote ocamldebug-delete-file)
                  ", character "
                  ocamldebug-delete-position "\n")
          ocamldebug-filter-accumulator)
     (setq ocamldebug-delete-output
-	  (match-string 2 ocamldebug-filter-accumulator))
+          (match-string 1 ocamldebug-filter-accumulator))
     (setq ocamldebug-filter-accumulator
-	  (substring ocamldebug-filter-accumulator (1- (match-end 0)))))
+          (substring ocamldebug-filter-accumulator (1- (match-end 0)))))
   (when (string-match comint-prompt-regexp
                       ocamldebug-filter-accumulator)
     (setq ocamldebug-delete-output (or ocamldebug-delete-output 'fail))
     (setq ocamldebug-filter-accumulator ""))
   (if (string-match "\n\\(.*\\)\\'" ocamldebug-filter-accumulator)
       (setq ocamldebug-filter-accumulator
-	    (match-string 1 ocamldebug-filter-accumulator)))
+            (match-string 1 ocamldebug-filter-accumulator)))
   "")
 
 
@@ -360,20 +370,21 @@ try to find the breakpoint associated with the current point location.
 With a negative ARG, look for the -ARGth breakpoint pattern in the
 ocamldebug buffer, then try to obtain the breakpoint info from context
 around point."
-
   (interactive "P")
   (cond
    (arg
     (let ((narg (ocamldebug-numeric-arg arg)))
       (if (> narg 0) (ocamldebug-call "delete" nil narg)
-	(with-current-buffer ocamldebug-current-buffer
-	  (if (re-search-backward "^Breakpoint [0-9]+ at [0-9]+ : file "
-				  nil t (- 1 narg))
-	      (ocamldebug-delete nil)
-	    (error "I don't have %d breakpoints in my history"
+        (with-current-buffer ocamldebug-current-buffer
+          (if (re-search-backward
+               "^Breakpoint [0-9]+ at [0-9]+\\(?::[0-9]+\\)? *: file "
+               nil t (- 1 narg))
+              (ocamldebug-delete nil)
+            (error "I don't have %d breakpoints in my history"
 		     (- 1 narg)))))))
    ((eq (current-buffer) ocamldebug-current-buffer)
-    (let* ((bpline "^Breakpoint \\([0-9]+\\) at [0-9]+ : file ")
+    (let* ((bpline
+            "^Breakpoint \\([0-9]+\\) at [0-9]+\\(?::[0-9]+\\)? *: file ")
 	   (arg (cond
 		 ((eobp)
 		  (save-excursion (re-search-backward bpline nil t))
@@ -391,7 +402,7 @@ around point."
       (with-current-buffer ocamldebug-current-buffer
 	(let ((proc (get-buffer-process (current-buffer)))
 	      (ocamldebug-filter-function #'ocamldebug-delete-filter)
-	      (ocamldebug-delete-output))
+	      ocamldebug-delete-output)
 	  (ocamldebug-call-1 "info break")
 	  (while (not (and ocamldebug-delete-output
 			   (zerop (length
@@ -474,7 +485,7 @@ around point."
         nil
       ocamldebug-complete-list)))
 
-(define-key tuareg-mode-map "\C-x " 'ocamldebug-break)
+(define-key tuareg-mode-map "\C-x " #'ocamldebug-break)
 
 (defvar ocamldebug-command-name "ocamldebug"
   "Pathname for executing the OCaml debugger.")
@@ -521,7 +532,7 @@ the ocamldebug commands `cd DIR' and `directory'."
   (ocamldebug-set-buffer)))
 
 ;;;###autoload
-(defalias 'camldebug 'ocamldebug)
+(defalias 'camldebug #'ocamldebug)
 
 (defun ocamldebug-set-buffer ()
   (if (eq major-mode 'ocamldebug-mode)
@@ -533,7 +544,7 @@ the ocamldebug commands `cd DIR' and `directory'."
 (defun ocamldebug-marker-filter (string)
   (setq ocamldebug-filter-accumulator
 	(concat ocamldebug-filter-accumulator string))
-  (let ((output "") (begin))
+  (let ((output "") begin)
     ;; Process all the complete markers in this chunk.
     (while (setq begin
 		 (string-match
@@ -586,7 +597,7 @@ the ocamldebug commands `cd DIR' and `directory'."
 
 (defun ocamldebug-filter (proc string)
   (when (buffer-name (process-buffer proc))
-    (let ((process-window))
+    (let (process-window)
       (with-current-buffer (process-buffer proc)
         ;; If we have been so requested, delete the debugger prompt.
         (when (marker-buffer ocamldebug-delete-prompt-marker)
@@ -659,9 +670,9 @@ Obeying it means displaying in another window the specified file and line."
   (if (not ocamldebug-last-frame)
       (ocamldebug-remove-current-event)
     (ocamldebug-display-line (nth 0 ocamldebug-last-frame)
-                            (nth 3 ocamldebug-last-frame)
-                            (nth 4 ocamldebug-last-frame)
-                            (nth 2 ocamldebug-last-frame)))
+                             (nth 3 ocamldebug-last-frame)
+                             (nth 4 ocamldebug-last-frame)
+                             (nth 2 ocamldebug-last-frame)))
   (setq ocamldebug-last-frame-displayed-p t))
 
 ;; Make sure the file named TRUE-FILE is in a buffer that appears on the screen
@@ -669,12 +680,10 @@ Obeying it means displaying in another window the specified file and line."
 ;; Put the mark on this character in that buffer.
 
 (defun ocamldebug-display-line (true-file schar echar kind)
-  ;; FIXME: What is this pre-display-buffer-function?
-  (let* ((pre-display-buffer-function nil) ; screw it, put it all in one screen
-	 (pop-up-windows t)
+  (let* ((pop-up-windows t)
 	 (buffer (find-file-noselect true-file))
 	 (window (display-buffer buffer t))
-         (spos) (epos) (pos))
+         spos epos pos)
     (with-current-buffer buffer
       (save-restriction
 	(widen)

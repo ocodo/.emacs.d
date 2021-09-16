@@ -29,7 +29,7 @@
 
 (defvar tuareg-opam-mode-map
   (let ((map (make-keymap)))
-    (define-key map "\C-j" 'newline-and-indent)
+    (define-key map "\C-j" #'newline-and-indent)
     map)
   "Keymap for tuareg-opam mode")
 
@@ -43,8 +43,8 @@
   (when (file-directory-p "~/.opam")
     (let ((c (directory-files "~/.opam" t "[0-9]+\\.[0-9]+\\.[0-9]+")))
       (if (file-directory-p "~/.opam/system")
-	        (cons "~/.opam/system" c)
-	      c)))
+                (cons "~/.opam/system" c)
+              c)))
   "The list of OPAM directories for the installed compilers.")
 
 (defvar tuareg-opam
@@ -59,16 +59,14 @@
 
 (defface tuareg-opam-error-face
   '((t (:inherit error)))
-  "Face for constructs considered as errors (e.g. deprecated constructs)."
-  :group 'tuareg-opam)
+  "Face for constructs considered as errors (e.g. deprecated constructs).")
 
 (defvar tuareg-opam-error-face 'tuareg-opam-error-face
   "Face for constructs considered as errors (e.g. deprecated constructs).")
 
 (defface tuareg-opam-pkg-variable-name-face
   '((t (:inherit font-lock-variable-name-face :slant italic)))
-  "Face for package specific variables."
-  :group 'tuareg-opam)
+  "Face for package specific variables.")
 
 (defvar tuareg-opam-pkg-variable-name-face 'tuareg-opam-pkg-variable-name-face
   "Face for package specific variables.")
@@ -121,14 +119,14 @@
      1 font-lock-keyword-face)
     (,tuareg-opam-scopes-regex . font-lock-constant-face)
     (,tuareg-opam-variables-regex . font-lock-variable-name-face)
-    (,(concat "%{" tuareg-opam-variables-regex "\\(?:}%\\|?\\)")
+    (,(concat "%{" tuareg-opam-variables-regex "\\(?:}%\\|\\?\\)")
      (1 font-lock-variable-name-face t))
     (,(concat "%{\\([a-zA-Z_][a-zA-Z0-9_+-]*\\):"
-              tuareg-opam-pkg-variables-regex "\\(?:}%\\|?\\)")
+              tuareg-opam-pkg-variables-regex "\\(?:}%\\|\\?\\)")
      (1 font-lock-type-face t)
      (2 font-lock-variable-name-face t t))
     (,(concat "%{\\([a-zA-Z_][a-zA-Z0-9_+-]*\\):"
-              "\\([a-zA-Z][a-zA-Z0-9_+-]*\\)\\(?:}%\\|?\\)")
+              "\\([a-zA-Z][a-zA-Z0-9_+-]*\\)\\(?:}%\\|\\?\\)")
      (1 font-lock-type-face t)
      (2 tuareg-opam-pkg-variable-name-face t t))
     ;; "package-name:var-name" anywhere (do not force)
@@ -214,7 +212,7 @@ See `prettify-symbols-alist' for more information.")
      "%s '%s'; sibling-p:%s parent:%s prev-is-[:%s hanging:%s = %s"
      kind token
      (ignore-errors (smie-rule-sibling-p))
-     (ignore-errors smie--parent)
+     (bound-and-true-p smie--parent)
      (ignore-errors (smie-rule-prev-p "["))
      (ignore-errors (smie-rule-hanging-p))
      value)
@@ -226,12 +224,12 @@ See `prettify-symbols-alist' for more information.")
 (require 'flymake)
 
 (defalias 'tuareg-opam--flymake-proc-init-create-temp-buffer-copy
-  (if (functionp #'flymake-proc-init-create-temp-buffer-copy)
+  (if (fboundp 'flymake-proc-init-create-temp-buffer-copy)
       'flymake-proc-init-create-temp-buffer-copy
     'flymake-init-create-temp-buffer-copy))
 
 (defalias 'tuareg-opam--proc-create-temp-inplace
-  (if (functionp #'flymake-proc-create-temp-inplace)
+  (if (fboundp 'flymake-proc-create-temp-inplace)
       'flymake-proc-create-temp-inplace
     'flymake-create-temp-inplace))
 
@@ -293,7 +291,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
 
 (defvar tuareg-opam-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c.o" 'tuareg-opam-insert-opam-form)
+    (define-key map "\C-c.o" #'tuareg-opam-insert-opam-form)
     map)
   "Keymap used in Tuareg-opam mode.")
 
@@ -302,8 +300,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
     tuareg-opam-mode-menu  (list tuareg-opam-mode-map)
     "Tuareg-opam mode menu."
     '("OPAM"
-      ["Skeleton" tuareg-opam-insert-opam-form t]))
-  (easy-menu-add tuareg-opam-mode-menu))
+      ["Skeleton" tuareg-opam-insert-opam-form t])))
 
 
 ;;;###autoload
@@ -316,6 +313,11 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   (setq indent-tabs-mode nil)
   (setq-local require-final-newline mode-require-final-newline)
   (smie-setup tuareg-opam-smie-grammar #'tuareg-opam-smie-rules)
+
+  ;; Explicit variable declarations to avoid Emacs 24 warnings
+  (defvar tuareg-opam--flymake-proc-allowed-file-name-masks)
+  (defvar tuareg-opam--flymake-proc-err-line-patterns)
+
   (push tuareg-opam--allowed-file-name-masks
         tuareg-opam--flymake-proc-allowed-file-name-masks)
   (setq-local tuareg-opam--flymake-proc-err-line-patterns
@@ -332,10 +334,10 @@ form (n v) where n is the name of the environment variable and v
 its value (both being strings).  If opam is not found or the
 switch is not installed, `nil' is returned."
   (let* ((switch (if switch (concat " --switch " switch)))
-	 (get-env (concat tuareg-opam " config env --sexp" switch))
-	 (opam-env (tuareg--shell-command-to-string get-env)))
+         (get-env (concat tuareg-opam " env --sexp" switch))
+         (opam-env (tuareg--shell-command-to-string get-env)))
     (if opam-env
-	(car (read-from-string opam-env)))))
+        (car (read-from-string opam-env)))))
 
 (defcustom tuareg-opam-insinuate nil
   "By default, Tuareg will use the environment that Emacs was
@@ -353,7 +355,7 @@ problems if you compile under tramp."
   :group 'tuareg :type 'boolean)
 
 (defun tuareg--shell-command-to-string (command)
-  "Similar to shell-command-to-string, but returns nil when the
+  "Similar to `shell-command-to-string', but returns nil when the
 process return code is not 0 (shell-command-to-string returns the
 error message as a string)."
   (let* ((return-value 0)
@@ -365,28 +367,16 @@ error message as a string)."
                                   nil shell-command-switch command))))))
     (if (= return-value 0) return-string nil)))
 
-(defun tuareg-opam-config-env (&optional switch)
-  "Get the opam environment for the given switch (or the default
-switch if none is provied) and return a list of lists of the
-form (n v) where n is the name of the environment variable and v
-its value (both being strings).  If opam is not found or the
-switch is not installed, `nil' is returned."
-  (let* ((switch (if switch (concat " --switch " switch)))
-	 (get-env (concat tuareg-opam " config env --sexp" switch))
-	 (opam-env (tuareg--shell-command-to-string get-env)))
-    (if opam-env
-	(car (read-from-string opam-env)))))
-
 (defun tuareg-opam-installed-compilers ()
   (let* ((cmd1 (concat tuareg-opam " switch list -i -s"))
          (cmd2 (concat tuareg-opam " switch list -s")); opam2
-	 (cpl (or (tuareg--shell-command-to-string cmd1)
+         (cpl (or (tuareg--shell-command-to-string cmd1)
                   (tuareg--shell-command-to-string cmd2))))
     (if cpl (split-string cpl "[ \f\t\n\r\v]+" t) '())))
 
 (defun tuareg-opam-current-compiler ()
   (let* ((cmd (concat tuareg-opam " switch show -s"))
-	 (cpl (tuareg--shell-command-to-string cmd)))
+         (cpl (tuareg--shell-command-to-string cmd)))
     (when cpl
       (replace-regexp-in-string "[ \t\n]*" "" cpl))))
 
@@ -395,17 +385,17 @@ switch is not installed, `nil' is returned."
   "Update the environment to follow current OPAM switch configuration."
   (interactive
    (let* ((compl (tuareg-opam-installed-compilers))
-	  (current (tuareg-opam-current-compiler))
-	  (default (if current current "current"))
-	  (prompt (format "opam switch (default: %s): " default)))
+          (current (tuareg-opam-current-compiler))
+          (default (if current current "current"))
+          (prompt (format "opam switch (default: %s): " default)))
      (list (completing-read prompt compl))))
   (let* ((switch (if (string= switch "") nil switch))
-	 (env (tuareg-opam-config-env switch)))
+         (env (tuareg-opam-config-env switch)))
     (if env
-	(dolist (v env)
-	  (setenv (car v) (cadr v))
-	  (when (string= (car v) "PATH")
-	    (setq exec-path (split-string (cadr v) path-separator))))
+        (dolist (v env)
+          (setenv (car v) (cadr v))
+          (when (string= (car v) "PATH")
+            (setq exec-path (split-string (cadr v) path-separator))))
       (message "Switch %s does not exist (or opam not found)" switch))))
 
 ;; OPAM compilation
