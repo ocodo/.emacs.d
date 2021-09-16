@@ -4,8 +4,8 @@
 
 ;; Author: Roman Parykin <donderom@ymail.com>
 ;; URL: https://github.com/donderom/jazz-theme
-;; Package-Version: 20200417.2042
-;; Package-Commit: b6694f09e10aa7df14836aac2f6615c32aa572dd
+;; Package-Version: 20201026.1027
+;; Package-Commit: 0b5bfe7a30590326bdf38120fb4bc25fff21a509
 ;; Version: 1.0
 
 ;; Based on zenburn-theme.el
@@ -228,6 +228,17 @@
    `(flycheck-error-list-column-number ((,class (:foreground ,jazz-cyan :background ,jazz-bg))))
    `(flycheck-error-list-line-number ((,class (:foreground ,jazz-cyan :background ,jazz-bg))))
    `(flycheck-error-list-filename ((,class (:foreground ,jazz-fg :background ,jazz-bg))))
+
+   ;; ivy-mode
+   `(ivy-confirm-face ((,class (:foreground ,jazz-green))))
+   `(ivy-current-match ((,class (:foreground ,jazz-bg :background ,jazz-fg))))
+   `(ivy-cursor ((,class (:foreground ,jazz-bg :background ,jazz-fg))))
+   `(ivy-match-required-face ((,class (:foreground ,jazz-red))))
+   `(ivy-minibuffer-match-face-1 ((,class (:foreground ,jazz-bg :background ,jazz-bg+3))))
+   `(ivy-minibuffer-match-face-2 ((,class (:foreground ,jazz-fg :background ,jazz-blue))))
+   `(ivy-minibuffer-match-face-3 ((,class (:foreground ,jazz-fg :background ,jazz-magenta))))
+   `(ivy-minibuffer-match-face-4 ((,class (:foreground ,jazz-fg :background ,jazz-bg+2))))
+   `(ivy-remote ((,class (:foreground ,jazz-magenta))))
 
    ;; lsp-mode
    `(lsp-face-semhl-deprecated ((,class (:underline (:color ,jazz-yellow :style wave)))))
@@ -455,6 +466,9 @@
    `(ido-first-match ((,class (:foreground ,jazz-yellow :weight normal))))
    `(ido-only-match ((,class (:foreground ,jazz-orange :weight normal))))
    `(ido-subdir ((,class (:foreground ,jazz-red))))
+
+   ;; iedit
+   `(iedit-occurrence ((,class (:foreground ,jazz-fg :background ,jazz-blue))))
 
    ;; js2-mode
    `(js2-warning-face ((,class (:underline ,jazz-orange))))
