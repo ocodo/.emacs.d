@@ -6,7 +6,8 @@
 ;; Maintainer: 7696122
 ;; Created: Thu Oct 31 21:33:34 2013 (+0900)
 ;; Version: 0.0.6
-;; Package-Version: 20141124.1719
+;; Package-Version: 20201207.2228
+;; Package-Commit: d532f0b27e37cbd3bfc0be09d0b54aa38f1648f1
 ;; Package-Requires: ()
 ;; Last-Updated: Tue Apr 29 22:35:48 2014 (+0900)
 ;;           By: 7696122
@@ -37,7 +38,7 @@
 ;; smart-cursor-color-mode is not work.
 ;; So must turn off hl-line-mode.
 ;;       (hl-line-mode -1)
-;; 
+;;
 ;; But when global-hl-line-mode is on,
 ;; smart-cursor-color-mode is work.
 ;;       (global-hl-line-mode 1)
@@ -91,20 +92,20 @@
   (unless (member major-mode scc--ignore-modes)
     (let ((picked-color (foreground-color-at-point)))
       (if picked-color
-	  (unless (eq picked-color scc--last-cursor-color)
-	    (setq scc--last-cursor-color picked-color)
-	    (set-cursor-color scc--last-cursor-color))
-	(unless (eq scc--default-cursor-color scc--last-cursor-color)
-	  (setq scc--last-cursor-color scc--default-cursor-color)
-	  (set-cursor-color scc--default-cursor-color))))))
+          (unless (eq picked-color scc--last-cursor-color)
+            (setq scc--last-cursor-color picked-color)
+            (set-cursor-color scc--last-cursor-color))
+        (unless (eq scc--default-cursor-color scc--last-cursor-color)
+          (setq scc--last-cursor-color scc--default-cursor-color)
+          (set-cursor-color scc--default-cursor-color))))))
 
 (defun scc--fix-global-hl-line-mode ()
   "for global-hl-line-mode."
   (if (and global-hl-line-mode
-	   smart-cursor-color-mode)
+           smart-cursor-color-mode)
       (progn
-	(smart-cursor-color-mode -1)
-	(smart-cursor-color-mode +1))))
+        (smart-cursor-color-mode -1)
+        (smart-cursor-color-mode +1))))
 
 ;; (defun scc--reset-cursor-color ()
 ;;   ""
@@ -121,8 +122,8 @@
         (setq scc--default-cursor-color (frame-parameter nil 'foreground-color))
         (setq scc--saved-cursor-color (frame-parameter nil 'cursor-color))
         (add-hook 'post-command-hook 'scc--set-cursor-color)
-	;; (add-hook 'buffer-list-update-hook 'scc--reset-cursor-color)
-	)
+        ;; (add-hook 'buffer-list-update-hook 'scc--reset-cursor-color)
+        )
     (remove-hook 'post-command-hook 'scc--set-cursor-color)
     ;; (remove-hook 'buffer-list-update-hook 'scc--reset-cursor-color)
     (unless (equal (frame-parameter nil 'cursor-color) scc--saved-cursor-color)

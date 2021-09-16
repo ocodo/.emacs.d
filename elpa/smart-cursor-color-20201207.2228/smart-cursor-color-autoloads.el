@@ -23,17 +23,18 @@ or call the function `smart-cursor-color-mode'.")
 (autoload 'smart-cursor-color-mode "smart-cursor-color" "\
 Dynamically changed cursor color at point's color.
 
+If called interactively, enable Smart-Cursor-Color mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (autoload 'turn-on-smart-cursor-color "smart-cursor-color" "\
-Unconditionally turn on `smart-cursor-color-mode'.
-
-\(fn)" t nil)
+Unconditionally turn on `smart-cursor-color-mode'." t nil)
 
 (autoload 'turn-off-smart-cursor-color "smart-cursor-color" "\
-Unconditionally turn off `smart-cursor-color-mode'.
-
-\(fn)" t nil)
+Unconditionally turn off `smart-cursor-color-mode'." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "smart-cursor-color" '("scc--")))
 
