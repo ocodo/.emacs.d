@@ -1,0 +1,2 @@
+;;; Generated package description from mustache.el  -*- no-byte-compile: t -*-
+(define-package "mustache" "20210224.710" "Mustache templating library in emacs lisp" '((ht "0.9") (s "1.3.0") (dash "1.2.0")) :commit "6fcb31f5075edc5fc70c63426b2aef91352ca80f" :authors '(("Wilfred Hughes" . "me@wilfred.me.uk")) :maintainer '("Wilfred Hughes" . "me@wilfred.me.uk") :keywords '("convenience" "mustache" "template") :url "https://github.com/Wilfred/mustache.el")
