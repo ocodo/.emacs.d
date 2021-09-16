@@ -1,32 +1,30 @@
 ;;; commify.el --- Toggle grouping commas in numbers
-
-;; Copyright (C) 2015 Daniel E. Doherty
-
+;;
+;; Copyright (C) 2020 Daniel E. Doherty
+;;
 ;; This program is free software: you can redistribute it and/or modify it
 ;; under the terms of the GNU General Public License as published by the Free
 ;; Software Foundation, either version 3 of the License, or (at your option)
 ;; any later version.
-
+;;
 ;; This program is distributed in the hope that it will be useful, but WITHOUT
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 ;; FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 ;; more details.
-
+;;
 ;; You should have received a copy of the GNU General Public License along
 ;; with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+;;
 ;; Author: Daniel E. Doherty <ded-commify@ddoherty.net>
-;; Version: 1.2.1
-;; Package-Version: 20200812.1241
-;; Package-Commit: 92514f071c667653f146629c0aec0ab4d3b78226
+;; Version: 1.3.4
+;; Package-Version: 20210904.1106
+;; Package-Commit: d6656bd3a909917a51ba033a11d4ab5f5fe55f83
 ;; Package-Requires: ((s "1.9.0"))
 ;; Keywords: convenience, editing, numbers, grouping, commas
 ;; URL: https://github.com/ddoherty03/commify
-
-
-
+;;
 ;;; Commentary:
-
+;;
 ;; This package provides a simple command to toggle a number under the cursor
 ;; between having grouped digits and not.  For example, if the buffer is as
 ;; shown with the cursor at the '*':
@@ -43,6 +41,12 @@
 ;; ever affects the digits before the decimal point.  Afterwards, the cursor
 ;; will be placed immediately after the affected number.
 ;;
+;; Commify now optionally works with hexadecimal, octal, and binary numbers,
+;; with variables for independently setting the group char and group size for
+;; those bases.  They are recognized by prefixes "0x", "0o", and "0b",
+;; respectively, but these can also be set.  See the README at the github page
+;; for details.
+;;
 ;; You can configure these variables:
 ;;   - commify-group-char (default ",") to the char used for grouping
 ;;   - commify-group-size (default 3) to number of digits per group
@@ -51,7 +55,7 @@
 ;; Bind the main function to a convenient key in you init.el file:
 ;;
 ;;    (key-chord-define-global ",," 'commify-toggle)
-
+;;
 ;;; Code:
 
 (require 's)
@@ -85,21 +89,20 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcustom commify-hex-enable t
-  "Enable commify for hexadecimal numbers."
+  "Enable commify for hexadecimal numbers.
+
+You can enable the commify to commify hexadecimal numbers.  If
+enabled, hexadecimal numbers are identified by defining appropriate
+regular expressions for `commify-hex-prefix-re' and
+`commify-hex-suffix-re' and a character range for
+`commify-hex-digits' to recognize hexadecimal digits.  If you do so,
+commify will separate hexadecimal digits into groups of
+`commify-hex-group-size' using the `commify-hex-group-char'."
   :type 'boolean
   :group 'commify)
 
 (defcustom commify-hex-group-char "_"
-  "Character to use for separating groups of non-decimal digits.
-
-You can enable the commify to commify forms of numbers other than
-the default decimal numbers.  For example, you can set up commify
-to add grouping to hexadecimal, octal, or binary numbers by
-defining appropriate regular expressions for
-`commify-hex-prefix-re' and `commify-hex-suffix-re' and a
-character range for `commify-hex-digits' to recognize a number in
-a non-decimal base.  If you do so, this string is used to
-separate the digits into groups of `commify-hex-group-size'."
+  "Character to use for separating groups of hexadecimal digits."
   :type 'string
   :group 'commify)
 
@@ -128,36 +131,35 @@ separate the digits into groups of `commify-hex-group-size'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcustom commify-oct-enable t
-  "Enable commify for octal numbers."
+  "Enable commify for octal numbers.
+
+You can enable the commify to commify octal numbers.  If
+enabled, octal numbers are identified by defining appropriate
+regular expressions for `commify-oct-prefix-re' and
+`commify-oct-suffix-re' and a character range for
+`commify-oct-digits' to recognize octal digits.  If you do so,
+commify will separate octal digits into groups of
+`commify-oct-group-size' using the `commify-oct-group-char'."
   :type 'boolean
   :group 'commify)
 
 (defcustom commify-oct-group-char "_"
-  "Character to use for separating groups of non-decimal digits.
-
-You can enable the commify to commify forms of numbers other than
-the default decimal numbers.  For example, you can set up commify
-to add grouping to hexadecimal, octal, or binary numbers by
-defining appropriate regular expressions for
-`commify-oct-prefix-re' and `commify-oct-suffix-re' and a
-character range for `commify-oct-digits' to recognize a number in
-a non-decimal base.  If you do so, this string is used to
-separate the digits into groups of `commify-oct-group-size'."
+  "Character to use for separating groups of octal digits."
   :type 'string
   :group 'commify)
 
 (defcustom commify-oct-prefix-re "0[oO]"
-  "Regular expression prefix required before a number in an octal number."
+  "Regular expression prefix required before an octal number."
   :type 'regexp
   :group 'commify)
 
 (defcustom commify-oct-digits "0-7"
-  "Character class of valid digits in a number in an octal number."
+  "Character class of valid digits in an octal number."
   :type 'regexp
   :group 'commify)
 
 (defcustom commify-oct-suffix-re ""
-  "Regular expression suffux required after a number in an octal number."
+  "Regular expression suffux required after an octal number."
   :type 'regexp
   :group 'commify)
 
@@ -171,42 +173,51 @@ separate the digits into groups of `commify-oct-group-size'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcustom commify-bin-enable t
-  "Enable commify for binary numbers."
+  "Enable commify for binary numbers.
+
+You can enable the commify to commify binary numbers.  If
+enabled, binary numbers are identified by defining appropriate
+regular expressions for `commify-bin-prefix-re' and
+`commify-bin-suffix-re' and a character range for
+`commify-bin-digits' to recognize binary digits.  If you do so,
+commify will separate binary digits into groups of
+`commify-bin-group-size' using the `commify-bin-group-char'."
   :type 'boolean
   :group 'commify)
 
 (defcustom commify-bin-group-char "_"
-  "Character to use for separating groups of non-decimal digits.
-
-You can enable the commify to commify forms of numbers other than
-the default decimal numbers.  For example, you can set up commify
-to add grouping to hexadecimal, octal, or binary numbers by
-defining appropriate regular expressions for
-`commify-bin-prefix-re' and `commify-bin-suffix-re' and a
-character range for `commify-bin-digits' to recognize a number in
-a non-decimal base.  If you do so, this string is used to
-separate the digits into groups of `commify-bin-group-size'."
+  "Character to use for separating groups of binary digits."
   :type 'string
   :group 'commify)
 
 (defcustom commify-bin-prefix-re "0[bB]"
-  "Regular expression prefix required before a number in an octal number."
+  "Regular expression prefix required before a binary number."
   :type 'regexp
   :group 'commify)
 
 (defcustom commify-bin-digits "0-1"
-  "Character class of valid digits in a number in an octal number."
+  "Character class of valid digits in a binary number."
   :type 'regexp
   :group 'commify)
 
 (defcustom commify-bin-suffix-re ""
-  "Regular expression suffux required after a number in an octal number."
+  "Regular expression suffux required after a binary number."
   :type 'regexp
   :group 'commify)
 
 (defcustom commify-bin-group-size 4
-  "Number of digits in each group for octal numbers."
+  "Number of digits in each group for binary numbers."
   :type 'integer
+  :group 'commify)
+
+(defcustom commify-currency-chars "$€₠¥£"
+  "Currency characters that might be prefixed to a number."
+  :type 'string
+  :group 'commify)
+
+(defcustom commify-open-delims "({<'\"\["
+  "Opening delimiters that might be prefixed to a number."
+  :type 'string
   :group 'commify)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -330,10 +341,10 @@ The matched sub-parts are:
   "Return the string from the buffer of all non-blank characters around the cursor"
 
   (save-excursion
-    (skip-chars-backward "^[:blank:]"
+    (skip-chars-backward (concat "^[:blank:]" commify-currency-chars commify-open-delims)
                          (max (point-min) (line-beginning-position)))
     (let ((beg (point)))
-      (skip-chars-forward "^[:blank:]" (min (point-max) (line-end-position)))
+      (skip-chars-forward "^[:blank:]$" (min (point-max) (line-end-position)))
       (buffer-substring beg (point)))))
 
 (defun commify--move-to-next-nonblank ()
@@ -341,8 +352,10 @@ The matched sub-parts are:
 
   (if (< (point) (point-max))
       (progn
-        (skip-chars-forward "^\n[:blank:]" (point-max))
-        (skip-chars-forward "\n[:blank:]" (point-max)))
+        (skip-chars-forward
+         (concat "^\n[:blank:]" commify-currency-chars commify-open-delims) (point-max))
+        (skip-chars-forward
+         (concat "\n[:blank:]" commify-currency-chars commify-open-delims) (point-max)))
     0))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -387,7 +400,7 @@ The matched sub-parts are:
     (save-excursion
       ;; find the beginning of the non-blank run of text the cursor is in or
       ;; after, limited to the beginning of the line or the beginning of buffer.
-      (skip-chars-backward "^[:blank:]"
+      (skip-chars-backward (concat "^[:blank:]" commify-currency-chars commify-open-delims)
                            (max (point-min) (line-beginning-position)))
       (cond
        ;; a hexadecimal number
