@@ -5,9 +5,9 @@
 ;; Author: Joshua Hoff
 ;; Maintainer: Sasha Kovar <sasha-git@arcocene.org>
 ;; Keywords: languages, data
-;; Package-Version: 20200123.2008
-;; Package-Commit: 557eecb5da50fedd92840021c8b08d87dfdc782b
-;; Version: 0.2.1
+;; Package-Version: 20210102.459
+;; Package-Commit: 6f494d3905284ccdd57aae3d8ac16fc7ab431596
+;; Version: 0.3.1
 ;; Package-Requires: ((request "0.2.0"))
 ;; Homepage: https://github.com/abend/4clojure.el
 
@@ -51,7 +51,7 @@
       (cadr 4clojure-cached-question)
     (progn
       (request
-       (format "http://www.4clojure.com/api/problem/%s" problem-number)
+       (format "https://www.4clojure.com/api/problem/%s" problem-number)
        :parser 'json-read
        :sync t
        :success (cl-function
@@ -76,6 +76,11 @@ These are called 'tests' on the site."
                        (4clojure-get-question-cached problem-number))
         0)))
 
+(defun 4clojure-title-of-problem (problem-number)
+  "Gets the title of problem PROBLEM-NUMBER."
+  (assoc-default 'title
+                 (4clojure-get-question-cached problem-number)))
+
 (defun 4clojure-description-of-problem (problem-number)
   "Get the description of problem PROBLEM-NUMBER."
   (assoc-default 'description
@@ -93,13 +98,14 @@ These are called 'tests' on the site."
   "Open a new buffer for PROBLEM-NUMBER with the question and description.
 Don't clobber existing text in the buffer if the problem was already opened."
   (let ((buffer (get-buffer-create (format "*4clojure-problem-%s*" problem-number)))
-        (questions (4clojure-questions-for-problem problem-number))
-        (description (4clojure-description-of-problem problem-number))
+        (questions    (4clojure-questions-for-problem problem-number))
+        (title        (4clojure-title-of-problem problem-number))
+        (description  (4clojure-description-of-problem problem-number))
         (restrictions (4clojure-restrictions-for-problem problem-number)))
     (switch-to-buffer buffer)
     ;; only add to empty buffers, thanks: https://stackoverflow.com/q/18312897
     (when (= 0 (buffer-size buffer))
-      (insert (4clojure-format-problem-for-buffer problem-number description questions restrictions))
+      (insert (4clojure-format-problem-for-buffer problem-number title description questions restrictions))
       (goto-char (point-min))
       (search-forward "__")
       (backward-char 2)
@@ -107,12 +113,12 @@ Don't clobber existing text in the buffer if the problem was already opened."
         (clojure-mode)
         (4clojure-mode)))))
 
-(defun 4clojure-format-problem-for-buffer (problem-number description questions &optional restrictions)
+(defun 4clojure-format-problem-for-buffer (problem-number title description questions &optional restrictions)
   "Format problem PROBLEM-NUMBER for an Emacs buffer.
-In addition to displaying the DESCRIPTION, QUESTIONS and RESTRICTIONS,
+In addition to displaying the TITLE, DESCRIPTION, QUESTIONS and RESTRICTIONS,
 it adds a header and tip about how to check your answers."
   (concat
-   ";; 4Clojure Question " problem-number "\n"
+   ";; 4Clojure Question " problem-number " - " title "\n"
    ";;\n"
    ";; " (replace-regexp-in-string "\s*\n+\s*" "\n;;\n;; " description) "\n"
    (when restrictions
@@ -150,9 +156,9 @@ Compares the original question (with a blank in it) to the current buffer."
       (string-to-number problem-number))))
 
 (defun 4clojure-check-answer (problem-number answer)
-  "Send an ANSWER to PROBLEM-NUMBER to 4clojure and return the result."
+  "PROBLEM-NUMBER receives an ANSWER and is sent to 4clojure and return the result."
   (request
-   (format "http://www.4clojure.com/rest/problem/%s" problem-number)
+   (format "https://www.4clojure.com/rest/problem/%s" problem-number)
    :type "POST"
    :parser 'json-read
    :sync t
@@ -181,7 +187,7 @@ Prompts for a password."
   (interactive "sUsername: ")
   (let ((password (read-passwd "Password: ")))
     (request
-     "http://www.4clojure.com/login"
+     "https://www.4clojure.com/login"
      :type "POST"
      :data `(("user" . ,username) ("pwd" . ,password))
      ;; When user login successful, 4clojure will redirect user to main page,
