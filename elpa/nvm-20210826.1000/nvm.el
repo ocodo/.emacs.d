@@ -5,11 +5,11 @@
 ;; Author: Johan Andersson <johan.rejeep@gmail.com>
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
 ;; Version: 0.3.0
-;; Package-Version: 20200501.1414
-;; Package-Commit: fc925b9afe738264cb15d5135c7426f999aeda47
+;; Package-Version: 20210826.1000
+;; Package-Commit: c214762fd6f539ec3e1fd8198cefbdb4b428b19c
 ;; Keywords: node, nvm
 ;; URL: http://github.com/rejeep/nvm.el
-;; Package-Requires: ((s "1.8.0") (dash "2.4.0") (f "0.14.0") (dash-functional "2.4.0"))
+;; Package-Requires: ((s "1.8.0") (dash "2.18.0") (f "0.14.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -37,7 +37,6 @@
 (require 'f)
 (require 's)
 (require 'dash)
-(require 'dash-functional)
 
 (defgroup nvm nil
   "Manage Node versions within Emacs"
@@ -73,6 +72,22 @@
 (defun nvm--version-directories-old (match-fn)
   (--map (list (f-filename it) it) (f-directories nvm-dir match-fn)))
 
+(defun nvm--version-from-string (version-string)
+  "Split a VERSION-STRING into a list of (major, minor, patch) numbers."
+  (--map (string-to-number it) (s-split "[^0-9]" version-string t)))
+
+(defun nvm--version-match? (matcher version)
+  "Does this VERSION satisfy the requirements in MATCHER?"
+  (or (eq (car matcher) nil)
+      (and (eq (car matcher) (car version))
+           (nvm--version-match? (cdr matcher) (cdr version)))))
+
+(defun nvm--version-compare (a b)
+  "Comparator for sorting NVM versions, return t if A < B."
+  (if (eq (car a) (car b))
+      (nvm--version-compare (cdr a) (cdr b))
+    (< (car a) (car b))))
+
 (defun nvm--clean-runtime-name (runtime)
   (s-replace "io.js" "iojs" (f-filename runtime)))
 
@@ -83,12 +98,12 @@
     (concat (nvm--clean-runtime-name runtime) "-" (f-filename path))))
 
 (defun nvm--version-directories-new (match-fn)
-  (when (nvm--using-new-path-schema?))
+  (when (nvm--using-new-path-schema?)
     (let ((runtime-options
            (lambda (runtime)
              (--map (list (nvm--version-name (f-filename runtime) it) it)
                     (f-directories runtime match-fn)))))
-      (-flatten-n 1 (-map runtime-options (f-directories (f-join nvm-dir "versions"))))))
+      (-flatten-n 1 (-map runtime-options (f-directories (f-join nvm-dir "versions")))))))
 
 (defun nvm--version-installed? (version)
   "Return true if VERSION is installed, false otherwise."
@@ -97,14 +112,16 @@
 (defun nvm--find-exact-version-for (short)
   "Find most suitable version for SHORT.
 
-SHORT is a string containing major and minor version.  This
-function will return the most recent patch version."
-  (when (s-matches? "v?[0-9]+\.[0-9]+\\(\.[0-9]+\\)?$" short)
+SHORT is a string containing major and optionally minor version.
+This function will return the most recent version whose major
+and (if supplied, minor) match."
+  (when (s-matches? "v?[0-9]+\\(\.[0-9]+\\(\.[0-9]+\\)?\\)?$" short)
     (unless (or (s-starts-with? "v" short)
                  (s-starts-with? "node" short)
                  (s-starts-with? "iojs" short))
       (setq short (concat "v" short)))
     (let* ((versions (nvm--installed-versions))
+           (requested (nvm--version-from-string short))
            (first-version
             (--first (string= (car it) short) versions)))
       (if first-version
@@ -112,10 +129,18 @@ function will return the most recent patch version."
         (let ((possible-versions
                (-filter
                 (lambda (version)
-                  (s-contains? short (car version)))
+                  (nvm--version-match?
+                   requested
+                   (nvm--version-from-string (car version))))
                 versions)))
-          (-min-by (-on 'string< (lambda (version) (car version)))
-                   possible-versions))))))
+          (if (eq possible-versions nil)
+              nil
+            (car (sort possible-versions
+                       (lambda (a b)
+                         (not (nvm--version-compare
+                               (nvm--version-from-string (car a))
+                               (nvm--version-from-string (car b)))))
+                       ))))))))
 
 ;;;###autoload
 (defun nvm-use (version &optional callback)
