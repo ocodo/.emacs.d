@@ -4,8 +4,9 @@
 
 ;; Author: Yves Senn <yves.senn@gmx.ch>
 ;; URL: http://www.emacswiki.org/emacs/RvmEl
-;; Package-Version: 20150402.1442
-;; Version: 1.4.0
+;; Package-Version: 20201222.17
+;; Package-Commit: c1f2642434b0f68d9baa0687127079ecd884ba12
+;; Version: 1.4.2
 ;; Created: 5 April 2010
 ;; Keywords: ruby rvm
 ;; EmacsWiki: RvmEl
@@ -39,7 +40,7 @@
 
 ;;; Compiler support:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (defvar eshell-path-env)
 (defvar persp-mode)
 (defvar perspectives-hash)
@@ -176,7 +177,7 @@ If no .rvmrc file is found, the default ruby is used insted."
     (let ((config-file-path nil)
           (config-gemset-file-path nil)
           (rvmrc-info (or (rvm--load-info-rvmrc) (rvm--load-info-ruby-version) (rvm--load-info-gemfile))))
-      (if rvmrc-info (rvm-use (first rvmrc-info) (second rvmrc-info))
+      (if rvmrc-info (rvm-use (cl-first rvmrc-info) (cl-second rvmrc-info))
         (rvm-use-default)))))
 
 (defun rvm--load-info-rvmrc (&optional path)
@@ -189,10 +190,17 @@ If no .rvmrc file is found, the default ruby is used insted."
   (let ((config-file-path (rvm--locate-file rvm-configuration-ruby-version-file-name path))
         (gemset-file-path (rvm--locate-file rvm-configuration-ruby-gemset-file-name path)))
     (if config-file-path
-        (list (rvm--chomp (rvm--get-string-from-file config-file-path))
-              (if gemset-file-path
-                  (rvm--chomp (rvm--get-string-from-file gemset-file-path))
-                rvm--gemset-default))
+        (let ((ruby-ver (rvm--chomp (rvm--get-string-from-file config-file-path)))
+              (gemset-name (and gemset-file-path
+                                (rvm--chomp (rvm--get-string-from-file gemset-file-path)))))
+          (unless gemset-name
+            ;; Maybe the gemset name is directly stored in the `config-file-path'.
+            (let ((ruby-info (split-string ruby-ver rvm--gemset-separator)))
+              (setq ruby-ver (rvm--chomp (car ruby-info))
+                    gemset-name (or (and (eq (length ruby-info) 2)
+                                         (rvm--chomp (cadr ruby-info)))
+                                    rvm--gemset-default))))
+          (list ruby-ver gemset-name))
       nil)))
 
 (defun rvm--load-info-gemfile (&optional path)
@@ -287,7 +295,7 @@ function."
          (gemset-lines (split-string gemset-result "\n"))
          (parsed-gemsets (list))
          (ruby-current-version nil))
-    (loop for gemset in gemset-lines do
+    (cl-loop for gemset in gemset-lines do
           (let ((filtered-gemset (string-match rvm--gemset-list-filter-regexp gemset)))
             (if filtered-gemset
                 (if (string-match ruby-version gemset)
@@ -338,12 +346,21 @@ function."
 (defun rvm--emacs-gempath ()
   (getenv "GEM_PATH"))
 
+(defun rvm--emacs-bundlepath ()
+  (let ((bundle-config (rvm--call-bundle-process "config path"))
+        (search-start 0)
+        (bundle-paths '()))
+    (while (string-match ": \"\\([^\"]+\\)\"$" bundle-config search-start)
+      (setq search-start (match-end 1))
+      (add-to-list 'bundle-paths (match-string 1 bundle-config) t))
+    (car bundle-paths)))
+
 (defun rvm--change-path (current-binary-var new-binaries)
   (let ((current-binaries-for-path
          (mapconcat 'identity (eval current-binary-var) ":"))
         (new-binaries-for-path (mapconcat 'identity new-binaries ":")))
     (if (and (eval current-binary-var)
-             (not (string= (first (eval current-binary-var)) "/bin")))
+             (not (string= (cl-first (eval current-binary-var)) "/bin")))
         (progn
           (setenv "PATH" (replace-regexp-in-string
                           (regexp-quote current-binaries-for-path)
@@ -401,7 +418,7 @@ function."
       (progn
         (setenv "GEM_HOME" gemhome)
         (setenv "GEM_PATH" gempath)
-        (setenv "BUNDLE_PATH" gemhome)
+        (setenv "BUNDLE_PATH" (rvm--emacs-bundlepath))
         (rvm--change-path 'rvm--current-gem-binary-path (rvm--gem-binary-path-from-gem-path gempath)))
     (setenv "GEM_HOME" "")
     (setenv "GEM_PATH" "")
@@ -426,11 +443,16 @@ function."
           output
         (rvm--message output)))))
 
+(defun rvm--call-bundle-process (args)
+  (or (and (executable-find "bundle")
+           (shell-command-to-string (concat "bundle " args)))
+      ""))
+
 (defun rvm-gem-install (gem)
   "Install GEM into the currently active RVM Gemset."
   (interactive "SGem Install: ")
   (shell-command (format "%s install %s&" ; & executes async
-                         (concat (first rvm--current-ruby-binary-path) "/gem") gem))
+                         (concat (cl-first rvm--current-ruby-binary-path) "/gem") gem))
   (pop-to-buffer "*Async Shell Command*"))
 
 (provide 'rvm)

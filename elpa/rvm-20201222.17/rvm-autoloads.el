@@ -10,16 +10,12 @@
 ;;; Generated autoloads from rvm.el
 
 (autoload 'rvm-use-default "rvm" "\
-use the rvm-default ruby as the current ruby version
-
-\(fn)" t nil)
+use the rvm-default ruby as the current ruby version" t nil)
 
 (autoload 'rvm-activate-corresponding-ruby "rvm" "\
 activate the corresponding ruby version for the file in the current buffer.
 This function searches for an .rvmrc file and activates the configured ruby.
-If no .rvmrc file is found, the default ruby is used insted.
-
-\(fn)" t nil)
+If no .rvmrc file is found, the default ruby is used insted." t nil)
 
 (autoload 'rvm-use "rvm" "\
 switch the current ruby version to any ruby, which is installed with rvm
