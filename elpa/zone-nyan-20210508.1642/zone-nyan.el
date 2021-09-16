@@ -4,11 +4,11 @@
 
 ;; Author: Vasilij Schneidermann <mail@vasilij.de>
 ;; URL: https://depp.brause.cc/zone-nyan
-;; Package-Version: 20200506.1207
-;; Package-Commit: 48625814f42c39521405d08009e1d44108d880ac
+;; Package-Version: 20210508.1642
+;; Package-Commit: 38b6e9f1f5871e9166b00a1db44680caa56773be
 ;; Version: 0.2.2
-;; Package-Requires: ((esxml "0.3.1"))
-;; Keywords: zone
+;; Package-Requires: ((emacs "24.3") (esxml "0.3.1"))
+;; Keywords: games
 
 ;; This file is NOT part of GNU Emacs.
 
