@@ -1,11 +1,12 @@
 ;;; basic-mode.el --- major mode for editing BASIC code
 
-;; Copyright (C) 2017-2018 Johan Dykstrom
+;; Copyright (C) 2017-2021 Johan Dykstrom
 
 ;; Author: Johan Dykstrom
 ;; Created: Sep 2017
-;; Version: 0.4.2
-;; Package-Version: 20180919.1752
+;; Version: 0.4.3
+;; Package-Version: 20210316.1253
+;; Package-Commit: eaa5f24d2fb303d9e5d7de2a28c7c18b01532ab6
 ;; Keywords: basic, languages
 ;; URL: https://github.com/dykstrom/basic-mode
 ;; Package-Requires: ((seq "2.20") (emacs "24.3"))
@@ -25,19 +26,19 @@
 
 ;;; Commentary:
 
-;; This package provides a major mode for editing BASIC code. Features
+;; This package provides a major mode for editing BASIC code.  Features
 ;; include syntax highlighting and indentation, as well as support for
 ;; auto-numbering and renumering of code lines.
 ;;
 ;; You can format the region, or the entire buffer, by typing C-c C-f.
 ;;
 ;; When line numbers are turned or, hitting the return key will insert
-;; a new line starting with a fresh line number. Typing C-c C-r will
+;; a new line starting with a fresh line number.  Typing C-c C-r will
 ;; renumber all lines in the region, or the entire buffer, including
 ;; any jumps in the code.
 ;;
 ;; Type M-. to lookup the line number, label, or variable at point,
-;; and type M-, to go back again. See also function
+;; and type M-, to go back again.  See also function
 ;; `xref-find-definitions'.
 
 ;; Installation:
@@ -54,14 +55,14 @@
 ;; Configuration:
 
 ;; You can customize the indentation of code blocks, see variable
-;; `basic-indent-offset'. The default value is 4.
+;; `basic-indent-offset'.  The default value is 4.
 ;;
 ;; Formatting is also affected by the customizable variables
 ;; `basic-delete-trailing-whitespace' and `delete-trailing-lines'
 ;; (from simple.el).
 ;;
 ;; You can also customize the number of columns to use for line
-;; numbers, see variable `basic-line-number-cols'. The default value
+;; numbers, see variable `basic-line-number-cols'.  The default value
 ;; is 0, which means not using line numbers at all.
 ;;
 ;; The other line number features can be configured by customizing
@@ -70,6 +71,8 @@
 
 ;;; Change Log:
 
+;;  0.4.3  2021-03-16  Improved indentation with tabs.
+;;                     Thanks to Jeff Spaulding.
 ;;  0.4.2  2018-09-19  Lookup of dimmed variables.
 ;;  0.4.1  2018-06-12  Highlighting, indentation and lookup of labels.
 ;;  0.4.0  2018-05-25  Added goto line number.
@@ -111,7 +114,7 @@ Statements inside a block are indented this number of columns."
 (defcustom basic-line-number-cols 0
   "*Specifies the number of columns to allocate to line numbers.
 This number should include the single space between the line number and
-the actual code. Set this variable to 0 if you do not use line numbers."
+the actual code.  Set this variable to 0 if you do not use line numbers."
   :type 'integer
   :group 'basic)
 
@@ -136,7 +139,7 @@ choice."
 
 (defcustom basic-renumber-unnumbered-lines t
   "*If non-nil, lines without line numbers are also renumbered.
-If nil, lines without line numbers are left alone. Completely
+If nil, lines without line numbers are left alone.  Completely
 empty lines are never numbered."
   :type 'boolean
   :group 'basic)
@@ -145,7 +148,7 @@ empty lines are never numbered."
 ;; Variables:
 ;; ----------------------------------------------------------------------------
 
-(defconst basic-mode-version "0.4.1"
+(defconst basic-mode-version "0.4.3"
   "The current version of `basic-mode'.")
 
 (defconst basic-increase-indent-keywords-bol
@@ -251,11 +254,9 @@ beginning of a line or after a statement separator (:).")
              (original-indent-col (basic-current-indent))
              (calculated-indent-col (basic-calculate-indent)))
         (basic-indent-line-to calculated-indent-col)
-        ;; Move point to a good place after indentation
-        (goto-char (+ (point-at-bol)
-                      calculated-indent-col
-                      (max (- original-col original-indent-col) 0)
-                      basic-line-number-cols))))))
+	(move-to-column (+ calculated-indent-col
+			   (max (- original-col original-indent-col) 0)
+			   basic-line-number-cols))))))
 
 (defun basic-calculate-indent ()
   "Calculate the indent for the current line of code.
@@ -338,8 +339,7 @@ The columns allocated to the line number are ignored."
     (beginning-of-line)
     ;; Skip line number and spaces
     (skip-chars-forward "0-9 \t" (point-at-eol))
-    (let ((indent (- (point) (point-at-bol))))
-      (- indent basic-line-number-cols))))
+    (- (current-column) basic-line-number-cols)))
 
 (defun basic-previous-indent ()
   "Return the indent column of the previous code line.
@@ -511,6 +511,10 @@ even if that creates overlaps."
     (basic-indent-line)))
 
 (defun basic-find-jumps ()
+  "Find all jump targets and the jump statements that jump to them.
+This returns a hash with line numbers for keys.  The value of each entry
+is a list containing markers to each jump point (the number following a
+GOTO, GOSUB,etc.) that jumps to this line number."
   (let ((jump-targets (make-hash-table)))
     (save-excursion
       (goto-char (point-min))
@@ -603,7 +607,9 @@ have numbers are included in the renumbering."
 (declare-function xref-make "xref" (summary location))
 (declare-function xref-make-buffer-location "xref" (buffer point))
 
-(defun basic-xref-backend () 'basic)
+(defun basic-xref-backend ()
+  "Return the xref backend used by basic-mode."
+  'basic)
 
 (defun basic-xref-make-xref (summary buffer point)
   "Return a buffer xref object with SUMMARY, BUFFER and POINT."
