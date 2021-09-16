@@ -36,6 +36,23 @@ with which Emacs should be restarted.
 
 \(fn &optional ARGS)" t nil)
 
+(autoload 'restart-emacs-start-new-emacs "restart-emacs" "\
+Start a new instance of Emacs.
+
+When called interactively ARGS is interpreted as follows
+
+- with a single `universal-argument' (`C-u') the new Emacs is started
+  with `--debug-init' flag
+- with two `universal-argument' (`C-u') the new Emacs is started with
+  `-Q' flag
+- with three `universal-argument' (`C-u') the user prompted for
+  the arguments
+
+When called non-interactively ARGS should be a list of arguments
+with which the new Emacs should be started.
+
+\(fn &optional ARGS)" t nil)
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "restart-emacs" '("restart-emacs-")))
 
 ;;;***

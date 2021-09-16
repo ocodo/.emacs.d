@@ -4,7 +4,8 @@
 
 ;; Author: Iqbal Ansari <iqbalansari02@yahoo.com>
 ;; Keywords: convenience
-;; Package-Version: 20180601.1031
+;; Package-Version: 20201127.1425
+;; Package-Commit: 1607da2bc657fe05ae01f7fdf26f716eafead02c
 ;; URL: https://github.com/iqbalansari/restart-emacs
 ;; Version: 0.1.1
 
@@ -385,6 +386,14 @@ restored.  IGNORED are ignored."
 ;;;###autoload
 (add-to-list 'command-switch-alist '("--restart-emacs-desktop" . restart-emacs-handle-command-line-args))
 
+(defvar restart-emacs--inhibit-kill-p nil
+  "Non-nil means inhibit killing the current session when restarting.
+This means that `restart-emacs' will spawn a new instance of
+Emacs without killing the current one.
+
+This is used internally to implement the command
+`restart-emacs-start-new-emacs'.")
+
 ;;;###autoload
 (defun restart-emacs (&optional args)
   "Restart Emacs.
@@ -417,9 +426,31 @@ with which Emacs should be restarted."
                                (unless (member "-Q" translated-args)
                                  (restart-emacs--frame-restore-args))))
          (kill-emacs-hook (append kill-emacs-hook
-                                  (list (apply-partially #'restart-emacs--launch-other-emacs
-                                                         restart-args)))))
-    (save-buffers-kill-emacs)))
+                                  (unless restart-emacs--inhibit-kill-p
+                                    (list (apply-partially #'restart-emacs--launch-other-emacs
+                                                           restart-args))))))
+    (if restart-emacs--inhibit-kill-p
+        (restart-emacs--launch-other-emacs restart-args)
+        (save-buffers-kill-emacs))))
+
+;;;###autoload
+(defun restart-emacs-start-new-emacs (&optional args)
+  "Start a new instance of Emacs.
+
+When called interactively ARGS is interpreted as follows
+
+- with a single `universal-argument' (`C-u') the new Emacs is started
+  with `--debug-init' flag
+- with two `universal-argument' (`C-u') the new Emacs is started with
+  `-Q' flag
+- with three `universal-argument' (`C-u') the user prompted for
+  the arguments
+
+When called non-interactively ARGS should be a list of arguments
+with which the new Emacs should be started."
+  (interactive "P")
+  (let ((restart-emacs--inhibit-kill-p t))
+    (restart-emacs args)))
 
 (provide 'restart-emacs)
 ;;; restart-emacs.el ends here
