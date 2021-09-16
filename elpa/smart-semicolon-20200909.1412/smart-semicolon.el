@@ -4,9 +4,10 @@
 
 ;; Author:    Iku Iwasa <iku.iwasa@gmail.com>
 ;; URL:       https://github.com/iquiw/smart-semicolon
-;; Package-Version: 20171008.133
-;; Version:   0.2.1
-;; Package-Requires: ((emacs "25"))
+;; Package-Version: 20200909.1412
+;; Package-Commit: dd52a3e1a7b043fb88f799827c7b3e39f60a14f1
+;; Version:   0.3.0
+;; Package-Requires: ((emacs "26"))
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
