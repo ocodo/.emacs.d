@@ -3,9 +3,9 @@
 ;; Copyright (C) 1998-2020  by Seiji Zenitani
 
 ;; Author: Seiji Zenitani <zenitani@gmail.com>
-;; Version: 20200727
-;; Package-Version: 20200727.1249
-;; Package-Commit: 1f14c86af7ca5813ddc0b6dfcf2edd4a81371644
+;; Version: 20201030
+;; Package-Version: 20201029.1600
+;; Package-Commit: 2edfcf2004ce927f11ca9cb43e2e4b93f43524a9
 ;; Keywords: tools, unix
 ;; Created: 1998-12-27
 ;; Compatibility: Emacs 21 or later
@@ -32,6 +32,8 @@
 ;; This package provides `smart-compile' function.
 ;; You can associate a particular file with a particular compile function,
 ;; by editing `smart-compile-alist'.
+;; If you are using a build system such as make or cargo, you can associate its build system file with a
+;; compile function as well, by editing `smart-compile-build-system-alist'.
 ;;
 ;; To use this package, add these lines to your .emacs file:
 ;;     (require 'smart-compile)
@@ -74,8 +76,6 @@
   ("\\.raku\\'"       . "perl6 %f")
   ("\\.rb\\'"         . "ruby %f")
   ("\\.rs\\'"         . "rustc %f -o %n")
-  ("Rakefile\\'"      . "rake")
-  ("Gemfile\\'"       . "bundle install")
   ("\\.tex\\'"        . (tex-file))
   ("\\.texi\\'"       . "makeinfo %f")
 ;;  ("\\.php\\'"        . "php -l %f") ; syntax check
@@ -109,11 +109,22 @@ evaluate FUNCTION instead of running a compilation command.
    :group 'smart-compile)
 (put 'smart-compile-alist 'risky-local-variable t)
 
+(defvar smart-compile-build-root-directory nil
+  "The directory that the current file path should be taken relative to.
+
+This is usually the `default-directory', but if there's a \"build system\" (see
+`smart-compile-build-system-alist'), it will be the directory that the current file path should be
+taken relative to.")
+(make-variable-buffer-local 'smart-compile-build-root-directory)
+
 (defconst smart-compile-replace-alist '(
   ("%F" . (buffer-file-name))
-  ("%f" . (file-name-nondirectory (buffer-file-name)))
-  ("%n" . (file-name-sans-extension
-           (file-name-nondirectory (buffer-file-name))))
+  ("%f" . (file-relative-name
+           (buffer-file-name)
+           smart-compile-build-root-directory))
+  ("%n" . (file-relative-name
+           (file-name-sans-extension (buffer-file-name))
+           smart-compile-build-root-directory))
   ("%e" . (or (file-name-extension (buffer-file-name)) ""))
   ("%o" . smart-compile-option-string)
 ;;   ("%U" . (user-login-name))
@@ -121,19 +132,85 @@ evaluate FUNCTION instead of running a compilation command.
   "Alist of %-sequences for format control strings in `smart-compile-alist'.")
 (put 'smart-compile-replace-alist 'risky-local-variable t)
 
-(defvar smart-compile-check-makefile t)
-(make-variable-buffer-local 'smart-compile-check-makefile)
-
 (defcustom smart-compile-make-program "make "
   "The command by which to invoke the make program."
   :type 'string
   :group 'smart-compile)
+
+(defcustom smart-compile-build-system-alist
+  '(("\\`[mM]akefile\\'" . smart-compile-make-program)
+    ("\\`Gemfile\\'"     . "bundle install")
+    ("\\`Rakefile\\'"    . "rake")
+    ("\\`Cargo.toml\\'"  . "cargo build ")
+    ("\\`pants\\'"       . "./pants %f"))
+  "Alist of \"build system file\" patterns vs corresponding format control strings.
+
+Similar to `smart-compile-alist', each element may look like (REGEXP . STRING) or
+(REGEXP . SEXP).
+
+If a \"build system file\" matching the regexp exists in any parent directory, the `compile-command'
+first changes to the directory containing the build system file, and then the string or the sexp
+result is used as the rest of the command.
+
+NOTE: If the matching alist entry is a (REGEXP . STRING), then a similar sequence of %-sequence
+replacements from `smart-compile-replace-alist' are applied to the string, but %f and %n are
+relative to the \"build root\" directory containing the \"build system file\"."
+  :type '(repeat
+          (cons
+           (regexp :tag "Build system filename pattern")
+           (choice
+            (string :tag "Compilation command")
+            (sexp :tag "Lisp expression"))))
+  :group 'smart-compile)
+(put 'smart-compile-build-system-alist 'risky-local-variable t)
+
+(defvar smart-compile-check-build-system t)
+(make-variable-buffer-local 'smart-compile-check-build-system)
 
 (defcustom smart-compile-option-string ""
   "The option string that replaces %o.  The default is empty."
   :type 'string
   :group 'smart-compile)
 
+(defun smart-compile--is-root-directory (dir)
+  "Taken from `ido-is-root-directory'."
+  (or
+   (string-equal "/" dir)
+   (and (memq system-type '(windows-nt ms-dos))
+        (string-match "\\`[a-zA-Z]:[/\\]\\'" dir))
+   (string-match "\\`/[^:/][^:/]+:\\'" dir)))
+
+(defun smart-compile--filter-files (paths)
+  "Return a list with the members of PATHS that are regular files."
+  (let ((ret nil))
+    (dolist (path paths ret)
+      (when (file-regular-p path)
+        (push path ret)))))
+
+(defun smart-compile--find-build-system-file (alist)
+  "Find the ALIST entry with a matching regexp in any parent directory."
+  (let ((cur-dir default-directory)
+        (found-entry nil))
+    (while (and (not found-entry)
+                (not (smart-compile--is-root-directory cur-dir)))
+      ;; Within each parent directory, loop over the alist and try matching each regexp.
+      (let ((cur-alist alist))
+        (while (and (not found-entry)
+                    cur-alist)
+          (let* ((regexp (caar cur-alist))
+                 (build-system-files
+                  (smart-compile--filter-files (directory-files cur-dir t regexp nil))))
+            (if build-system-files
+                (setq found-entry (cons (car build-system-files) (cdar cur-alist)))
+              (setq cur-alist (cdr cur-alist))))))
+      (setq cur-dir (expand-file-name ".." cur-dir)))
+    found-entry))
+
+(defun smart-compile--explicit-same-dir-filename (path)
+  "Return a file path that always has a leading directory component."
+  (if (file-name-directory path)
+      path
+    (format "./%s" path)))
 
 ;;;###autoload
 (defun smart-compile (&optional arg)
@@ -143,10 +220,12 @@ which is defined in `smart-compile-alist'."
   (interactive "p")
   (let ((name (buffer-file-name))
         (not-yet t))
-    
+
     (if (not name)(error "cannot get filename."))
 ;;     (message (number-to-string arg))
 
+    ;; Set the "root" directory next to the file, for most cases.
+    (setq smart-compile-build-root-directory default-directory)
     (cond
 
      ;; local command
@@ -159,22 +238,36 @@ which is defined in `smart-compile-alist'."
       (setq not-yet nil)
       )
 
-     ;; make?
-     ((and smart-compile-check-makefile
-           (or (file-readable-p "Makefile")
-               (file-readable-p "makefile")))
-      (if (y-or-n-p "Makefile is found.  Try 'make'? ")
-          (progn
-            (set (make-local-variable 'compile-command) "make ")
-            (call-interactively 'compile)
-            (setq not-yet nil)
-            )
-        (setq smart-compile-check-makefile nil)))
-
+     ;; make? or other build systems?
+     (smart-compile-check-build-system
+      (let ((maybe-build-system-file
+             (smart-compile--find-build-system-file smart-compile-build-system-alist)))
+        (if maybe-build-system-file
+            (let* ((build-system-file (expand-file-name (car maybe-build-system-file)))
+                   (command-or-string-entry (cdr maybe-build-system-file))
+                   (command-string
+                    (if (stringp command-or-string-entry)
+                        ;; Set the root directory as the one containing the "build system file".
+                        (let ((smart-compile-build-root-directory
+                               (file-name-directory build-system-file)))
+                          (smart-compile-string command-or-string-entry))
+                      (eval command-or-string-entry))))
+              (if (y-or-n-p (format "%s is found. Try '%s'? "
+                                    (smart-compile--explicit-same-dir-filename build-system-file)
+                                    command-string))
+                  ;; Same directory returns nil for `file-name-directory'.
+                  (let ((default-directory (or (file-name-directory build-system-file)
+                                               default-directory)))
+                    (set (make-local-variable 'compile-command)
+                         command-string)
+                    (call-interactively 'compile)
+                    (setq not-yet nil))
+                (setq smart-compile-check-build-system nil))))
+        ))
      ) ;; end of (cond ...)
 
     ;; compile
-    (let( (alist smart-compile-alist) 
+    (let( (alist smart-compile-alist)
           (case-fold-search nil)
           (function nil) )
       (while (and alist not-yet)
@@ -216,14 +309,16 @@ which is defined in `smart-compile-alist'."
               (set (make-local-variable 'compile-command) name)
             ))
       )
-    
+
     ;; compile
     (if not-yet (call-interactively 'compile) )
 
     ))
 
 (defun smart-compile-string (format-string)
-  "Document forthcoming..."
+  "Replace all the special format specifiers from `smart-compile-replace-alist' in FORMAT-STRING.
+
+If `buffer-file-name' is not bound to a string, no replacements will be made."
   (if (and (boundp 'buffer-file-name)
            (stringp buffer-file-name))
       (let ((rlist smart-compile-replace-alist)
