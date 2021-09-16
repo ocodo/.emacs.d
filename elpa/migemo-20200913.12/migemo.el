@@ -5,8 +5,8 @@
 
 ;; Author: Satoru Takabayashi <satoru-t@is.aist-nara.ac.jp>
 ;; URL: https://github.com/emacs-jp/migemo
-;; Package-Version: 20190112.516
-;; Package-Commit: f42832c8ac462ecbec9a16eb781194f876fba64a
+;; Package-Version: 20200913.12
+;; Package-Commit: f756cba3d5268968da361463c2e29b3a659a3de7
 ;; Version: 1.9.2
 ;; Keywords:
 ;; Package-Requires: ((cl-lib "0.5"))
@@ -127,19 +127,19 @@
   :type 'boolean)
 
 (defcustom migemo-pattern-alist-length 512
-  "*Maximal length of migemo-pattern-alist."
+  "*Maximal length of `migemo-pattern-alist'."
   :group 'migemo
   :type 'integer)
 
 (defcustom migemo-pattern-alist-file
   (locate-user-emacs-file "migemo-pattern" ".migemo-pattern")
-  "*Path of migemo alist file. If nil, don't save and restore the file."
+  "*Path of migemo alist file.  If nil, don't save and restore the file."
   :group 'migemo
   :type 'file)
 
 (defcustom migemo-frequent-pattern-alist-file
   (locate-user-emacs-file "migemo-frequent" ".migemo-freqent")
-  "*Path of migemo frequent alist file. If nil, don't save and restore the file."
+  "*Path of migemo frequent alist file.  If nil, don't save and restore the file."
   :group 'migemo
   :type 'file)
 
@@ -286,7 +286,7 @@
         (migemo-replace-in-string pattern "\a" migemo-white-space-regexp))))))
 
 (defun migemo-pattern-alist-load (file)
-  "Load migemo alist file."
+  "Load migemo alist FILE."
   (setq file (expand-file-name file))
   (when (file-readable-p file)
     (with-temp-buffer
@@ -326,7 +326,7 @@
         (setq migemo-pattern-alist nil)))))
 
 (defun migemo-kill ()
-  "Kill migemo process"
+  "Kill migemo process."
   (interactive)
   (when (and migemo-process (eq (process-status migemo-process) 'run))
     (kill-process migemo-process)
@@ -520,7 +520,7 @@ into the migemo's regexp pattern."
 
 ;; Use migemo-{forward,backward} instead of search-{forward,backward}.
 (defadvice isearch-search (around migemo-search-ad activate)
-  "adviced by migemo."
+  "Adviced by migemo."
   (when migemo-isearch-enable-p
     (setq migemo-do-isearch t))
   (unwind-protect
@@ -528,7 +528,7 @@ into the migemo's regexp pattern."
     (setq migemo-do-isearch nil)))
 
 (defadvice isearch-search-and-update (around migemo-search-ad activate)
-  "adviced by migemo."
+  "Adviced by migemo."
   (let ((isearch-adjusted isearch-adjusted))
     (when (and migemo-isearch-enable-p
                (not isearch-forward) (not isearch-regexp) (not (migemo--isearch-regexp-function)))
@@ -537,14 +537,14 @@ into the migemo's regexp pattern."
     ad-do-it))
 
 (defadvice search-forward (around migemo-search-ad activate)
-  "adviced by migemo."
+  "Adviced by migemo."
   (if migemo-do-isearch
       (setq ad-return-value
             (migemo-forward (ad-get-arg 0) (ad-get-arg 1) (ad-get-arg 2) (ad-get-arg 3)))
     ad-do-it))
 
 (defadvice search-backward (around migemo-search-ad activate)
-  "adviced by migemo."
+  "Adviced by migemo."
   (if migemo-do-isearch
       (setq ad-return-value
             (migemo-backward (ad-get-arg 0) (ad-get-arg 1) (ad-get-arg 2) (ad-get-arg 3)))
@@ -605,7 +605,7 @@ into the migemo's regexp pattern."
 
 ;; Turn off input-method automatically when C-s or C-r are typed.
 (defadvice isearch-mode (before migemo-search-ad activate)
-  "adviced by migemo."
+  "Adviced by migemo."
   (setq migemo-search-pattern nil)
   (setq migemo-search-pattern-alist nil)
   (when (and migemo-isearch-enable-p
@@ -624,7 +624,7 @@ into the migemo's regexp pattern."
         (force-mode-line-update)))))
 
 (defadvice isearch-done (after migemo-search-ad activate)
-  "adviced by migemo."
+  "Adviced by migemo."
   (setq migemo-search-pattern nil)
   (setq migemo-search-pattern-alist nil)
   (when (and migemo-isearch-enable-p
@@ -642,12 +642,12 @@ into the migemo's regexp pattern."
           (force-mode-line-update))))))
 
 (defcustom migemo-message-prefix-face 'highlight
-  "*Face of minibuffer prefix"
+  "*Face of minibuffer prefix."
   :group 'migemo
   :type 'face)
 
 (defadvice isearch-message-prefix (after migemo-status activate)
-  "adviced by migemo."
+  "Adviced by migemo."
   (let ((ret ad-return-value)
         (str "[MIGEMO]"))
     (when (and migemo-isearch-enable-p
