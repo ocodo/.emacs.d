@@ -49,6 +49,13 @@ remote named after the github username to the fork.
 
 \(fn USER-REPO-URL DIRECTORY)" t nil)
 
+(autoload 'github-clone-in-default-directory "github-clone" "\
+Fork and clone USER-REPO-URL to `github-default-directory'.
+
+See `github-clone' for explanation of arguments.
+
+\(fn USER-REPO-URL)" t nil)
+
 (autoload 'eshell/github-clone "github-clone" "\
 An eshell alias for `github-clone'.
 
