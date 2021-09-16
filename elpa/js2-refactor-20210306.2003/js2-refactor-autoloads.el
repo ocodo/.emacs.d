@@ -89,6 +89,9 @@ Add js2r keybindings using the modifier MODIFIER.
 ;;;### (autoloads nil "js2r-vars" "js2r-vars.el" (0 0 0 0))
 ;;; Generated autoloads from js2r-vars.el
 
+(autoload 'js2r-rename-var "js2r-vars" "\
+Renames the variable on point and all occurrences in its lexical scope." t nil)
+
 (autoload 'js2r-extract-var "js2r-vars" nil t nil)
 
 (autoload 'js2r-extract-let "js2r-vars" nil t nil)
