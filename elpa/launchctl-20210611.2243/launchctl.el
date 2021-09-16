@@ -1,8 +1,8 @@
 ;;; launchctl.el --- Interface to launchctl on Mac OS X.
 ;; Author: Peking Duck <github.com/pekingduck>
 ;; Version: 1.0
-;; Package-Commit: 96886b7e64d15ffd3319c8b4b04310ccdc648576
-;; Package-Version: 20200531.1043
+;; Package-Commit: c9b7e93f5ec6fa504dfb03d60571cf3e5dc38e12
+;; Package-Version: 20210611.2243
 ;; Package-X-Original-Version: 20150513
 ;; Package-Requires: ((emacs "24.1"))
 ;; Keywords: tools, convenience
@@ -62,6 +62,8 @@
   :group 'launchctl)
 
 (defcustom launchctl-search-path '("~/Library/LaunchAgents/"
+				   "/Library/LaunchAgents/"
+				   "/Library/LaunchDaemons/"
 				   "/System/Library/LaunchAgents/"
 				   "/System/Library/LaunchDaemons/")
   "The search path for service configuration files."
@@ -104,7 +106,10 @@
   :type 'number
   :group 'launchctl)
 
-(defcustom launchctl-filter-regex "" "Filter regex for launchctl-refresh.  Empty string for no filter.")
+(defcustom launchctl-filter-regex ""
+  "Filter regex for launchctl-refresh.  Empty string for no filter."
+  :type 'string
+  :group 'launchctl)
 
 (defvar launchctl-plist-keys
   '("AbandonProcessGroup"
@@ -383,7 +388,7 @@
   (view-mode)
   (message "Press q to quit"))
 
-(defun launchctl-new () 
+(defun launchctl-new ()
   "Create a new service configuration file."
   (interactive)
   (let ((file-name (launchctl--ask-file-name)))
