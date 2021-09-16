@@ -12,15 +12,18 @@
 (autoload 'skewer-less-mode "skewer-less" "\
 Minor mode allowing LESS stylesheet manipulation via `skewer-mode'.
 
+If called interactively, enable Skewer-Less mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 For this to work properly, the lessc command must be available on
 `exec-path', and `skewer' must be running.
 
 \(fn &optional ARG)" t nil)
 
 (autoload 'skewer-less-eval-buffer "skewer-less" "\
-When skewer appears to be active, ask for a reload.
-
-\(fn)" t nil)
+When skewer appears to be active, ask for a reload." t nil)
 
 (autoload 'skewer-less-eval-region "skewer-less" "\
 Process the region from BEG to END with \"lessc\", and pass it to `skewer-css'.

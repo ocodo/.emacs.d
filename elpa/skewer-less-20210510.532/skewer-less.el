@@ -4,7 +4,8 @@
 
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; Keywords: languages, tools
-;; Package-Version: 20160828.2021
+;; Package-Version: 20210510.532
+;; Package-Commit: baa973581c2ab7326db65803df97d1a7382b6564
 ;; Version: 0
 ;; Package-Requires: ((skewer-mode "1.5.3"))
 
@@ -53,9 +54,8 @@
 
 For this to work properly, the lessc command must be available on
 `exec-path', and `skewer' must be running."
-  nil
-  " skewer-less"
-  skewer-less-mode-map)
+  :lighter " skewer-less"
+  :keymap skewer-less-mode-map)
 
 ;;;###autoload
 (defun skewer-less-eval-buffer ()
