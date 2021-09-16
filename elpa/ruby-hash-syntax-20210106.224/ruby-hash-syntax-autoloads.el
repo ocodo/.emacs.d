@@ -15,8 +15,6 @@ Toggle syntax of ruby hash literal in region from BEG to END between ruby 1.8 an
 
 \(fn BEG END)" t nil)
 
-(define-obsolete-function-alias 'ruby-toggle-hash-syntax 'ruby-hash-syntax-toggle)
-
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ruby-hash-syntax" '("ruby-hash-syntax--")))
 
 ;;;***
