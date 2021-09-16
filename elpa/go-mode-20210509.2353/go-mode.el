@@ -8,8 +8,8 @@
 
 ;; Author: The go-mode Authors
 ;; Version: 1.5.0
-;; Package-Version: 20200425.1740
-;; Package-Commit: 734d5232455ffde088021ea5908849ac570e890f
+;; Package-Version: 20210509.2353
+;; Package-Commit: 34974346d1f74fa835d745514c9fe9afccce8dae
 ;; Keywords: languages go
 ;; URL: https://github.com/dominikh/go-mode.el
 ;;
@@ -296,7 +296,7 @@ Consider using ‘godoc-gogetdoc’ instead for more accurate results."
 You can install gogetdoc with 'go get -u github.com/zmb3/gogetdoc'."
   (if (not (buffer-file-name (go--coverage-origin-buffer)))
       ;; TODO: gogetdoc supports unsaved files, but not introducing
-      ;; new artifical files, so this limitation will stay for now.
+      ;; new artificial files, so this limitation will stay for now.
       (error "Cannot use gogetdoc on a buffer without a file name"))
   (let ((posn (format "%s:#%d" (file-truename buffer-file-name) (1- (position-bytes point))))
         (out (godoc--get-buffer "<at point>")))
@@ -413,9 +413,6 @@ For mode=set, all covered lines will have this weight."
     st)
   "Syntax table for Go mode.")
 
-(defvar go--default-face 'default
-  "A variable to refer to `default' face for use in font lock rules.")
-
 (defun go--fontify-type-switch-case-pre ()
   "Move point to line following the end of case statement.
 
@@ -447,7 +444,7 @@ statements."
        ;; Post-match form that runs after last sub-match.
        (go--fontify-param-post)
        ;; Subexp 1 is the param variable name, if any.
-       (1 ,(if go-fontify-variables 'font-lock-variable-name-face 'go--default-face))
+       (1 font-lock-variable-name-face nil t)
        ;; Subexp 2 is the param type name, if any. We set the LAXMATCH
        ;; flag to allow optional regex groups.
        (2 font-lock-type-face nil t)))
@@ -469,7 +466,7 @@ statements."
      ;; Match variable names in var decls, constant names in const
      ;; decls, and type names in type decls.
      (go--match-decl
-      (1 ,(if go-fontify-variables 'font-lock-variable-name-face 'go--default-face) nil t)
+      (1 font-lock-variable-name-face nil t)
       (2 font-lock-constant-face nil t)
       (3 font-lock-type-face nil t))
 
@@ -496,7 +493,7 @@ statements."
      (go--match-type-alias 2 font-lock-type-face)
 
      ;; Arrays/slices: []<type> | [123]<type> | [some.Const]<type> | [someConst]<type> | [...]<type>
-     (,(concat "\\[\\(?:[[:digit:]]+\\|" go-qualified-identifier-regexp "\\|" go-identifier-regexp "\\|\\.\\.\\.\\)?\\]" go-type-name-regexp) 1 font-lock-type-face)
+     (,(concat "\\(?:^\\|[^[:word:][:multibyte:]]\\)\\[\\(?:[[:digit:]]+\\|" go-qualified-identifier-regexp "\\|" go-identifier-regexp "\\|\\.\\.\\.\\)?\\]" go-type-name-regexp) 1 font-lock-type-face)
 
      ;; Unary "!"
      ("\\(!\\)[^=]" 1 font-lock-negation-char-face)
@@ -505,7 +502,7 @@ statements."
      (,(concat go-type-name-regexp "{") 1 font-lock-type-face)
 
      ;; Map value type
-     (,(concat "\\_<map\\_>\\[[^]]+\\]" go-type-name-regexp) 1 font-lock-type-face)
+     (go--match-map-value 1 font-lock-type-face)
 
      ;; Map key type
      (,(concat "\\_<map\\_>\\[" go-type-name-regexp) 1 font-lock-type-face)
@@ -850,9 +847,11 @@ thing for comments."
               (when mark-active
                 (setq arg (forward-paragraph arg)))
               (setq done t))
-          ;; If we are going backwards, back up one more line so
-          ;; we are on the line before the comment.
-          (when (= single -1)
+          ;; If we are going backwards, move forward one line so we
+          ;; are on the first interesting line of the comment. Note
+          ;; that the current line may already be interesting if we
+          ;; are at the beginning of the buffer.
+          (when (and (= single -1) (not (go--interesting-comment-p)))
             (forward-line 1))
           (cl-decf arg single))))
     arg))
@@ -876,7 +875,80 @@ The return value is the position of the opening paren."
        (point)))))
 
 (defun go-indentation-at-point ()
-  "Return the appropriate indentation for the current line.
+  "Return the appropriate indentation for the current line."
+  (save-excursion
+    (beginning-of-line)
+
+    (if (go-in-comment-p)
+        (go--multiline-comment-indent)
+      (go--indentation-at-point))))
+
+(defun go--multiline-comment-indent ()
+  "Return the appropriate indent inside multiline comment.
+
+Assumes point is at beginning of line within comment. This
+function has basic logic to indent as you add new lines to a
+multiline comment, and to line up all the `*' if each line starts
+with `*'. The gofmt behavior for multiline comments is
+surprisingly complex and strange/buggy, so we just aim to do
+something simple rather than encode all the subtle behavior."
+  (let* (;; Indent of current line.
+         (indent (current-indentation))
+         ;; Indent of opening "/*".
+         start-indent
+         ;; Default indent to use based on preceding context.
+         natural-indent
+         ;; Non-nil means keep existing indent and give up calculating indent.
+         give-up
+         ;; Whether all comment lines (except first) begin with "*".
+         (all-star t))
+
+    (save-excursion
+      (go-goto-beginning-of-string-or-comment)
+
+      (setq start-indent (current-indentation))
+
+      ;; If other stuff precedes start of multiline comment, give up.
+      (setq give-up (/= (current-column) start-indent))
+
+      ;; Skip "/*".
+      (forward-char 2)
+
+      (skip-syntax-forward " ")
+
+      (if (not (eolp))
+          ;; If we aren't at EOL, we have content on the first line.
+          ;; Base our natural indent on that.
+          (setq natural-indent (current-column))
+        ;; Otherwise default to 1 space beyond "/*".
+        (setq natural-indent (+ start-indent 3)))
+
+      (let (done)
+        (while (not done)
+          (setq done (or (looking-at ".*\\*/") (not (zerop (forward-line)))))
+          (setq all-star (and all-star (looking-at "[[:space:]]*\\*"))))))
+
+    ;; If previous line has comment content, use its indent as our
+    ;; natural indent.
+    (save-excursion
+      (when (zerop (forward-line -1))
+        (beginning-of-line)
+        (when (and (go-in-comment-p) (> (current-indentation) 0))
+          (setq natural-indent (current-indentation)))))
+
+    (cond
+     (give-up indent)
+
+     (all-star (1+ start-indent))
+
+     ;; Closing "*/" with no preceding content always lines up with "/*".
+     ((looking-at "[[:space:]]*\\*/") start-indent)
+
+     ;; If the line is already indented, leave it.
+     (t (if (zerop indent) natural-indent indent)))))
+
+(defun go--indentation-at-point ()
+  "Return the appropriate indentation for the current non-comment line.
 
 This function works by walking a line's characters backwards. When it
 encounters a closing paren or brace it bounces to the corresponding
@@ -1245,14 +1317,14 @@ INDENT is the normal indent of this line, i.e. that of the case body."
 (defun go-mode-indent-line ()
   (interactive)
   (let (indent
-        shift-amt
         ;; case sensitively match "case", "default", etc.
         (case-fold-search nil)
         (pos (- (point-max) (point)))
         (point (point))
-        (beg (line-beginning-position)))
+        (beg (line-beginning-position))
+        (non-tab-indents 0))
     (back-to-indentation)
-    (if (go-in-string-or-comment-p)
+    (if (go-in-string-p)
         (goto-char point)
       (setq indent (go-indentation-at-point))
       (when (or
@@ -1266,11 +1338,22 @@ INDENT is the normal indent of this line, i.e. that of the case body."
              ;; comment attached above a "case" statement
              (go--case-comment-p indent))
         (cl-decf indent tab-width))
-      (setq shift-amt (- indent (current-column)))
-      (if (zerop shift-amt)
-          nil
+
+      ;; Don't do anything if current indent is correct.
+      (when (/= indent (current-column))
+        ;; Don't use tabs for indenting beyond "/*" in multiline
+        ;; comments. They don't play well with gofmt.
+        (when (go-in-comment-p)
+          (save-excursion
+            (go-goto-beginning-of-string-or-comment)
+            (when (> indent (current-indentation))
+              (setq non-tab-indents (- indent (current-indentation)))
+              (setq indent (current-indentation)))))
+
         (delete-region beg (point))
-        (indent-to indent))
+        (indent-to indent)
+        (insert-char ?  non-tab-indents))
+
       ;; If initial point was within line's indentation,
       ;; position after the indentation.  Else stay at same point in text.
       (if (> (- (point-max) pos) (point))
@@ -1350,7 +1433,7 @@ func foo(i, j int) {}
                                     (go--parameter-list-type (point-max))
                                     'present))
 
-  ;; Remember where our match started so we can continue our serach
+  ;; Remember where our match started so we can continue our search
   ;; from here.
   (setq go--fontify-param-beg (point))
 
@@ -1441,6 +1524,10 @@ the next comma or to the closing paren."
     (while (and (not found-match) (not done))
       (if go--fontify-param-has-name
           (when (looking-at go--named-param-re)
+            (when (not go-fontify-variables)
+              (let ((md (match-data)))
+                (setf (nth 2 md) nil (nth 3 md) nil)
+                (set-match-data md)))
             (setq found-match t))
         (when (looking-at go--unnamed-param-re)
           (setq found-match t)))
@@ -1517,7 +1604,7 @@ comma, it stops at it. Return non-nil if comma was found."
 (defconst go--decl-ident-re (concat "\\(?:^\\|[[:space:]]\\)\\(\\(\\(" go-identifier-regexp "\\)\\)\\)\\_>"))
 
 (defun go--match-decl (end)
-  "Match identifers in \"var\", \"type\" and \"const\" decls, as
+  "Match identifiers in \"var\", \"type\" and \"const\" decls, as
 well as \":=\" assignments.
 
 In order to only scan once, the regex has three subexpressions
@@ -1548,16 +1635,18 @@ gets highlighted by the font lock keyword."
           (let ((md (match-data)))
             (cond
              ((string= decl "var")
-              (setf (nth 4 md) nil (nth 5 md) nil (nth 6 md) nil (nth 7 md) nil))
+              (setf (nth 4 md) nil (nth 5 md) nil (nth 6 md) nil (nth 7 md) nil)
+              (when (not go-fontify-variables)
+                (setf (nth 2 md) nil (nth 3 md) nil)))
              ((string= decl "const")
               (setf (nth 2 md) nil (nth 3 md) nil (nth 6 md) nil (nth 7 md) nil))
              ((string= decl "type")
               (setf (nth 2 md) nil (nth 3 md) nil (nth 4 md) nil (nth 5 md) nil)))
             (set-match-data md)))
 
-         (t
+         (go-fontify-variables
           (save-match-data
-            ;; Left side of ":=" assignmnet.
+            ;; Left side of ":=" assignment.
             (when (looking-at ".*:=")
               (let ((depth (go-paren-level)))
                 (goto-char (match-end 0))
@@ -1606,7 +1695,7 @@ succeeds."
   "Match single result types.
 
 Parenthetical result lists are handled by the param list keyword,
-so we need a separate keyword to handle singular reuslt types
+so we need a separate keyword to handle singular result types
 such as \"string\" in:
 
 func foo(i int) string"
@@ -1636,6 +1725,17 @@ We are looking for the right-hand-side of the type alias"
                          (go--in-paren-with-prefix-p ?\( "type"))))
     found-match))
 
+
+(defconst go--map-value-re
+  (concat "\\_<map\\_>\\[\\(?:\\[[^]]*\\]\\)*[^]]*\\]" go-type-name-regexp))
+
+(defun go--match-map-value (end)
+  "Search for map value types."
+  (when (re-search-forward go--map-value-re end t)
+    ;; Move point to beginning of map value in case value itself is
+    ;; also a map (we will match it next iteration).
+    (goto-char (match-beginning 1))
+    t))
 
 (defconst go--label-re (concat "\\(" go-label-regexp "\\):"))
 
@@ -1689,19 +1789,28 @@ This is intended to be called from `before-change-functions'."
   (setq go-dangling-cache (make-hash-table :test 'eql)))
 
 (defun go--electric-indent-function (inserted-char)
-  (cond
-   ;; Indent after starting a "//" or "/*" comment.
-   ;; This is handy for comments above "case" statements.
-   ((or (eq inserted-char ?/) (eq inserted-char ?*))
-    (when (eq (char-before (1- (point))) ?/)
-      'do-indent))
+  (let ((prev (char-before (1- (point)))))
+    (cond
+     ;; Indent after starting/ending a comment. This is handy for
+     ;; comments above "case" statements and closing multiline
+     ;; comments.
+     ((or
+       (and (eq inserted-char ?/) (eq prev ?/))
+       (and (eq inserted-char ?/) (eq prev ?*))
+       (and (eq inserted-char ?*) (eq prev ?/)))
+      'do-indent)
 
-   ((eq inserted-char ? )
-    (and
-     (eq (char-before (- (point) 1)) ?e)
-     (eq (char-before (- (point) 2)) ?s)
-     (eq (char-before (- (point) 3)) ?a)
-     (eq (char-before (- (point) 4)) ?c)))))
+     ((eq inserted-char ? )
+      (and
+       (eq prev ?e)
+       (eq (char-before (- (point) 2)) ?s)
+       (eq (char-before (- (point) 3)) ?a)
+       (eq (char-before (- (point) 4)) ?c)))
+
+     ;; Trick electric-indent-mode into indenting inside multiline
+     ;; comments.
+     ((and (eq inserted-char ?\n) (go-in-comment-p))
+      'do-indent))))
 
 (defun go--comment-region (beg end &optional arg)
   "Switch to block comment when commenting a partial line."
@@ -1839,7 +1948,7 @@ with goflymake (see URL `https://github.com/dougm/goflymake'), gocode
   ;; leading whitespace in the file name.
   ;;
   ;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2001-12/msg00674.html
-  ;; documents the old, reverseed order.
+  ;; documents the old, reversed order.
   (when (and (boundp 'compilation-error-regexp-alist)
              (boundp 'compilation-error-regexp-alist-alist))
     (add-to-list 'compilation-error-regexp-alist 'go-test)
@@ -2524,7 +2633,7 @@ for."
           (display-buffer (current-buffer) `(,go-coverage-display-buffer-func))))))
 
 (defun go-goto-function (&optional arg)
-  "Go to the function defintion (named or anonymous) surrounding point.
+  "Go to the function definition (named or anonymous) surrounding point.
 
 If we are on a docstring, follow the docstring down.
 If no function is found, assume that we are at the top of a file
@@ -2910,7 +3019,7 @@ If BUFFER, return the number of characters in that buffer instead."
 (defvar go-dot-mod-font-lock-keywords
   `(
     (,(concat "^\\s-*\\(" (regexp-opt go-dot-mod-mode-keywords t) "\\)\\s-") 1 font-lock-keyword-face)
-    ("^\\s-*\\([^[:space:]]+\\)\\s-+\\(v[0-9]+\\.[0-9]+\\.[0-9]+\\)\\([^[:space:]\n]*\\)" (1 'go-dot-mod-module-name) (2 'go-dot-mod-module-semver) (3 'go-dot-mod-module-version)))
+    ("\\(?:^\\|=>\\)\\s-*\\([^[:space:]\n()]+\\)\\(?:\\s-+\\(v[0-9]+\\.[0-9]+\\.[0-9]+\\)\\([^[:space:]\n]*\\)\\)?" (1 'go-dot-mod-module-name) (2 'go-dot-mod-module-semver nil t) (3 'go-dot-mod-module-version nil t)))
   "Keyword highlighting specification for `go-dot-mod-mode'.")
 
 ;;;###autoload
