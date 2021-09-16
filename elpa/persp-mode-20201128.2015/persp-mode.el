@@ -3,9 +3,9 @@
 ;; Copyright (C) 2012 Constantin Kulikov
 
 ;; Author: Constantin Kulikov (Bad_ptr) <zxnotdead@gmail.com>
-;; Version: 3.0.0
-;; Package-Version: 20200617.2154
-;; Package-Commit: 14325c11f7a347717d7c3780f29b24a38c68fbfc
+;; Version: 3.0.2
+;; Package-Version: 20201128.2015
+;; Package-Commit: 298df111f081b5925f0aa0126a1b8d334117e0a2
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: perspectives, session, workspace, persistence, windows, buffers, convenience
 ;; URL: https://github.com/Bad-ptr/persp-mode.el
@@ -314,9 +314,9 @@ function -- use that function as buffer-predicate."
                    th #'(lambda ()
                           (run-at-time
                            10 nil #'(lambda ()
-                                      (remove-hook 'emacs-startup-hook th)
+                                      (remove-hook 'window-setup-hook th)
                                       (persp-update-frames-buffer-predicate)))))
-                  (add-hook 'emacs-startup-hook th))
+                  (add-hook 'window-setup-hook th))
               (add-hook 'persp-mode-hook
                         #'persp-update-frames-buffer-predicate)))
         (persp-update-frames-buffer-predicate t))))
@@ -781,8 +781,23 @@ function -- run that function."
   :type
   '(choice
     (const :tag "Standard action" :value t)
+    (const :tag "Do nothing" :value nil)
     (function :tag "Run function"
               :value (lambda (frame persp new-frame-p) nil))))
+
+(defcustom persp-restore-window-conf-filter-functions
+  (list #'(lambda (f p new-f-p)
+            (or (null f)
+                (frame-parameter f 'persp-ignore-wconf)
+                (let ((old-piw (frame-parameter f 'persp-ignore-wconf-once)))
+                  (when old-piw
+                    (set-frame-parameter f 'persp-ignore-wconf-once nil)
+                    old-piw)))))
+  "The list of functions which takes a frame, persp and new-frame-p as arguments.
+If one of these functions return a non nil value then the window configuration
+of the persp will not be restored for the frame"
+  :group 'persp-mode
+  :type 'hook)
 
 (defcustom persp-window-state-get-function
   (if persp-use-workgroups
@@ -1271,14 +1286,32 @@ the selected window to a wrong buffer.")
 
 ;; Used in mode defenition:
 
-(defun persp-mode-start-and-remove-from-make-frame-hook (f)
-  (persp-mode 1)
+(defun persp-mode-restore-and-remove-from-make-frame-hook (&optional f)
   (remove-hook 'after-make-frame-functions
-               #'persp-mode-start-and-remove-from-make-frame-hook))
+               #'persp-mode-restore-and-remove-from-make-frame-hook)
+  (if (> persp-auto-resume-time 0)
+      (run-at-time
+       persp-auto-resume-time nil
+       #'(lambda ()
+           (remove-hook 'find-file-hook
+                        #'persp-special-last-buffer-make-current)
+           (when (> persp-auto-resume-time 0)
+             (condition-case-unless-debug err
+                 (persp-load-state-from-file)
+               (error
+                (message
+                 "[persp-mode] Error: Can not autoresume perspectives -- %s"
+                 err)))
+             (when (persp-get-buffer-or-null persp-special-last-buffer)
+               (persp-switch-to-buffer persp-special-last-buffer)))))
+    (remove-hook 'find-file-hook
+                 #'persp-special-last-buffer-make-current)))
 
-(defun persp-asave-on-exit (&optional interactive-query)
+(defun persp-asave-on-exit (&optional interactive-query opt)
   (when persp-mode
-    (if (> persp-auto-save-opt 0)
+    (when (null opt)
+      (setq opt 0))
+    (if (> persp-auto-save-opt opt)
         (condition-case-unless-debug err
             (persp-save-state-to-file)
           (error
@@ -1763,71 +1796,55 @@ Here is a keymap of this minor mode:
       (when (or (eq 'persp-force-restart persp-mode) (null *persp-hash*))
         (setq persp-special-last-buffer nil)
         (add-hook 'find-file-hook #'persp-special-last-buffer-make-current)
+
+        (setq *persp-hash* (make-hash-table :test #'equal :size 10))
+        (setq persp-buffer-props-hash (make-hash-table :test #'eq :size 10))
+        (setq persp-names-cache nil)
+
+        (push '(persp . writable) window-persistent-parameters)
+
+        (persp-add-minor-mode-menu)
+        (persp-add-new persp-nil-name)
+
+        (add-hook 'find-file-hook              #'persp-add-or-not-on-find-file)
+        (add-hook 'kill-buffer-query-functions #'persp-kill-buffer-query-function)
+        (add-hook 'kill-buffer-hook            #'persp-kill-buffer-h)
+        (add-hook 'before-make-frame-hook      #'persp-before-make-frame)
+        (add-hook 'after-make-frame-functions  #'persp-init-new-frame)
+        (add-hook 'delete-frame-functions      #'persp-delete-frame)
+        (add-hook 'kill-emacs-query-functions  #'persp-kill-emacs-query-function)
+        (add-hook 'kill-emacs-hook             #'persp-kill-emacs-h)
+        (add-hook 'server-switch-hook          #'persp-server-switch)
+        (add-hook 'after-change-major-mode-hook #'persp-after-change-major-mode-h)
+
+        (persp-set-ido-hooks persp-set-ido-hooks)
+        (persp-set-read-buffer-function persp-set-read-buffer-function)
+
+        (persp-update-completion-system persp-interactive-completion-system)
+
+        (condition-case-unless-debug err
+            (mapc #'persp-init-frame (persp-frame-list-without-daemon))
+          (error
+           (message "[persp-mode] Error: Can not initialize frame -- %s"
+                    err)))
+
+        (when (fboundp 'tabbar-mode)
+          (setq tabbar-buffer-list-function #'persp-buffer-list))
+
+        (persp-auto-persps-activate-hooks)
+
         (if (or noninteractive
                 (and (daemonp)
                      (null (cdr (frame-list)))
                      (eq (selected-frame) terminal-frame)))
-            (progn
-              (add-hook 'after-make-frame-functions
-                        #'persp-mode-start-and-remove-from-make-frame-hook)
-              (setq persp-mode nil))
-
-          (setq *persp-hash* (make-hash-table :test #'equal :size 10))
-          (setq persp-buffer-props-hash (make-hash-table :test #'eq :size 10))
-          (setq persp-names-cache nil)
-
-          (push '(persp . writable) window-persistent-parameters)
-
-          (persp-add-minor-mode-menu)
-          (persp-add-new persp-nil-name)
-
-          (add-hook 'find-file-hook              #'persp-add-or-not-on-find-file)
-          (add-hook 'kill-buffer-query-functions #'persp-kill-buffer-query-function)
-          (add-hook 'kill-buffer-hook            #'persp-kill-buffer-h)
-          (add-hook 'before-make-frame-hook      #'persp-before-make-frame)
-          (add-hook 'after-make-frame-functions  #'persp-init-new-frame)
-          (add-hook 'delete-frame-functions      #'persp-delete-frame)
-          (add-hook 'kill-emacs-query-functions  #'persp-kill-emacs-query-function)
-          (add-hook 'kill-emacs-hook             #'persp-kill-emacs-h)
-          (add-hook 'server-switch-hook          #'persp-server-switch)
-          (add-hook 'after-change-major-mode-hook #'persp-after-change-major-mode-h)
-
-          (persp-set-ido-hooks persp-set-ido-hooks)
-          (persp-set-read-buffer-function persp-set-read-buffer-function)
-
-          (persp-update-completion-system persp-interactive-completion-system)
-
-          (condition-case-unless-debug err
-              (mapc #'persp-init-frame (persp-frame-list-without-daemon))
-            (error
-             (message "[persp-mode] Error: Can not initialize frame -- %s"
-                      err)))
-
-          (when (fboundp 'tabbar-mode)
-            (setq tabbar-buffer-list-function #'persp-buffer-list))
-
-          (persp-auto-persps-activate-hooks)
-
-          (if (> persp-auto-resume-time 0)
-              (run-at-time
-               persp-auto-resume-time nil
-               #'(lambda ()
-                   (remove-hook 'find-file-hook
-                                #'persp-special-last-buffer-make-current)
-                   (when (> persp-auto-resume-time 0)
-                     (condition-case-unless-debug err
-                         (persp-load-state-from-file)
-                       (error
-                        (message
-                         "[persp-mode] Error: Can not autoresume perspectives -- %s"
-                         err)))
-                     (when (persp-get-buffer-or-null persp-special-last-buffer)
-                       (persp-switch-to-buffer persp-special-last-buffer)))))
-            (remove-hook 'find-file-hook
-                         #'persp-special-last-buffer-make-current))))
+            (add-hook 'after-make-frame-functions
+                      #'persp-mode-restore-and-remove-from-make-frame-hook)
+          (persp-mode-restore-and-remove-from-make-frame-hook)))
 
     (run-hooks 'persp-mode-deactivated-hook)
-    (when (> persp-auto-save-opt 1) (persp-save-state-to-file))
+    (unless (memq #'persp-mode-restore-and-remove-from-make-frame-hook
+                  after-make-frame-functions)
+      (persp-asave-on-exit t 1))
 
     (remove-hook 'find-file-hook               #'persp-add-or-not-on-find-file)
     (remove-hook 'kill-buffer-query-functions  #'persp-kill-buffer-query-function)
@@ -3553,18 +3570,15 @@ Return `NAME'."
                  unless (window-parameter win 'window-side)
                  return win)))
     (when win
-      (delete-other-windows win))))
+      (let ((ignore-window-parameters t))
+        (delete-other-windows win)))))
 
 (cl-defun persp-restore-window-conf (&optional (frame (selected-frame))
                                                (persp (get-frame-persp frame))
                                                new-frame-p)
-  (when (and frame (not (frame-parameter frame 'persp-ignore-wconf))
-             (not (let ((old-piw (frame-parameter
-                                  frame 'persp-ignore-wconf-once)))
-                    (when old-piw
-                      (set-frame-parameter frame 'persp-ignore-wconf-once nil))
-                    old-piw)))
-    (when new-frame-p (sit-for 0.01))
+  (when new-frame-p (sit-for 0.01))
+  (unless (run-hook-with-args-until-success 'persp-restore-window-conf-filter-functions
+                                            frame persp new-frame-p)
     (with-selected-frame frame
       (let ((pwc (safe-persp-window-conf persp))
             (split-width-threshold 2)
@@ -3581,6 +3595,7 @@ Return `NAME'."
             (cond
              ((functionp persp-restore-window-conf-method)
               (funcall persp-restore-window-conf-method frame persp new-frame-p))
+             ((null persp-restore-window-conf-method) nil)
              (t
               (if pwc
                   (progn
@@ -3808,10 +3823,11 @@ of the perspective %s can't be saved."
            fname temphash (cons :not (regexp-opt names)))
           (setq bufferlist-diff
                 (cl-delete-if #'(lambda (bcons)
-                                  (cl-destructuring-bind (buf . buf-persps) bcons
-                                    (when buf
-                                      (persp--buffer-in-persps-set buf buf-persps)
-                                      t)))
+                                  (when bcons
+                                    (cl-destructuring-bind (buf . buf-persps) bcons
+                                      (when buf
+                                        (persp--buffer-in-persps-set buf buf-persps)
+                                        t))))
                               (funcall persp-buffer-list-function)
                               :key #'(lambda (b) (assq b bufferlist-pre))))))
       (mapc #'(lambda (p)
