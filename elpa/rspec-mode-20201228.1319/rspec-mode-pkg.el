@@ -1,12 +1,12 @@
-(define-package "rspec-mode" "20200615.1443" "Enhance ruby-mode for RSpec"
+(define-package "rspec-mode" "20201228.1319" "Enhance ruby-mode for RSpec"
   '((ruby-mode "1.0")
     (cl-lib "0.4"))
-  :commit "f1029cad2a8d9fd096e9a0f1ae9e7d7e2c8bd1ec" :keywords
-  '("rspec" "ruby")
-  :authors
+  :commit "92ef785010f6a68cbf73861e75ac6cf4e1832291" :authors
   '(("Peter Williams, et al."))
   :maintainer
   '("Peter Williams, et al.")
+  :keywords
+  '("rspec" "ruby")
   :url "http://github.com/pezra/rspec-mode")
 ;; Local Variables:
 ;; no-byte-compile: t
