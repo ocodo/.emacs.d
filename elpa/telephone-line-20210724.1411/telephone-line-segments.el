@@ -67,9 +67,9 @@ Set HIDE-LF to display nothing for unix endings, as it can be an assumed default
 Adapted from doom-modeline."
   (pcase (coding-system-eol-type buffer-file-coding-system)
     (0 (if hide-lf nil
-         "LF")
-       (1 "CRLF")
-       (2 "CR"))))
+         "LF"))
+    (1 "CRLF")
+    (2 "CR")))
 
 (telephone-line-defsegment* telephone-line-atom-encoding-segment (&optional hide-utf8)
   "Displays the encoding of the buffer the same way Atom does.
@@ -96,8 +96,7 @@ Adapted from doom-modeline."
 ;; For a file like /a/b/c/file.txt, this should display
 ;; file.txt
 (telephone-line-defsegment telephone-line-buffer-name-segment ()
-  mode-line-buffer-identification
-  )
+  mode-line-buffer-identification)
 
 ;; For a file like /a/b/c/file.txt, this should display
 ;; /a/b/c/file.txt
@@ -268,7 +267,10 @@ Configure the face group telephone-line-evil to change the colors per-mode."
 (telephone-line-defsegment telephone-line-flymake-segment ()
   "Wraps `flymake-mode' mode-line information in a telephone-line segment."
   (when (bound-and-true-p flymake-mode)
-    (telephone-line-raw flymake--mode-line-format t)))
+    (telephone-line-raw
+     (if (boundp flymake--mode-line-format) 
+         flymake--mode-line-format
+       flymake-mode-line-format) t)))
 
 (telephone-line-defsegment telephone-line-flycheck-segment ()
   "Displays current checker state."
