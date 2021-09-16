@@ -10,10 +10,7 @@
 ;;;;;;  0 0 0))
 ;;; Generated autoloads from haskell-snippets.el
 
-(autoload 'haskell-snippets-initialize "haskell-snippets" "\
-
-
-\(fn)" nil nil)
+(autoload 'haskell-snippets-initialize "haskell-snippets" nil nil nil)
 
 (eval-after-load 'yasnippet '(haskell-snippets-initialize))
 
