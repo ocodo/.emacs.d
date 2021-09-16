@@ -3,8 +3,9 @@
 ;; Copyright (C) 2017  Fritz Stelzer <brotzeitmacher@gmail.com>
 
 ;; Author: Fritz Stelzer <brotzeitmacher@gmail.com>
-;; URL: https://github.com/brotzeitmacher/pippel
-;; Version: 1.2
+;; Maintainer: Arif Er <arifer612@protonmail.me>
+;; URL: https://github.com/arifer612/pippel
+;; Version: 1.3
 ;; Package-Requires: ((emacs "25.1") (s "1.11.0") (dash "2.12.0"))
 
 ;;; License:

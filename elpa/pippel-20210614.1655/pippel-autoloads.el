@@ -15,9 +15,7 @@ Prompt user for a string containing packages to be installed.
 \(fn ARG)" t nil)
 
 (autoload 'pippel-list-packages "pippel" "\
-Display a list of installed packages.
-
-\(fn)" t nil)
+Display a list of installed packages." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "pippel" '("pippel-")))
 
