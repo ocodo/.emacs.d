@@ -1,0 +1,2 @@
+;;; Generated package description from ido-complete-space-or-hyphen.el  -*- no-byte-compile: t -*-
+(define-package "ido-complete-space-or-hyphen" "20210206.1505" "Allow spaces to also match hyphens in ido" 'nil :commit "d1244243e042b8d5b6b991db752a17a44ea169bc" :authors '(("Ryan C. Thompson" . "rct@thompsonclan.org") ("Ian Yang <me (at) iany.me>")) :maintainer '("Ryan C. Thompson" . "rct@thompsonclan.org") :keywords '("ido" "completion" "convenience") :url "https://github.com/DarwinAwardWinner/ido-complete-space-or-hyphen")

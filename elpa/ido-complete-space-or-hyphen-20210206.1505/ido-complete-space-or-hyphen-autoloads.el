@@ -23,6 +23,12 @@ or call the function `ido-complete-space-or-hyphen-mode'.")
 (autoload 'ido-complete-space-or-hyphen-mode "ido-complete-space-or-hyphen" "\
 Toggle ido-complete-space-or-hyphen mode.
 
+If called interactively, enable Ido-Complete-Space-Or-Hyphen mode
+if ARG is positive, and disable it if ARG is zero or negative.
+If called from Lisp, also enable the mode if ARG is omitted or
+nil, and toggle it if ARG is `toggle'; disable the mode
+otherwise.
+
 The default behavior of ido SPACE key will try to insert SPACE if it makes
 sense (a.k.a, the common part of all matches contains SPACE). Howerver,
 when ido is used to complete lisp functions or variables, like what smex
@@ -38,14 +44,10 @@ within a function by let-binding this to nil:
 \(fn &optional ARG)" t nil)
 
 (autoload 'ido-complete-space-or-hyphen-enable "ido-complete-space-or-hyphen" "\
-Enable ido-complete-space-or-hyphen
-
-\(fn)" t nil)
+Enable ido-complete-space-or-hyphen" t nil)
 
 (autoload 'ido-complete-space-or-hyphen-disable "ido-complete-space-or-hyphen" "\
-Disable ido-complete-space-or-hyphen
-
-\(fn)" t nil)
+Disable ido-complete-space-or-hyphen" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ido-complete-space-or-hyphen" '("ido-complete-space-or-hyphen")))
 

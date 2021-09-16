@@ -1,14 +1,16 @@
-;;; ido-complete-space-or-hyphen.el --- Complete SPACE or HYPHEN when type SPACE in ido
+;;; ido-complete-space-or-hyphen.el --- Allow spaces to also match hyphens in ido
 
-;; Author: Ian Yang <me (at) iany.me>
-;; Keywords: ido completion
-;; Package-Version: 20180929.150
+;; Author: Ryan C. Thompson <rct@thompsonclan.org>
+;;         Ian Yang <me (at) iany.me>
+;; Maintainer: Ryan C. Thompson <rct@thompsonclan.org>
+;; Keywords: ido, completion, convenience
+;; Package-Version: 20210206.1505
+;; Package-Commit: d1244243e042b8d5b6b991db752a17a44ea169bc
 ;; Filename: ido-complete-space-or-hyphen.el
-;; Description: Complete SPACE or HYPHEN when type SPACE in ido
+;; Version: 1.3
+;; URL: https://github.com/DarwinAwardWinner/ido-complete-space-or-hyphen
 ;; Created: 2012-11-07 13:58
-;; Version: 1.2
-;; Last-Updated: Fri Sep 28 06:19:26 2018 (-0700)
-;; URL: https://github.com/doitian/ido-complete-space-or-hyphen
+;; Last-Updated: Sat Feb  6 10:05:06 2021 (-0500)
 
 ;;; Licence:
 
@@ -76,13 +78,14 @@
 ;;; Usage:
 
 ;;     (require 'ido-complete-space-or-hyphen)
-;;     (ido-mode t)
+;;     (ido-mode 1)
+;;     (ido-complete-space-or-hyphen-mode 1)
 ;;
 ;; Recommended packages that can be used together:
 ;;
+;; -   [ido-completing-read+](https://github.com/DarwinAwardWinner/ido-completing-read-plus) Use ido completion wherever possible
 ;; -   [smex](https://github.com/nonsequitur/smex) a M-x enhancement
-;; -   [ido-hacks.el](https://github.com/scottjad/ido-hacks) Use ido anywhere
-;;     and a faster flex search.
+;; -   [amx](https://github.com/DarwinAwardWinner/amx) another ido-based M-x
 ;;
 
 ;;; Changes
@@ -90,7 +93,7 @@
 ;; -   1.1 (2013-02-27)
 ;;
 ;;     -  Add `ido-complete-space-or-hyphen--insert-space' to allow user type
-;;        SPACE twice to insert SPCE.
+;;        SPACE twice to insert SPACE.
 ;;
 ;; -   1.2
 ;;
@@ -184,7 +187,8 @@ It allows user press SPACE twice to insert real SPACE.
   (ido-complete-space-or-hyphen-mode 1))
 (make-obsolete
  'ido-complete-space-or-hyphen-enable
- "use `(ido-complete-space-or-hyphen-mode 1)' instead.")
+ "use `(ido-complete-space-or-hyphen-mode 1)' instead."
+ "ido-complete-space-or-hyphen 1.2")
 
 ;;;###autoload
 (defun ido-complete-space-or-hyphen-disable ()
@@ -192,8 +196,9 @@ It allows user press SPACE twice to insert real SPACE.
   (interactive)
   (ido-complete-space-or-hyphen-mode 1))
 (make-obsolete
- 'ido-complete-space-or-hyphen-enable
- "use `(ido-complete-space-or-hyphen-mode 0)' instead.")
+ 'ido-complete-space-or-hyphen-disable
+ "use `(ido-complete-space-or-hyphen-mode 0)' instead."
+ "ido-complete-space-or-hyphen 1.2")
 
 (provide 'ido-complete-space-or-hyphen)
 
