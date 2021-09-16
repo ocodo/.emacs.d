@@ -1,2 +1,0 @@
-;;; Generated package description from /Users/jason/.emacs.d/elpa/ivy-lobsters-20171202.2041/ivy-lobsters.el  -*- no-byte-compile: t -*-
-(define-package "ivy-lobsters" "20171202.2041" "Browse lobste.rs stories with ivy." '((ivy "0.8.0") (cl-lib "0.5")) :commit "4364df4b3685fd1b50865ac9360fb948c0288dd1" :authors '(("Julien Blanchard <https://github.com/julienXX>")) :maintainer '("Julien Blanchard <https://github.com/julienXX>") :url "https://github.com/julienXX/ivy-lobsters")

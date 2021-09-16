@@ -1,2 +1,0 @@
-;;; Generated package description from /Users/jason/.emacs.d/elpa/ivy-historian-20190111.313/ivy-historian.el  -*- no-byte-compile: t -*-
-(define-package "ivy-historian" "20190111.313" "Persistently store selected minibuffer candidates" '((emacs "24.4") (historian "20170111") (ivy "0.8.0") (flx "0.6.1")) :commit "ac1bea7d99dd6965c72fabeb72d5fdc38c5380a4" :keywords '("convenience" "ivy") :authors '(("PythonNut" . "pythonnut@pythonnut.com")) :maintainer '("PythonNut" . "pythonnut@pythonnut.com") :url "https://github.com/PythonNut/historian.el")
