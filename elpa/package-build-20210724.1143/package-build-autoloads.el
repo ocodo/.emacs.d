@@ -11,7 +11,7 @@
 
 (autoload 'package-build-archive "package-build" "\
 Build a package archive for the package named NAME.
-if DUMP-ARCHIVE-CONTENTS is non-nil, the updated archive contents
+If DUMP-ARCHIVE-CONTENTS is non-nil, the updated archive contents
 are subsequently dumped.
 
 \(fn NAME &optional DUMP-ARCHIVE-CONTENTS)" t nil)
