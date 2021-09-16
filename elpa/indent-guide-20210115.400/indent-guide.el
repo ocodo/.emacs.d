@@ -18,8 +18,8 @@
 
 ;; Author: zk_phi
 ;; URL: http://hins11.yu-yake.com/
-;; Package-Version: 20191106.240
-;; Package-Commit: 7fc710748f9e5a086acfe77970f117df89ee9749
+;; Package-Version: 20210115.400
+;; Package-Commit: d388c3387781a370ca13233ff445d03f3c5cf12f
 ;; Version: 2.3.1
 
 ;;; Commentary:
@@ -150,9 +150,12 @@ blocks are NOT placed at beginning of line."
   (cond ((<= level 0)
          (list ""))
         ((>= level tab-width)
-         (cons (concat "\t" (make-string (- level tab-width) ?\s))
-               (cons (make-string level ?\s)
-                     (indent-guide--indentation-candidates (1- level)))))
+         (let ((ntabs (/ level tab-width))
+               (nspaces (mod level tab-width)))
+           (cons (concat (make-string ntabs ?\t)
+                         (make-string nspaces ?\s))
+                 (cons (make-string level ?\s)
+                       (indent-guide--indentation-candidates (1- level))))))
         (t
          (cons (make-string level ?\s)
                (indent-guide--indentation-candidates (1- level))))))
