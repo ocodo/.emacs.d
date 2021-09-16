@@ -5,7 +5,8 @@
 ;; Author: Lorenzo Bolla <lbolla@gmail.com>
 ;; Created: 26 March 2016
 ;; Version: 1.0
-;; Package-Version: 20180810.642
+;; Package-Version: 20210413.612
+;; Package-Commit: b57a77a21d6cf9621b3387831cba34135c4fa35d
 ;; Package-Requires: ((flycheck "0.25"))
 
 ;;; Commentary:
@@ -42,7 +43,7 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Code:
-(require 'cl)
+(require 'cl-lib)
 (require 'flycheck)
 
 (defun find-project-root (filename)
