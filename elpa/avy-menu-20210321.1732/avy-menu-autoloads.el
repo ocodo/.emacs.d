@@ -12,20 +12,20 @@
 (autoload 'avy-menu "avy-menu" "\
 Show a popup menu in a temporary window and return user's selection.
 
-BUFFER-OR-NAME specifies name of the buffer (or buffer itself)
-that hosts menu options.  MENU itself should be a list of the
-form (TITLE PANE1 PANE2 …), where each pane is a list of
+BUFFER-OR-NAME specifies the name of the buffer (or the buffer
+itself) that hosts the menu options.  MENU should be a list of
+the form (TITLE PANE1 PANE2 …), where each pane is a list of the
 form (TITLE ITEM1 ITEM2 …).  Each item is normally a cons
 cell (STRING . VALUE), but a string can appear as an item—that
-makes a non-selectable item in the menu.  Also, empty strings
-start a new sub-section.
+adds a non-selectable item in the menu.  Also, empty strings
+start new sub-sections.
 
 If SHOW-PANE-HEADER is not NIL, show pane headers (titles),
 otherwise hide them.
 
-Returned value is VALUE if user has selected something and NIL if
-he has cancelled the whole menu or pressed key that does not
-correspond to any available option.
+The returned value is VALUE if user has selected something and
+NIL if they have cancelled the menu or pressed a key that does
+not correspond to an option in the menu.
 
 \(fn BUFFER-OR-NAME MENU &optional SHOW-PANE-HEADER)" nil nil)
 
