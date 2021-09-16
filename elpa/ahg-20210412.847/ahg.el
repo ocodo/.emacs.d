@@ -4,8 +4,8 @@
 
 ;; Author: Alberto Griggio <agriggio@users.sourceforge.net>
 ;; URL: https://bitbucket.org/agriggio/ahg
-;; Package-Version: 20200304.741
-;; Package-Commit: 0ece48646ef7a8c813005934cc13f984b9998707
+;; Package-Version: 20210412.847
+;; Package-Commit: 77bc2a628df006dcd2dc359ac12acdf8091a1356
 ;; Version: 1.0.0
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -4923,7 +4923,9 @@ destination buffer. If nil, a new buffer will be used.
         (process-connection-type use-shell)
         (process-adaptive-read-buffering nil))
     (unless no-hgplain (setenv "HGPLAINEXCEPT" "alias,revsetalias"))
-    (unless ahg-i18n (setenv "LANG"))
+    (unless ahg-i18n
+      (if (string= ahg-subprocess-coding-system "utf-8")
+          (setenv "LANG" "C.UTF-8") (setenv "LANG")))
     ;; (when (and (not use-shell) use-temp-file)
     ;;   (setq args (mapcar 'shell-quote-argument args)))
     (let ((process
