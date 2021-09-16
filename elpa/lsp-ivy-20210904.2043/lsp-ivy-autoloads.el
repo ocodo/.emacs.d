@@ -21,6 +21,9 @@ When called with prefix ARG the default selection will be symbol at point.
 
 \(fn ARG)" t nil)
 
+(autoload 'lsp-ivy-workspace-folders-remove "lsp-ivy" "\
+Remove a project-root from the list of workspace folders." t nil)
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lsp-ivy" '("lsp-ivy-")))
 
 ;;;***
