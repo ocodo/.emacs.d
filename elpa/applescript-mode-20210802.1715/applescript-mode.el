@@ -1,46 +1,44 @@
-;;; applescript-mode.el --- Major mode for editing AppleScript source
+;;; applescript-mode.el --- major mode for editing AppleScript source
 
-;; Copyright (C) 2004-2012 MacEmacs JP Project
+;; Copyright (C) 2004  MacEmacs JP Project
 
 ;;; Credits:
+;;
 ;; Copyright (C) 2003,2004 FUJIMOTO Hisakuni
 ;;   http://www.fobj.com/~hisa/w/applescript.el.html
 ;; Copyright (C) 2003 443,435 (Public Domain?)
 ;;   http://pc.2ch.net/test/read.cgi/mac/1034581863/
 ;; Copyright (C) 2004 Harley Gorrell <harley@mahalito.net>
 ;;   http://www.mahalito.net/~harley/elisp/osx-osascript.el
-;; Copyright (C) 2009 Ian Eure
-;;   https://github.com/ieure/applescript-mode
 
 ;; Author: sakito <sakito@users.sourceforge.jp>
-;; Version: $Revision: 580 $
-;; Package-Version: 20120205.307
-;; Keywords: AppleScript languages
+;; URL: https://github.com/emacsorphanage/applescript-mode
+;; Package-Version: 20210802.1715
+;; Package-Commit: 00c141bbff46c89a96598b605dee05dd1d89f624
+;; Keywords: languages, tools
+;; Version: 0.1
+;; Package-Requires: ((emacs "24.3"))
 
-(defconst applescript-mode-version "$Revision: 580 $"
+(defconst applescript-mode-version "$Revision$"
   "The current version of the AppleScript mode.")
 
 (defconst applescript-mode-help-address "sakito@users.sourceforge.jp"
   "Address accepting submission of bug reports.")
 
-;;; This file is NOT part of GNU Emacs
-
-;;; License
-;;
-;; This program is free software; you can redistribute it and/or modify
+;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; This file is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth
-;; Floor, Boston, MA 02110-1301, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -49,7 +47,7 @@
 ;;; Usage:
 ;; To use applescript-mode.el put the following line in your .emacs:
 ;; (autoload 'applescript-mode "applescript-mode"
-;;    "Major mode for editing AppleScript source." t)
+;;   "Major mode for editing AppleScript source." t)
 ;; (add-to-list 'auto-mode-alist '("\\.applescript$" . applescript-mode))
 
 ;; Please use the SourceForge MacEmacs JP Project to submit bugs or
@@ -73,12 +71,12 @@
   :prefix "as-")
 
 (defcustom as-osascript-command "osascript"
-  "*execute AppleScripts and other OSA language scripts."
+  "Execute AppleScripts and other OSA language scripts."
   :type 'string
   :group 'applescript)
 
 (defcustom as-osacompile-command "osacompile"
-  "*compile AppleScripts and other OSA language scripts."
+  "Compile AppleScripts and other OSA language scripts."
   :type 'string
   :group 'applescript)
 
@@ -114,6 +112,8 @@ for a block opening statement are given this extra offset."
   "Face for command like copy, get, set, and error.")
 (make-face 'as-command-face)
 
+(declare-function do-applescript "")
+
 (defun as-font-lock-mode-hook ()
   (or (face-differs-from-default-p 'as-pseudo-keyword-face)
       (copy-face 'font-lock-keyword-face 'as-pseudo-keyword-face))
@@ -121,20 +121,20 @@ for a block opening statement are given this extra offset."
       (copy-face 'font-lock-keyword-face 'as-command-face)))
 (add-hook 'font-lock-mode-hook 'as-font-lock-mode-hook)
 
-(defconst applescript-font-lock-keywords
+(defvar applescript-font-lock-keywords
   (let (
         ;; expressions and control Statements
         (kw1 (regexp-opt
               '("and" "app" "application" "considering" "div"
                 "else" "end" "exit" "is" "mod" "not" "on" "or"
-                "if" "ignoring" "reopen" "repeat" "return"
-                "tell" "then" "to" "try"
+                "if" "ignoring" "reopen" "repeat"
+                "tell" "then" "to"
                 "using[ \t]terms[ \t]from"
                 "with[ \t]timeout" "with[ \t]transaction")))
         ;; commands
         (kw2 (regexp-opt
               '("ASCII[ \t]character" "ASCII[ \t]number" "activate" "AGStart"
-                "beep" "copy" "count" "choose[ \t]application"
+                "beep"  "copy" "count" "choose[ \t]application"
                 "choose[ \t]file" "choose[ \t]folder" "close[ \t]access"
                 "current[ \t]date" "display[ \t]dialog" "get" "get[ \t]EOF"
                 "info[ \t]for" "launch" "list[ \t]disks" "list[ \t]folder"
@@ -144,8 +144,7 @@ for a block opening statement are given this extra offset."
                 "read" "round" "run" "run[ \t]script" "scripting[ \t]component"
                 "set" "set[ \t]EOF" "set[ \t]monitor[ \t]depth" "set[ \t]volume"
                 "start[ \t]log" "stop[ \t]log" "store[ \t]script"
-                "time[ \t]to[ \t]GMT" "write"
-                )))
+                "time[ \t]to[ \t]GMT" "write")))
         ;; misc
         (kw3 (regexp-opt
               '("buttons" "default[ \t]answer" "default[ \t]button"
@@ -177,6 +176,22 @@ for a block opening statement are given this extra offset."
 (defvar applescript-mode-hook nil
   "*Hook called by `applescript-mode'.")
 
+(defvar as-mode-map ()
+  "Keymap used in `applescript-mode' buffers.")
+(if as-mode-map
+    nil
+  (setq as-mode-map (make-sparse-keymap))
+  ;; Key bindings
+
+  ;; subprocess commands
+  (define-key as-mode-map "\C-c\C-c" 'as-execute-buffer)
+  (define-key as-mode-map "\C-c\C-s" 'as-execute-string)
+  (define-key as-mode-map "\C-c|" 'as-execute-region)
+
+  ;; Miscellaneous
+  (define-key as-mode-map "\C-c;" 'comment-region)
+  (define-key as-mode-map "\C-c:" 'uncomment-region))
+
 (defvar as-mode-syntax-table nil
   "Syntax table used in `applescript-mode' buffers.")
 (when (not as-mode-syntax-table)
@@ -202,8 +217,6 @@ for a block opening statement are given this extra offset."
   (modify-syntax-entry ?\\ "." as-mode-syntax-table)
   (modify-syntax-entry ?\' "." as-mode-syntax-table)
 
-  ;; a single hash starts a comment
-  (modify-syntax-entry ?\# "<" as-mode-syntax-table)
   ;; a double hyphen starts a comment
   (modify-syntax-entry ?-  ". 12" as-mode-syntax-table)
 
@@ -216,49 +229,10 @@ for a block opening statement are given this extra offset."
   (modify-syntax-entry ?\) ")(4" as-mode-syntax-table)
   (modify-syntax-entry ?*  ". 23b" as-mode-syntax-table))
 
-(defvar as-mode-map ()
-  "Keymap used in `applescript-mode' buffers.")
-;; Menu definitions, only relevent if you have the easymenu.el package
-;; (standard in the latest Emacs 19 and XEmacs 19 distributions).
-(defvar as-menu nil
-  "Menu for AppleScript Mode.
-This menu will get created automatically if you have the
-`easymenu' package.  Note that the latest X/Emacs releases
-contain this package.")
-(if as-mode-map
-    nil
-  (setq as-mode-map
-        (let ((map (make-sparse-keymap)))
-          ;; Key bindings
-
-          ;; subprocess commands
-          (define-key map "\C-c\C-c" 'as-execute-buffer)
-          (define-key map "\C-c\C-s" 'as-execute-string)
-          (define-key map "\C-c|" 'as-execute-region)
-
-          ;; Miscellaneous
-          (define-key map "\C-c;" 'comment-region)
-          (define-key map "\C-c:" 'uncomment-region)
-
-          (easy-menu-define as-menu map "AppleScript Mode menu"
-            '("AppleScript"
-              ["Comment Out Region"   comment-region (mark)]
-              ["Uncomment Region"     uncomment-region (mark)]
-              "-"
-              ["Execute buffer"       as-execute-buffer t]
-              ["Execute region"       as-execute-region (mark)]
-              ["Execute string"       as-execute-string t]
-              "-"
-              ["Mode Version"         as-mode-version t]
-              ["AppleScript Version"  as-language-version t]))
-          map)))
-
 ;; Utilities
 (defmacro as-safe (&rest body)
   "Safely execute BODY, return nil if an error occurred."
-  `(condition-case nil
-       (progn (,@ body))
-     (error nil)))
+  `(condition-case nil (progn (,@ body)) (error nil)))
 
 (defsubst as-keep-region-active ()
   "Keep the region active in XEmacs."
@@ -296,6 +270,28 @@ This function does not modify point or mark."
      ((eq position 'bos) (as-goto-initial-line))
      (t (error "Unknown buffer position requested: %s" position)))
     (prog1 (point) (goto-char here))))
+
+;; Menu definitions, only relevent if you have the easymenu.el package
+;; (standard in the latest Emacs 19 and XEmacs 19 distributions).
+(defvar as-menu nil
+  "Menu for AppleScript Mode.
+This menu will get created automatically if you have the
+`easymenu' package.  Note that the latest X/Emacs releases
+contain this package.")
+
+(and (require 'easymenu nil t)
+     (easy-menu-define
+       as-menu as-mode-map "AppleScript Mode menu"
+       '("AppleScript"
+         ["Comment Out Region"   comment-region (mark)]
+         ["Uncomment Region"     uncomment-region (mark)]
+         "-"
+         ["Execute buffer"       as-execute-buffer t]
+         ["Execute region"       as-execute-region (mark)]
+         ["Execute string"       as-execute-string t]
+         "-"
+         ["Mode Version"         as-mode-version t]
+         ["AppleScript Version"   as-language-version t])))
 
 ;;;###autoload
 (defun applescript-mode ()
@@ -341,17 +337,19 @@ This function does not modify point or mark."
        "\\([ \t]*\\(on\\|to\\|if\\|repeat\\|tell\\|end\\)\\|--\\)")
   (set (make-local-variable 'outline-level) 'as-outline-level)
 
-  ;; add the menu
-  (if as-menu
-      (easy-menu-add as-menu))
-
   ;; Run the mode hook.  Note that applescript-mode-hook is deprecated.
   (if applescript-mode-hook
       (run-hooks 'applescript-mode-hook)
     (run-hooks 'applescript-mode-hook)))
 
 (when (not (or (rassq 'applescript-mode auto-mode-alist)
-  (push '("\\.applescript$" . applescript-mode) auto-mode-alist))))
+               (push '("\\.applescript$" . applescript-mode) auto-mode-alist))))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.\\(applescript\\|scpt\\)\\'" . applescript-mode))
+
+;;;###autoload
+(add-to-list 'interpreter-mode-alist '("osascript" . applescript-mode))
 
 ;;; Subprocess commands
 
@@ -369,7 +367,7 @@ This function does not modify point or mark."
 (defun as-execute-string (string &optional async)
   "Send the argument STRING to an AppleScript."
   (interactive "sExecute AppleScript: ")
-  (with-temp-buffer
+  (with-current-buffer (get-buffer-create (generate-new-buffer-name as-output-buffer))
     (insert string)
     (as-execute-region (point-min) (point-max) async)))
 
@@ -401,6 +399,9 @@ This function does not modify point or mark."
   (as-keep-region-active))
 
 ;; as-beginning-of-handler, as-end-of-handler,as-goto-initial-line not yet
+(defun as-beginning-of-handler (sym) "Todo.")
+(defun as-end-of-handler (sym) "Todo.")
+(defun as-goto-initial-line () "Todo.")
 
 ;;  Support for outline.el
 (defun as-outline-level ()
@@ -464,8 +465,8 @@ This function does not modify point or mark."
    ((string-match "\\`\\s-*\\([0-9]+\\)\\s-*\\'" retstr)
     (string-to-number (match-string 1 retstr)))
 
-    ;; else
-    (t (intern retstr))))
+   ;; else
+   (t (intern retstr))))
 
 (provide 'applescript-mode)
 ;;; applescript-mode.el ends here
