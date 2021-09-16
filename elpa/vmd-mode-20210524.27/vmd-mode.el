@@ -4,8 +4,8 @@
 
 ;; Author: Blake Miller <blak3mill3r@gmail.com>
 ;; Version: 0.2.0
-;; Package-Commit: 31655a41caf006c3dd64d6e57f6c4488098f8bce
-;; Package-Version: 20200727.701
+;; Package-Commit: b2bdf2ab54f8fc37780e6b473e4ad69c0e9ff4a6
+;; Package-Version: 20210524.27
 ;; Package-X-Original-Version: 20161106.125
 ;; Keywords: markdown, preview, live, vmd
 ;; URL: https://github.com/blak3mill3r/vmd-mode
@@ -20,6 +20,7 @@
 ;; buffer, and performance is very good.
 
 ;;; Code:
+(require 'json)                         ; use `json-read-object'
 
 (defvar-local vmd-process nil
   "Handle to the inferior vmd process")
@@ -32,11 +33,13 @@
 (defgroup vmd nil
   "Fast Github-flavored Markdown preview using a vmd subprocess."
   :prefix "vmd-"
-  :group 'text)
+  :group 'text
+  :group 'markdown)
 
 (defcustom vmd-binary-path (executable-find "vmd")
-  "Path to your vmd binary."
-  :group 'vmd)
+  "Path to your vmd binary, or nil if vmd not available."
+  :group 'vmd
+  :type 'directory)
 
 
 ;; GitHub emojis
@@ -72,20 +75,22 @@ See https://developer.github.com/v3/emojis/"
   "Emoji for GitHub.")
 
 (defun vmd-mode-start-vmd-process ()
-  "Start an asynchronous `vmd' process to generate the `buffer-file-name' file."
+  "Start an asynchronous `vmd' process to generate the temporary work file."
+  ;; Work file name := current buffer file name and append ".temp" to it.
   (progn
     (setq vmd-copy-file (concat buffer-file-name ".temp"))
     (copy-file buffer-file-name vmd-copy-file "overwrite")
     (setq vmd-process (start-process "vmd" "vmd" vmd-binary-path vmd-copy-file))))
 
 (defun vmd-mode-delete-temp (&rest _args)
+  "Cleanup when buffer is killed."
   (progn (message "VMD-Mode deleting file: %s" vmd-copy-file)
          (if (file-exists-p vmd-copy-file)
              (delete-file vmd-copy-file))
          (message "VMD-Mode removing hook: 'kill-buffer-hook")
-         (remove-hook 'kill-buffer-hook 'vmd-mode-delete-temp t)
+         (remove-hook 'kill-buffer-hook (function vmd-mode-delete-temp) t)
          (message "VMD-Mode removing hook: 'after-change-functions")
-         (remove-hook 'after-change-functions 'vmd-mode-refresh t)
+         (remove-hook 'after-change-functions (function vmd-mode-refresh) t)
          (if vmd-process
              (progn
                (delete-process vmd-process)
@@ -101,14 +106,14 @@ The optional ARGS argument is needed as this function is added to the
 (define-minor-mode vmd-mode
   "Live Markdown preview with `vmd'."
   :lighter " vmd"
-  (if vmd-mode
+  (when vmd-mode
       (if vmd-binary-path
           (progn
-            (add-hook 'after-change-functions 'vmd-mode-refresh nil t)
-            (add-hook 'kill-buffer-hook 'vmd-mode-delete-temp nil t)
+            (add-hook 'after-change-functions (function vmd-mode-refresh) nil t)
+            (add-hook 'kill-buffer-hook (function vmd-mode-delete-temp) nil t)
             (vmd-mode-start-vmd-process)
             (vmd-mode-refresh))
-        (user-error "You need to have `vmd' installed in your environment PATH."))))
+        (user-error "You need to have `vmd' installed in your environment PATH"))))
 
 (provide 'vmd-mode)
 
