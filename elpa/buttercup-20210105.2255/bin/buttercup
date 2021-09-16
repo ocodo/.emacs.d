@@ -29,10 +29,11 @@ Buttercup options:
 --pattern, -p PATTERN   Only run tests with names matching PATTERN.
                           This option can be used multiple times, in
                           which case tests will be run if they match
-                          any of the given patterns. PATTERN is
-                          matched as a substring of the full test
-                          description (the concatenation of the test
-                          and all paremt suites descriptions).
+                          any of the given patterns. PATTERN should be
+                          an Emacs regex that will be matched against
+                          the full test description (the concatenation
+                          of the test and all parent suites
+                          descriptions).
 
 --no-skip               Do not print the descriptions for tests that
                           are filtered out with "--pattern" or disabled
@@ -46,16 +47,17 @@ Buttercup options:
 
 --traceback STYLE       When printing backtraces for errors that occur
                           during tests, print them in the chosen
-                          STYLE. Available styles are "full", which
-                          shows the full function call for each stack
-                          frame on a single line, "crop", which
-                          truncates each stack frame to 80 characters
-                          (the default), and "pretty", which uses
-                          Emacs' pretty-printing facilities to print
-                          each stack frame, and also annotates each
-                          frame with a lambda or M to indicate whether
-                          it is a normal function call or a
-                          macro/special form.
+                          STYLE. Available styles are
+                         "full", which shows the full function call for
+                          each stack frame on a single line,
+                         "crop", which truncates each stack frame to 80
+                          characters (the default),
+                         "pretty", which uses Emacs' pretty-printing
+                          facilities to print each stack frame, and also
+                          annotates each frame with a lambda or M to
+                          indicate whether it is a normal function call
+                          or a macro/special form and
+                         "omit", which omits the backtraces alltogether.
 
 --stale-file-error      Fail the test run if stale .elc files are loaded.
 EOF

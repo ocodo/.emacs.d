@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2015-2017  Jorgen Schaefer <contact@jorgenschaefer.de>
 
-;; Version: 1.23
+;; Version: 1.24
 ;; Author: Jorgen Schaefer <contact@jorgenschaefer.de>
 ;; Package-Requires: ((emacs "24.3"))
 ;; URL: https://github.com/jorgenschaefer/emacs-buttercup
@@ -56,7 +56,9 @@
 The function MUST have one of the following forms:
 
 \(lambda () EXPR)
+\(lambda () (buttercup--mark-stackframe) EXPR)
 \(closure (ENVLIST) () EXPR)
+\(closure (ENVLIST) () (buttercup--mark-stackframe) EXPR)
 \(lambda () (quote EXPR) EXPR)
 \(closure (ENVLIST) () (quote EXPR) EXPR)
 
@@ -65,12 +67,14 @@ forms are useful if EXPR is a macro call, in which case the
 `quote' ensures access to the un-expanded form."
   (pcase fun
     (`(closure ,(pred listp) nil ,expr) expr)
+    (`(closure ,(pred listp) nil (buttercup--mark-stackframe) ,expr) expr)
     (`(closure ,(pred listp) nil (quote ,expr) . ,_rest) expr)
     (`(closure ,(pred listp) nil ,_expr . ,(pred identity))
      (error "Closure contains multiple expressions: %S" fun))
     (`(closure ,(pred listp) ,(pred identity) . ,(pred identity))
      (error "Closure has nonempty arglist: %S" fun))
     (`(lambda nil ,expr) expr)
+    (`(lambda nil (buttercup--mark-stackframe) ,expr) expr)
     (`(lambda nil (quote ,expr) . ,_rest) expr)
     (`(lambda nil ,_expr . ,(pred identity))
      (error "Function contains multiple expressions: %S" fun))
@@ -132,9 +136,16 @@ This macro knows three forms:
 \(expect ARG)
   Fail the current test if ARG is not true."
   (let ((wrapped-args
-         (mapcar (lambda (expr) `(lambda () (quote ,expr) ,expr)) args)))
+         (mapcar (lambda (expr) `(lambda ()
+                                   (quote ,expr)
+                                   (buttercup--mark-stackframe)
+                                   ,expr))
+                 args)))
     `(buttercup-expect
-      (lambda () (quote ,arg) ,arg)
+      (lambda ()
+        (quote ,arg)
+        (buttercup--mark-stackframe)
+        ,arg)
       ,(or matcher :to-be-truthy)
       ,@wrapped-args)))
 
@@ -632,10 +643,10 @@ See also `buttercup-define-matcher'."
     (cond
      ((not calls)
       (cons nil
-            (format "Expected `%s' to have been called with %s, but it was not called at all" spy args)))
+            (format "Expected `%s' to have been called with %S, but it was not called at all" spy args)))
      ((not (member args calls))
       (cons nil
-            (format "Expected `%s' to have been called with %s, but it was called with %s"
+            (format "Expected `%s' to have been called with %S, but it was called with %s"
                     spy
                     args
                     (mapconcat (lambda (args)
@@ -885,6 +896,7 @@ most probably including one or more calls to `expect'."
       `(buttercup-it ,description
          (lambda ()
            (buttercup-with-converted-ert-signals
+             (buttercup--mark-stackframe)
              ,@body)))
     `(buttercup-xit ,description)))
 
@@ -1338,6 +1350,9 @@ or a macro/special form.")
 A buffer with this name should only exist while running a test
 spec, and should be killed after running the spec.")
 
+;; predeclaration
+(defvar buttercup-reporter-batch-quiet-statuses)
+
 ;;;###autoload
 (defun buttercup-run-at-point ()
   "Run the buttercup suite at point."
@@ -1396,24 +1411,32 @@ current directory."
     (dolist (dir (or dirs '(".")))
       (dolist (file (directory-files-recursively
                      dir "\\`test-.*\\.el\\'\\|-tests?\\.el\\'"))
+        ;; Exclude any hidden directory, both immediate (^.) and nested (/.) subdirs
         (when (not (string-match "\\(^\\|/\\)\\." (file-relative-name file)))
           (load file nil t))))
     (when patterns
-      (buttercup-mark-skipped (regexp-opt patterns) t))
+      (buttercup-mark-skipped patterns t))
     (buttercup-run)))
 
 (defun buttercup-mark-skipped (matcher &optional reverse)
   "Mark any spec that match MATCHER as skipped.
-MATCHER can be either a regex or a function taking a spec as the
-single argument. If REVERSE is non-nil, specs will be marked as
-pending when MATCHER does not match."
+MATCHER can be either a regex, a list of regexes, or a function
+taking a spec as the single argument. If REVERSE is non-nil,
+specs will be marked as pending when MATCHER does not match."
   (cl-etypecase matcher
     (string (buttercup--mark-skipped
              buttercup-suites
              (lambda (spec)
                (string-match matcher (buttercup-spec-full-name spec)))
              reverse))
-    (function (buttercup--mark-skipped buttercup-suites matcher reverse))))
+    (function (buttercup--mark-skipped buttercup-suites matcher reverse))
+    (list (cond
+           ((cl-every #'stringp matcher)
+            (buttercup-mark-skipped (mapconcat (lambda (re)
+                                                 (concat "\\(?:" re "\\)"))
+                                               matcher "\\|")
+                                    reverse))
+           (t (error "Bad matcher list: %s, should be list of strings" matcher))))))
 
 (defun buttercup--mark-skipped (suites predicate &optional reverse-predicate)
   "Mark all specs in SUITES as skipped if PREDICATE(spec) is true.
@@ -1746,10 +1769,12 @@ Finally print the elapsed time for SPEC."
                         (buttercup-colorize (concat "  " failure) color)))
     (buttercup--print " (%s)\n" (buttercup-elapsed-time-string spec))))
 
-(defun buttercup-reporter-batch--print-failed-spec-report (failed-spec color)
+(cl-defun buttercup-reporter-batch--print-failed-spec-report (failed-spec color)
   "Print a failure report for FAILED-SPEC.
 
 Colorize parts of the output if COLOR is non-nil."
+  (when (eq buttercup-stack-frame-style 'omit)
+    (cl-return-from buttercup-reporter-batch--print-failed-spec-report))
   (let ((description (buttercup-spec-failure-description failed-spec))
         (stack (buttercup-spec-failure-stack failed-spec))
         (full-name (buttercup-spec-full-name failed-spec)))
@@ -1770,7 +1795,7 @@ Colorize parts of the output if COLOR is non-nil."
                           "FAILED")
                         description))
      ((and (consp description) (eq (car description) 'error))
-      (buttercup--print "%S: %S\n\n"
+      (buttercup--print "%S: %S\n"
                         (car description)
                         (cadr description)))
      (t
@@ -1914,32 +1939,53 @@ ARGS according to `debugger'."
   (throw 'buttercup-debugger-continue
          (list 'failed args (buttercup--backtrace))))
 
+(defalias 'buttercup--mark-stackframe 'ignore
+  "Marker to find where the backtrace start.")
+
 (defun buttercup--backtrace ()
   "Create a backtrace, a list of frames returned from `backtrace-frame'."
-  (let* ((n 0)
-         (frame (backtrace-frame n))
-         (frame-list nil)
-         (in-program-stack nil))
-    (while frame
+  ;; Read the backtrace frames from 0 (the closest) upward.
+  (cl-do* ((n 0 (1+ n))
+           (frame (backtrace-frame n) (backtrace-frame n))
+           (frame-list nil)
+           (in-program-stack nil))
+      ((not frame) frame-list)
+      ;; discard frames until (and including) `buttercup--debugger', they
+      ;; only contain buttercup code
       (when in-program-stack
         (push frame frame-list))
       (when (eq (elt frame 1)
                 'buttercup--debugger)
         (setq in-program-stack t))
-      (when (eq (elt frame 1)
-                'buttercup--funcall)
-        (setq in-program-stack nil
-              frame-list (nthcdr 6 frame-list)))
-      (setq n (1+ n)
-            frame (backtrace-frame n)))
-    frame-list))
+      ;; keep frames until one of the known functions are found, after
+      ;; this is just the buttercup framework and not interesting for
+      ;; users incorrect for testing buttercup. Some frames before the
+      ;; function also have to be discarded
+      (cl-labels ((tree-find (key tree)
+                             (cl-block tree-find
+                               (while (consp tree)
+                                 (let ((elem (pop tree)))
+                                   (when (or (and (consp elem)
+                                                  (tree-find key elem))
+                                             (eql key elem))
+                                     (cl-return-from tree-find t))))
+                               (cl-return-from tree-find
+                                 (and tree (eql tree key))))))
+        (when (and in-program-stack (tree-find 'buttercup--mark-stackframe frame))
+          (pop frame-list)
+          (cl-return frame-list)))))
 
 (defun buttercup--format-stack-frame (frame &optional style)
   "Format stack FRAME according to STYLE.
-STYLE can be one of `full', `crop', or `pretty'.
+STYLE can be one of `full', `crop', `pretty', or `omit'.
 If STYLE is nil, use `buttercup-stack-frame-style' or `crop'."
-  (pcase (or style buttercup-stack-frame-style 'crop)
-    (`full (format "  %S" (cdr frame)))
+  (setq style (or style buttercup-stack-frame-style 'crop))
+  (pcase style
+    (`omit) ; needed to verify valid styles
+    (`full
+     (if (car frame)
+         (format "  %S%s" (cadr frame) (if (cddr frame) (prin1-to-string (cddr frame)) "()"))
+       (format "  %S" (cdr frame))))
     (`crop
      (let ((line (buttercup--format-stack-frame frame 'full)))
        ;; Note: this could be done sith `s-truncate' from the s

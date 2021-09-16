@@ -33,22 +33,37 @@ echo.
 echo --pattern, -p PATTERN   Only run tests with names matching PATTERN.
 echo                           This option can be used multiple times, in
 echo                           which case tests will be run if they match
-echo                           any of the given patterns.
+echo                           any of the given patterns. PATTERN should be
+echo                           an Emacs regex that will be matched against
+echo                           the full test description (the concatenation
+echo                           of the test and all parent suites
+echo                           descriptions).
+echo.
+echo --no-skip               Do not print the descriptions for tests that
+echo                           are filtered out with "--pattern" or disabled
+echo                           with "xit". Tests skipped wiath "assume" will
+echo                           still be priuted,
+echo.
+echo --only-error            Only print failed tests and their containing suites.
+echo                           Implies "--no-skip".
 echo.
 echo --no-color, -c          Do not colorize test output.
 echo.
 echo --traceback STYLE       When printing backtraces for errors that occur
 echo                           during tests, print them in the chosen
-echo                           STYLE. Available styles are "full", which
-echo                           shows the full function call for each stack
-echo                           frame on a single line, "crop", which
-echo                           truncates each stack frame to 80 characters
-echo                           ^(the default^), and "pretty", which uses
-echo                           Emacs' pretty-printing facilities to print
-echo                           each stack frame, and also annotates each
-echo                           frame with a lambda or M to indicate whether
-echo                           it is a normal function call or a
-echo                           macro/special form.
+echo                           STYLE. Available styles are
+echo                          "full", which shows the full function call for
+echo                           each stack frame on a single line,
+echo                          "crop", which truncates each stack frame to 80
+echo                           characters (the default),
+echo                          "pretty", which uses Emacs' pretty-printing
+echo                           facilities to print each stack frame, and also
+echo                           annotates each frame with a lambda or M to
+echo                           indicate whether it is a normal function call
+echo                           or a macro/special form and
+echo                          "omit", which omits the backtraces alltogether.
+echo.
+echo --stale-file-error      Fail the test run if stale .elc files are loaded.
 exit /b
 
 :parse_args
@@ -108,6 +123,15 @@ if not [%current_arg%]==[] (
     set buttercup_args=!buttercup_args! !current_arg!
     shift /1
   ) else if !current_arg!==--no-color (
+    set buttercup_args=!buttercup_args! !current_arg!
+    shift /1
+  ) else if !current_arg!==--no-skip (
+    set buttercup_args=!buttercup_args! !current_arg!
+    shift /1
+  ) else if !current_arg!==--only-error (
+    set buttercup_args=!buttercup_args! !current_arg!
+    shift /1
+  ) else if !current_arg!==--stale-file-error (
     set buttercup_args=!buttercup_args! !current_arg!
     shift /1
   ) else if !current_arg!==--traceback (
