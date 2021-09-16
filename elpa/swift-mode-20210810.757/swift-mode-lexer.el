@@ -1,15 +1,12 @@
 ;;; swift-mode-lexer.el --- Major-mode for Apple's Swift programming language, lexer. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2020 taku0, Chris Barrett, Bozhidar Batsov, Arthur Evstifeev
+;; Copyright (C) 2014-2021 taku0, Chris Barrett, Bozhidar Batsov,
+;;                         Arthur Evstifeev
 
 ;; Authors: taku0 (http://github.com/taku0)
 ;;       Chris Barrett <chris.d.barrett@me.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
-;;
-;; Version: 8.0.2
-;; Package-Requires: ((emacs "24.4") (seq "2.3"))
-;; Keywords: languages swift
 
 ;; This file is not part of GNU Emacs.
 
@@ -102,11 +99,12 @@ END is the point after the token."
 
 ;; Token types is one of the following symbols:
 ;;
-;; - prefix-operator (including try, try?, and try!)
+;; - prefix-operator (including try, try?, try!, and await)
 ;; - postfix-operator
 ;; - binary-operator (including as, as?, as!, is, =, ., and ->)
 ;; - attribute (e.g. @objc, @abc(def))
-;; - identifier (including keywords, numbers, implicit parameters, and unknown tokens)
+;; - identifier (including keywords, numbers, implicit parameters, and unknown
+;;   tokens)
 ;; - [
 ;; - ]
 ;; - {
@@ -118,12 +116,16 @@ END is the point after the token."
 ;; - implicit-;
 ;; - < (as an angle bracket)
 ;; - > (as an angle bracket)
-;; - supertype-: (colon for supertype declaration or type declaration of let or var)
+;; - supertype-: (colon for supertype declaration or type declaration of let or
+;;   var)
 ;; - case-: (colon for case or default label)
-;; - : (part of conditional operator, key-value separator, label-statement separator)
+;; - : (part of conditional operator, key-value separator, label-statement
+;;   separator)
 ;; - anonymous-function-parameter-in ("in" after anonymous function parameter)
-;; - string-chunk-after-interpolated-expression (part of a string ending with ")")
-;; - string-chunk-before-interpolated-expression (part of a string ending with "\\(")
+;; - string-chunk-after-interpolated-expression (part of a string ending with
+;;   ")")
+;; - string-chunk-before-interpolated-expression (part of a string ending with
+;;   "\\(")
 ;; - outside-of-buffer
 ;;
 ;; Additionally, `swift-mode:backward-token-or-list' may return a parenthesized
@@ -241,7 +243,6 @@ Intended for `syntax-propertize-function'."
      ((swift-mode:chunk:comment-p chunk)
       (goto-char (swift-mode:chunk:start chunk))
       (forward-comment (point-max)))))
-
   (swift-mode:syntax-propertize:scan end 0))
 
 (defun swift-mode:syntax-propertize:scan (end nesting-level)
@@ -268,12 +269,12 @@ stops where the level becomes zero."
             (skip-chars-backward "#")
             (setq pound-count (- start (point)))
             (setq start (point)))
-        (put-text-property start (1+ start)
-                           'syntax-table
-                           (string-to-syntax "|"))
-        (swift-mode:syntax-propertize:end-of-string
-         end quotation pound-count)
-        (put-text-property start (point) 'syntax-multiline t)))
+          (put-text-property start (1+ start)
+                             'syntax-table
+                             (string-to-syntax "|"))
+          (swift-mode:syntax-propertize:end-of-string
+           end quotation pound-count)
+          (put-text-property start (point) 'syntax-multiline t)))
 
        ((equal "//" (match-string-no-properties 0))
         (goto-char (match-beginning 0))
@@ -315,6 +316,7 @@ pound signs."
         (put-text-property (1- (point)) (point)
                            'syntax-table
                            (string-to-syntax "|")))
+
        ((and (equal "(" (match-string-no-properties 0))
              (swift-mode:escaped-p (match-beginning 0) pound-count))
         ;; Found an interpolated expression. Skips the expression.
@@ -350,6 +352,7 @@ pound signs."
                                (1- (point)))
             (swift-mode:syntax-propertize:end-of-string
              end quotation pound-count))))
+
        (t
         (swift-mode:syntax-propertize:end-of-string end quotation pound-count)))
     (goto-char end)))
@@ -399,9 +402,9 @@ Return nil otherwise."
        (memq (swift-mode:token:type next-token)
              '(binary-operator \; \, :))
 
-       ;; Suppresses implicit semicolon after try, try?, and try!.
+       ;; Suppresses implicit semicolon after try, try?, try!, and await.
        (member (swift-mode:token:text previous-token)
-               '("try" "try?" "try!"))
+               '("try" "try?" "try!" "await"))
 
        ;; Suppress implicit semicolon after open brackets or before close
        ;; brackets.
@@ -428,9 +431,9 @@ Return nil otherwise."
        ;; Suppress implicit semicolon around keywords that cannot start or end
        ;; statements.
        (member (swift-mode:token:text previous-token)
-               '("some" "inout" "throws" "rethrows" "in" "where"))
+               '("some" "inout" "in" "where"))
        (member (swift-mode:token:text next-token)
-               '("some" "inout" "throws" "rethrows" "in" "where")))
+               '("some" "inout" "throws" "rethrows" "async" "in" "where")))
       nil)
 
      ;; Inserts semicolon before open curly bracket.
@@ -477,7 +480,7 @@ Return nil otherwise."
 
      ;; Suppress implicit semicolon after declaration starters.
      ((member (swift-mode:token:text previous-token)
-              '("class" "struct" "protocol" "enum" "extension" "func"
+              '("class" "struct" "actor" "protocol" "enum" "extension" "func"
                 "typealias" "associatedtype" "precedencegroup" "operator"))
       nil)
 
@@ -553,7 +556,7 @@ Return nil otherwise."
      ;;
      ;; `protocol' is handled by the next rule
      ((member (swift-mode:token:text next-token)
-              '("class" "struct" "enum" "extension" "func" "typealias"
+              '("class" "struct" "actor" "enum" "extension" "func" "typealias"
                 "associatedtype" "precedencegroup"))
       t)
 
@@ -684,8 +687,8 @@ That is supertype declaration or type declaration of let or var."
        (member (swift-mode:token:text
                 (swift-mode:backquote-identifier-if-after-dot
                  (swift-mode:backward-token-simple)))
-               '("class" "extension" "enum" "struct" "protocol" "typealias"
-                 "associatedtype"))))))
+               '("class" "extension" "enum" "struct" "actor" "protocol"
+                 "typealias" "associatedtype"))))))
 
 (defvar swift-mode:in-recursive-call-of-case-colon-p nil
   "Non-nil if `case-colon-p' is being evaluated.")
@@ -698,7 +701,6 @@ Return nil otherwise."
       nil
     (save-excursion
       (setq swift-mode:in-recursive-call-of-case-colon-p t)
-
       (unwind-protect
           (member
            ;; FIXME:
@@ -738,7 +740,7 @@ Return nil otherwise."
     (or (member (swift-mode:token:text (swift-mode:backward-token-simple))
                 '("init" "subscript"))
         (member (swift-mode:token:text (swift-mode:backward-token-simple))
-                '("typealias" "func" "enum" "struct" "class" "init")))))
+                '("typealias" "func" "enum" "struct" "actor" "class" "init")))))
 
 (defun swift-mode:fix-operator-type (token)
   "Return new operator token with proper token type.
@@ -777,7 +779,7 @@ Other properties are the same as the TOKEN."
        (type
         (cond
          (is-declaration 'identifier)
-         ((member text '("try" "try?" "try!")) 'prefix-operator)
+         ((member text '("try" "try?" "try!" "await")) 'prefix-operator)
          ((equal text ".") 'binary-operator)
          ((and has-preceding-space has-following-space) 'binary-operator)
          (has-preceding-space 'prefix-operator)
@@ -923,7 +925,7 @@ This function does not return `implicit-;' or `type-:'."
     (forward-char)
     (swift-mode:token '> ">" (1- (point)) (point)))
 
-   ;; Operator (other than as, try, or is)
+   ;; Operator (other than as, try, is, or await)
    ;;
    ;; Operators starts with a dot can contains dots. Other operators cannot
    ;; contain dots.
@@ -1014,6 +1016,11 @@ This function does not return `implicit-;' or `type-:'."
                           (point)))
        ((equal text "is")
         (swift-mode:token 'binary-operator
+                          text
+                          (- (point) (length text))
+                          (point)))
+       ((equal text "await")
+        (swift-mode:token 'prefix-operator
                           text
                           (- (point) (length text))
                           (point)))
@@ -1113,20 +1120,20 @@ This function does not return `implicit-;' or `type-:'."
 
    ;; Attribute or close-parenthesis
    ((eq (char-before) ?\))
-     (let ((pos-before-comment (point)))
-       (condition-case nil
-           (progn
-             (backward-list)
-             (forward-comment (- (point)))
-             (forward-symbol -1)
-             (unless (eq (char-after) ?@)
-               (goto-char (1- pos-before-comment))))
-         (scan-error (goto-char (1- pos-before-comment))))
-       (swift-mode:token
-        (if (eq (char-after) ?@) 'attribute '\))
-        (buffer-substring-no-properties (point) pos-before-comment)
-        (point)
-        pos-before-comment)))
+    (let ((pos-before-comment (point)))
+      (condition-case nil
+          (progn
+            (backward-list)
+            (forward-comment (- (point)))
+            (forward-symbol -1)
+            (unless (eq (char-after) ?@)
+              (goto-char (1- pos-before-comment))))
+        (scan-error (goto-char (1- pos-before-comment))))
+      (swift-mode:token
+       (if (eq (char-after) ?@) 'attribute '\))
+       (buffer-substring-no-properties (point) pos-before-comment)
+       (point)
+       pos-before-comment)))
 
    ;; Separators and parentheses
    ((memq (char-before) '(?, ?\; ?\{ ?\} ?\[ ?\] ?\( ?\) ?:))
@@ -1171,7 +1178,7 @@ This function does not return `implicit-;' or `type-:'."
     (backward-char)
     (swift-mode:token '> ">" (point) (1+ (point))))
 
-   ;; Operator (other than as, try, or is)
+   ;; Operator (other than as, try, is, or await)
    ;;
    ;; Operators which starts with a dot can contain other dots. Other
    ;; operators cannot contain dots.
@@ -1252,7 +1259,7 @@ This function does not return `implicit-;' or `type-:'."
                           text
                           (point)
                           (+ (point) (length text))))
-       ((equal text "try")
+       ((member text '("try" "await"))
         (swift-mode:token 'prefix-operator
                           text
                           (point)
@@ -1417,14 +1424,19 @@ If PARSER-STATE is given, it is used instead of (syntax-ppss)."
                           (looking-at "#*\"\"\""))
           (swift-mode:chunk 'multiline-string (nth 8 parser-state))
         (swift-mode:chunk 'single-line-string (nth 8 parser-state))))
+
      ((eq (nth 4 parser-state) t)
       (swift-mode:chunk 'single-line-comment (nth 8 parser-state)))
+
      ((nth 4 parser-state)
       (swift-mode:chunk 'multiline-comment (nth 8 parser-state)))
+
      ((and (eq (char-before) ?/) (eq (char-after) ?/))
       (swift-mode:chunk 'single-line-comment (1- (point))))
+
      ((and (eq (char-before) ?/) (eq (char-after) ?*))
       (swift-mode:chunk 'multiline-comment (1- (point))))
+
      (t
       nil))))
 

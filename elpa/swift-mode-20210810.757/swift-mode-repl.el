@@ -1,6 +1,6 @@
 ;;; swift-mode-repl.el --- Run Apple's Swift processes in Emacs buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2019 taku0, Chris Barrett, Bozhidar Batsov,
+;; Copyright (C) 2014-2021 taku0, Chris Barrett, Bozhidar Batsov,
 ;;                         Arthur Evstifeev, Michael Sanders
 
 ;; Authors: taku0 (http://github.com/taku0)
@@ -8,10 +8,6 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;;       Michael Sanders <michael.sanders@fastmail.com>
-;;
-;; Version: 8.0.2
-;; Package-Requires: ((emacs "24.4") (seq "2.3"))
-;; Keywords: languages swift
 
 ;; This file is not part of GNU Emacs.
 
@@ -43,11 +39,13 @@
 ;;;###autoload
 (defgroup swift-mode:repl nil
   "REPL."
+  :tag "Swift Mode REPL"
   :group 'swift)
 
 (defcustom swift-mode:repl-executable
   (concat (when (executable-find "xcrun") "xcrun ") "swift")
   "Path to the Swift CLI.  The string is split by spaces, then unquoted."
+  :tag "Swift Mode REPL Executable"
   :type '(choice string (list string))
   :group 'swift-mode:repl
   :safe 'stringp)
@@ -80,6 +78,7 @@ The string is split by spaces, then unquoted."
   "ios-deploy"
   "Path to ios-deploy command.
 The string is split by spaces, then unquoted."
+  :tag "Swift Mode iOS Deploy Executable"
   :type '(choice string (list string))
   :group 'swift-mode:repl
   :safe 'stringp)
@@ -176,21 +175,25 @@ Runs the hook `swift-repl-mode-hook' \(after the `comint-mode-hook' is run).
          (cmd-string (swift-mode:command-list-to-string cmd))
          (cmd-list (swift-mode:command-string-to-list cmd))
          (buffer-name (concat "*Swift REPL [" cmd-string "]*"))
-         (buffer (get-buffer-create buffer-name)))
-    (unless dont-switch
-      (pop-to-buffer buffer))
-    (with-current-buffer buffer
-      (unless (comint-check-proc buffer-name)
-        (save-excursion
-          (apply 'make-comint-in-buffer
-                 cmd-string buffer (car cmd-list) nil (cdr cmd-list))
-          (swift-repl-mode)))
-      (setq-local swift-mode:repl-buffer buffer-name))
+         (buffer (get-buffer-create buffer-name))
+         old-size)
     (with-current-buffer original-buffer
-      (setq-local swift-mode:repl-buffer buffer-name)
+      (setq-local swift-mode:repl-buffer buffer)
       (unless keep-default
         (setq-local swift-mode:repl-executable cmd)
-        (setq-default swift-mode:repl-buffer swift-mode:repl-buffer)))))
+        (setq-default swift-mode:repl-buffer swift-mode:repl-buffer)))
+    (with-current-buffer buffer
+      (setq old-size (buffer-size))
+      (swift-repl-mode)
+      (setq-local swift-mode:repl-buffer buffer))
+    (unless (comint-check-proc buffer)
+      (apply 'make-comint-in-buffer
+             cmd-string buffer (car cmd-list) nil (cdr cmd-list))
+      (with-current-buffer buffer
+        (while (= old-size (buffer-size))
+          (sleep-for .1))))
+    (unless dont-switch
+      (pop-to-buffer buffer))))
 
 ;;;###autoload
 (defalias 'run-swift 'swift-mode:run-repl)
@@ -214,7 +217,8 @@ START and END define region within current buffer"
 (define-derived-mode swift-repl-mode comint-mode "Swift REPL"
   "Major mode for interacting with Swift REPL.
 
-A REPL can be fired up with M-x swift-mode:run-repl or M-x run-swift.
+A REPL can be fired up with \\<swift-mode-map>\\[swift-mode:run-repl] or \
+\\<swift-mode-map>\\[run-swift].
 
 Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
 `swift-repl-mode-hook' (in that order).
@@ -342,7 +346,9 @@ Return a directory satisfying the PREDICATE if exists.  Otherwise, return nil."
         (swift-mode:find-ancestor-or-self-directory predicate parent)))))
 
 (defun swift-mode:swift-project-directory-p (directory)
-  "Return t if the DIRECTORY contains a file Package.swift."
+  ;; supress warnings:
+  ;;   (checkdoc) Probably "contains" should be imperative "contain"
+  "Return t if the DIRECTORY contain\u0073 a file Package.swift."
   (file-exists-p (expand-file-name "Package.swift" directory)))
 
 (defun swift-mode:find-swift-project-directory (&optional directory)
@@ -357,7 +363,9 @@ Return a directory path if found.  Return nil otherwise."
   (expand-file-name (read-directory-name "Project directory: " default nil t)))
 
 (defun swift-mode:ensure-swift-project-directory (project-directory)
-  "Check PROJECT-DIRECTORY contains the manifest file Package.swift.
+  ;; supress warnings:
+  ;;   (checkdoc) Probably "contains" should be imperative "contain"
+  "Check PROJECT-DIRECTORY contain\u0073 the manifest file Package.swift.
 
 If PROJECT-DIRECTORY is nil, this function searches it from `default-directory'
 or its ancestors."
@@ -370,11 +378,15 @@ or its ancestors."
   project-directory)
 
 (defun swift-mode:xcode-project-directory-p (directory)
-  "Return t if the DIRECTORY contains a file *.xcodeproj."
+  ;; supress warnings:
+  ;;   (checkdoc) Probably "contains" should be imperative "contain"
+  "Return t if the DIRECTORY contain\u0073 a file *.xcodeproj."
   (consp (directory-files directory nil ".*\\.xcodeproj")))
 
 (defun swift-mode:xcode-workspace-directory-p (directory)
-  "Return t if the DIRECTORY contains a file *.xcworkspace."
+  ;; supress warnings:
+  ;;   (checkdoc) Probably "contains" should be imperative "contain"
+  "Return t if the DIRECTORY contain\u0073 a file *.xcworkspace."
   (consp (directory-files directory nil ".*\\.xcworkspace")))
 
 (defun swift-mode:find-xcode-project-directory (&optional directory)
@@ -392,7 +404,9 @@ Return a directory path if found.  Return nil otherwise."
    'swift-mode:xcode-workspace-directory-p directory))
 
 (defun swift-mode:ensure-xcode-project-directory (project-directory)
-  "Check PROJECT-DIRECTORY contains *.xcworkspace or *.xcodeproj.
+  ;; supress warnings:
+  ;;   (checkdoc) Probably "contains" should be imperative "contain"
+  "Check PROJECT-DIRECTORY contain\u0073 *.xcworkspace or *.xcodeproj.
 
 If PROJECT-DIRECTORY is nil, this function searches it from `default-directory'
 or its ancestors."
@@ -421,8 +435,7 @@ or its ancestors."
          (flattened (apply 'seq-concatenate 'list (seq-map 'cdr devices)))
          (available-devices
           (seq-filter
-           (lambda (device)
-             (string-equal (cdr (assoc 'availability device)) "(available)"))
+           (lambda (device) (cdr (assoc 'isAvailable device)))
            flattened)))
     available-devices))
 
@@ -463,10 +476,10 @@ passed as a destination to xcodebuild."
                  (not (equal device-identifier
                              swift-mode:ios-local-device-identifier)))
         (setq arglist
-              (append arglist
-                      `("-destination"
-                        ,(concat "platform=iOS Simulator,id=" device-identifier)
-                        ))))
+              (append
+               arglist
+               `("-destination"
+                 ,(concat "platform=iOS Simulator,id=" device-identifier)))))
       (unless (zerop (apply #'swift-mode:call-process arglist))
         (error "%s %s" "Cannot read Xcode build settings" (buffer-string))))
     (goto-char (point-min))
@@ -541,9 +554,9 @@ An list ARGS are appended for builder command line arguments."
       (unless
           (zerop
            (apply 'swift-mode:call-process
-            swift-mode:swift-build-executable
-            "--package-path" project-directory
-            args))
+                  swift-mode:swift-build-executable
+                  "--package-path" project-directory
+                  args))
         (compilation-mode)
         (goto-char (point-min))
         (pop-to-buffer (current-buffer))
@@ -560,7 +573,7 @@ Build it for iOS device DEVICE-IDENTIFIER for the given SCHEME.
 If PROJECT-DIRECTORY is nil or omitted, it is searched from `default-directory'
 or its ancestors.
 DEVICE-IDENTIFIER is the device identifier of the iOS simulator.  If it is nil
-or omitted, the value of `swift-mode:ios-device-identifier' is used. If it is
+or omitted, the value of `swift-mode:ios-device-identifier' is used.  If it is
 equal to `swift-mode:ios-local-device-identifier', a local device is used via
 `ios-deploy' instead.
 SCHEME is the name of the project scheme in Xcode.  If it is nil or omitted,
@@ -571,9 +584,9 @@ the value of `swift-mode:ios-project-scheme' is used."
              (swift-mode:find-xcode-workspace-directory)
              (swift-mode:find-xcode-project-directory)))
           (project-directory
-          (if current-prefix-arg
-              (swift-mode:read-project-directory default-project-directory)
-            default-project-directory)))
+           (if current-prefix-arg
+               (swift-mode:read-project-directory default-project-directory)
+             default-project-directory)))
      (list
       project-directory
       (if current-prefix-arg
@@ -611,7 +624,7 @@ the value of `swift-mode:ios-project-scheme' is used."
                       `("-destination"
                         ,(concat "platform=iOS Simulator,id=" device-identifier)
                         "-sdk" "iphonesimulator"))))
-        (unless
+      (unless
           (zerop
            (let ((default-directory project-directory))
              (apply 'swift-mode:call-process xcodebuild-args)))
@@ -845,13 +858,13 @@ in Xcode build settings."
          (progress-reporter
           (make-progress-reporter "Waiting for simulator...")))
     (cond
-      (target-booted
+     (target-booted
       ;; The target device is already booted. Does nothing.
       t)
-      (simulator-running
+     (simulator-running
       (swift-mode:kill-ios-simulator)
       (swift-mode:open-ios-simulator device-identifier))
-      (t (swift-mode:open-ios-simulator device-identifier)))
+     (t (swift-mode:open-ios-simulator device-identifier)))
 
     (swift-mode:wait-for-ios-simulator device-identifier)
 
@@ -863,21 +876,21 @@ in Xcode build settings."
 
     (let ((progress-reporter (make-progress-reporter "Launching app..."))
           (process-identifier
-            (swift-mode:launch-ios-app
+           (swift-mode:launch-ios-app
             device-identifier product-bundle-identifier t)))
       (progress-reporter-done progress-reporter)
       (swift-mode:run-repl
-        (append
+       (append
         (swift-mode:command-string-to-list swift-mode:debugger-executable)
         (list "--" codesigning-folder-path))
-        nil t)
+       nil t)
       (swift-mode:enqueue-repl-commands
-        "platform select ios-simulator"
-        (concat "platform connect " device-identifier)
-        (concat "process attach --pid " (number-to-string process-identifier))
-        "breakpoint set --one-shot true --name UIApplicationMain"
-        "cont"
-        (cons
+       "platform select ios-simulator"
+       (concat "platform connect " device-identifier)
+       (concat "process attach --pid " (number-to-string process-identifier))
+       "breakpoint set --one-shot true --name UIApplicationMain"
+       "cont"
+       (cons
         (lambda (_string)
           (swift-mode:search-process-stopped-message process-identifier))
         "repl")))))

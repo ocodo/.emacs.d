@@ -1,6 +1,6 @@
 ;;; swift-mode-font-lock.el --- Major-mode for Apple's Swift programming language, Font Locks. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2020 taku0, Chris Barrett, Bozhidar Batsov,
+;; Copyright (C) 2014-2021 taku0, Chris Barrett, Bozhidar Batsov,
 ;;                         Arthur Evstifeev, Michael Sanders
 
 ;; Authors: taku0 (http://github.com/taku0)
@@ -8,10 +8,6 @@
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
 ;;       Michael Sanders <michael.sanders@fastmail.com>
-;;
-;; Version: 8.0.2
-;; Package-Requires: ((emacs "24.4") (seq "2.3"))
-;; Keywords: languages swift
 
 ;; This file is not part of GNU Emacs.
 
@@ -60,7 +56,7 @@
 
 (defface swift-mode:constant-keyword-face
   '((t . (:inherit font-lock-constant-face)))
-  "Face for highlighting constant keywords
+  "Face for highlighting constant keywords.
 
 That is, true, false, and nil."
   :group 'swift-mode:faces)
@@ -142,6 +138,10 @@ Example: #if, #endif, and #selector."
   "Face for highlighting property accesses."
   :group 'swift-mode:faces)
 
+(defface swift-mode:negation-char-face
+  '((t . (:inherit font-lock-negation-char-face)))
+  "Face for highlighting the negation char."
+  :group 'swift-mode:faces)
 
 (defun swift-mode:make-set (list)
   "Return a hash where its keys are elements of the LIST.
@@ -212,7 +212,7 @@ This function does not search beyond LIMIT."
   (skip-syntax-backward "w_")
   (and (< (point) limit)
        (looking-at
-        "\\<\\(func\\|enum\\|struct\\|class\\|protocol\\|extension\\)\\>")))
+        "\\<\\(func\\|enum\\|struct\\|class\\|protocol\\|extension\\|actor\\)\\>")))
 
 (defun swift-mode:property-access-pos-p (pos limit)
   "Return t if POS is just before the property name of a member expression.
@@ -358,14 +358,16 @@ Return nil otherwise.
 The predicate MATCH-P is called with two arguments:
 - the position of the identifier, and
 - the limit of search functions."
-  (and
-   (< (point) limit)
-   (re-search-forward "\\<\\(\\sw\\|\\s_\\)+\\>" limit t)
-   (or
-    (save-excursion
-      (save-match-data
-        (funcall match-p (match-beginning 0) limit)))
-    (swift-mode:font-lock-match-expr limit match-p))))
+  (let ((result nil))
+    (while (and
+            (< (point) limit)
+            (not result)
+            (re-search-forward "\\<\\(\\sw\\|\\s_\\)+\\>" limit t))
+      (when (save-excursion
+              (save-match-data
+                (funcall match-p (match-beginning 0) limit)))
+        (setq result t)))
+    result))
 
 (defun swift-mode:font-lock-match-declared-function-names (limit)
   "Move the cursor just after a function name or others.
@@ -396,16 +398,16 @@ LIST-OF-SETS is a list of set of names."
         (limit2 (make-symbol "limit"))
         (matched (make-symbol "matched"))
         (names (make-symbol "names")))
-  `(swift-mode:font-lock-match-expr
-    ,limit
-    (lambda (,pos ,limit2)
-      (seq-reduce
-       (lambda (,matched ,names)
-         (or ,matched
-             (and ,names
-                  (funcall ,f ,names ,pos ,limit2))))
-       (list ,@list-of-sets)
-       nil)))))
+    `(swift-mode:font-lock-match-expr
+      ,limit
+      (lambda (,pos ,limit2)
+        (seq-reduce
+         (lambda (,matched ,names)
+           (or ,matched
+               (and ,names
+                    (funcall ,f ,names ,pos ,limit2))))
+         (list ,@list-of-sets)
+         nil)))))
 
 (defun swift-mode:font-lock-match-builtin-type-names (limit)
   "Move the cursor just after a builtin type name.
@@ -538,7 +540,8 @@ Return nil otherwise."
 (defconst swift-mode:declaration-keywords
   '("associatedtype" "class" "deinit" "enum" "extension" "fileprivate" "func"
     "import" "init" "inout" "internal" "let" "open" "operator" "private"
-    "protocol" "public" "some" "static" "struct" "subscript" "typealias" "var")
+    "protocol" "public" "some" "static" "struct" "subscript" "typealias" "var"
+    "actor")
   "Keywords used in declarations.")
 
 (defconst swift-mode:statement-keywords
@@ -548,7 +551,7 @@ Return nil otherwise."
 
 (defconst swift-mode:expression-keywords
   '("as" "catch" "dynamicType" "is" "rethrows" "super" "self" "Self" "throws"
-    "throw" "try")
+    "throw" "try" "async" "await")
   "Keywords used in expressions and types.
 
 Excludes true, false, and keywords begin with a number sign.")
@@ -662,7 +665,12 @@ Excludes true, false, and keywords begin with a number sign.")
     ;; Property accesses
     (swift-mode:font-lock-match-property-access
      .
-     'swift-mode:property-access-face))
+     'swift-mode:property-access-face)
+
+    ;; Make negation chars easier to see
+    ("\\(?:^\\|\\s-\\|\\s(\\|\\s>\\|[,:;]\\)\\(!+\\)[^=]"
+     1
+     'swift-mode:negation-char-face))
   "Swift mode keywords for Font Lock.")
 
 

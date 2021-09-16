@@ -1,15 +1,12 @@
 ;;; swift-mode-indent.el --- Major-mode for Apple's Swift programming language, indentation. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2020 taku0, Chris Barrett, Bozhidar Batsov, Arthur Evstifeev
+;; Copyright (C) 2014-2021 taku0, Chris Barrett, Bozhidar Batsov,
+;;                         Arthur Evstifeev
 
 ;; Authors: taku0 (http://github.com/taku0)
 ;;       Chris Barrett <chris.d.barrett@me.com>
 ;;       Bozhidar Batsov <bozhidar@batsov.com>
 ;;       Arthur Evstifeev <lod@pisem.net>
-;;
-;; Version: 8.0.2
-;; Package-Requires: ((emacs "24.4") (seq "2.3"))
-;; Keywords: languages swift
 
 ;; This file is not part of GNU Emacs.
 
@@ -155,7 +152,6 @@ declaration and its offset is `swift-mode:basic-offset'."
 (defun swift-mode:calculate-indent ()
   "Return the indentation of the current line."
   (back-to-indentation)
-
   (let ((parser-state (syntax-ppss)))
     (cond
      ((nth 4 parser-state)
@@ -689,7 +685,11 @@ declaration and its offset is `swift-mode:basic-offset'."
       (goto-char (swift-mode:token:start previous-token))
       (swift-mode:find-parent-and-align-with-next
        swift-mode:statement-parent-tokens
-       (- swift-mode:basic-offset swift-mode:switch-case-offset)))
+       (let ((relative-case-offset
+              (- swift-mode:basic-offset swift-mode:switch-case-offset)))
+         (if (<= relative-case-offset 0)
+             swift-mode:basic-offset
+           relative-case-offset))))
 
      ;; Before ; on the current line
      ((and next-is-on-current-line (eq next-type '\;))
@@ -920,7 +920,7 @@ This function is also used for close-curly-brace."
       (save-excursion
         (goto-char (swift-mode:token:end
                     (swift-mode:backward-sexps-until
-                     swift-mode:statement-parent-tokens)))
+                     (append swift-mode:statement-parent-tokens '(\( \[)))))
         (setq next-token (swift-mode:forward-token-or-list))
         (while (<= (point) pos)
           (cond
@@ -929,8 +929,8 @@ This function is also used for close-curly-brace."
              '("for" "while" "repeat" "switch" "if" "else" "guard"
                "defer" "do" "catch"
                "get" "set" "willSet" "didSet" "func" "init" "subscript"
-               "enum" "struct" "class" "extension" "prefix" "postfix" "infix"
-               "precedencegroup"))
+               "enum" "struct" "actor" "class" "extension"
+               "prefix" "postfix" "infix" "precedencegroup"))
             (setq is-declaration-or-control-statement-body t)
             (goto-char (1+ pos)))
 
@@ -1497,10 +1497,11 @@ It is a Generic parameter list if:
     \;
     { } \( \) \[ \]
     "true" "false"
-    "class" "struct" "enum" "extension" "func" "operator"
+    "class" "struct" "actor" "enum" "extension" "func" "operator"
     "try" "try?" "try!"
     "as" "as?" "as!"
     "is"
+    "await"
     "in"
     "init" "deinit" "get" "set" "willSet" "didSet" "subscript"
     "for" "case" "default" "while" "let" "var" "repeat" "if" "else"
@@ -1615,7 +1616,6 @@ See `indent-new-comment-line' for SOFT."
          (comment-beginning-position (swift-mode:chunk:start chunk)))
     (if soft (insert-and-inherit ?\n) (newline 1))
     (delete-horizontal-space)
-
     ;; Inserts a prefix and indents the line.
     (cond
      ((not (swift-mode:chunk:comment-p chunk))
@@ -1645,7 +1645,6 @@ See `indent-new-comment-line' for SOFT."
 
      (t
       (swift-mode:format-multiline-comment-line-after-newline chunk soft)))
-
     ;; Cleans up the previous line.
     (save-excursion
       (forward-line 0)
@@ -1749,7 +1748,6 @@ See `indent-new-comment-line' for SOFT."
      (t
       ;; Uses the default indentation.
       (indent-according-to-mode)))
-
     ;; Closes incomplete multiline comment.
     (when (and swift-mode:auto-close-multiline-comment
                (swift-mode:incomplete-comment-p chunk))
@@ -1759,7 +1757,6 @@ See `indent-new-comment-line' for SOFT."
           (if soft (insert-and-inherit ?\n) (newline 1)))
         (insert-and-inherit "*/")
         (indent-according-to-mode)))
-
     ;; Make sure the closing delimiter is on its own line.
     (when swift-mode:break-line-before-comment-close
       (save-excursion
@@ -1811,7 +1808,7 @@ See `indent-new-comment-line' for SOFT."
      electric-indent-mode
      (= last-command-event ?\))
      (save-excursion (backward-char) (skip-syntax-backward " ") (bolp))
-     (= (swift-mode:chunk:start (swift-mode:chunk-after)) (1- (point))))
+     (eq (swift-mode:chunk:start (swift-mode:chunk-after)) (1- (point))))
     (indent-according-to-mode))
 
    ;; Indents electrically after newline inside strings and comments.
@@ -1838,12 +1835,9 @@ See `indent-new-comment-line' for SOFT."
    swift-mode:anchor-overlay
    (swift-mode:indentation:point indentation)
    (1+ (swift-mode:indentation:point indentation)))
-
   (overlay-put swift-mode:anchor-overlay 'face 'highlight)
-
   (when swift-mode:anchor-overlay-timer
     (cancel-timer swift-mode:anchor-overlay-timer))
-
   (let ((buffer (current-buffer)))
     (setq swift-mode:anchor-overlay-timer
           (run-at-time

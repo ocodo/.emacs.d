@@ -1,12 +1,8 @@
 ;;; swift-mode-beginning-of-defun.el --- Major-mode for Apple's Swift programming language, beginning/end-of-defun. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2019 taku0
+;; Copyright (C) 2014-2021 taku0
 
 ;; Authors: taku0 (http://github.com/taku0)
-;;
-;; Version: 8.0.2
-;; Package-Requires: ((emacs "24.4") (seq "2.3"))
-;; Keywords: languages swift
 
 ;; This file is not part of GNU Emacs.
 
@@ -172,7 +168,7 @@ The cursor must be at the beginning of a statement."
   (let ((token (swift-mode:forward-token-or-list))
         (defun-keywords
           '("import" "typealias" "associatedtype"
-            "enum" "struct" "protocol" "extension"
+            "enum" "struct" "actor" "protocol" "extension"
             "func" "init" "deinit" "subscript" "get" "set" "willSet" "didSet"
             "prefix" "postfix" "infix" "precedencegroup"
             "var" "let"
@@ -211,7 +207,7 @@ Return nil otherwise."
      (swift-mode:beginning-of-statement)
      (member
       (swift-mode:token:text (swift-mode:find-defun-keyword-simple))
-      '("enum" "struct" "class" "protocol" "extension")))))
+      '("enum" "struct" "actor" "class" "protocol" "extension")))))
 
 (defun swift-mode:beginning-of-statement ()
   "Move backward to the beginning of a statement.
@@ -316,23 +312,27 @@ Intended for internal use."
         (previous-token (save-excursion (swift-mode:backward-token)))
         next-token)
     (cond
+     ;; Already at the end of statement.  Returns next token.
      ((and
        (memq (swift-mode:token:type previous-token)
              '(\; anonymous-function-parameter-in))
        (eq (swift-mode:token:end previous-token) pos))
-      ;; Already at the end of statement.  Returns next token.
       (save-excursion (swift-mode:forward-token)))
+
+     ;; Between statements, or before the first statement.
      ((memq (swift-mode:token:type previous-token)
             '(implicit-\; outside-of-buffer))
-      ;; Between statements, or before the first statement.
       (swift-mode:forward-statement))
+
+     ;; Already at the end of statement.  Returns next token.
      ((progn
         (setq next-token (save-excursion (swift-mode:forward-token)))
         (and (memq (swift-mode:token:type next-token)
                    '(implicit-\; } outside-of-buffer))
              (eq (swift-mode:token:end previous-token) pos)))
-      ;; Already at the end of statement.  Returns next token.
       next-token)
+
+     ;; Inside a statement.
      (t
       (swift-mode:forward-statement)))))
 
@@ -366,11 +366,19 @@ Intended for internal use."
                '\;)
       (setq token (swift-mode:forward-token)))
     (cond
+     ;; The statement is the last one in the buffer.
+     ;; Goes back to the end of the statement unless we were between the end of
+     ;; the statement and the end of the buffer.
      ((eq (swift-mode:token:type token) 'outside-of-buffer)
       (forward-comment (- (point)))
       (when (<= (point) pos)
         (goto-char (swift-mode:token:end token)))
       token)
+
+     ;; We were inside of a block.
+     ;; Goes back to the end of the statement unless we were between the end of
+     ;; the statement and the close bracket.
+     ;; Otherwise, goes to the end of the parent statement.
      ((eq (swift-mode:token:type token) '})
       (forward-comment (- (point)))
       (if (<= (point) pos)
@@ -378,6 +386,8 @@ Intended for internal use."
             (goto-char (swift-mode:token:end token))
             (swift-mode:end-of-statement))
         token))
+
+     ;; Otherwise, we have finished.
      (t token))))
 
 (defun swift-mode:end-of-defun (&optional arg)
@@ -563,7 +573,6 @@ MOVE-BACKWARD is a function moving the cursor to the previous beginning of
 block.
 Both functions return t if succeeded, return nil otherwise."
   (setq arg (or arg 1))
-
   (let ((reversed (< arg 0))
         (count (abs arg))
         (direction
@@ -591,10 +600,8 @@ Both functions return t if succeeded, return nil otherwise."
              ((eq direction 'containing) 'containing)
              ((eq direction 'preceding) 'following)
              ((eq direction 'following) 'preceding))))
-
     (setq new-region original-region)
     (setq new-direction direction)
-
     (while (and new-region (< 0 count))
       (let ((new-region-and-direction
              (swift-mode:extend-region-to-be-marked
@@ -608,16 +615,13 @@ Both functions return t if succeeded, return nil otherwise."
       (when new-region
         (setq last-successful-region new-region))
       (setq count (1- count)))
-
     (setq new-region (or new-region last-successful-region))
     (setq swift-mode:last-mark-direction new-direction)
-
     (and
      new-region
      (progn
        (goto-char (car new-region))
        (push-mark (cdr new-region) nil t)
-
        (if (eq (car original-region) (cdr original-region))
            (when (eq new-direction 'preceding)
              (exchange-point-and-mark))
@@ -842,9 +846,11 @@ Both functions return t if succeeded, return nil otherwise."
               (nth 0 (swift-mode:containing-generic-block-region
                       (cons (point) (point))
                       move-forward move-backward)))
+
              ((eq swift-mode:mark-defun-preference 'preceding)
               (swift-mode:preceding-generic-block-region
                move-forward move-backward))
+
              ((eq swift-mode:mark-defun-preference 'following)
               (swift-mode:following-generic-block-region
                move-forward move-backward))))
@@ -866,7 +872,7 @@ Both functions return t if succeeded, return nil otherwise."
         nil))))
 
 (defun swift-mode:backward-sentence (&optional arg)
-"Skip backward sentences or statements.
+  "Skip backward sentences or statements.
 
 In comments or strings, skip a sentence.  Otherwise, skip a statement.
 
@@ -889,27 +895,30 @@ Return t if a sentence is found.  Return nil otherwise."
 In comments or strings, skip a sentence.  Otherwise, skip a statement."
   (let ((chunk (swift-mode:chunk-after)))
     (cond
+     ;; Inside a comment.
      ((swift-mode:chunk:comment-p chunk)
       (swift-mode:forward-sentence-inside-comment
        (swift-mode:chunk:single-line-comment-p chunk)))
+
+     ;; Inside a string.
      ((swift-mode:chunk:string-p chunk)
       (swift-mode:forward-sentence-inside-string))
+
      ;; Spaces at the beginning of 2nd and following lines.
+     ;; Between the beginning of the line and "ccc" and "ddd" bellow:
      ;;
      ;; class Foo {
      ;;   // aaa
      ;;
      ;;   // bbb
-     ;;   // ccc ← spaces before //
-     ;;   // ddd ← spaces before //
+     ;;   // ccc
+     ;;   // ddd
      ;;   func foo() { // eee
      ;;   }
      ;; }
      ;;
-     ;; Not including spaces before the first line of blocks.
+     ;; Not including spaces before the first line of blocks ("bbb").
      ((save-excursion
-        (skip-syntax-backward " ")
-        (skip-chars-backward "/")
         (skip-syntax-backward " ")
         (and (bolp)
              (looking-at "[ \t]*//")
@@ -921,6 +930,8 @@ In comments or strings, skip a sentence.  Otherwise, skip a statement."
       (skip-syntax-forward " ")
       (forward-char 2)
       (swift-mode:forward-sentence-inside-comment t))
+
+     ;; Otherwise
      (t
       (swift-mode:forward-sentence-inside-code)))))
 
@@ -930,24 +941,29 @@ In comments or strings, skip a sentence.  Otherwise, skip a statement."
 In comments or strings, skip a sentence.  Otherwise, skip a statement."
   (let ((chunk (swift-mode:chunk-after)))
     (cond
+     ;; Inside a comment.
      ((swift-mode:chunk:comment-p chunk)
       (swift-mode:backward-sentence-inside-comment
        (swift-mode:chunk:single-line-comment-p chunk)))
+
+     ;; Inside a string.
      ((swift-mode:chunk:string-p chunk)
       (swift-mode:backward-sentence-inside-string))
+
      ;; Spaces at the beginning of 2nd and following lines.
+     ;; Between the beginning of the line and "ccc" and "ddd" bellow:
      ;;
      ;; class Foo {
      ;;   // aaa
      ;;
      ;;   // bbb
-     ;;   // ccc ← spaces before //
-     ;;   // ddd ← spaces before //
+     ;;   // ccc
+     ;;   // ddd
      ;;   func foo() { // eee
      ;;   }
      ;; }
      ;;
-     ;; Not including spaces before the first line of blocks.
+     ;; Not including spaces before the first line of blocks ("bbb").
      ((save-excursion
         (skip-syntax-backward " ")
         (and (bolp)
@@ -955,11 +971,13 @@ In comments or strings, skip a sentence.  Otherwise, skip a statement."
              (not (bobp))
              (progn
                (backward-char)
-               (nth 4 (syntax-ppss)))))
+               (swift-mode:chunk:comment-p (swift-mode:chunk-after)))))
       (forward-line 0)
       (skip-syntax-forward " ")
       (forward-char 2)
       (swift-mode:backward-sentence-inside-comment t))
+
+     ;; Otherwise
      (t
       (swift-mode:backward-sentence-inside-code)))))
 
@@ -1214,8 +1232,10 @@ of lines.  Empty lines split blocks.  Example:
             (skip-chars-forward "\"")
             (skip-syntax-forward " >")
             t)
+
            ((eq (char-after) ?\))
             (swift-mode:backward-sentence-inside-interpolated-expression))
+
            (t
             (swift-mode:backward-sentence-inside-code t)))))))
 
@@ -1338,14 +1358,14 @@ or preceding (if the point is after the mark) sentence."
       region)))
 
 (defun swift-mode:narrow-to-sentence (&optional include-comments)
-"Make text outside current sentence invisible.
+  "Make text outside current sentence invisible.
 
 If the point is between sentences, narrow depend on
 `swift-mode:mark-defun-preference'.
 
 Preceding comments are included if INCLUDE-COMMENTS is non-nil.
 Interactively, the behavior depends on ‘narrow-to-defun-include-comments’."
-(interactive (list (and (boundp 'narrow-to-defun-include-comments)
+  (interactive (list (and (boundp 'narrow-to-defun-include-comments)
                           narrow-to-defun-include-comments)))
   (let ((region (swift-mode:narrow-to-generic-block
                  include-comments
@@ -1398,7 +1418,7 @@ of ancestors."
        (cond
         ((member keyword-text
                  '("typealias" "associatedtype" "precedencegroup" "func"
-                   "class" "enum" "struct" "protocol" "extension"))
+                   "class" "enum" "struct" "actor" "protocol" "extension"))
          (swift-mode:forward-token))
 
         ((member keyword-text '("init" "deinit" "subscript"))
