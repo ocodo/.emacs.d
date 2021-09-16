@@ -10,12 +10,12 @@
 ;;; Generated autoloads from elmacro.el
 
 (autoload 'elmacro-show-last-macro "elmacro" "\
-Show the last macro as emacs lisp with NAME.
+Show the last macro as Emacs Lisp with NAME.
 
 \(fn NAME)" t nil)
 
 (autoload 'elmacro-show-last-commands "elmacro" "\
-Take the latest COUNT commands and show them as emacs lisp.
+Take the latest COUNT commands and show them as Emacs Lisp.
 
 This is basically a better version of `kmacro-edit-lossage'.
 
