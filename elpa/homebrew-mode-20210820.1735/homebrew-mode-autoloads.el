@@ -9,6 +9,11 @@
 ;;;### (autoloads nil "homebrew-mode" "homebrew-mode.el" (0 0 0 0))
 ;;; Generated autoloads from homebrew-mode.el
 
+(autoload 'homebrew-tap "homebrew-mode" "\
+Visit the Formula directory of TAP using Dired.
+
+\(fn TAP)" t nil)
+
 (autoload 'homebrew-mode "homebrew-mode" "\
 Helper functions for editing Homebrew formulae
 
