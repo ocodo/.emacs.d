@@ -1,0 +1,2 @@
+;;; Generated package description from textile-mode.el  -*- no-byte-compile: t -*-
+(define-package "textile-mode" "20210912.906" "Textile markup editing major mode" 'nil :commit "a49d9bf42166584cca395a92311e9d0a199efc46" :authors '(("Julien Barnier" . "julien@nozav.org")) :maintainer '("Julien Barnier" . "julien@nozav.org") :keywords '("wp" "languages") :url "https://github.com/juba/textile-mode")

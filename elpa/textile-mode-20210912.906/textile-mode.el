@@ -1,10 +1,13 @@
 ;;; textile-mode.el --- Textile markup editing major mode
-;; Package-Version: 20170304.1716
 
 ;; Copyright (C) 2006 Free Software Foundation, Inc.
 
 ;; Author: Julien Barnier <julien@nozav.org>
-;; $Id: textile-mode.el 6 2006-03-30 22:37:08Z juba $
+;; URL: https://github.com/juba/textile-mode
+;; Package-Version: 20210912.906
+;; Package-Commit: a49d9bf42166584cca395a92311e9d0a199efc46
+;; Keywords: wp, languages
+;; Version: 1.0.0
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -23,10 +26,10 @@
 
 ;;; Commentary:
 
-;;
+;; An emacs major mode for Textile markup language 
+;; (https://textile-lang.com/) editing.
 
-
-;; Known bugs or limitations:
+;;; Known bugs or limitations:
 
 ;; - if several {style}, [lang] or (class) attributes are given for
 ;;   the same block, only the first one of each type will be
@@ -34,13 +37,8 @@
 ;;
 ;; - some complex imbrications of inline markup and attributes are
 ;;   not well-rendered (for example, *strong *{something}notstrong*)
-;;
-
-
 
 ;;; Code:
-
-
 
 (defvar textile-mode-map
   (let ((map (make-sparse-keymap)))
