@@ -1,12 +1,12 @@
-(define-package "hydra" "20200711.1210" "Make bindings that stick around."
+(define-package "hydra" "20201115.1055" "Make bindings that stick around."
   '((cl-lib "0.5")
     (lv "0"))
-  :commit "112e689f75b59398d8eca79ac6562dca12b8a959" :keywords
-  '("bindings")
-  :authors
+  :commit "2d553787aca1aceb3e6927e426200e9bb9f056f1" :authors
   '(("Oleh Krehel" . "ohwoeowho@gmail.com"))
   :maintainer
   '("Oleh Krehel" . "ohwoeowho@gmail.com")
+  :keywords
+  '("bindings")
   :url "https://github.com/abo-abo/hydra")
 ;; Local Variables:
 ;; no-byte-compile: t
