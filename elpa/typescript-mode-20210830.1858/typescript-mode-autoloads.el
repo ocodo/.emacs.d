@@ -22,7 +22,7 @@ Key bindings:
 
 (eval-after-load 'folding '(when (fboundp 'folding-add-to-marks-list) (folding-add-to-marks-list 'typescript-mode "// {{{" "// }}}")))
 
-(add-to-list 'auto-mode-alist '("\\.ts$" . typescript-mode))
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-mode))
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "typescript-mode" '("typescript-")))
 

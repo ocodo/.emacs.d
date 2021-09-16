@@ -21,7 +21,7 @@
 ;; -------------------------------------------------------------------------------------------
 
 ;; URL: http://github.com/ananthakumaran/typescript.el
-;; Version: 0.1
+;; Version: 0.4
 ;; Keywords: typescript languages
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -312,13 +312,13 @@ Match group 1 is MUMBLE.")
 
 (defconst typescript--font-lock-keywords-2
   (append typescript--font-lock-keywords-1
-          (list (list typescript--keyword-re 1 font-lock-keyword-face)
+          (list (cons typescript--constant-re font-lock-constant-face)
+                (cons typescript--basic-type-re font-lock-type-face)
+                (list typescript--keyword-re 1 font-lock-keyword-face)
                 (list "\\_<for\\_>"
                       "\\s-+\\(each\\)\\_>" nil nil
                       (list 1 'font-lock-keyword-face))
-                (cons "\\_<yield\\(\\*\\|\\_>\\)" 'font-lock-keyword-face)
-                (cons typescript--basic-type-re font-lock-type-face)
-                (cons typescript--constant-re font-lock-constant-face)))
+                (cons "\\_<yield\\(\\*\\|\\_>\\)" 'font-lock-keyword-face)))
   "Level two font lock keywords for `typescript-mode'.")
 
 ;; typescript--pitem is the basic building block of the lexical
@@ -650,6 +650,11 @@ The value must be no less than minus `typescript-indent-level'."
   "Enable indenting of switch case and default clauses to
 replicate tsserver behaviour. Indent level is taken to be
 `typescript-indent-level'."
+  :type 'boolean
+  :group 'typescript)
+
+(defcustom typescript-indent-list-items t
+  "Enable indenting of list items, useful for certain code styles."
   :type 'boolean
   :group 'typescript)
 
@@ -2535,7 +2540,8 @@ moved on success."
                        (if (and in-switch-p typescript-indent-switch-clauses)
                            (+ indent typescript-indent-level)
                          indent)))
-                 (unless same-indent-p
+                 (when (and (not same-indent-p)
+                            typescript-indent-list-items)
                    (forward-char)
                    (skip-chars-forward " \t"))
                  (if continued-expr-p
@@ -2972,7 +2978,7 @@ Key bindings:
      (folding-add-to-marks-list 'typescript-mode "// {{{" "// }}}" )))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.ts$" . typescript-mode))
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-mode))
 
 (provide 'typescript-mode)
 
