@@ -4,7 +4,8 @@
 
 ;; Author: Arne Brasseur <arne@arnebrasseur.net>
 ;; URL: https://github.com/plexus/a.el
-;; Package-Version: 20180907.953
+;; Package-Version: 20201203.1927
+;; Package-Commit: 3d341eb7813ee02b00ab28e11c915295bfd4b5a7
 ;; Keywords: lisp
 ;; Version: 0.1.1
 ;; Package-Requires: ((emacs "25"))
@@ -129,7 +130,7 @@ Internal helper function."
       (cons (cons k v) coll)))
 
    ((vectorp coll)
-    (if (and (integerp k) (> k 0))
+    (if (and (integerp k) (>= k 0))
         (if (< k (length coll))
             (let ((copy (copy-sequence coll)))
               (aset copy k v)
