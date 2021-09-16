@@ -24,7 +24,7 @@ CONNECT-MODE is a string describing how to connect. ADDR is the
 address to connect to. The address is interpreted based on the
 connect mode in use."
   (cond ((string= connect-mode "tcp")
-         (open-network-stream "*gnu-apl-connection*" nil "localhost" (string-to-number addr)
+         (open-network-stream "*gnu-apl-connection*" nil "127.0.0.1" (string-to-number addr)
                               :type 'plain
                               :return-list nil
                               :end-of-command "\n"))

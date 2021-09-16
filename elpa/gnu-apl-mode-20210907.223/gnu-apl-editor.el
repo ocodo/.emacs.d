@@ -11,6 +11,11 @@ the function and set it in the running APL interpreter."
   (interactive (list (gnu-apl--choose-variable "Function name" :function (gnu-apl--name-at-point))))
   (gnu-apl--get-function name))
 
+(defcustom gnu-apl-flash-on-send t
+  "When non-nil flash the region that is sent to GNU APL interpreter."
+  :type  'boolean
+  :group 'gnu-apl)
+
 (defun gnu-apl--get-function (function-definition)
   (let ((function-name (gnu-apl--parse-function-header function-definition)))
     (unless function-name
@@ -26,6 +31,12 @@ the function and set it in the running APL interpreter."
                              (error "Not an editable function: %s" function-name)))))
         (gnu-apl--open-function-editor-with-timer content)))))
 
+(defun gnu-apl--flash-region (start end &optional timeout)
+  "Temporarily highlight region from start to end."
+  (let ((overlay (make-overlay start end)))
+    (overlay-put overlay 'face 'secondary-selection)
+    (run-with-timer (or timeout 0.2) nil 'delete-overlay overlay)))
+
 (defun gnu-apl-interactive-send-buffer ()
   "Send the entire content of the current buffer to the active
 GNU APL interpreter."
@@ -35,9 +46,16 @@ GNU APL interpreter."
 (defun gnu-apl-interactive-send-region (start end)
   "Send the region to the active GNU APL interpreter."
   (interactive "r")
+  (when gnu-apl-flash-on-send
+    (gnu-apl--flash-region start end))
   (gnu-apl-interactive-send-string (buffer-substring start end)
                                    buffer-file-name (1- (gnu-apl--current-line-number (min start end))))
   (message "Region sent to APL"))
+
+(defun gnu-apl-interactive-send-line ()
+  "Send the current to the GNU APL interpreter."
+  (interactive)
+  (gnu-apl-interactive-send-region (point-at-bol) (point-at-eol)))
 
 (defun gnu-apl--function-definition-to-list (content)
   "Given a function definition as returned by ⌷CR 'function',
