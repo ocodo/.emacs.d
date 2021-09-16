@@ -1,32 +1,32 @@
 ;;; language-id.el --- Library to work with programming language identifiers -*- lexical-binding: t -*-
-;;
+
 ;; Author: Lassi Kortela <lassi@lassi.io>
 ;; URL: https://github.com/lassik/emacs-language-id
-;; Package-Version: 20200726.1813
-;; Package-Commit: aa541a4461a07add17374fd56aef6e2fd1a61c60
-;; Version: 0.7.1
+;; Package-Version: 20210822.412
+;; Package-Commit: 9efcd0f699bd7f1a55db7a62c8f1b547c6aeddb6
+;; Version: 0.16
 ;; Package-Requires: ((emacs "24") (cl-lib "0.5"))
 ;; Keywords: languages util
 ;; SPDX-License-Identifier: ISC
-;;
+
 ;; This file is not part of GNU Emacs.
-;;
+
 ;;; Commentary:
-;;
+
 ;; language-id is a small, focused library that helps other Emacs
 ;; packages identify the programming languages and markup languages
 ;; used in Emacs buffers.  The main point is that it contains an
 ;; evolving table of language definitions that doesn't need to be
 ;; replicated in other packages.
-;;
+
 ;; Right now there is only one public function, `language-id-buffer'.
 ;; It looks at the major mode and other variables and returns the
 ;; language's GitHub Linguist identifier.  We can add support for
 ;; other kinds of identifiers if there is demand.
-;;
+
 ;; This library does not do any statistical text matching to guess the
 ;; language.
-;;
+
 ;;; Code:
 
 (defvar language-id--file-name-extension nil
@@ -36,67 +36,108 @@
 (defconst language-id--definitions
   '(
 
-    ;; JSON needs to come before JavaScript. Since json-mode is
-    ;; derived from javascript-mode, having JavaScript before JSON
-    ;; would cause JSON to be detected as JavaScript.
+    ;;; Definitions that need special attention to precedence order.
+
+    ;; It is not uncommon for C++ mode to be used when writing Cuda.
+    ;; In this case, the only way to correctly identify Cuda is by
+    ;; looking at the extension.
+    ("Cuda"
+     c++-mode
+     (language-id--file-name-extension ".cu"))
+    ("Cuda"
+     c++-mode
+     (language-id--file-name-extension ".cuh"))
+
+    ;; json-mode is derived from javascript-mode.
     ("JSON"
      json-mode
      (web-mode (web-mode-content-type "json") (web-mode-engine "none")))
 
-    ;; PHP needs to come before C because php-mode is derived from
-    ;; c-mode.
+    ;; php-mode is derived from c-mode.
     ("PHP" php-mode)
 
-    ;; Terraform needs to come before HCL because terraform-mode is
-    ;; derived from hcl-mode.
+    ;; scss-mode is derived from css-mode.
+    ("SCSS" scss-mode)
+
+    ;; svelte-mode is derived from html-mode.
+    ("Svelte"
+     svelte-mode
+     (web-mode (web-mode-content-type "html") (web-mode-engine "svelte")))
+
+    ;; terraform-mode is derived from hcl-mode.
     ("Terraform" terraform-mode)
 
     ;; TypeScript/TSX need to come before JavaScript/JSX because in
     ;; web-mode we can tell them apart by file name extension only.
-    ;; This implies that unsaved temp buffers using TypeScript/TSX in
-    ;; web-mode are classified as JavaScript/JSX.
-    ("TypeScript"
-     typescript-mode
-     (web-mode
-      (web-mode-content-type "javascript")
-      (web-mode-engine "none")
-      (language-id--file-name-extension ".ts")))
+    ;;
+    ;; This implies that we inconsistently classify unsaved temp
+    ;; buffers using TypeScript/TSX as JavaScript/JSX.
     ("TSX"
      typescript-tsx-mode
      (web-mode
       (web-mode-content-type "jsx")
       (web-mode-engine "none")
       (language-id--file-name-extension ".tsx")))
+    ("TypeScript"
+     typescript-mode
+     (web-mode
+      (web-mode-content-type "javascript")
+      (web-mode-engine "none")
+      (language-id--file-name-extension ".ts")))
 
-    ;; The rest of the definitions are in alphabetical order.
+    ;; ReScript needs to come before Reason because in reason-mode
+    ;; we can tell them apart by file name extension only.
+    ("ReScript"
+     (reason-mode
+      (language-id--file-name-extension ".res")))
+    ("ReScript"
+     (reason-mode
+      (language-id--file-name-extension ".resi")))
+    ("Reason" reason-mode)
+
+    ;; vue-html-mode is derived from html-mode.
+    ("Vue"
+     vue-mode
+     vue-html-mode
+     (web-mode (web-mode-content-type "html") (web-mode-engine "vue")))
+
+    ;;; The rest of the definitions are in alphabetical order.
 
     ("Assembly" asm-mode nasm-mode)
+    ("ATS" ats-mode)
+    ("Awk" awk-mode)
     ("Bazel" bazel-mode)
     ("BibTeX" bibtex-mode)
     ("C" c-mode)
+    ("C#" csharp-mode)
     ("C++" c++-mode)
     ("Cabal Config" haskell-cabal-mode)
-    ("Clojure" clojure-mode clojurec-mode clojurescript-mode)
+    ("Clojure" clojurescript-mode clojurec-mode clojure-mode)
     ("CMake" cmake-mode)
+    ("Common Lisp" lisp-mode)
     ("Crystal" crystal-mode)
     ("CSS"
      css-mode
      (web-mode (web-mode-content-type "css") (web-mode-engine "none")))
+    ("Cuda" cuda-mode)
     ("D" d-mode)
     ("Dart" dart-mode)
     ("Dhall" dhall-mode)
     ("Dockerfile" dockerfile-mode)
     ("Elixir" elixir-mode)
     ("Elm" elm-mode)
-    ("Emacs Lisp" emacs-lisp-mode lisp-interaction-mode)
+    ("Emacs Lisp" emacs-lisp-mode)
+    ("F#" fsharp-mode)
     ("Fish" fish-mode)
+    ("Fortran" fortran-mode)
+    ("Fortran Free Form" f90-mode)
     ("GLSL" glsl-mode)
     ("Go" go-mode)
     ("GraphQL" graphql-mode)
     ("Haskell" haskell-mode)
     ("HCL" hcl-mode)
     ("HTML"
-     html-helper-mode html-mode mhtml-mode nxhtml-mode
+     html-helper-mode mhtml-mode html-mode nxhtml-mode
      (web-mode (web-mode-content-type "html") (web-mode-engine "none")))
     ("Java" java-mode)
     ("JavaScript"
@@ -125,19 +166,18 @@
     ("PureScript" purescript-mode)
     ("Python" python-mode)
     ("R" ess-r-mode (ess-mode (ess-dialect "R")))
+    ("Racket" racket-mode)
     ("Ruby" enh-ruby-mode ruby-mode)
     ("Rust" rust-mode rustic-mode)
     ("Scala" scala-mode)
-    ("SCSS" scss-mode)
+    ("Scheme" scheme-mode)
     ("Shell" sh-mode)
     ("Solidity" solidity-mode)
     ("SQL" sql-mode)
     ("Swift" swift-mode swift3-mode)
     ("TOML" toml-mode conf-toml-mode)
+    ("V" v-mode)
     ("Verilog" verilog-mode)
-    ("Vue"
-     vue-mode
-     (web-mode (web-mode-content-type "html") (web-mode-engine "vue")))
     ("XML"
      nxml-mode xml-mode
      (web-mode (web-mode-content-type "xml") (web-mode-engine "none")))

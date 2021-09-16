@@ -1,0 +1,2 @@
+;;; Generated package description from language-id.el  -*- no-byte-compile: t -*-
+(define-package "language-id" "20210822.412" "Library to work with programming language identifiers" '((emacs "24") (cl-lib "0.5")) :commit "9efcd0f699bd7f1a55db7a62c8f1b547c6aeddb6" :authors '(("Lassi Kortela" . "lassi@lassi.io")) :maintainer '("Lassi Kortela" . "lassi@lassi.io") :keywords '("languages" "util") :url "https://github.com/lassik/emacs-language-id")
