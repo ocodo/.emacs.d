@@ -22,10 +22,10 @@
 
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 
-(defstruct (cl-format-directive
-            (:conc-name cl-format-directive/))
+(cl-defstruct (cl-format-directive
+               (:conc-name cl-format-directive/))
   char-beg
   char-end
   parameter
@@ -37,27 +37,27 @@
   colon-flag-p
   documentation)
 
-(defstruct (cl-format-base
-            (:conc-name cl-format-base/))
+(cl-defstruct (cl-format-base
+               (:conc-name cl-format-base/))
   at-flag
   colon-flag
   parameter)
 
-(defstruct (cl-format-part
-            (:conc-name cl-format-part/)
-            (:include cl-format-base))
+(cl-defstruct (cl-format-part
+               (:conc-name cl-format-part/)
+               (:include cl-format-base))
   directive
   contained
   separator
   end-separator)
 
-(defstruct (cl-format-clause-separator
-            (:conc-name cl-format-clause-separator/)
-            (:include cl-format-base)))
+(cl-defstruct (cl-format-clause-separator
+               (:conc-name cl-format-clause-separator/)
+               (:include cl-format-base)))
 
-(defstruct (cl-format-clause-end-separator
-            (:conc-name cl-format-clause-end-separator/)
-            (:include cl-format-clause-separator)))
+(cl-defstruct (cl-format-clause-end-separator
+               (:conc-name cl-format-clause-end-separator/)
+               (:include cl-format-clause-separator)))
 
 
 (defvar cl-format-directives nil
@@ -81,15 +81,15 @@ character of the directive and 'clx' is the corresponding struct.")
 
 (defun cl-define-format-directive-parse-lambda-list (list)
   "Parse lambda-list LIST for `define-cl-format-directive'."
-  (flet ((check-arg (arg)
-           (and (not (keywordp* arg))
-                (or (symbolp arg)
-                    (and (consp arg)
-                         (= (length arg) 2)
-                         (symbolp (car arg))))))
-         (keywordp* (symbol)
-           (and (symbolp symbol)
-                (eq ?& (aref (symbol-name symbol) 0)))))
+  (cl-labels ((check-arg (arg)
+                (and (not (keywordp* arg))
+                     (or (symbolp arg)
+                         (and (consp arg)
+                              (= (length arg) 2)
+                              (symbolp (car arg))))))
+              (keywordp* (symbol)
+                (and (symbolp symbol)
+                     (eq ?& (aref (symbol-name symbol) 0)))))
     (let* ((order (copy-sequence '(&args &at-flag &colon-flag &parameter
                                          &contained &separator
                                          &end-separator &stash)))
@@ -433,19 +433,19 @@ error: \"Directive ~F does not support :-flag\""
                       (or doc "FIXME: Not documented.")))
     
     (while (keywordp (car body))
-      (case (car body)
+      (cl-case (car body)
         (otherwise (error "Unrecognized keyword: %s" (car body))))
       (setq body (cddr body)))
                
-    (setq args (remove-if-not 'cdr args))
+    (setq args (cl-remove-if-not 'cdr args))
     (let* ((parm-only (cdr (assq '&parameter args)))
            (arg-only (cdr (assq '&args args)))
            (contained-only (cdr (assq '&contained args)))
-           (non-parm-arg (remove-if (lambda (kw)
-                                      (memq (car kw)
-                                            '(&parameter
-                                              &args &contained)))
-                                    args))
+           (non-parm-arg (cl-remove-if (lambda (kw)
+                                         (memq (car kw)
+                                               '(&parameter
+                                                 &args &contained)))
+                                       args))
            (ll (mapcar
                 (lambda (s)
                   (cons s (make-symbol
@@ -470,7 +470,7 @@ error: \"Directive ~F does not support :-flag\""
                (or (consp a)
                    (setq a (list a)))
                `(list ',(car a)
-                      (list 'or (list 'nth ,(incf idx)
+                      (list 'or (list 'nth ,(cl-incf idx)
                                       ',parm-symbol)
                             ',(eval (cadr a)))))
              parm-only))
@@ -554,7 +554,7 @@ error: \"Directive ~F does not support :-flag\""
   ;; later removed.  But maybe this is good enough anyway.
   (let* ((directives (assq-delete-all
                       char-beg
-                      (copy-seq cl-format-directives))))
+                      (cl-copy-seq cl-format-directives))))
     (dolist (d directives)
       (let ((other-end (cl-format-directive/char-end
                         (cdr d)))

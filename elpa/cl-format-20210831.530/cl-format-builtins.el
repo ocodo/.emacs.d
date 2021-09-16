@@ -91,7 +91,7 @@ event."
                 ;;(append "()[]\\;'`\"#., \n\t\l\r\e" nil)
                 '(40 41 91 93 92 59 39 96 34 35 46 44 32 10 9 108 13 27))
       (push ?\\ repr))
-    (push (case char
+    (push (cl-case char
             (?\s ?s)
             (?\n ?n)
             (?\t ?t)
@@ -283,7 +283,7 @@ instead of decimal."
                           (max (- width (length str))
                                (- width (length abbrev))))))
 
-    (when (and width print-plus-sign) (decf rest-width))
+    (when (and width print-plus-sign) (cl-decf rest-width))
     (if (and width
              overflowchar
              (< rest-width 0))
@@ -571,7 +571,7 @@ change_e"
           (let ((n (clisp-float-scale-exponent arg)))
             (if (null digits)
                 (setq digits
-                      (multiple-value-bind (digits digitslength)
+                      (cl-multiple-value-bind (digits digitslength)
                           (clisp-format-float-to-string
                            (abs arg) nil nil nil nil)
                         (max (1- digitslength) 1 (min n 7)))))
@@ -654,17 +654,17 @@ change_e"
     (if (floatp arg)
         (if (not (cl-format-float-regular-p arg))
             (cl-format-float-nan/inf arg w atsign nil padchar)
-          (multiple-value-bind (num numlength
+          (cl-multiple-value-bind (num numlength
                                        leadingpoint trailingpoint leadings)
               (clisp-format-float-to-string arg nil digits 0 nil)
             (let* ((lefts (max leadings n))
-                   (totalwidth (+ (if (or atsign (minusp arg)) 1 0)
+                   (totalwidth (+ (if (or atsign (cl-minusp arg)) 1 0)
                                   lefts 1 digits))
                    (padcount (max (- w totalwidth) 0)))
               (if (not colon)
                   (clisp-format-padding
                    padcount padchar standard-output))
-              (if (minusp arg)
+              (if (cl-minusp arg)
                   (write-char ?- standard-output)
                 (if atsign (write-char ?+ standard-output)))
               (if colon
@@ -1138,7 +1138,7 @@ powerful than ~?."
           (setq container
                 (catch 'cl-format-up-and-out
                   (funcall fmt container)))))
-      (incf count)
+      (cl-incf count)
       (setq force-once nil)))
   container)
 
@@ -1393,11 +1393,11 @@ Here are some examples of the use of ~^ within a ~< construct.
 
 (defun cl-format-float-regular-p (float)
   "Check that FLOAT is a `float' and neither NaN nor INF."
-  (require 'cl)
+  (require 'cl-lib)
   (cl-float-limits)
   (and (= float float)
-       (<= float most-positive-float)
-       (>= float most-negative-float)))
+       (<= float cl-most-positive-float)
+       (>= float cl-most-negative-float)))
 
 (provide 'cl-format-builtins)
 
