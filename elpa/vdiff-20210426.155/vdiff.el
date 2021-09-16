@@ -5,9 +5,9 @@
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; Maintainer: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-vdiff
-;; Package-Version: 20200214.1845
-;; Package-Commit: c0541ae9c2cb878be9ab3935da058a72155a14fc
-;; Version: 0.2.3
+;; Package-Version: 20210426.155
+;; Package-Commit: 84b8243d9f5d8082b05794dbc998d43dbdd7676a
+;; Version: 0.2.4
 ;; Keywords: diff
 ;; Package-Requires: ((emacs "24.4") (hydra "0.13.0"))
 
@@ -2322,7 +2322,7 @@ buffers. This sets up key bindings in `vdiff-mode-map' and adds
 hooks to refresh diff on changes. This will be enabled
 automatically after calling commands like `vdiff-files' or
 `vdiff-buffers'."
-  nil " vdiff" 'vdiff-mode-map
+  :lighter " vdiff"
   (if vdiff-mode
       (vdiff--buffer-init)
     (vdiff--buffer-cleanup)))
@@ -2333,7 +2333,7 @@ buffers. This sets up key bindings in `vdiff-3way-mode-map' and
 adds hooks to refresh diff on changes. This will be enabled
 automatically after calling commands like `vdiff-files3' or
 `vdiff-buffers3'."
-  nil " vdiff3" 'vdiff-3way-mode-map
+  :lighter " vdiff3"
   (if vdiff-3way-mode
       (vdiff--buffer-init)
     (vdiff--buffer-cleanup)))
@@ -2341,7 +2341,8 @@ automatically after calling commands like `vdiff-files3' or
 (define-minor-mode vdiff-scroll-lock-mode
   "Lock scrolling between vdiff buffers. This minor mode will be
 enabled automatically if `vdiff-lock-scrolling' is non-nil."
-  nil nil nil
+  :lighter nil
+  :keymap nil
   (cond (vdiff-scroll-lock-mode
          (unless (or vdiff-mode vdiff-3way-mode)
            (user-error "Must enable vdiff-mode first"))
