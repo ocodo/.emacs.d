@@ -1,0 +1,2 @@
+;;; Generated package description from evil-snipe.el  -*- no-byte-compile: t -*-
+(define-package "evil-snipe" "20210713.1456" "emulate vim-sneak & vim-seek" '((emacs "24.4") (evil "1.2.12") (cl-lib "0.5")) :commit "1a28d718c835a21591a170af78a03a366cd60c0d" :authors '(("Henrik Lissner <http://github/hlissner>")) :maintainer '("Henrik Lissner" . "henrik@lissner.net") :keywords '("emulation" "vim" "evil" "sneak" "seek") :url "https://github.com/hlissner/evil-snipe")
