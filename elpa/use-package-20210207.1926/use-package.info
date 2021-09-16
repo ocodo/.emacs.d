@@ -1,4 +1,4 @@
-This is use-package.info, produced by makeinfo version 6.5 from
+This is use-package.info, produced by makeinfo version 6.7 from
 use-package.texi.
 
      Copyright (C) 2012-2017 John Wiegley <johnw@newartisans.com>
@@ -231,7 +231,7 @@ for ‘load-path’.
 
    should display something like
 
-     use-package-version’s value is "2.4"
+     use-package-version’s value is "2.4.1"
 
    If you are completely new to use-package then see *note Getting
 Started::.
@@ -1008,37 +1008,37 @@ Node: Installation3306
 Node: Installing from an Elpa Archive3658
 Node: Installing from the Git Repository4773
 Node: Post-Installation Tasks6309
-Node: Getting Started7022
-Node: Keywords7194
-Node: after8113
-Node: bind-keymap bind-keymap*9645
-Node: bind bind*10698
-Node: Binding to local keymaps12738
-Node: commands13829
-Node: preface init config13971
-Node: custom16049
-Node: custom-face16489
-Node: defer demand16809
-Node: defines functions17621
-Node: diminish delight18766
-Node: disabled20709
-Node: ensure pin21204
-Node: hook23934
-Node: if when unless25352
-Node: load-path26298
-Node: mode interpreter27444
-Node: magic magic-fallback28755
-Node: no-require29600
-Node: requires30304
-Node: FAQ31191
-Node: FAQ - How to ...?31474
-Node: This is a question31646
-Node: FAQ - Issues and Errors31794
-Node: This is an issues31977
-Node: Debugging Tools32132
-Node: Command Index32306
-Node: Function Index32462
-Node: Variable Index32619
+Node: Getting Started7024
+Node: Keywords7196
+Node: after8115
+Node: bind-keymap bind-keymap*9647
+Node: bind bind*10700
+Node: Binding to local keymaps12740
+Node: commands13831
+Node: preface init config13973
+Node: custom16051
+Node: custom-face16491
+Node: defer demand16811
+Node: defines functions17623
+Node: diminish delight18768
+Node: disabled20711
+Node: ensure pin21206
+Node: hook23936
+Node: if when unless25354
+Node: load-path26300
+Node: mode interpreter27446
+Node: magic magic-fallback28757
+Node: no-require29602
+Node: requires30306
+Node: FAQ31193
+Node: FAQ - How to ...?31476
+Node: This is a question31648
+Node: FAQ - Issues and Errors31796
+Node: This is an issues31979
+Node: Debugging Tools32134
+Node: Command Index32308
+Node: Function Index32464
+Node: Variable Index32621
 
 End Tag Table
 
