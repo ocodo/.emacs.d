@@ -59,7 +59,9 @@ def get_dict_from_path(path, separator):
 
     res = []
     for x in path:
-        if not isinstance(x, list):
+        if isinstance(x, str) and x.find("[") == -1:
+            res.append(x)
+        elif not isinstance(x, list):
             pos = x.find("[")
             while pos != -1:
                 if pos == 0:

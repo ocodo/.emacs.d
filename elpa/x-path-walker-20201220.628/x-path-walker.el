@@ -43,9 +43,9 @@
 (defun x-path-build-cmd-path (args)
   (let ((cmdpython (x-path-walker-command)))
     (mapconcat #'identity
-             (append cmdpython
-                     args)
-             " ")))
+               (append cmdpython
+                       args)
+               " ")))
 
 (defun x-path-run-py-script (args)
   (let ((cmd (x-path-build-cmd-path args)))
@@ -94,7 +94,8 @@
                 (shell-command-on-region (point-min) (point-max)
                                          (concat "python3 -m json.tool "
                                                  (buffer-file-name))
-                                         (current-buffer))))
+                                         (current-buffer) t
+                                         "*x-path-walker-json-error*" t)))
     (unless (or (string= "" line))
       (goto-char 0)
       (forward-line (1- (string-to-number line)))

@@ -1,10 +1,10 @@
+import json
+from collections.abc import MutableSequence, MutableMapping
+from collections import OrderedDict
 from xpathwalker.utils import list_compare_idx
 from xpathwalker.processor import Processor
 from xpathwalker.utils import traverse_and_remove_path,\
     get_dict_from_path, get_class
-import json
-from collections import MutableSequence, MutableMapping
-from collections import OrderedDict
 
 ##########################################################################
 # JSON / Python                                                          #
