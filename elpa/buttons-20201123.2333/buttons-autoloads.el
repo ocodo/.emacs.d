@@ -9,7 +9,7 @@
 ;;;### (autoloads nil "buttons" "buttons.el" (0 0 0 0))
 ;;; Generated autoloads from buttons.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "buttons" '("buttons-" "defbuttons")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "buttons" '("buttons-" "defbuttons" "keymap-symbol")))
 
 ;;;***
 

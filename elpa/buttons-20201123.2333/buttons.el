@@ -5,8 +5,8 @@
 ;; Author: Ernesto Alfonso
 ;; Maintainer: (concat "erjoalgo" "@" "gmail" ".com")
 ;; Keywords: keymap, template, snippet
-;; Package-Version: 20190319.41
-;; Package-Commit: a14d0c21cc30d33b57481f535f2a838d65b2032f
+;; Package-Version: 20201123.2333
+;; Package-Commit: de41b48244574a13000c4289fdb4216a2b0490ff
 ;; Created: 16 Sep 2018
 ;; Package-Requires: ((cl-lib "0.3"))
 ;; URL: http://github.com/erjoalgo/emacs-buttons
@@ -27,7 +27,7 @@
 
 ;;; Commentary:
 
-;; A library and template language to define and visualize hierarchies of keymaps.
+;; A library and template language to define and visualize keymap hierarchies.
 
 ;;; Code:
 
@@ -117,6 +117,16 @@ It should be bound at compile-time via ‘let-when'")
                     `((push (cons ',orig (lambda () ,form))
                             buttons-after-symbol-loaded-function-alist)))))))
 
+(defun keymap-symbol (keymaps)
+  "Return the symbol to which any keymap in KEYMAPS is bound."
+  (let (syms)
+    (mapatoms (lambda (sym)
+                (and (not (eq sym 'keymap))
+                     (boundp sym)
+                     (find (symbol-value sym) keymaps)
+                     (push sym syms))))
+    syms))
+
 (defun buttons-define-keymap-onto-keymap (from-map to-map &optional from-sym no-overwrite-p)
   "Define bindings FROM-MAP onto TO-MAP, recursively.
 
@@ -126,25 +136,30 @@ It should be bound at compile-time via ‘let-when'")
    only when NO-OVERWRITE-P is non-nil.
 
    The optional argument FROM-SYM is used for visualization."
-  (cl-labels ((merge (from-map to-map &optional path)
-                     (map-keymap
-                      (lambda (key cmd)
-                        (let* ((keyvec (vector key))
-                               (existing (lookup-key to-map keyvec)))
-                          (cond
-                           ((and (keymapp cmd) (keymapp existing))
-                            (merge cmd existing (cons (key-description keyvec) path)))
-                           ((or (not no-overwrite-p) (not existing))
-                            (when (and existing (keymapp existing))
-                              (warn
-                               "non-keymap `%s' overwrites keymap in `%s' on %s %s "
-                               cmd
-                               (if from-sym (symbol-name from-sym) "child")
-                               (key-description keyvec)
-                               (or (reverse path) "")))
-                            (define-key to-map keyvec cmd)))))
-                      from-map)
-                     to-map))
+  (cl-labels
+      ((merge
+        (from-map to-map &optional path)
+        (map-keymap
+         (lambda (key cmd)
+           (let* ((keyvec (vector key))
+                  (existing (lookup-key to-map keyvec)))
+             (cond
+              ((and (keymapp cmd) (keymapp existing))
+               (merge cmd existing (cons (key-description keyvec) path)))
+              ((or (not no-overwrite-p) (not existing))
+               (when (and existing (keymapp existing))
+                 (warn
+                  (concat "%s overwrites nested keymap with plain command "
+                          "on %s %s in map %s: %s overwrites %s")
+                  (or (symbol-name from-sym) "child")
+                  (key-description keyvec)
+                  (or (reverse path) "")
+                  (keymap-symbol (list to-map))
+                  cmd
+                  existing))
+               (define-key to-map keyvec cmd)))))
+         from-map)
+        to-map))
     (merge from-map to-map)))
 
 (defvar buttons-after-symbol-loaded-function-alist nil
@@ -425,7 +440,7 @@ It should be bound at compile-time via ‘let-when'")
    as the USE-COUNT property of the function symbol.
    This may be useful for analysis and for making
    decisions about which bindings' key-sequence
-   lengths are worth reducing."
+   lengths are worth shortening."
   (cl-loop for form in body
            with forms = nil
            with doc = nil
@@ -461,7 +476,7 @@ It should be bound at compile-time via ‘let-when'")
 (defun buttons-insert-c-style-code-block ()
   "Insert a c-style code block with curly braces."
   (interactive)
-  (insert "  {")
+  (insert " {")
   (newline-and-indent)
   (recursive-edit)
   (newline)
