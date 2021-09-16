@@ -2,8 +2,9 @@
 
 ;; Author: Yuri D'Elia <wavexx@thregr.org>
 ;; Version: 1.0
-;; Package-Version: 20170923.1322
-;; URL: https://github.com/wavexx/mu4e-query-fragments.el
+;; Package-Version: 20200913.1558
+;; Package-Commit: 6a81d43fcbdc51c2fc47d88f4fd8f25d8f906b79
+;; URL: https://gitlab.com/wavexx/mu4e-query-fragments.el
 ;; Package-Requires: ((emacs "24.4"))
 ;; Keywords: mu4e, mail, convenience
 
@@ -37,7 +38,7 @@
 ;; (setq mu4e-query-fragments-list
 ;;   '(("%junk" . "maildir:/Junk OR subject:SPAM")
 ;;     ("%hidden" . "flag:trashed OR %junk")))
-;; (setq mu4e-query-fragments-append "AND NOT %hidden")
+;; (setq mu4e-query-fragments-append "NOT %hidden")
 ;;
 ;; The terms %junk and %hidden can subsequently be used anywhere in
 ;; mu4e. See the documentation of `mu4e-query-fragments-list' for more
