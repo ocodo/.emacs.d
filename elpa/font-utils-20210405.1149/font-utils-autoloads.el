@@ -12,9 +12,7 @@
 (let ((loads (get 'font-utils 'custom-loads))) (if (member '"font-utils" loads) nil (put 'font-utils 'custom-loads (cons '"font-utils" loads))))
 
 (autoload 'font-utils-client-hostname "font-utils" "\
-Guess the client hostname, respecting $SSH_CONNECTION.
-
-\(fn)" nil nil)
+Guess the client hostname, respecting $SSH_CONNECTION." nil nil)
 
 (autoload 'font-utils-name-from-xlfd "font-utils" "\
 Return the font-family name from XLFD, a string.
@@ -55,9 +53,7 @@ identical, returns nil.
 \(fn FONT-NAME-1 FONT-NAME-2)" nil nil)
 
 (autoload 'font-utils-list-names "font-utils" "\
-Return a list of all font names on the current system.
-
-\(fn)" nil nil)
+Return a list of all font names on the current system." nil nil)
 
 (autoload 'font-utils-read-name "font-utils" "\
 Read a font name using `completing-read'.
