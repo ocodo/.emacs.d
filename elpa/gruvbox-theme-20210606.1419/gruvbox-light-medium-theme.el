@@ -1,4 +1,4 @@
-;;; gruvbox-dark-hard-theme.el --- A retro-groove colour theme for Emacs -*- lexical-binding: t -*-
+;;; gruvbox-light-medium-theme.el --- A retro-groove colour theme for Emacs -*- lexical-binding: t -*-
 
 ;; Copyright (c) 2013 Lee Machin
 ;; Copyright (c) 2013-2016 Eduardo Lavaque
@@ -51,45 +51,45 @@
 (require 'gruvbox)
 
 (gruvbox-deftheme
- gruvbox-dark-hard
- "A retro-groove colour theme (dark version, hard contrast)"
+ gruvbox-light-medium
+ "A retro-groove colour theme (light version, medium contrast)"
 
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
 
-  (gruvbox-dark0_hard      "#1d2021" "#1c1c1c")
-  (gruvbox-dark0           "#282828" "#262626")
-  (gruvbox-dark0_soft      "#32302f" "#303030")
-  (gruvbox-dark1           "#3c3836" "#3a3a3a")
-  (gruvbox-dark2           "#504945" "#4e4e4e")
-  (gruvbox-dark3           "#665c54" "#626262")
-  (gruvbox-dark4           "#7c6f64" "#767676")
+  (gruvbox-dark0_hard      "#f9f5d7" "#ffffd7")
+  (gruvbox-dark0           "#fbf1c7" "#ffffd7")
+  (gruvbox-dark0_soft      "#f2e5bc" "#ffffd7")
+  (gruvbox-dark1           "#ebdbb2" "#ffffaf")
+  (gruvbox-dark2           "#d5c4a1" "#d7d6af")
+  (gruvbox-dark3           "#bdae93" "#afaf87")
+  (gruvbox-dark4           "#a89984" "#afafaf")
 
   (gruvbox-gray            "#928374" "#8a8a8a")
 
-  (gruvbox-light0_hard     "#ffffc8" "#ffffd7")
-  (gruvbox-light0          "#fdf4c1" "#ffffaf")
-  (gruvbox-light1          "#ebdbb2" "#ffdfaf")
-  (gruvbox-light2          "#d5c4a1" "#bcbcbc")
-  (gruvbox-light3          "#bdae93" "#a8a8a8")
-  (gruvbox-light4          "#a89984" "#949494")
+  (gruvbox-light0_hard     "#1d2021" "#1c1c1c")
+  (gruvbox-light0          "#282828" "#262626")
+  (gruvbox-light1          "#3c3836" "#3a3a3a")
+  (gruvbox-light2          "#504945" "#4e4e4e")
+  (gruvbox-light3          "#665c54" "#626262")
+  (gruvbox-light4          "#7c6f64" "#767676")
 
-  (gruvbox-bright_red      "#fb4933" "#d75f5f")
-  (gruvbox-bright_green    "#b8bb26" "#afaf00")
-  (gruvbox-bright_yellow   "#fabd2f" "#ffaf00")
-  (gruvbox-bright_blue     "#83a598" "#87afaf")
-  (gruvbox-bright_purple   "#d3869b" "#d787af")
-  (gruvbox-bright_aqua     "#8ec07c" "#87af87")
-  (gruvbox-bright_orange   "#fe8019" "#ff8700")
+  (gruvbox-bright_red      "#9d0006" "#870000")
+  (gruvbox-bright_green    "#79740e" "#878700")
+  (gruvbox-bright_yellow   "#b57614" "#af8700")
+  (gruvbox-bright_blue     "#076678" "#005f87")
+  (gruvbox-bright_purple   "#8f3f71" "#875f87")
+  (gruvbox-bright_aqua     "#427b58" "#5f8787")
+  (gruvbox-bright_orange   "#af3a03" "#af5f00")
 
-  (gruvbox-neutral_red     "#fb4934" "#d75f5f")
-  (gruvbox-neutral_green   "#b8bb26" "#afaf00")
-  (gruvbox-neutral_yellow  "#fabd2f" "#ffaf00")
-  (gruvbox-neutral_blue    "#83a598" "#87afaf")
-  (gruvbox-neutral_purple  "#d3869b" "#d787af")
-  (gruvbox-neutral_aqua    "#8ec07c" "#87af87")
-  (gruvbox-neutral_orange  "#fe8019" "#ff8700")
-  
+  (gruvbox-neutral_red     "#9d0006" "#870000")
+  (gruvbox-neutral_green   "#79740e" "#878700")
+  (gruvbox-neutral_yellow  "#b57614" "#af8700")
+  (gruvbox-neutral_blue    "#076678" "#005f87")
+  (gruvbox-neutral_purple  "#8f3f71" "#875f87")
+  (gruvbox-neutral_aqua    "#427b58" "#5f8787")
+  (gruvbox-neutral_orange  "#af3a03" "#af5f00")
+
   (gruvbox-faded_red       "#cc241d" "#d75f5f")
   (gruvbox-faded_green     "#98971a" "#afaf00")
   (gruvbox-faded_yellow    "#d79921" "#ffaf00")
@@ -114,19 +114,28 @@
   (gruvbox-aquamarine4     "#83A598" "#87af87")
   (gruvbox-turquoise4      "#61ACBB" "#5fafaf")
 
-  (gruvbox-bg gruvbox-dark0_hard)
-  (gruvbox-bg_inactive gruvbox-dark0)
+  (gruvbox-ediff-current-diff-A        "#fbc6a3" "#fbc6a3")
+  (gruvbox-ediff-current-diff-B        "#e3f3b5" "#e3f3b5")
+  (gruvbox-ediff-current-diff-C        "#fadccc" "#fadccc")
+  (gruvbox-ediff-current-diff-Ancestor "#ccc6d1" "#ccc6d1")
+  (gruvbox-ediff-fine-diff-A           "#fbb091" "#fbb091")
+  (gruvbox-ediff-fine-diff-B           "#b6f691" "#b6f691")
+  (gruvbox-ediff-fine-diff-C           "#fbb0d6" "#fbb0d6")
+  (gruvbox-ediff-fine-diff-Ancestor    "#b6b0d6" "#b6b0d6")
+
+  (gruvbox-bg gruvbox-dark0)
+  (gruvbox-bg_inactive gruvbox-dark0_soft)
   )
 
- (custom-theme-set-variables 'gruvbox-dark-hard
+ (custom-theme-set-variables 'gruvbox-light-medium
                              `(ansi-color-names-vector
                                [,gruvbox-dark1
-                                ,gruvbox-bright_red
-                                ,gruvbox-bright_green
-                                ,gruvbox-bright_yellow
-                                ,gruvbox-bright_blue
-                                ,gruvbox-bright_purple
-                                ,gruvbox-bright_aqua
+                                ,gruvbox-faded_red
+                                ,gruvbox-faded_green
+                                ,gruvbox-faded_yellow
+                                ,gruvbox-faded_blue
+                                ,gruvbox-faded_purple
+                                ,gruvbox-faded_aqua
                                 ,gruvbox-light1])
 			     `(pdf-view-midnight-colors '(,gruvbox-light0 . ,gruvbox-bg))))
 
@@ -137,10 +146,10 @@
                   (file-name-as-directory
                    (file-name-directory load-file-name))))
 
-(provide-theme 'gruvbox-dark-hard)
+(provide-theme 'gruvbox-light-medium)
 
 ;; Local Variables:
 ;; eval: (when (fboundp 'rainbow-mode) (rainbow-mode +1))
 ;; End:
 
-;;; gruvbox-dark-hard-theme.el ends here
+;;; gruvbox-light-medium-theme.el ends here

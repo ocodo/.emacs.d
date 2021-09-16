@@ -1,4 +1,5 @@
-;;; gruvbox-light-medium-theme.el --- A retro-groove colour theme for Emacs -*- lexical-binding: t -*-
+;;; gruvbox-light-soft-theme.el --- A retro-groove colour theme for Emacs -*- lexical-binding: t -*-
+
 
 ;; Copyright (c) 2013 Lee Machin
 ;; Copyright (c) 2013-2016 Eduardo Lavaque
@@ -51,8 +52,8 @@
 (require 'gruvbox)
 
 (gruvbox-deftheme
- gruvbox-light-medium
- "A retro-groove colour theme (light version, medium contrast)"
+ gruvbox-light-soft
+ "A retro-groove colour theme (light version)"
 
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
@@ -114,19 +115,28 @@
   (gruvbox-aquamarine4     "#83A598" "#87af87")
   (gruvbox-turquoise4      "#61ACBB" "#5fafaf")
 
-  (gruvbox-bg gruvbox-dark0)
-  (gruvbox-bg_inactive gruvbox-dark0_soft)
+  (gruvbox-ediff-current-diff-A        "#fbc6a3" "#fbc6a3")
+  (gruvbox-ediff-current-diff-B        "#e3f3b5" "#e3f3b5")
+  (gruvbox-ediff-current-diff-C        "#fadccc" "#fadccc")
+  (gruvbox-ediff-current-diff-Ancestor "#ccc6d1" "#ccc6d1")
+  (gruvbox-ediff-fine-diff-A           "#fbb091" "#fbb091")
+  (gruvbox-ediff-fine-diff-B           "#b6f691" "#b6f691")
+  (gruvbox-ediff-fine-diff-C           "#fbb0d6" "#fbb0d6")
+  (gruvbox-ediff-fine-diff-Ancestor    "#b6b0d6" "#b6b0d6")
+
+  (gruvbox-bg gruvbox-dark0_soft)
+  (gruvbox-bg_inactive gruvbox-dark1)
   )
 
- (custom-theme-set-variables 'gruvbox-light-medium
+ (custom-theme-set-variables 'gruvbox-light-soft
                              `(ansi-color-names-vector
                                [,gruvbox-dark1
-                                ,gruvbox-faded_red
-                                ,gruvbox-faded_green
-                                ,gruvbox-faded_yellow
-                                ,gruvbox-faded_blue
-                                ,gruvbox-faded_purple
-                                ,gruvbox-faded_aqua
+                                ,gruvbox-bright_red
+                                ,gruvbox-bright_green
+                                ,gruvbox-bright_yellow
+                                ,gruvbox-bright_blue
+                                ,gruvbox-bright_purple
+                                ,gruvbox-bright_aqua
                                 ,gruvbox-light1])
 			     `(pdf-view-midnight-colors '(,gruvbox-light0 . ,gruvbox-bg))))
 
@@ -137,10 +147,10 @@
                   (file-name-as-directory
                    (file-name-directory load-file-name))))
 
-(provide-theme 'gruvbox-light-medium)
+(provide-theme 'gruvbox-light-soft)
 
 ;; Local Variables:
 ;; eval: (when (fboundp 'rainbow-mode) (rainbow-mode +1))
 ;; End:
 
-;;; gruvbox-light-medium-theme.el ends here
+;;; gruvbox-light-theme.el ends here

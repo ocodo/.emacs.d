@@ -1,4 +1,4 @@
-;;; gruvbox-dark-medium-theme.el --- A retro-groove colour theme for Emacs -*- lexical-binding: t -*-
+;;; gruvbox-dark-soft-theme.el --- A retro-groove colour theme for Emacs -*- lexical-binding: t -*-
 
 ;; Copyright (c) 2013 Lee Machin
 ;; Copyright (c) 2013-2016 Eduardo Lavaque
@@ -51,8 +51,8 @@
 (require 'gruvbox)
 
 (gruvbox-deftheme
- gruvbox-dark-medium
- "A retro-groove colour theme (dark version, medium contrast)"
+ gruvbox-dark-soft
+ "A retro-groove colour theme (dark version, soft contrast)"
 
  ((((class color) (min-colors #xFFFFFF))        ; col 1 GUI/24bit
    ((class color) (min-colors #xFF)))           ; col 2 Xterm/256
@@ -82,13 +82,13 @@
   (gruvbox-bright_aqua     "#8ec07c" "#87af87")
   (gruvbox-bright_orange   "#fe8019" "#ff8700")
 
-  (gruvbox-neutral_red      "#fb4933" "#d75f5f")
-  (gruvbox-neutral_green    "#b8bb26" "#afaf00")
-  (gruvbox-neutral_yellow   "#fabd2f" "#ffaf00")
-  (gruvbox-neutral_blue     "#83a598" "#87afaf")
-  (gruvbox-neutral_purple   "#d3869b" "#d787af")
-  (gruvbox-neutral_aqua     "#8ec07c" "#87af87")
-  (gruvbox-neutral_orange   "#fe8019" "#ff8700")
+  (gruvbox-neutral_red     "#fb4933" "#d75f5f")
+  (gruvbox-neutral_green   "#b8bb26" "#afaf00")
+  (gruvbox-neutral_yellow  "#fabd2f" "#ffaf00")
+  (gruvbox-neutral_blue    "#83a598" "#87afaf")
+  (gruvbox-neutral_purple  "#d3869b" "#d787af")
+  (gruvbox-neutral_aqua    "#8ec07c" "#87af87")
+  (gruvbox-neutral_orange  "#fe8019" "#ff8700")
 
   (gruvbox-faded_red       "#cc241d" "#d75f5f")
   (gruvbox-faded_green     "#98971a" "#afaf00")
@@ -114,12 +114,20 @@
   (gruvbox-aquamarine4     "#83A598" "#87af87")
   (gruvbox-turquoise4      "#61ACBB" "#5fafaf")
 
-  (gruvbox-bg gruvbox-dark0)
-  (gruvbox-bg_inactive gruvbox-dark0_soft)
-  )
- 
+  (gruvbox-ediff-current-diff-A        "#4f2121" "#4f2121")
+  (gruvbox-ediff-current-diff-B        "#243c24" "#5f5f00")
+  (gruvbox-ediff-current-diff-C        "#4f214f" "#4f214f")
+  (gruvbox-ediff-current-diff-Ancestor "#21214f" "#21214f")
+  (gruvbox-ediff-fine-diff-A           "#761919" "#761919")
+  (gruvbox-ediff-fine-diff-B           "#1c691c" "#1c691c")
+  (gruvbox-ediff-fine-diff-C           "#761976" "#761976")
+  (gruvbox-ediff-fine-diff-Ancestor    "#12129d" "#12129d")
 
- (custom-theme-set-variables 'gruvbox-dark-medium
+  (gruvbox-bg gruvbox-dark0_soft)
+  (gruvbox-bg_inactive gruvbox-dark1)
+  )
+
+ (custom-theme-set-variables 'gruvbox-dark-soft
                              `(ansi-color-names-vector
                                [,gruvbox-dark1
                                 ,gruvbox-bright_red
@@ -138,10 +146,10 @@
                   (file-name-as-directory
                    (file-name-directory load-file-name))))
 
-(provide-theme 'gruvbox-dark-medium)
+(provide-theme 'gruvbox-dark-soft)
 
 ;; Local Variables:
 ;; eval: (when (fboundp 'rainbow-mode) (rainbow-mode +1))
 ;; End:
 
-;;; gruvbox-dark-medium-theme.el ends here
+;;; gruvbox-dark-soft-theme.el ends here

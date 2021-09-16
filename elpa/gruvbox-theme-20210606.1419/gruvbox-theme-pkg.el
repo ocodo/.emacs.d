@@ -1,6 +1,6 @@
-(define-package "gruvbox-theme" "20200807.855" "A retro-groove colour theme for Emacs"
+(define-package "gruvbox-theme" "20210606.1419" "A retro-groove colour theme for Emacs"
   '((autothemer "0.2"))
-  :commit "746a5f36cf4ff3959f2d007598d5cb248cfc1879" :authors
+  :commit "c2ae5e3fff39f78f23109d90fdf36b3b189df511" :authors
   '(("Jason Milkins" . "jasonm23@gmail.com"))
   :maintainer
   '("Jason Milkins" . "jasonm23@gmail.com")
