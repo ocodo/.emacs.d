@@ -37,7 +37,7 @@ toggle it if ARG is `toggle'; disable the mode otherwise.
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from sublimity-attractive.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "sublimity-attractive" '("sublimity-attractive-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "sublimity-attractive" '("split-window" "sublimity-attractive-")))
 
 ;;;***
 

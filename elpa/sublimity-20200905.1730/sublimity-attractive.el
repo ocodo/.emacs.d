@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; sublimity-attractive.el --- hide distractive objects
 
 ;; Copyright (C) 2013- zk_phi
@@ -90,7 +91,7 @@ display centered."
   (dolist (window (window-list))
     (set-window-margins window 0 0)))
 
-(defadvice split-window (before sublimity-attractive--restore-window-size activate)
+(define-advice split-window (:before (&rest _))
   (set-window-margins (selected-window) 0 0))
 
 (add-hook 'sublimity-mode-turn-off-hook 'sublimity-attractive--clear-window-margins t)
