@@ -5,8 +5,8 @@
 ;; Author: Johan Andersson <johan.rejeep@gmail.com>
 ;; Maintainer: Johan Andersson <johan.rejeep@gmail.com>
 ;; Version: 0.20.0
-;; Package-Version: 20191110.1357
-;; Package-Commit: 1814209e2ff43cf2e6d38c4cd476218915f550fb
+;; Package-Version: 20210624.1103
+;; Package-Commit: 50af874cd19042f17c8686813d52569b1025c76a
 ;; Keywords: files, directories
 ;; URL: http://github.com/rejeep/f.el
 ;; Package-Requires: ((s "1.7.0") (dash "2.2.0"))
@@ -182,7 +182,13 @@ ending slash."
                        (--mapcat
                         (let ((conf-files (cdr it)))
                           (if (> (length conf-files) 1)
-                              (--map (cons (car it) (concat (f-filename (s-chop-suffix (cdr it) (car it))) (f-path-separator) (cdr it))) conf-files)
+                              (--map (cons
+                                      (car it)
+                                      (concat
+                                       (f-filename (s-chop-suffix (cdr it)
+                                                                  (car it)))
+                                       (f-path-separator) (cdr it)))
+                                     conf-files)
                             conf-files))
                         uniq-filenames-next))))
     uniq-filenames-next))
@@ -202,14 +208,16 @@ This function expects no duplicate paths."
 
 ;;;; I/O
 
-(defun f-read-bytes (path)
+(defun f-read-bytes (path &optional beg end)
   "Read binary data from PATH.
 
-Return the binary data as unibyte string."
+Return the binary data as unibyte string. The optional second and
+third arguments BEG and END specify what portion of the file to
+read."
   (with-temp-buffer
     (set-buffer-multibyte nil)
     (setq buffer-file-coding-system 'binary)
-    (insert-file-contents-literally path)
+    (insert-file-contents-literally path nil beg end)
     (buffer-substring-no-properties (point-min) (point-max))))
 
 (defalias 'f-read 'f-read-text)
