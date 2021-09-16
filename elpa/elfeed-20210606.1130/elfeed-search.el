@@ -116,13 +116,13 @@ When live editing the filter, it is bound to :live.")
   (quit-window))
 
 (defun elfeed-search-last-entry ()
-  "Place point on first entry."
+  "Place point on last entry."
   (interactive)
   (setf (point) (point-max))
-  (forward-line -2))
+  (forward-line -1))
 
 (defun elfeed-search-first-entry ()
-  "Place point on last entry."
+  "Place point on first entry."
   (interactive)
   (setf (point) (point-min)))
 
@@ -183,19 +183,7 @@ When live editing the filter, it is bound to :live.")
                       unread-count entry-count
                       (hash-table-count feeds))))))
 
-(defvar elfeed-search--header-cache nil
-  "Cache of the last computed header.")
-
 (defun elfeed-search--header ()
-  "Returns the string to be used as the Elfeed header."
-  (if (eql (car elfeed-search--header-cache) (buffer-modified-tick))
-      (cdr elfeed-search--header-cache)
-    (let* ((header (elfeed-search--header-1))
-           (cache (cons (buffer-modified-tick) header)))
-      (prog1 header
-        (setf elfeed-search--header-cache cache)))))
-
-(defun elfeed-search--header-1 ()
   "Computes the string to be used as the Elfeed header."
   (cond
    ((zerop (elfeed-db-last-update))
@@ -229,7 +217,15 @@ When live editing the filter, it is bound to :live.")
         truncate-lines t
         buffer-read-only t
         desktop-save-buffer #'elfeed-search-desktop-save
-        header-line-format '(:eval (funcall elfeed-search-header-function)))
+        ;; Provide format string via symbol value slot so that it will
+        ;; not be %-construct interpolated. The symbol is uninterned
+        ;; so that it's not *really* a global variable.
+        header-line-format
+        (let ((symbol (make-symbol "dummy")))
+          (put symbol 'risky-local-variable t)
+          `(:eval
+            (prog1 ',symbol
+              (set ',symbol (funcall elfeed-search-header-function))))))
   (set (make-local-variable 'bookmark-make-record-function)
        #'elfeed-search-bookmark-make-record)
   (buffer-disable-undo)
@@ -718,8 +714,10 @@ When FORCE is non-nil, redraw even when the database hasn't changed."
           (dolist (entry elfeed-search-entries)
             (funcall elfeed-search-print-entry-function entry)
             (insert "\n"))
-          (insert "End of entries.\n")
           (setf elfeed-search-last-update (float-time))))
+      (when (zerop (buffer-size))
+        ;; If nothing changed, force a header line update
+        (force-mode-line-update))
       (run-hooks 'elfeed-search-update-hook))))
 
 (defun elfeed-search-fetch (prefix)
@@ -776,16 +774,21 @@ If IGNORE-REGION-P is non-nil, only return the entry under point."
 If there is a prefix argument, visit the current entry in the
 browser defined by `browse-url-generic-program'."
   (interactive "P")
-  (let ((entries (elfeed-search-selected)))
+  (let ((buffer (current-buffer))
+        (entries (elfeed-search-selected)))
     (cl-loop for entry in entries
              do (elfeed-untag entry 'unread)
              when (elfeed-entry-link entry)
              do (if use-generic-p
                     (browse-url-generic it)
                   (browse-url it)))
-    (mapc #'elfeed-search-update-entry entries)
-    (unless (or elfeed-search-remain-on-entry (use-region-p))
-      (forward-line))))
+    ;; `browse-url' could have switched to another buffer if eww or another
+    ;; internal browser is used, but the remainder of the functions needs to
+    ;; run in the elfeed buffer.
+    (with-current-buffer buffer
+      (mapc #'elfeed-search-update-entry entries)
+      (unless (or elfeed-search-remain-on-entry (use-region-p))
+        (forward-line)))))
 
 (defun elfeed-search-yank ()
   "Copy the selected feed items to clipboard and kill-ring."
