@@ -4,8 +4,9 @@
 
 ;; Author: Miro Bezjak
 ;; URL: http://www.github.com/mbezjak/emacs-groovy-imports
-;; Package-Version: 20161003.851
-;; Version: 1.0
+;; Package-Version: 20210505.1807
+;; Package-Commit: a60c3202973e3185091db623d960f71840a22205
+;; Version: 1.0.1
 ;; Keywords: groovy
 ;; Package-Requires: ((emacs "24.4") (s "1.10.0") (pcache "0.3.2"))
 
@@ -108,8 +109,9 @@
   "Explode the import and return (pkg . class) for the given IMPORT.
 
 Example 'groovy.sql.Sql' returns '(\"groovy.sql\" \"Sql\")."
-  (when import
-    (cl-subseq (s-match "\\\(.*\\\)\\\.\\\([A-Z].+\\\);?" import) 1)))
+  (when-let* (import
+              (package-and-class (s-match "\\\(.*\\\)\\\.\\\([A-Z].+\\\);?" import)))
+    (cl-subseq package-and-class 1)))
 
 (defun groovy-imports-import-for-line ()
   "Return the fully-qualified class name for the import line."

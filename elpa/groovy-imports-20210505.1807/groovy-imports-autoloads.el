@@ -13,14 +13,10 @@
 (autoload 'groovy-imports-scan-file "groovy-imports" "\
 Scan a groovy-mode buffer, adding any import class -> package
 mappings to the import cache. If called with a prefix arguments
-overwrites any existing cache entries for the file.
-
-\(fn)" t nil)
+overwrites any existing cache entries for the file." t nil)
 
 (autoload 'groovy-imports-list-imports "groovy-imports" "\
-Return a list of all fully-qualified packages in the current Groovy-mode buffer.
-
-\(fn)" t nil)
+Return a list of all fully-qualified packages in the current Groovy-mode buffer." t nil)
 
 (autoload 'groovy-imports-add-import-with-package "groovy-imports" "\
 Add an import for the class for the name and package. Uses no caching.
@@ -45,9 +41,7 @@ already-existing class name.
 Add an import statement for the class at point. If no class is
 found, prompt for the class name. If the class's package already
 exists in the cache, add it and return, otherwise prompt for the
-package and cache it for future statements.
-
-\(fn)" t nil)
+package and cache it for future statements." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "groovy-imports" '("groovy-imports-")))
 
