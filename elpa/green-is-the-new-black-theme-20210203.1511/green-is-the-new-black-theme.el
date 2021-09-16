@@ -3,12 +3,12 @@
 ;; Author: Fred Campos <fred.tecnologia@gmail.com>
 ;; Maintainer: Fred Campos <fred.tecnologia@gmail.com>
 ;; URL: https://github.com/fredcamps/green-is-the-new-black-emacs
-;; Package-Version: 20200529.242
-;; Package-Commit: 9b682c0000bc732e4c55e876ac968877eada0402
+;; Package-Version: 20210203.1511
+;; Package-Commit: 09f6908064dd1854379a072d7cdd706959256299
 ;; Keywords: faces, themes
-;; Version: 0.0.6
+;; Version: 1.0.0
 
-;; Copyright (c) 2017 Fred Campos
+;; Copyright (c) 2017-2021 Fred Campos
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,9 +28,10 @@
 ;; This package provides a theme with minimalist blackened green colors.
 
 ;;; Code:
+
 (deftheme green-is-the-new-black
-  "Cool blackned green theme")
-(display-color-cells (selected-frame))
+  "Cool blackened green theme")
+
 (let ((class '((class color) (min-colors 89)))
       (256color (eq (display-color-cells (selected-frame)) 256))
       (gitnb-black "#000000")
@@ -46,17 +47,15 @@
       (gitnb-yellow "#e6fc20"))
 
   (custom-theme-set-faces
-   `green-is-the-new-black
+   'green-is-the-new-black
    `(default ((t (:background, gitnb-heavy-grey :foreground, gitnb-green))))
    `(cursor  ((t (:background, gitnb-dark-green :weight bold))))
    `(hl-line ((t (:background, gitnb-black :weight bold))))
-   `(mode-line ((t (:box nil, :background, gitnb-black :foreground, gitnb-dark-green) )))
+   `(mode-line ((t (:box nil, :background, gitnb-black :foreground, gitnb-dark-green))))
    `(mode-line-inactive ((t (:inherit mode-line :background, gitnb-black :foreground, gitnb-grey :box nil))))
    `(fringe ((t (:background, gitnb-dark-grey))))
    `(region ((t (:background, gitnb-heavy-green :foreground, gitnb-light-green))))
    `(minibuffer-prompt ((t (:foreground, gitnb-green))))
-   '(fixed-pitch ((t (:family "DejaVu"))))
-   '(variable-pitch ((t (:family "Sans Mono"))))
    `(escape-glyph ((t (:foreground, gitnb-dark-green))))
    `(font-lock-builtin-face ((t (:foreground, gitnb-light-green))))
    `(font-lock-constant-face ((t (:foreground, gitnb-bright-green))))
@@ -185,6 +184,10 @@
    `(js2-private-function-call ((t (:foreground, gitnb-yellow))))
    `(js2-error ((t (:foreground, gitnb-red))))
 
+   `(diff-hl-change ((t (:foreground, gitnb-heavy-grey :background, gitnb-yellow))))
+   `(diff-hl-delete ((t (:foreground, gitnb-heavy-grey :background, gitnb-red))))
+   `(diff-hl-insert ((t (:foreground, gitnb-heavy-green :background, gitnb-green))))
+
    `(which-func ((t (:foreground, gitnb-grey))))))
 
 
@@ -197,4 +200,5 @@
 
 
 (provide-theme 'green-is-the-new-black)
+
 ;;; green-is-the-new-black-theme.el ends here
