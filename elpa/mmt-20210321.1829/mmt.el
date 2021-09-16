@@ -4,10 +4,10 @@
 ;;
 ;; Author: Mark Karpov <markkarpov92@gmail.com>
 ;; URL: https://github.com/mrkkrp/mmt
-;; Package-Version: 20190713.1347
-;; Package-Commit: d7729563e656a3e8adef6bce60348861ba183c09
+;; Package-Version: 20210321.1829
+;; Package-Commit: e5cd2b4d0967758471fd2753f78120bdeb93a781
 ;; Version: 0.2.0
-;; Package-Requires: ((emacs "24.1") (cl-lib "0.3"))
+;; Package-Requires: ((emacs "24.5") (cl-lib "0.3"))
 ;; Keywords: macro, emacs-lisp
 ;;
 ;; This file is not part of GNU Emacs.
@@ -27,9 +27,6 @@
 
 ;;; Commentary:
 
-;; The package contains classic tools for Emacs Lisp developers who want to
-;; write macros with convenience.
-;;
 ;; The following functions and macros are present:
 ;;
 ;; * mmt-make-gensym-list
@@ -45,13 +42,13 @@
   "Return a list of LENGTH gensyms.
 
 Each element of the list is generated as if with a call to
-`cl-gensym' using the second argument X (defaulting \"G\")."
+`cl-gensym' using the second argument X (defaulting to \"G\")."
   (mapcar #'cl-gensym (make-list length (or x "G"))))
 
 (defmacro mmt-with-gensyms (names &rest body)
   "Bind each variable in NAMES to a unique symbol and evaluate BODY.
 
-Each of NAMES must be either a symbol, or of the form:
+Each element of NAMES must be either a symbol, or of the form:
 
   (SYMBOL STRING-OR-SYMBOL)
 
@@ -59,7 +56,7 @@ Bare symbols appearing in NAMES are equivalent to:
 
   (SYMBOL SYMBOL)
 
-The STRING-OR-SYMBOL is used (converted to string if necessary)
+The STRING-OR-SYMBOL is used (converted to a string if necessary)
 as the argument to `cl-gensym' when constructing the unique
 symbol the named variable will be bound to."
   (declare (indent 1))
@@ -81,8 +78,8 @@ symbol the named variable will be bound to."
 (defmacro mmt-once-only (specs &rest body)
   "Rebind symbols according to SPECS and evaluate BODY.
 
-Each of SPECS must be either a symbol naming the variable to be
-rebound or of the form:
+Each element of SPECS must be either a symbol naming the variable
+to be rebound or of the form:
 
   (SYMBOL INITFORM)
 
