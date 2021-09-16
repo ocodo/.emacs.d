@@ -4,7 +4,8 @@
 
 ;; Author: daichi.hirata <hirata.daichi at gmail.com>
 ;; Version: 0.1.0
-;; Package-Version: 20160909.836
+;; Package-Version: 20210126.637
+;; Package-Commit: 4e9ac3ff800880bd9b705794ef0f7c99d72900a6
 ;; Keywords: window, layout
 ;; URL: https://github.com/daichirata/emacs-rotate
 
@@ -24,7 +25,10 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Code:
-(eval-when-compile (require 'cl))
+
+(require 'cl-seq)
+
+(eval-when-compile (require 'cl-lib))
 
 (defvar rotate-count 0)
 
@@ -44,14 +48,14 @@
       (call-interactively func)
       (if (>= rotate-count (- len 1))
           (setq rotate-count 0)
-        (incf rotate-count)))))
+        (cl-incf rotate-count)))))
 
 ;;;###autoload
 (defun rotate-window ()
   (interactive)
   (let* ((bl (reverse (rotate:buffer-list)))
          (nbl (append (cdr bl) (list (car bl)))))
-    (loop for w in (rotate:window-list)
+    (cl-loop for w in (rotate:window-list)
           for b in (reverse nbl)
           do (set-window-buffer w b))
     (select-window (next-window))))
@@ -148,7 +152,7 @@
           (current-pos (cl-position (selected-window) (rotate:window-list))))
       (delete-other-windows)
       (funcall proc window-num)
-      (loop for w in (rotate:window-list)
+      (cl-loop for w in (rotate:window-list)
             for b in buffer-list
             do (set-window-buffer w b))
       (select-window (nth current-pos (rotate:window-list))))))

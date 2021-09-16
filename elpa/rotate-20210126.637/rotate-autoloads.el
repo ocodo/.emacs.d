@@ -9,40 +9,19 @@
 ;;;### (autoloads nil "rotate" "rotate.el" (0 0 0 0))
 ;;; Generated autoloads from rotate.el
 
-(autoload 'rotate-layout "rotate" "\
+(autoload 'rotate-layout "rotate" nil t nil)
 
+(autoload 'rotate-window "rotate" nil t nil)
 
-\(fn)" t nil)
+(autoload 'rotate:even-horizontal "rotate" nil t nil)
 
-(autoload 'rotate-window "rotate" "\
+(autoload 'rotate:even-vertical "rotate" nil t nil)
 
+(autoload 'rotate:main-horizontal "rotate" nil t nil)
 
-\(fn)" t nil)
+(autoload 'rotate:main-vertical "rotate" nil t nil)
 
-(autoload 'rotate:even-horizontal "rotate" "\
-
-
-\(fn)" t nil)
-
-(autoload 'rotate:even-vertical "rotate" "\
-
-
-\(fn)" t nil)
-
-(autoload 'rotate:main-horizontal "rotate" "\
-
-
-\(fn)" t nil)
-
-(autoload 'rotate:main-vertical "rotate" "\
-
-
-\(fn)" t nil)
-
-(autoload 'rotate:tiled "rotate" "\
-
-
-\(fn)" t nil)
+(autoload 'rotate:tiled "rotate" nil t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "rotate" '("rotate")))
 
