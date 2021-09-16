@@ -101,6 +101,7 @@ When testing add '.' to load-path so you find the local copy."
 (defvar ssh-config-match-regexp "^\\s-*Match\\b"
   "Regexp to match the start of a match entry.")
 
+;;
 (defvar ssh-config-hostname-regexp
   "[-_.a-zA-Z0-9]+"
   "Regexp to match one hostname.  (rfc1123 2.1).")
@@ -127,22 +128,30 @@ ssh_config(5) shows it as."
   (save-excursion
     (search-backward-regexp ssh-config-host-regexp nil t)))
 
+(defun ssh-config-in-match-block-p ()
+  "Are we inside a Match block?"
+  (save-excursion
+    (search-backward-regexp ssh-config-match-regexp nil t)))
+
 (defun ssh-config-compute-indent ()
   "Compute the target indent for the current line.
 Comments right above a 'Host' are considered to be about that Host."
   (save-excursion
     (beginning-of-line)
     (cond
-     ;; Start of file and "Host" should be at 0
+     ;; Start of file and "Host" and "Match" should be at 0
      ((or (looking-at ssh-config-host-regexp)
-          (not (ssh-config-in-host-block-p)))
+	  (looking-at ssh-config-match-regexp)
+          (and (not (ssh-config-in-host-block-p))
+	       (not (ssh-config-in-match-block-p))))
       0)
      ;; Comment line
      ((looking-at "\\s-*#")
-      ;; comments right before a "Host"" should be at 0
+      ;; comments right before a "Host" or "Match" should be at 0
       (while (looking-at "\\s-*#")
         (forward-line))
-      (if (looking-at ssh-config-host-regexp)
+      (if (or (looking-at ssh-config-host-regexp)
+	      (looking-at ssh-config-match-regexp))
         0
         ssh-config-mode-indent))
      ;; default.
@@ -160,8 +169,12 @@ Comments right above a 'Host' are considered to be about that Host."
 (defvar ssh-config-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Ctrl bindings
-    (define-key map [C-up]      'ssh-config-host-prev)
     (define-key map [C-down]    'ssh-config-host-next)
+    (define-key map [C-up]      'ssh-config-host-prev)
+    ;;
+    (define-key map "\C-c}"     'ssh-config-host-next)
+    (define-key map "\C-c{"     'ssh-config-host-prev)
+    ;;
     (define-key map (kbd "TAB") 'indent-for-tab-command)
     map)
   "The local keymap for `ssh-config-mode'.")
@@ -182,29 +195,32 @@ Comments right above a 'Host' are considered to be about that Host."
   "Value for `imenu-generic-expression' in `ssh-config-mode'.
 Only show the first hostname in the menu.")
 
+(defun ssh-config-completion-at-point ()
+  "Function used for `completion-at-point-functions' in `ssh-config-mode'."
+  (interactive)
+  (let* (
+         (bds (bounds-of-thing-at-point 'symbol))
+         (start (car bds))
+         (end (cdr bds)))
+    (list start end ssh-config-keywords . nil )))
+
 ;;;###autoload
-(defun ssh-config-mode ()
+(define-derived-mode ssh-config-mode
+  fundamental-mode
+  "ssh-config"
   "Major mode for fontifiying ssh config files.
 
 \\{ssh-config-mode-map}"
-  (interactive)
-  ;;
-  (kill-all-local-variables)
-  (set-syntax-table ssh-config-mode-syntax-table)
-  (setq mode-name "ssh-config"
-        major-mode 'ssh-config-mode
-        comment-start "#"
-        comment-end   "")
-  (use-local-map ssh-config-mode-map)
-  ;;
+  (setq
+   comment-start "#"
+   comment-end   "")
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(ssh-config-font-lock-keywords nil t))
+  (setq
+   font-lock-defaults '(ssh-config-font-lock-keywords nil t))
   ;;
   (setq-local indent-line-function 'ssh-config-indent-line)
   (setq-local imenu-generic-expression ssh-config-imenu-generic-expression)
-  ;;
-  (run-hooks 'ssh-config-mode-hook)
-  nil)
+  (add-hook 'completion-at-point-functions 'ssh-config-completion-at-point nil 'local))
 
 ;;;###autoload
 (progn
@@ -224,76 +240,125 @@ Only show the first hostname in the menu.")
     map)
   "The local keymap for `ssh-known-hosts-mode'.")
 
+(defvar ssh-known-hosts-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?# "<" table)
+    (modify-syntax-entry ?\n ">" table)
+    table)
+  "Syntax table for `ssh-known-hosts-mode'.
+Just sets the comment syntax.")
+
+;;;;;
+
+;; host.example.com,1.1.1.1
+;; |1|hash=|hash=
+(defvar ssh-known-hosts-regex-hashed
+  "\\(?:|[0-9]+|[-0-9A-Za-z=|/+]+\\)"
+  "Regex for matching hashed addresses.")
+
+(defvar ssh-known-hosts-regex-ipv4
+  "\\(?:[0-9]+.[0-9]+.[0-9]+.[0-9]+\\)"
+  "Regex for matching ipv4 addresses.")
+
+(defvar ssh-known-hosts-regex-ipv6
+  "\\(?:[0-9a-f:]+\\(?:%[a-z0-9]+\\)?\\)"
+  "Regex for matching ipv6 addresses.")
+
+(defvar ssh-known-hosts-regex-ip
+  (concat
+   "\\(?:"
+   ssh-known-hosts-regex-ipv4
+   "\\|"
+   ssh-known-hosts-regex-ipv6
+   "\\)")
+  "Regex for matching ip addresses.")
+
+(defvar ssh-known-hosts-regex-ipv6
+  "\\(?:[0-9a-f:]+\\(?:%[a-z0-9]+\\)\\)"
+  "Regex for matching ipv6 addresses.")
+
+;; This is more specfic than "ssh-config-hostname-regexp"; merge them?
+(defvar ssh-known-hosts-regex-hostname
+  "\\(?:\\(?:[a-zA-Z0-9_][-a-zA-Z0-9_]*[.]\\)*[a-zA-Z_][-a-zA-Z0-9_]*\\)"
+  "Regex for matching hostnames.
+We permit underscores.")
+
+;; :2222
+(defvar ssh-known-hosts-regex-port
+  "\\(?:[0-9]+\\)"
+  "Regex for matching an port.")
+
+(defvar ssh-known-hosts-regex-host
+  (concat
+   "\\(?:"
+   ssh-known-hosts-regex-hashed
+   "\\|"
+   ssh-known-hosts-regex-ip
+   "\\|"
+   ssh-known-hosts-regex-hostname
+   "\\)"))
+
+;; NOTE: font-lock-studio might be of help when making changes.
 (defvar ssh-known-hosts-font-lock-keywords
-  ;; how to put eval-when-compile without recursive require?
-  `((,(concat
-
-       ;; The below is translated from this PCRE-compatible regex
-       ;; /(?x)
-
-       ;; ^
-       ;; # marker (optional)
-       ;; (@cert-authority|@revoked)?
-       ;; \s*
-
-       ;; ( # hostnames
-       ;;     (?:
-       ;;         (?: # - on standard port
-       ;;             [\.\-\?\*a-zA-Z0-9]+
-       ;;             | # - on non-standard port with brackets
-       ;;             \[ [\.\-\?\*a-zA-Z0-9]+ \]:\d{1,5}
-       ;;         )
-       ;;         (?:\b|,)?
-       ;;     )+
-       ;; )
-       ;; \s+
-       ;; ( # key type
-       ;;     (?:ssh|ecdsa)[\-a-zA-Z0-9]+\b
-       ;; )
-       ;; \s+
-       ;; ( # public key
-       ;;     AAAA[0-9A-Za-z\/\+]+
-       ;;     [=]{0,3}
-       ;; )
-       ;; /
-
+  ;; We want to match lines like the following:
+  ;; Short list in ./tests/known_hosts_short
+  ;; Full list in ./tests/known_hosts
+  ;; More test data in: openssh-portable/regress/unittests/hostkeys/testdata/known_hosts
+  `(
+    (,(concat
        "^"
-       ;; marker (optional)
-       "\\(\\(?:@\\(?:cert-authority\\|revoked\\)\\)\\|\\)"
-       "[[:blank:]]*"
+       ;; @marker (optional):
+       "\\(@[-a-z]+ +\\|\\)"
 
-       ;; hostnames
+       ;; hostname:
        "\\("
-       "\\(?:" ;; match multiple names
-       "\\(?:"
-       ;; - on standard port
-       "[-*.?[:word:]]+"
+
+       ;; |1|hash=|hash=
+       ssh-known-hosts-regex-hashed
        "\\|"
-       ;; - on non-standard port with brackets
-       "\\[[-*.?[:word:]]+]:[[:digit:]]\\{1,5\\}"
-       "\\)"
-       "\\(?:,\\|\\b\\)?" ;; separated by commas
-       "\\)+"
-       "\\)"
-       "[[:blank:]]+"
 
-       ;; key type
-       "\\(\\(?:ecdsa\\|ssh\\)[-[:word:]]+\\b\\)"
-       "[[:blank:]]+"
+       ;; hostname-only
+       ssh-known-hosts-regex-hostname
+       "\\|"
 
-       ;; public key
-       "\\(AAAA[+/[:word:]]+=\\{0,3\\}\\)"
+       ;; ip-only
+       ssh-known-hosts-regex-ip
+       "\\|"
+
+       ;; hostname "," ip
+       "\\(?:" ssh-known-hosts-regex-hostname "," ssh-known-hosts-regex-ip "\\)"
+       "\\|"
+
+       ;; [host-or-ip]:222
+       "\\(?:\\[" ssh-known-hosts-regex-host "\\]:" ssh-known-hosts-regex-port "\\)"
+       "\\|"
+
+       ;; We arent matching ports, but they should be the same.
+       ;; [ssh.github.com]:443,[192.1.2.3]:443
+       "\\(?:"
+       "\\[" ssh-known-hosts-regex-hostname "\\]:" ssh-known-hosts-regex-port ","
+       "\\[" ssh-known-hosts-regex-ip       "\\]:" ssh-known-hosts-regex-port "\\)"
+
+       "\\)"
+       "[ \t]+"
+
+       ;; key type:
+       ;; ssh-rsa, ecdsa-sha2-nistp384, ...
+       "\\(\\(?:ecdsa\\|ssh\\)[-0-9A-Za-z]*\\)"
+       "[ \t]+"
+
+       ;; public key:
+       ;; base64data==
+       "\\(AA[0-9A-Za-z/+]+=*\\)"
        )
      (1 font-lock-warning-face)
      (2 font-lock-function-name-face)
      (3 font-lock-keyword-face)
      (4 font-lock-string-face)
-     )
-    ("^[[:space:]]*\\(#.*\\)"
-     (1 font-lock-comment-face))
-    )
-  "Expressions to hilight in `ssh-known-hosts-mode'.")
-;; ssh-known-hosts-font-lock-keywords
+     ))
+  "Expressions to hilight in `ssh-known-hosts-mode'.
+We want to try and be a good match, so misformatted ones stand out.
+So we dont just match .* for the hostname.")
 
 ;;;###autoload
 (defun ssh-known-hosts-mode ()
@@ -301,10 +366,12 @@ Only show the first hostname in the menu.")
 \\{ssh-known-hosts-mode}"
   (interactive)
   (kill-all-local-variables)
-  (setq mode-name "ssh-known-hosts"
-        major-mode 'ssh-known-hosts-mode
-        comment-start "#"
-        comment-end   "")
+  (set-syntax-table ssh-known-hosts-mode-syntax-table)
+  (setq
+   mode-name "ssh-known-hosts"
+   major-mode 'ssh-known-hosts-mode
+   comment-start "#"
+   comment-end   "")
   (use-local-map ssh-known-hosts-mode-map)
   ;;
   (make-local-variable 'font-lock-defaults)
@@ -328,13 +395,12 @@ Only show the first hostname in the menu.")
        ;; key type
        "\\(\\(?:ecdsa\\|ssh\\)-[^[:space:]]+\\)\\s-+"
        ;; base64
-       "\\([^[:space:]\n]+\\)"
+       "\\([0-9A-Za-z+/]+=*\\)"
        ;; comment in public key
        "\\(?: \\(.*\\)\\)?"
        "$")
       '(1 font-lock-keyword-face)
-      ;; not fontify like known_hosts
-      ;; '(2 font-lock-variable-name-face)
+      '(2 font-lock-string-face)
       '(3 font-lock-comment-face nil t)
       )))
   ;; Not define `auto-mode-alist' obey the other mode in this elisp.

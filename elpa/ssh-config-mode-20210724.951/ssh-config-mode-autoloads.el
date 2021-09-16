@@ -13,7 +13,9 @@
 (autoload 'ssh-config-mode "ssh-config-mode" "\
 Major mode for fontifiying ssh config files.
 
-\\{ssh-config-mode-map}" t nil)
+\\{ssh-config-mode-map}
+
+\(fn)" t nil)
 
 (add-to-list 'auto-mode-alist '("/\\.ssh/config\\'" . ssh-config-mode))
 

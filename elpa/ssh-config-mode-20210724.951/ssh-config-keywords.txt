@@ -11,7 +11,6 @@ CanonicalizeHostname
 CanonicalizeMaxDots
 CanonicalizePermittedCNAMEs
 CertificateFile
-ChallengeResponseAuthentication
 CheckHostIP
 Ciphers
 ClearAllForwardings
@@ -27,6 +26,7 @@ EnableSSHKeysign
 EscapeChar
 ExitOnForwardFailure
 FingerprintHash
+ForkAfterAuthentication
 ForwardAgent
 ForwardX11
 ForwardX11Timeout
@@ -39,8 +39,8 @@ HashKnownHosts
 Host
 HostKeyAlgorithms
 HostKeyAlias
+HostbasedAcceptedAlgorithms
 HostbasedAuthentication
-HostbasedKeyTypes
 Hostname
 IPQoS
 IdentitiesOnly
@@ -53,10 +53,12 @@ Include
 KbdInteractiveAuthentication
 KbdInteractiveDevices
 KexAlgorithms
+KnownHostsCommand
 LocalCommand
 LocalForward
 LogFacility
 LogLevel
+LogVerbose
 Macs
 Match
 NoHostAuthenticationForLocalhost
@@ -64,12 +66,13 @@ NumberOfPasswordPrompts
 PKCS11Provider
 PasswordAuthentication
 PermitLocalCommand
+PermitRemoteOpen
 Port
 PreferredAuthentications
 ProxyCommand
 ProxyJump
 ProxyUseFdpass
-PubkeyAcceptedKeyTypes
+PubkeyAcceptedAlgorithms
 PubkeyAuthentication
 RekeyLimit
 RemoteCommand
@@ -80,7 +83,9 @@ SecurityKeyProvider
 SendEnv
 ServerAliveCountMax
 ServerAliveInterval
+SessionType
 SetEnv
+StdinNull
 StreamLocalBindMask
 StreamLocalBindUnlink
 StrictHostKeyChecking
