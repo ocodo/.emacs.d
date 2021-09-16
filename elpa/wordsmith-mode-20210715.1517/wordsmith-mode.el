@@ -5,7 +5,8 @@
 ;; Author: istib <istib@thebati.net>
 
 ;; Version: 20140202.001
-;; Package-Version: 20171025.1430
+;; Package-Version: 20210715.1517
+;; Package-Commit: 5d40ceaa2b8d41ab3634ca377ceb6a74deeb2287
 
 ;;; Documentation:
 ;;
@@ -76,7 +77,13 @@
   "\\(\033\\[0;1m\\)\\([^\033]*\\)\\(\033\\[0;2m\\)"
   "Regexp split in 3 groups (1: ansi start code, 2: word matched by 'syn' command, 3: ansi end code)")
 
-(defvar wordsmith-syn-command (executable-find "/usr/local/bin/syn"))
+(defvar wordsmith-syn-command nil)
+
+(unless wordsmith-syn-command
+  (let ((syn-loc (executable-find "syn")))
+    (if syn-loc
+	(setq wordsmith-syn-command syn-loc)
+      (error "Cannot locate program syn"))))
 
 (defcustom wordsmith-enable-at-init t
   "Should wordsmith highlight nouns when mode is initialized?"

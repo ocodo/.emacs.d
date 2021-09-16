@@ -16,6 +16,11 @@ Interactively with no argument, this command toggles the mode.
 to show buffer size and position in mode-line.  You can customize
 this minor mode, see option `wordsmith-mode'. 
 
+If called interactively, enable Wordsmith mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "wordsmith-mode" '("wordsmith-")))
