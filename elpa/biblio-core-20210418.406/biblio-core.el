@@ -4,8 +4,8 @@
 
 ;; Author: Clément Pit-Claudel <clement.pitclaudel@live.com>
 ;; Version: 0.2.1
-;; Package-Version: 20200416.307
-;; Package-Commit: eb9baf1d2bf6a073d24ccb717025baa693e98f3e
+;; Package-Version: 20210418.406
+;; Package-Commit: 517ec18f00f91b61481214b178f7ae0b8fbc499b
 ;; Package-Requires: ((emacs "24.3") (let-alist "1.0.4") (seq "1.11") (dash "2.12.1"))
 ;; Keywords: bib, tex, convenience, hypermedia
 ;; URL: https://github.com/cpitclaudel/biblio.el
@@ -294,7 +294,7 @@ non-sparse keymaps."
                               "Return a list of bindings in V, prefixed by K."
                               (biblio--flatten-map v (biblio--as-list k)))
                             keymap)))))
-    ;; This breaks if keymap is a symbol whose function cell is a keymap
+    ;; FIXME This breaks if keymap is a symbol whose function cell is a keymap
     ((symbolp keymap)
      (list (cons prefix keymap))))))
 
@@ -329,12 +329,14 @@ That is, if two key map to `eq' values, they are grouped."
 
 (defun biblio--help-with-major-mode-1 (keyseqs-command)
   "Print help on KEYSEQS-COMMAND to standard output."
-  ;; (biblio-with-fontification 'font-lock-function-name-face
-  (insert (format "%s (%S)\n"
-                  (biblio--quote-keys (car keyseqs-command))
-                  (cdr keyseqs-command)))
-  (biblio-with-fontification 'font-lock-doc-face
-    (insert (format "  %s\n\n" (biblio--brief-docs (cdr keyseqs-command))))))
+  (insert (biblio--quote-keys (car keyseqs-command)) " ")
+  (insert (propertize "\t" 'display '(space :align-to 10)))
+  (insert-text-button (format "%S" (cdr keyseqs-command)))
+  (insert "\n")
+  (biblio-with-fontification '(font-lock-comment-face (:height 0.95))
+    (insert (format "  %s\n" (biblio--brief-docs (cdr keyseqs-command)))))
+  (biblio-with-fontification '(:height 0.3)
+    (insert "\n")))
 
 (defun biblio--help-with-major-mode ()
   "Display help with current major mode."
@@ -530,8 +532,10 @@ Interactively, query for ACTION from
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "<up>") #'biblio--selection-previous)
     (define-key map (kbd "C-p") #'biblio--selection-previous)
+    (define-key map (kbd "p") #'biblio--selection-previous)
     (define-key map (kbd "<down>") #'biblio--selection-next)
     (define-key map (kbd "C-n") #'biblio--selection-next)
+    (define-key map (kbd "n") #'biblio--selection-next)
     (define-key map (kbd "RET") #'biblio--selection-browse)
     (define-key map (kbd "<C-return>") #'biblio--selection-browse-direct)
     (define-key map (kbd "C-RET") #'biblio--selection-browse-direct)
@@ -560,10 +564,16 @@ Interactively, query for ACTION from
                       (buffer-name biblio--target-buffer))
             "")))
 
+(defface biblio-highlight-extend-face `((t (:inherit highlight
+						     ,@(and (>= emacs-major-version 27) '(:extend t)))))
+  "Face used for highlighting lines."
+  :group 'biblio-faces)
+
 (define-derived-mode biblio-selection-mode fundamental-mode biblio--selection-mode-name-base
   "Browse bibliographic search results.
 \\{biblio-selection-mode-map}"
-  (hl-line-mode)
+  (setq-local hl-line-face 'biblio-highlight-extend-face)
+  (hl-line-mode 1)
   (visual-line-mode)
   (setq-local truncate-lines nil)
   (setq-local cursor-type nil)

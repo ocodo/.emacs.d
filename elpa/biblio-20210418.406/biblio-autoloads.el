@@ -98,12 +98,12 @@ Add Dissemin to list of `biblio-selection-mode' actions." nil nil)
 ;;;### (autoloads nil "biblio-doi" "biblio-doi.el" (0 0 0 0))
 ;;; Generated autoloads from biblio-doi.el
 
-(autoload 'doi-insert-bibtex "biblio-doi" "\
+(autoload 'biblio-doi-insert-bibtex "biblio-doi" "\
 Insert BibTeX entry matching DOI.
 
 \(fn DOI)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "biblio-doi" '("biblio-doi-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "biblio-doi" '("biblio-doi-" "doi-insert-bibtex")))
 
 ;;;***
 
