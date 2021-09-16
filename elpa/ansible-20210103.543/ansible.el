@@ -17,7 +17,7 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-;; Version: 0.3.1
+;; Version: 0.3.2
 ;; Author: k1LoW (Kenichirou Oyama), <k1lowxb [at] gmail [dot] com> <k1low [at] 101000lab [dot] org>
 ;; URL: http://101000lab.org
 ;; Package-Requires: ((s "1.9.0") (f "0.16.2"))
@@ -137,6 +137,7 @@
       "docker_login" "docker_service" "dpkg_selections" "dynamodb_table" "easy_install"
       "ec2" "ec2_ami" "ec2_ami_copy" "ec2_ami_find" "ec2_asg" "ec2_eip" "ec2_elb"
       "ec2_elb_facts" "ec2_elb_lb" "ec2_eni" "ec2_eni_facts" "ec2_facts" "ec2_group"
+      "ec2_instance" "ec2_instance_info"
       "ec2_key" "ec2_lc" "ec2_metric_alarm" "ec2_remote_facts" "ec2_scaling_policy"
       "ec2_snapshot" "ec2_snapshot_facts" "ec2_tag" "ec2_vol" "ec2_vol_facts" "ec2_vpc"
       "ec2_vpc_dhcp_options" "ec2_vpc_igw" "ec2_vpc_net" "ec2_vpc_net_facts"
@@ -191,7 +192,7 @@
       "selinux" "selinux_permissive" "sendgrid" "sensu_check" "seport" "service"
       "set_fact" "setup" "shell" "sl_vm" "slack" "slackpkg" "slurp" "snmp_facts" "sns"
       "sns_topic" "solaris_zone" "sqs_queue" "stackdriver" "stat" "sts_assume_role"
-      "subversion" "supervisorctl" "svc" "svr4pkg" "swdepot" "synchronize" "sysctl"
+      "subversion" "supervisorctl" "svc" "svr4pkg" "swdepot" "synchronize" "sysctl" "systemd"
       "taiga_issue" "template" "twilio" "typetalk" "ufw" "unarchive" "uptimerobot" "uri"
       "urpmi" "user" "vca_fw" "vca_nat" "vca_vapp" "vertica_configuration" "vertica_facts"
       "vertica_role" "vertica_schema" "vertica_user" "virt" "virt_net" "virt_pool"
