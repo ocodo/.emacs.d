@@ -1,13 +1,16 @@
-;;; gitignore-mode.el --- Major mode for editing .gitignore files -*- lexical-binding: t; -*-
+;;; gitignore-mode.el --- Major mode for editing .gitignore files  -*- lexical-binding: t -*-
 
 ;; Copyright (c) 2012-2013  Sebastian Wiesner
-;; Copyright (C) 2012-2018  The Magit Project Contributors
+;; Copyright (C) 2012-2021  The Magit Project Contributors
 
 ;; Author: Sebastian Wiesner <lunaryorn@gmail.com>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 ;; Homepage: https://github.com/magit/git-modes
 ;; Keywords: convenience vc git
-;; Package-Version: 20180318.1956
+;; Package-Version: 20210528.1856
+;; Package-Commit: 433e1c57a63c88855fc41a942e29d7bc8c9c16c7
+;; Package-Requires: ((emacs "24.3"))
+;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; This file is not part of GNU Emacs.
 
@@ -46,7 +49,7 @@
   ;; Disable syntactic font locking, because comments are only valid at
   ;; beginning of line.
   (setq font-lock-defaults '(gitignore-mode-font-lock-keywords t t))
-  (set (make-local-variable 'conf-assignment-sign) nil))
+  (setq-local conf-assignment-sign nil))
 
 ;;;###autoload
 (dolist (pattern (list "/\\.gitignore\\'"
