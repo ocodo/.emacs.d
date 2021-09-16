@@ -10,6 +10,8 @@
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from auto-highlight-symbol.el
 
+(put 'global-auto-highlight-symbol-mode 'globalized-minor-mode t)
+
 (defvar global-auto-highlight-symbol-mode nil "\
 Non-nil if Global Auto-Highlight-Symbol mode is enabled.
 See the `global-auto-highlight-symbol-mode' command
@@ -35,9 +37,14 @@ See `auto-highlight-symbol-mode' for more information on Auto-Highlight-Symbol m
 (autoload 'auto-highlight-symbol-mode "auto-highlight-symbol" "\
 Toggle Auto Highlight Symbol Mode
 
+If called interactively, enable Auto-Highlight-Symbol mode if ARG
+is positive, and disable it if ARG is zero or negative.  If
+called from Lisp, also enable the mode if ARG is omitted or nil,
+and toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "auto-highlight-symbol" '("auto-highlight-symbol-mode" "ahs-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "auto-highlight-symbol" '("ahs-" "auto-highlight-symbol-mode" "dropdown-list-overlays")))
 
 ;;;***
 
