@@ -21,12 +21,19 @@ Upgrade all packages that can be upgraded.
 
 With prefix argument NO-FETCH, do not call `package-refresh-contents'.
 
+Return true if there were packages to install, nil otherwise.
+
 \(fn &optional NO-FETCH)" t nil)
 
 (autoload 'package-utils-upgrade-all-no-fetch "package-utils" "\
-Upgrade all packages that can be upgraded without calling `package-refresh-contents' first.
+Upgrade all packages that can be upgraded without calling `package-refresh-contents' first." t nil)
 
-\(fn)" t nil)
+(autoload 'package-utils-upgrade-all-and-recompile "package-utils" "\
+Upgrade all packages that can be upgraded, and recompile all byte-code.
+
+With prefix argument NO-FETCH, do not call `package-refresh-contents'.
+
+\(fn &optional NO-FETCH)" t nil)
 
 (autoload 'package-utils-upgrade-all-and-quit "package-utils" "\
 Upgrade all packages that can be upgraded, then quit emacs.
