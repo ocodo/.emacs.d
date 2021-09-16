@@ -9,7 +9,7 @@
 
 ;; Author: Chris Done <chrisdone@gmail.com>
 ;; URL: https://github.com/emacsorphanage/god-mode
-;; Version: 2.17.2
+;; Version: 2.17.3
 ;; Package-Requires: ((emacs "25.1"))
 
 ;; This file is not part of GNU Emacs.
@@ -237,14 +237,22 @@ KEY-STRING-SO-FAR should be nil for the first call in the sequence."
      (right . "<right>")
      (up . "<up>")
      (down . "<down>")
+     (prior . "<prior>")
+     (next . "<next>")
+     (backspace . "DEL")
+     ;; FIXME delete key is not picked up `god-mode-self-insert'.
+     (delete . "<delete>")
+     (return . "RET")
+     (S-iso-lefttab . "<S-iso-lefttab>")
+     ;; Use key code for S-SPC
+     (33554464 . "S-SPC")
      (S-left . "S-<left>")
      (S-right . "S-<right>")
      (S-up . "S-<up>")
      (S-down . "S-<down>")
-     (prior . "<prior>")
-     (next . "<next>")
-     (backspace . "DEL")
-     (return . "RET"))
+     (S-backspace . "<S-backspace>")
+     (S-delete . "<S-delete>")
+     (S-return . "<S-return>"))
    ;; f1..f35 and S-f1..S-f35
    (cl-mapcan (lambda (i)
                 (list (cons (god-mode-make-f-key i)   (format "<f%d>" i))
