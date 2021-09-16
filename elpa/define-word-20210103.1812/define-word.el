@@ -4,8 +4,8 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/define-word
-;; Package-Version: 20200417.844
-;; Package-Commit: 08c71b1ff4fd07bf0c78d1fcf77efeaafc8f7443
+;; Package-Version: 20210103.1812
+;; Package-Commit: 6e4a427503aef096484f88332962c346cdd10847
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: dictionary, convenience
@@ -66,7 +66,8 @@ By default, `message' is used."
 (defcustom define-word-services
   '((wordnik "http://wordnik.com/words/%s" define-word--parse-wordnik)
     (openthesaurus "https://www.openthesaurus.de/synonyme/%s" define-word--parse-openthesaurus)
-    (webster "http://webstersdictionary1828.com/Dictionary/%s" define-word--parse-webster))
+    (webster "http://webstersdictionary1828.com/Dictionary/%s" define-word--parse-webster)
+    (offline-wikitionary define-word--get-offline-wikitionary nil))
   "Services for define-word, A list of lists of the
   format (symbol url function-for-parsing).
 Instead of an url string, url can be a custom function for retrieving results."
@@ -79,7 +80,27 @@ Instead of an url string, url can be a custom function for retrieving results."
 (defcustom define-word-default-service 'wordnik
   "The default service for define-word commands. Must be one of
   `define-word-services'"
-  :type 'symbol)
+  :type '(choice
+          (const wordnik)
+          (const openthesaurus)
+          (const webster)
+          (const offline-wikitionary)
+          symbol))
+
+(defvar define-word-offline-dict-directory nil
+  "Path to the directory which contains \"en-en-withforms-enwiktionary.txt\".")
+
+(defun define-word--get-offline-wikitionary (word)
+  (unless define-word-offline-dict-directory
+    (let ((url "https://en.wiktionary.org/wiki/User:Matthias_Buchmeier/download"))
+      (user-error "Please download the ding (text-format) zip from %s and configure `%S'." url
+                  'define-word-offline-dict-directory)))
+  (let* ((regex (concat "^" word " "))
+         (default-directory define-word-offline-dict-directory)
+         (res (shell-command-to-string
+               (concat "rg --no-filename --color never '" regex "'"))))
+    (unless (= 0 (length res))
+      res)))
 
 (defun define-word--to-string (word service)
   "Get definition of WORD from SERVICE."
@@ -132,6 +153,8 @@ lets the user choose service."
            (t
             results)))))
 
+(declare-function pdf-view-active-region-text "ext:pdf-view")
+
 ;;;###autoload
 (defun define-word-at-point (arg &optional service)
   "Use `define-word' to define word at point.
@@ -140,15 +163,18 @@ Prefix ARG lets you choose service.
 
 In a non-interactive call SERVICE can be passed."
   (interactive "P")
-  (if (use-region-p)
-      (define-word
-          (buffer-substring-no-properties
-           (region-beginning)
-           (region-end))
-          service arg)
-    (define-word (substring-no-properties
-                  (thing-at-point 'word))
-        service arg)))
+  (let ((word
+         (cond
+          ((eq major-mode 'pdf-view-mode)
+           (car (pdf-view-active-region-text)))
+          ((use-region-p)
+           (buffer-substring-no-properties
+            (region-beginning)
+            (region-end)))
+          (t
+           (substring-no-properties
+            (thing-at-point 'word))))))
+    (define-word word service arg)))
 
 (defface define-word-face-1
   '((t :inherit font-lock-keyword-face))
