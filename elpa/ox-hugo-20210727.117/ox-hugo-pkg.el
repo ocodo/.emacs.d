@@ -1,7 +1,7 @@
-(define-package "ox-hugo" "20200722.1939" "Hugo Markdown Back-End for Org Export Engine"
+(define-package "ox-hugo" "20210727.117" "Hugo Markdown Back-End for Org Export Engine"
   '((emacs "24.4")
     (org "9.0"))
-  :commit "75b849e9561c4a6022babf6eaf0e037310ded7c1" :keywords
+  :commit "1b8f2627cd63ac21b84c5abe3d5b607bc778670a" :keywords
   '("org" "markdown" "docs")
   :url "https://ox-hugo.scripter.co")
 ;; Local Variables:

@@ -101,6 +101,7 @@ Return output file name.
 
 ;;;### (autoloads nil "ox-hugo" "ox-hugo.el" (0 0 0 0))
 ;;; Generated autoloads from ox-hugo.el
+ (put 'org-hugo-base-dir 'safe-local-variable 'stringp)
  (put 'org-hugo-section 'safe-local-variable 'stringp)
  (put 'org-hugo-front-matter-format 'safe-local-variable 'stringp)
  (put 'org-hugo-footer 'safe-local-variable 'stringp)

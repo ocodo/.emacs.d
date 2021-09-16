@@ -78,6 +78,9 @@
 ;; `org-refile.el' is new in Org 9.4
 ;; https://code.orgmode.org/bzg/org-mode/commit/f636cf91b6cbe322eca56e23283f4614548c9d65
 (require 'org-refile nil :noerror)      ;For `org-get-outline-path'
+
+(require 'org-id nil :noerror)          ;For `org-id-goto'
+
 (declare-function org-hugo-pandoc-cite--parse-citations-maybe "ox-hugo-pandoc-cite")
 
 (defvar ffap-url-regexp)                ;Silence byte-compiler
@@ -399,6 +402,16 @@ Examples:
   :version "25.2")
 
 (define-obsolete-variable-alias 'org-hugo-default-section-directory 'org-hugo-section "Oct 31, 2018")
+
+(defcustom org-hugo-base-dir nil
+  "Base directory for Hugo.
+
+Set either this value, or the HUGO_BASE_DIR global property for
+export."
+  :group 'org-export-hugo
+  :type 'directory)
+;;;###autoload (put 'org-hugo-base-dir 'safe-local-variable 'stringp)
+
 (defcustom org-hugo-section "posts"
   "Default section for Hugo posts.
 
@@ -787,7 +800,7 @@ newer."
                    (:hugo-delete-trailing-ws "HUGO_DELETE_TRAILING_WS" nil org-hugo-delete-trailing-ws)
                    (:hugo-section "HUGO_SECTION" nil org-hugo-section)
                    (:hugo-bundle "HUGO_BUNDLE" nil nil)
-                   (:hugo-base-dir "HUGO_BASE_DIR" nil nil)
+                   (:hugo-base-dir "HUGO_BASE_DIR" nil org-hugo-base-dir)
                    (:hugo-code-fence "HUGO_CODE_FENCE" nil t) ;Prefer to generate triple-backquoted Markdown code blocks by default.
                    (:hugo-use-code-for-kbd "HUGO_USE_CODE_FOR_KBD" nil org-hugo-use-code-for-kbd)
                    (:hugo-prefer-hyphen-in-tags "HUGO_PREFER_HYPHEN_IN_TAGS" nil org-hugo-prefer-hyphen-in-tags)
@@ -1031,7 +1044,7 @@ disabled."
         (format "<span class=\"section-num\">%s</span> " number-str)))))
 
 ;;;; Build TOC
-(defun org-hugo--build-toc (info &optional n keyword local)
+(defun org-hugo--build-toc (info &optional n scope local)
   "Return table of contents as a string.
 
 INFO is a plist used as a communication channel.
@@ -1039,8 +1052,8 @@ INFO is a plist used as a communication channel.
 Optional argument N, when non-nil, is a positive integer
 specifying the depth of the table.
 
-Optional argument KEYWORD specifies the TOC keyword, if any, from
-which the table of contents generation has been initiated.
+When optional argument SCOPE is non-nil, build a table of
+contents according to the specified element.
 
 When optional argument LOCAL is non-nil, build a table of
 contents according to the current headline."
@@ -1053,7 +1066,7 @@ contents according to the current headline."
           (mapconcat
            (lambda (headline)
              (let* ((level-raw (org-export-get-relative-level headline info))
-                    (level (if local
+                    (level (if scope
                                (let* ((current-level-inner
                                        (progn
                                          (unless current-level
@@ -1095,7 +1108,7 @@ contents according to the current headline."
                ;; (message "[ox-hugo build-toc DBG] indentation: %S" indentation)
                ;; (message "[ox-hugo build-toc DBG] todo: %s | %s" todo todo-str)
                (concat indentation "- " number toc-entry tags)))
-           (org-export-collect-headlines info n (and local keyword))
+           (org-export-collect-headlines info n scope)
            "\n"))                       ;Newline between TOC items
          ;; Remove blank lines from in-between TOC items, which can
          ;; get introduced when using the "UNNUMBERED: t" headline
@@ -1276,7 +1289,7 @@ The publication directory is created if it does not exist.
 INFO is a plist used as a communication channel."
   (let* ((base-dir (if (plist-get info :hugo-base-dir)
                        (file-name-as-directory (plist-get info :hugo-base-dir))
-                     (user-error "It is mandatory to set the HUGO_BASE_DIR property")))
+                     (user-error "It is mandatory to set the HUGO_BASE_DIR property or the `org-hugo-base-dir' local variable")))
          (content-dir "content/")
          (section-path (org-hugo--get-section-path info))
          (bundle-dir (let ((bundle-path (or ;Hugo bundle set in the post subtree gets higher precedence
@@ -1335,10 +1348,6 @@ cannot be formatted in Hugo-compatible format."
                           (org-entry-get (point) "SCHEDULED"))
                      ;; Get the date from the "SCHEDULED" property.
                      (org-entry-get (point) "SCHEDULED"))
-                    ((and (equal date-key :hugo-expirydate)
-                          (org-entry-get (point) "DEADLINE"))
-                     ;; Get the date from the "DEADLINE" property.
-                     (org-entry-get (point) "DEADLINE"))
                     (t ;:hugo-lastmod, :hugo-publishdate, :hugo-expirydate
                      (org-string-nw-p (plist-get info date-key)))))
          (date-nocolon (cond
@@ -2015,13 +2024,19 @@ channel."
       "<!--more-->")
      ((and (equal "TOC" kwd)
            (string-match-p "\\<headlines\\>" value))
-      (let ((depth (and (string-match "\\<[0-9]+\\>" value)
-                        (string-to-number (match-string 0 value))))
-            (local? (string-match-p "\\<local\\>" value)))
+      (let* ((depth (and (string-match "\\<[0-9]+\\>" value)
+                         (string-to-number (match-string 0 value))))
+             (local? (string-match-p "\\<local\\>" value))
+             (scope                     ;From `org-md-keyword'
+              (cond
+               ((string-match ":target +\\(\".+?\"\\|\\S-+\\)" value) ;link
+                (org-export-resolve-link
+                 (org-strip-quotes (match-string 1 value)) info))
+               (local? keyword))))
         (when (and depth
                    (> depth 0))
           (org-remove-indentation
-           (org-hugo--build-toc info depth keyword local?)))))
+           (org-hugo--build-toc info depth scope local?)))))
      (t
       (org-md-keyword keyword contents info)))))
 
@@ -2038,6 +2053,7 @@ and rewrite link paths to make blogging more seamless."
          (raw-path (org-element-property :path link))
          (type (org-element-property :type link))
          (link-is-url (member type '("http" "https" "ftp" "mailto"))))
+
     (when (and (stringp raw-path)
                link-is-url)
       (setq raw-path (org-blackfriday--url-sanitize
@@ -2061,9 +2077,16 @@ and rewrite link paths to make blogging more seamless."
                          (if (string= ".org" (downcase (file-name-extension destination ".")))
                              (concat (file-name-sans-extension destination) ".md")
                            destination))))
-             (if desc
-                 (format "[%s](%s)" desc path)
-               (format "<%s>" path))))
+             ;; (message "[org-hugo-link DBG] markdown path: %s" (concat (org-hugo--get-pub-dir info) path))
+             ;; Treat links as a normal post if the markdown file exists in hugo publish directory
+             (if (org-id-find-id-file raw-path)
+                 (let ((anchor (org-hugo-link--headline-anchor-maybe link destination)))
+                   (if desc
+                       (format "[%s]({{<relref \"%s#%s\" >}})" desc path anchor)
+                     (format "[%s]({{<relref \"%s#%s\">}})" path path anchor)))
+               (if desc
+                   (format "[%s](%s)" desc path)
+                 (format "<%s>" path)))))
           (`headline                 ;Links of type [[* Some heading]]
            (let ((title (org-export-data (org-element-property :title destination) info)))
              (format
@@ -2341,6 +2364,17 @@ and rewrite link paths to make blogging more seamless."
           (if (string-prefix-p "{{< relref " path)
               (format "[%s](%s)" path path)
             (format "<%s>" path)))))))))
+
+
+(defun org-hugo-link--headline-anchor-maybe (link path)
+  "Return headline of LINK in PATH if it point to."
+  (with-temp-buffer
+    (org-id-goto (org-element-property :path link))
+    (let ((headline (org-find-top-headline)))
+      (kill-buffer (current-buffer))
+      (if headline
+          (org-hugo-slug headline)
+        ""))))
 
 ;;;;; Helpers
 (defun org-hugo--maybe-copy-resources (info)
@@ -2814,13 +2848,13 @@ INFO is a plist holding export options."
   ;; text i.e. "_" would have been converted to "\_".
   ;; We need to undo that underscore escaping in Emoji codes for those
   ;; to work.
-  ;; Example: Convert ":raised\_hands:" back to ":raised_hands:".
+  ;; Example: Convert ":raised\_hands:" back to ":raised_hands:",
+  ;;                  ":white\_check\_mark:" back to ":white_check_mark:".
   ;; More Emoji codes: https://www.emoji.codes/
   ;; (Requires setting "enableEmoji = true" in config.toml.)
-  (setq body (replace-regexp-in-string
-              "\\(:[a-z0-9]+\\)[\\]\\(_[a-z0-9]+:\\)"
-              "\\1\\2"
-              body))
+  (let ((rgx "\\(:[a-z0-9_]+\\)[\\]\\(_[a-z0-9\\_]+:\\)"))
+    (while (string-match-p rgx body)
+      (setq body (replace-regexp-in-string rgx "\\1\\2" body))))
 
   (when (and (org-hugo--plist-get-true-p info :hugo-delete-trailing-ws)
              (not (org-hugo--plist-get-true-p info :preserve-breaks)))
@@ -3120,7 +3154,11 @@ For example, \"some__thing\" would get converted to \"some
 thing\"."
   ;; It is safe to assume that no one would want leading/trailing
   ;; spaces in `str'.. so not checking for "__a" or "a__" cases.
-  (replace-regexp-in-string "\\([^_]\\)__\\([^_]\\)" "\\1 \\2" str)) ;"a__b"  -> "a b"
+  (let ((ret str)
+        (rgx "\\([^_]\\)__\\([^_]\\)"))
+    (while (string-match-p rgx ret)
+      (setq ret (replace-regexp-in-string rgx "\\1 \\2" ret))) ;"a__b"  -> "a b"
+    ret))
 
 (defun org-hugo--tag-processing-fn-replace-with-spaces-maybe (tag-list info)
   "Replace double underscores in TAG-LIST elements with single spaces.
@@ -4016,9 +4054,15 @@ links."
             (let ((type (org-element-property :type link)))
               (when (member type '("custom-id" "id" "fuzzy"))
                 (let* ((raw-link (org-element-property :raw-link link))
+
                        (destination (if (string= type "fuzzy")
                                         (org-export-resolve-fuzzy-link link info)
-                                      (org-export-resolve-id-link link info)))
+                                      (progn
+                                        ;; update `org-id-locations' if it's nil or empty hash table
+                                        ;; to avoid broken link
+                                        (if (or (eq org-id-locations nil) (zerop (hash-table-count org-id-locations)))
+                                            (org-id-update-id-locations (directory-files "." t "\.org\$" t)))
+                                        (org-export-resolve-id-link link (org-export--collect-tree-properties ast info)))))
                        (source-path (org-hugo--get-element-path link info))
                        (destination-path (org-hugo--get-element-path destination info))
                        (destination-type (org-element-type destination)))
