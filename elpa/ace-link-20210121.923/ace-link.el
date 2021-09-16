@@ -4,8 +4,8 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/ace-link
-;; Package-Version: 20200518.957
-;; Package-Commit: 298f02f7dd117f9ec01f6aa2a2ddfecae0efb7f4
+;; Package-Version: 20210121.923
+;; Package-Commit: e1b1c91b280d85fce2194fea861a9ae29e8b03dd
 ;; Version: 0.5.0
 ;; Package-Requires: ((avy "0.4.0"))
 ;; Keywords: convenience, links, avy
@@ -66,7 +66,7 @@
         ((or (member major-mode '(compilation-mode grep-mode))
              (bound-and-true-p compilation-shell-minor-mode))
          (ace-link-compilation))
-        ((eq major-mode 'gnus-article-mode)
+        ((memq major-mode '(gnus-article-mode gnus-summary-mode))
          (ace-link-gnus))
         ((eq major-mode 'mu4e-view-mode)
          (ace-link-mu4e))
@@ -317,8 +317,10 @@ If EXTERNAL is double prefix, browse in new buffer."
     (goto-char pt)
     (eww-follow-link external)))
 
-(defun ace-link--eww-collect ()
+(defun ace-link--eww-collect (&optional property)
   "Collect the positions of visible links in the current `eww' buffer."
+  (unless property
+    (setq property 'shr-url))
   (save-excursion
     (save-restriction
       (narrow-to-region
@@ -327,12 +329,12 @@ If EXTERNAL is double prefix, browse in new buffer."
       (goto-char (point-min))
       (let (beg end candidates)
         (setq end
-              (if (get-text-property (point) 'shr-url)
+              (if (get-text-property (point) property)
                   (point)
                 (text-property-any
-                 (point) (point-max) 'shr-url nil)))
+                 (point) (point-max) property nil)))
         (while (setq beg (text-property-not-all
-                          end (point-max) 'shr-url nil))
+                          end (point-max) property nil))
           (goto-char beg)
           ;; Skip leading newlines in the next link text.  They make things very
           ;; ugly when running `ace-link-eww' since the characters to jump to
@@ -340,9 +342,9 @@ If EXTERNAL is double prefix, browse in new buffer."
           (skip-chars-forward "\n")
           (setq beg (point))
           ;; Handle the case where a link is all newlines by skipping them.
-          (if (get-text-property (point) 'shr-url)
+          (if (get-text-property (point) property)
               (progn
-                (setq end (next-single-property-change (point) 'shr-url nil (point-max)))
+                (setq end (next-single-property-change (point) property nil (point-max)))
                 ;; When link at the end of buffer, end will be set to nil.
                 (if (eq end nil)
                     (setq end (point-max)))
@@ -399,7 +401,7 @@ If EXTERNAL is double prefix, browse in new buffer."
   (interactive)
   (let ((pt (avy-with ace-link-compilation
               (avy-process
-               (mapcar #'cdr (ace-link--eww-collect))
+               (mapcar #'cdr (ace-link--eww-collect 'help-echo))
                (avy--style-fn avy-style)))))
     (ace-link--compilation-action pt)))
 
@@ -411,45 +413,62 @@ If EXTERNAL is double prefix, browse in new buffer."
 (declare-function compile-goto-error "compile")
 
 ;;* `ace-link-gnus'
+(defvar gnus-article-buffer)
+(defvar mm-text-html-renderer)
+(declare-function gnus-article-press-button "gnus-art")
+(declare-function gnus-get-buffer-window "gnus-win")
+(declare-function widget-button-press "wid-edit")
+(declare-function widget-forward "wid-edit")
+
 ;;;###autoload
 (defun ace-link-gnus ()
   "Open a visible link in a `gnus-article-mode' buffer."
   (interactive)
-  (when (eq major-mode 'gnus-summary-mode)
-    (gnus-summary-widget-forward 1))
-  (let ((pt (avy-with ace-link-gnus
-              (avy-process
-               (ace-link--gnus-collect)
-               (avy--style-fn avy-style)))))
-    (ace-link--gnus-action pt)))
+  (save-selected-window
+    (when (eq major-mode 'gnus-summary-mode)
+      (if-let ((win (gnus-get-buffer-window gnus-article-buffer 'visible)))
+          (progn
+            (select-window win)
+            (select-frame-set-input-focus (window-frame win)))
+        (user-error "No article window found")))
+    (let ((pt (avy-with ace-link-gnus
+                (avy-process
+                 (ace-link--gnus-collect)
+                 (avy--style-fn avy-style)))))
+      (ace-link--gnus-action pt))))
 
 (defun ace-link--gnus-action (pt)
   (when (number-or-marker-p pt)
     (goto-char (1+ pt))
-    (widget-button-press (point))))
-
-(declare-function widget-forward "wid-edit")
-(declare-function gnus-summary-widget-forward "gnus-sum")
-(declare-function widget-button-press "wid-edit")
+    (cond ((< emacs-major-version 27)
+           (widget-button-press (point)))
+          ((and (eq mm-text-html-renderer 'shr)
+             (get-text-property (point) 'shr-url))
+           (shr-browse-url))
+          ((get-text-property (point) 'gnus-callback)
+           (gnus-article-press-button))
+          (t (push-button)))))
 
 (defun ace-link--gnus-collect ()
   "Collect the positions of visible links in the current gnus buffer."
-  (require 'wid-edit)
-  (let (candidates pt)
-    (save-excursion
-      (save-restriction
-        (narrow-to-region
-         (window-start)
-         (window-end))
-        (goto-char (point-min))
-        (setq pt (point))
-        (while (progn (widget-forward 1)
-                      (> (point) pt))
+  (if (<= 27 emacs-major-version)
+      (mapcar #'cdr (ace-link--woman-collect))
+    (require 'wid-edit)
+    (let (candidates pt)
+      (save-excursion
+        (save-restriction
+          (narrow-to-region
+           (window-start)
+           (window-end))
+          (goto-char (point-min))
           (setq pt (point))
-          (when (or (plist-get (text-properties-at (point)) 'gnus-string)
-                    (plist-get (text-properties-at (point)) 'shr-url))
-            (push (point) candidates)))
-        (nreverse candidates)))))
+          (while (progn (widget-forward 1)
+                        (> (point) pt))
+            (setq pt (point))
+            (when (or (plist-get (text-properties-at (point)) 'gnus-string)
+                      (plist-get (text-properties-at (point)) 'shr-url))
+              (push (point) candidates)))
+          (nreverse candidates))))))
 
 ;;* Helper functions for `ace-link-mu4e' and `ace-link-notmuch'
 (defun ace-link--email-view-plain-collect ()
