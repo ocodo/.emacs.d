@@ -1,11 +1,16 @@
 ;;; keymap-utils.el --- keymap utilities          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2020  Jonas Bernoulli
+;; Copyright (C) 2008-2021 Jonas Bernoulli
+
+;; Includes code taken from naked.el, which is
+;; Copyright (C) 2011-2020 Drew Adams
+;; and which in turn derives from edmacro.el, which is
+;; Copyright (C) 1993-2020 Free Software Foundation, Inc.
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Package-Requires: ((cl-lib "0.3"))
-;; Package-Version: 20200413.1858
-;; Package-Commit: 195e0ca5b1b9967faf94a3e5a634d8975b796705
+;; Package-Version: 20210125.823
+;; Package-Commit: 0b282e19ac3d23b9a74f656b137b9eebeb2aaa39
 ;; Homepage: https://github.com/tarsius/keymap-utils
 ;; Keywords: convenience, extensions
 
@@ -375,9 +380,10 @@ string like \"?\C-a\"."
 
 (defun kmu-remove-key (keymap key)
   "In KEYMAP, remove key sequence KEY.
+
 Make the event KEY truly undefined in KEYMAP by removing the
-respective element of KEYMAP (or a sub-keymap) as opposed to
-merely setting its binding to nil.
+respective element of KEYMAP (or a sub-keymap or a bound prefix
+command) as opposed to merely setting its binding to nil.
 
 There are several ways in which a key can be \"undefined\":
 
@@ -413,10 +419,13 @@ being undefined is being bound to nil like B above."
       (delete key keymap)
     (let* ((prefix (vconcat (butlast key)))
            (submap (lookup-key keymap prefix)))
-      (when (and (not (eq submap 'ESC-prefix))
-                 (= (length submap) 1))
+      (if (not (keymapp submap))
+          (error "Cannot remove %; %s is not bound to a keymap" key prefix)
+        (when (symbolp submap)
+          (setq submap (symbol-function submap)))
         (delete (last key) submap)
-        (kmu-remove-key keymap prefix)))))
+        (when (= (length submap) 1)
+          (kmu-remove-key keymap prefix))))))
 
 (defmacro kmu-define-keys (mapvar feature &rest args)
   "Define all keys in ARGS in the keymap stored in MAPVAR.
