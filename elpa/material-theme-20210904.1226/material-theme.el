@@ -52,6 +52,15 @@
        (background (if (or window-system truecolor) "#263238" "#262626")) ;; sidebar-container
        (current-line (if (or window-system truecolor)  "#37474f" "#3a3a3a")) ;; tree-row
        (far-background (if (or window-system truecolor)  "#1c1f26" "#121212")) ;; panel-control
+       (diff-nonactive-bg "#2F3D41")
+       (diff-current-A-bg "#40393D")
+       (diff-fine-A-bg "#784948")
+       (diff-current-B-bg "#203B4A")
+       (diff-fine-B-bg "#155378")
+       (diff-current-C-bg "#33453A")
+       (diff-fine-C-bg "#4F6C3F")
+       (diff-current-ancestor-bg "#203B4A")
+       (diff-fine-ancestor-bg "#155378")
        (inactive-gray (if (or window-system truecolor) "#78909c" "#8a8a8a"))
        (header-color (if (or window-system truecolor) "#455A64" "#5f5f5f"))
        (subtle "#a7adba") ;; tree-row-hover-disclosure-button-control
@@ -214,6 +223,7 @@
    `(linum ((,class (:background ,background :foreground ,subtle))))
    `(linum-highlight-face ((,class (:background ,current-line :foreground ,foreground))))
    `(border ((,class (:background ,current-line))))
+   `(internal-border ((,class (:background ,current-line))))
    `(vertical-border ((,class (:background ,selection
                                :foreground, selection))))
    `(border-glyph ((,class (nil))))
@@ -285,10 +295,23 @@
    `(diff-refine-added ((,class (:inherit diff-added :inverse-video t))))
    `(diff-refine-removed ((,class (:inherit diff-removed :inverse-video t))))
 
-   `(ediff-even-diff-A ((,class (:foreground nil :background nil :inverse-video t))))
-   `(ediff-even-diff-B ((,class (:foreground nil :background nil :inverse-video t))))
-   `(ediff-odd-diff-A  ((,class (:foreground ,comment :background nil :inverse-video t))))
-   `(ediff-odd-diff-B  ((,class (:foreground ,comment :background nil :inverse-video t))))
+   ;; ediff
+   `(ediff-even-diff-A ((,class (:background ,diff-nonactive-bg))))
+   `(ediff-even-diff-B ((,class (:background ,diff-nonactive-bg))))
+   `(ediff-even-diff-C ((,class (:background ,diff-nonactive-bg))))
+   `(ediff-even-diff-Ancestor ((,class (:background ,diff-nonactive-bg))))
+   `(ediff-odd-diff-A ((,class (:background ,diff-nonactive-bg))))
+   `(ediff-odd-diff-B ((,class (:background ,diff-nonactive-bg))))
+   `(ediff-odd-diff-C ((,class (:background ,diff-nonactive-bg))))
+   `(ediff-odd-diff-Ancestor ((,class (:background ,diff-nonactive-bg))))
+   `(ediff-current-diff-A ((,class (:background ,diff-current-A-bg))))
+   `(ediff-current-diff-B ((,class (:background ,diff-current-B-bg))))
+   `(ediff-current-diff-C ((,class (:background ,diff-current-C-bg))))
+   `(ediff-current-diff-Ancestor ((,class (:background ,diff-current-ancestor-bg))))
+   `(ediff-fine-diff-A ((,class (:background ,diff-fine-A-bg))))
+   `(ediff-fine-diff-B ((,class (:background ,diff-fine-B-bg))))
+   `(ediff-fine-diff-C ((,class (:background ,diff-fine-C-bg))))
+   `(ediff-fine-diff-Ancestor ((,class (:background ,diff-fine-ancestor-bg))))
 
    `(eldoc-highlight-function-argument ((,class (:foreground ,green :weight bold))))
 
@@ -460,8 +483,8 @@
    `(org-agenda-date ((,class (:foreground ,blue :underline nil))))
    `(org-agenda-done ((,class (:foreground ,green))))
    `(org-agenda-dimmed-todo-face ((,class (:foreground ,comment))))
-   `(org-block ((,class (:foreground ,green :background ,far-background))))
-   `(org-block-background ((,t (:background ,far-background))))
+   `(org-block ((,class (:foreground ,green :background ,far-background :extend t))))
+   `(org-block-background ((,t (:background ,far-background :extend t))))
    `(org-code ((,class (:foreground ,green :background ,far-background))))
    `(org-column ((,class (:background ,current-line))))
    `(org-column-title ((,class (:inherit org-column :weight bold :underline t))))
@@ -484,9 +507,9 @@
    `(org-upcoming-deadline ((,class (:foreground ,orange))))
    `(org-warning ((,class (:weight bold :foreground ,red))))
    `(org-block-begin-line ((,class (:foreground ,"#b3e5fc" :background "#1e2930"
-                                                :box (:style released-button)))))
+                                                :box (:style released-button) :extend t))))
    `(org-block-end-line ((,class (:foreground ,"#b3e5fc" :background "#1e2930"
-                                              :box (:style released-button)))))
+                                              :box (:style released-button) :extend t))))
    `(org-kbd ((,class (:background ,inactive-gray :foreground ,foreground
                                    :box (:line-width 1 :color nil :style pressed-button)))))
 
