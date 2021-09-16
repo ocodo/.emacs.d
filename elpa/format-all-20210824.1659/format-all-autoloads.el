@@ -25,10 +25,30 @@ external program.
 A suitable formatter is selected according to the `major-mode' of
 the buffer.  Many popular programming languages are supported.
 It is fairly easy to add new languages that have an external
-formatter.
+formatter.  When called interactively or PROMPT-P is non-nil, a
+missing formatter is prompted in the minibuffer.
+
+If PROMPT is non-nil (or the function is called as an interactive
+command), a missing formatter is prompted in the minibuffer.  If
+PROMPT is the symbol `always' (or a prefix argument is given),
+the formatter is prompted for even if one has already been set.
 
 If any errors or warnings were encountered during formatting,
-they are shown in a buffer called *format-all-errors*." t nil)
+they are shown in a buffer called *format-all-errors*.
+
+\(fn &optional PROMPT)" t nil)
+
+(autoload 'format-all-region "format-all" "\
+Auto-format the source code in the current region.
+
+Like `format-all-buffer' but format only the active region
+instead of the entire buffer.  This requires support from the
+formatter.
+
+Called non-interactively, START and END delimit the region.
+The PROMPT argument works as for `format-all-buffer'.
+
+\(fn START END &optional PROMPT)" t nil)
 
 (autoload 'format-all-mode "format-all" "\
 Toggle automatic source code formatting before save.
@@ -38,26 +58,15 @@ automatically called to format your code each time before you
 save the buffer.
 
 The mode is buffer-local and needs to be enabled separately each
-time a file is visited.  You may want to use `add-hook' to add a
-function to your personal `after-change-major-mode-hook' in your
-`user-init-file' to enable the mode based on the buffer's
-`major-mode' and some `buffer-file-name' patterns. For example:
+time a file is visited. You may want to use `add-hook' in your
+`user-init-file' to enable the mode based on buffer modes. E.g.:
 
-    (defvar my-auto-format-modes '(js-mode python-mode))
-    (defvar my-auto-format-dirs '(\"foo\" \"bar\"))
+    (add-hook 'prog-mode-hook 'format-all-mode)
 
-    (defun my-auto-format-buffer-p ()
-      (and (member major-mode my-auto-format-modes)
-           (buffer-file-name)
-           (save-match-data
-             (let ((dir (file-name-directory (buffer-file-name))))
-               (cl-some (lambda (regexp) (string-match regexp dir))
-                        my-auto-format-dirs)))))
+To use a default formatter for projects that don't have one, add
+this too:
 
-    (defun my-after-change-major-mode ()
-      (format-all-mode (if (my-auto-format-buffer-p) 1 0)))
-
-    (add-hook 'after-change-major-mode-hook 'my-after-change-major-mode)
+    (add-hook 'prog-mode-hook 'format-all-ensure-formatter)
 
 When `format-all-mode' is called as a Lisp function, the mode is
 toggled if ARG is ‘toggle’, disabled if ARG is a negative integer
@@ -65,7 +74,7 @@ or zero, and enabled otherwise.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "format-all" '("asmfmt" "bibtex-mode" "black" "brittany" "buildifier" "cabal-fmt" "cmake-format" "crystal" "dartfmt" "define-format-all-formatter" "dfmt" "dhall" "dockfmt" "elm-format" "emacs-lisp" "fish-indent" "format-all-" "fprettify" "gleam" "gofmt" "html-tidy" "istyle-verilog" "jsonnetfmt" "ktlint" "latexindent" "ledger-mode" "lua-fmt" "mix-format" "nixfmt" "ocp-indent" "perltidy" "prettier" "purty" "rufo" "rustfmt" "scalafmt" "shfmt" "snakefmt" "sqlformat" "styler" "swiftformat" "terraform-fmt")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "format-all" '("atsfmt" "auctex" "beautysh" "black" "brittany" "bsrefmt" "buildifier" "cabal-fmt" "cmake-format" "crystal" "dartfmt" "define-format-all-formatter" "dfmt" "dhall" "dockfmt" "elm-format" "emacs-" "fantomas" "fish-indent" "fprettify" "gawk" "gleam" "hindent" "html-tidy" "istyle-verilog" "jsonnetfmt" "ktlint" "latexindent" "ledger-mode" "lua-fmt" "mix-format" "nix" "ocp-indent" "ormolu" "perltidy" "pgformatter" "prettier" "pur" "rescript" "scalafmt" "shfmt" "snakefmt" "sqlformat" "swiftformat" "terraform-fmt" "v-fmt" "yapf")))
 
 ;;;***
 
