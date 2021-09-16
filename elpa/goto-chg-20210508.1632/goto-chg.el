@@ -1,4 +1,4 @@
-;;; goto-chg.el --- goto last change
+;;; goto-chg.el --- Go to last change
 ;;--------------------------------------------------------------------
 ;;
 ;; Copyright (C) 2002-2008,2013 David Andersson
@@ -23,10 +23,10 @@
 ;; Author: David Andersson <l.david.andersson(at)sverige.nu>
 ;; Maintainer: Vasilij Schneidermann <mail@vasilij.de>
 ;; Created: 16 May 2002
-;; Version: 1.7.3
-;; Package-Version: 20200603.1911
-;; Package-Commit: 85fca9f7d8b04be3fbb37cc5d42416f3c4d32830
-;; Package-Requires: ((undo-tree "0.1.3"))
+;; Version: 1.7.4
+;; Package-Version: 20210508.1632
+;; Package-Commit: 3ce1389fea12edde4e343bc7d54c8da97a1a6136
+;; Package-Requires: ((emacs "24.1"))
 ;; Keywords: convenience, matching
 ;; URL: https://github.com/emacs-evil/goto-chg
 ;;
@@ -53,6 +53,8 @@
 ;;--------------------------------------------------------------------
 ;; History
 ;;
+;; Ver 1.7.4 2020-10-08 Vasilij Schneidermann
+;;    Remove hard dependency on undo-tree
 ;; Ver 1.7.3 2019-01-07 Vasilij Schneidermann
 ;;    Fix errors when used with persistent undo
 ;; Ver 1.7.2 2018-01-05 Vasilij Schneidermann
@@ -100,7 +102,7 @@
 
 ;;; Code:
 
-(require 'undo-tree)
+(require 'undo-tree nil t)
 
 (defvar glc-default-span 8 "*goto-last-change don't visit the same point twice. glc-default-span tells how far around a visited point not to visit again.")
 (defvar glc-current-span 8 "Internal for goto-last-change.\nA copy of glc-default-span or the ARG passed to goto-last-change.")
@@ -234,6 +236,12 @@ Return nil if E represents no real change.
 that is, it was previously saved or unchanged. Nil otherwise."
   (and (listp e) (eq (car e) t)))
 
+(declare-function undo-tree-current "ext:undo-tree")
+(declare-function undo-tree-node-previous "ext:undo-tree")
+(declare-function undo-tree-node-undo "ext:undo-tree")
+(declare-function undo-list-transfer-to-tree "ext:undo-tree")
+(defvar buffer-undo-tree)
+
 ;;;###autoload
 (defun goto-last-change (arg)
 "Go to the point where the last edit was made in the current buffer.
@@ -266,7 +274,9 @@ discarded. See variable `undo-limit'."
                glc-current-span glc-default-span)
          (if (< (prefix-numeric-value arg) 0)
              (error "Negative arg: Cannot reverse as the first operation"))))
-  (cond ((and (null buffer-undo-list) (null buffer-undo-tree))
+  (cond ((and (null buffer-undo-list)
+              (or (not (boundp 'buffer-undo-tree))
+                  (null buffer-undo-tree)))
          (error "Buffer has not been changed"))
         ((eq buffer-undo-list t)
          (error "No change info (undo is disabled)")))
@@ -329,7 +339,7 @@ discarded. See variable `undo-limit'."
             (when (not glc-seen-canary)
               (setq l (cdr l)))))
         (when glc-seen-canary
-          (while (and (< n new-probe-depth) (undo-tree-node-p l))
+          (while (and (< n new-probe-depth) (eval '(undo-tree-node-p l)))
             (cond ((null l)
                    ;(setq this-command t)	; Disrupt repeat sequence
                    (error "No further change info"))
