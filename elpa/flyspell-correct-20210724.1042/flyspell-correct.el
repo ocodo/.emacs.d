@@ -1,6 +1,6 @@
 ;;; flyspell-correct.el --- Correcting words with flyspell via custom interface  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (c) 2016-2019 Boris Buliga
+;; Copyright (c) 2016-2021 Boris Buliga
 ;;
 ;; Author: Boris Buliga <boris@d12frosted.io>
 ;; URL: https://github.com/d12frosted/flyspell-correct
@@ -40,7 +40,8 @@
 ;; `flyspell-correct-helm' and `flyspell-correct-popup'.
 ;;
 ;; In order to use `flyspell-correct-ido' interface instead of default
-;; `flyspell-correct-dummy', place following snippet in your 'init.el' file.
+;; `flyspell-correct-completing-read', place following snippet in your
+;; 'init.el' file.
 ;;
 ;;   (require 'flyspell-correct-ido)
 ;;
@@ -59,7 +60,7 @@
 
 ;; Variables
 
-(defcustom flyspell-correct-interface #'flyspell-correct-dummy
+(defcustom flyspell-correct-interface #'flyspell-correct-completing-read
   "Interface for `flyspell-correct-at-point'.
 
 `flyspell-correct-interface' is a function accepting two arguments:
@@ -107,35 +108,109 @@ highlighting."
 
 (defvar flyspell-correct-overlay nil)
 
-;;; Default interface
+;;; Default interface using `completing-read'
 ;;
 
-(defun flyspell-correct-dummy (candidates word)
+(defvar flyspell-correct--cr-key "@"
+  "Shortcut key used by `flyspell-correct-completing-read'.")
+
+(defvar flyspell-correct--cr-actions
+  '((save ?s "[Save]")
+    (session ?a "[Accept (session)]")
+    (buffer ?b "[Accept (buffer)]")
+    (skip ?k "[Skip]")
+    (stop ?p "[Stop]"))
+  "Actions used by `flyspell-correct-completing-read'.")
+
+(defun flyspell-correct--cr-index (n)
+  "Generate a short unique index string for N.
+
+The index string is used to prefix suggestion candidates. The digits 12345
+encode (mod n 5) and occur as suffix of the index string. If one of the keys
+12345 is pressed, the selected candidate is automatically submitted. The
+remaining value (/ n 5) is encoded using the digits 67890, which occur in the
+prefix of the index string."
+  (let ((str (char-to-string (+ ?1 (mod n 5)))))
+    (when (>= n 5)
+      (setq n (/ (- n 5) 5))
+      (while (>= n 0)
+        (setq str (format "%c%s" (aref "67890" (mod n 5)) str)
+              n (1- (/ n 5)))))
+    str))
+
+(defun flyspell-correct-completing-read (candidates word)
   "Run `completing-read' for the given CANDIDATES.
 
 List of CANDIDATES is given by flyspell for the WORD.
 
 Return a selected word to use as a replacement or a tuple
 of (command, word) to be used by `flyspell-do-correct'."
-  (let* ((save "[SAVE]")
-         (accept-session "[ACCEPT (session)]")
-         (accept-buffer "[ACCEPT (buffer)]")
-         (skip "[SKIP]")
-         (result (completing-read
-                  (format "Correcting '%s': " word)
-                  (append candidates
-                          (list save accept-session accept-buffer skip)))))
-    (cond
-     ((string= result save)
-      (cons 'save word))
-     ((string= result accept-session)
-      (cons 'session word))
-     ((string= result accept-buffer)
-      (cons 'buffer word))
-     ((string= result skip)
-      (cons 'skip word))
-     (t
-      result))))
+  (let* ((idx 0)
+         (candidates-alist
+          (append
+           (mapcar (lambda (cand)
+                     (prog1
+                         (cons (concat
+                                (propertize (flyspell-correct--cr-index idx) 'face 'minibuffer-prompt)
+                                " " cand)
+                               cand)
+                         (setq idx (1+ idx))))
+                   candidates)
+           (mapcar
+            (pcase-lambda (`(,name ,key ,label))
+              (setq key (char-to-string key))
+              (cons (concat (propertize (format "%s%s " flyspell-correct--cr-key key) 'invisible t)
+                            (replace-regexp-in-string
+                             key (propertize key 'face '(bold minibuffer-prompt))
+                             (propertize label 'face 'minibuffer-prompt)))
+                    (cons name word)))
+            flyspell-correct--cr-actions)))
+         (suggestions-title (format "Suggestions (Dictionary \"%s\")"
+                                    (or ispell-local-dictionary
+                                        ispell-dictionary
+                                        "default")))
+         (actions-title (format "Actions (Shortcut key %s)" flyspell-correct--cr-key))
+         (metadata `(metadata
+                     (display-sort-function . ,#'identity)
+                     (cycle-sort-function . ,#'identity)
+                     (group-function
+                      . ,(lambda (cand transform)
+                           (cond
+                            (transform cand)
+                            ((string-prefix-p flyspell-correct--cr-key cand) actions-title)
+                            (t suggestions-title))))))
+         (quick-result)
+         (result
+          (minibuffer-with-setup-hook
+              (lambda ()
+                (add-hook 'post-command-hook
+                          (lambda ()
+                            ;; Exit directly if a quick key is pressed
+                            (let ((prefix (concat (minibuffer-contents-no-properties) " ")))
+                              (mapc (lambda (cand)
+                                      (when (string-prefix-p prefix (car cand))
+                                        (setq quick-result (car cand))
+                                        (exit-minibuffer)))
+                                    candidates-alist)))
+                          -1 'local))
+            (completing-read
+             (format "Suggestions for \"%s\": " word)
+             ;; Use function with metadata to disable add a group function
+             ;; and in order to disable sorting.
+             (lambda (input predicate action)
+               (if (eq action 'metadata)
+                   metadata
+                 (complete-with-action action candidates-alist input predicate)))
+             ;; Require confirmation, if the input does not match a suggestion
+             nil 'confirm nil nil
+             ;; Pass the word as default value (effectively skipping)
+             word))))
+    (or (cdr (assoc (or quick-result result) candidates-alist)) result)))
+
+(define-obsolete-function-alias
+  'flyspell-correct-dummy
+  'flyspell-correct-completing-read
+  "0.6.1")
 
 ;;; On point word correction
 ;;
@@ -250,10 +325,6 @@ misspelled words in the buffer."
 - Three \\[universal-argument]'s changes direction of spelling
   errors search and enables rapid mode."
   (interactive)
-  (when (or (not (mark t))
-	          (/= (mark t) (point)))
-    (push-mark (point) t))
-
   (let ((forward-direction nil)
 		    (rapid nil))
     (cond
@@ -281,78 +352,89 @@ until all errors in buffer have been addressed."
   ;; idiomatically done using the opoint arg of
   ;; `flyspell-correct-word-before-point'.
   (interactive "d")
+  ;; push mark when starting
+  (when (or (not (mark t))
+            (/= (mark t) (point)))
+    (push-mark (point) t))
   (let ((original-pos (point))
         (target-pos (point))
-        (hard-move-point))
-    (save-excursion
-      (let ((incorrect-word-pos))
+        (hard-move-point)
+        (mark-opos))
+    (unwind-protect
+        (save-excursion
+          (let ((incorrect-word-pos))
 
-        ;; narrow the region
-        (overlay-recenter (point))
+            ;; narrow the region
+            (overlay-recenter (point))
 
-        (let* ((unsorted-overlay-list
-                (if forward
-                    (overlays-in (- position 1) (point-max))
-                  (overlays-in (point-min) (+ position 1))))
-               (comp (if forward #'< #'>))
-               (overlay-list (sort
-                              unsorted-overlay-list
-                              (lambda (o1 o2)
-                                (funcall comp
-                                         (overlay-start o1)
-                                         (overlay-start o2)))))
-               (overlay 'dummy-value))
-          (while overlay
-            (setq overlay (car-safe overlay-list))
-            (setq overlay-list (cdr-safe overlay-list))
-            (when (and overlay
-                       (flyspell-overlay-p overlay))
-              (setq incorrect-word-pos (overlay-start overlay))
-              (let ((scroll (> incorrect-word-pos (window-end))))
-                (goto-char incorrect-word-pos)
-                (when scroll (ignore-errors (recenter))))
+            (let* ((unsorted-overlay-list
+                    (if forward
+                        (overlays-in (- position 1) (point-max))
+                      (overlays-in (point-min) (+ position 1))))
+                   (comp (if forward #'< #'>))
+                   (overlay-list (sort
+                                  unsorted-overlay-list
+                                  (lambda (o1 o2)
+                                    (funcall comp
+                                             (overlay-start o1)
+                                             (overlay-start o2)))))
+                   (overlay 'dummy-value))
+              (while overlay
+                (setq overlay (car-safe overlay-list))
+                (setq overlay-list (cdr-safe overlay-list))
+                (when (and overlay
+                           (flyspell-overlay-p overlay))
+                  (setq incorrect-word-pos (overlay-start overlay))
+                  (let ((scroll (> incorrect-word-pos (window-end))))
+                    (goto-char incorrect-word-pos)
+                    (when scroll (ignore-errors (recenter))))
 
-              ;; Point originally was on misspelled word, so we need to restore
-              ;; it. This imitates just calling `flyspell-correct-at-point'. But
-              ;; gives all the perks of `flyspell-correct-move'.
-              ;;
-              ;; But with rapid mode, `hard-reset-pos' will be set to nil
-              ;; eventually. Which gives more predictable point location in
-              ;; general.
-              (setq hard-move-point
-                    (and (>= original-pos (overlay-start overlay))
-                         (<= original-pos (overlay-end overlay))))
+                  ;; Point originally was on misspelled word, so we need to restore
+                  ;; it. This imitates just calling `flyspell-correct-at-point'. But
+                  ;; gives all the perks of `flyspell-correct-move'.
+                  ;;
+                  ;; But with rapid mode, `hard-move-point' will be set to nil
+                  ;; eventually. Which gives more predictable point location in
+                  ;; general.
+                  (setq hard-move-point
+                        (and (>= original-pos (overlay-start overlay))
+                             (<= original-pos (overlay-end overlay))))
 
-              ;; Correct a word using `flyspell-correct-at-point'.
-              (let ((res (flyspell-correct-at-point)))
-                (when res
-                  ;; stop at misspelled word
-                  (when (eq (car-safe res) 'stop)
-                    (setq target-pos incorrect-word-pos
-                          hard-move-point t))
+                  ;; Correct a word using `flyspell-correct-at-point'.
+                  (let ((res (flyspell-correct-at-point)))
+                    (when res
+                      ;; stop at misspelled word
+                      (when (eq (car-safe res) 'stop)
+                        (setq target-pos incorrect-word-pos
+                              hard-move-point t
+                              mark-opos t))
 
-                  ;; break from rapid mode
-                  (when (or
-                         ;; treat skip as one-time rapid mode enabler
-                         (and (not (eq (car-safe res) 'skip))
-                              (not rapid))
+                      ;; break from rapid mode
+                      (when (or
+                             ;; treat skip as one-time rapid mode enabler
+                             (and (not (eq (car-safe res) 'skip))
+                                  (not rapid))
 
-                         ;; explicit rapid mode disablers
-                         (eq (car-safe res) 'break)
-                         (eq (car-safe res) 'stop))
-                    (setq overlay nil))
+                             ;; explicit rapid mode disablers
+                             (eq (car-safe res) 'break)
+                             (eq (car-safe res) 'stop))
+                        (setq overlay nil))
 
-                  ;; push mark
-                  (when (or (not (mark t))
-	                          (/= (mark t) (point)))
-                    (push-mark (point) t)))))))
+                      (when (and
+                             ;; don't push mark if there is no change
+                             (not (memq (car-safe res) '(stop break skip)))
+                             (/= (mark t) (point)))
+                        ;; `flyspell-correct-at-point' may move point, use
+                        ;; original `incorrect-word-pos' instead
+                        (push-mark incorrect-word-pos t)))))))))
 
-        (when incorrect-word-pos
-          (goto-char incorrect-word-pos)
-          (forward-word)
-          (when (= (mark t) (point)) (pop-mark)))))
-    (when hard-move-point
-      (goto-char target-pos))))
+      (when hard-move-point
+        (when mark-opos
+          (push-mark (point) t))
+        (goto-char target-pos))
+      ;; We pushed the mark when starting, but if the operation is canceled
+      ;; without any change that mark is redundant and needs to be cleaned-up.
+      (when (= (mark t) (point)) (pop-mark)))))
 
 ;;; Overlays
 

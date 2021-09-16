@@ -1,6 +1,6 @@
 ;;; flyspell-correct-ido.el --- Correcting words with flyspell via ido interface -*- lexical-binding: t; -*-
 ;;
-;; Copyright (c) 2016-2019 Boris Buliga
+;; Copyright (c) 2016-2021 Boris Buliga
 ;;
 ;; Author: Boris Buliga <boris@d12frosted.io>
 ;; URL: https://github.com/d12frosted/flyspell-correct
@@ -45,25 +45,11 @@ List of CANDIDATES is given by flyspell for the WORD.
 
 Return a selected word to use as a replacement or a tuple
 of (command, word) to be used by `flyspell-do-correct'."
-  (let* ((save "[SAVE]")
-         (accept-session "[ACCEPT (session)]")
-         (accept-buffer "[ACCEPT (buffer)]")
-         (skip "[SKIP]")
-         (result (ido-completing-read
-                  (format "Correcting '%s': " word)
-                  (append candidates
-                          (list save accept-session accept-buffer skip)))))
-    (cond
-     ((string= result save)
-      (cons 'save word))
-     ((string= result accept-session)
-      (cons 'session word))
-     ((string= result accept-buffer)
-      (cons 'buffer word))
-     ((string= result skip)
-      (cons 'skip word))
-     (t
-      result))))
+  (let ((completing-read-function
+         (lambda (prompt collection &rest _)
+           (ido-completing-read prompt (all-completions "" collection)
+                                nil nil nil nil word))))
+    (flyspell-correct-completing-read candidates word)))
 
 (setq flyspell-correct-interface #'flyspell-correct-ido)
 
