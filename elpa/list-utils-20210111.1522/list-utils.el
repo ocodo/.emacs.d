@@ -5,8 +5,8 @@
 ;; Author: Roland Walker <walker@pobox.com>
 ;; Homepage: http://github.com/rolandwalker/list-utils
 ;; URL: http://raw.githubusercontent.com/rolandwalker/list-utils/master/list-utils.el
-;; Package-Version: 20200502.1309
-;; Package-Commit: 9bb2487c83ec46a0b6e6c4158af69334ac797b82
+;; Package-Version: 20210111.1522
+;; Package-Commit: ca9654cd1418e874c876c6b3b7d4cd8339bfde77
 ;; Version: 0.4.6
 ;; Last-Updated:  2 May 2020
 ;; EmacsWiki: ListUtils
@@ -368,7 +368,7 @@ Modifies LIST and returns the modified value."
      list)
     (t
      list)))
-(define-obsolete-function-alias 'list-utils-make-proper 'list-utils-make-proper-inplace)
+(define-obsolete-function-alias 'list-utils-make-proper 'list-utils-make-proper-inplace "v0.4.2")
 
 ;;;###autoload
 (defun list-utils-make-improper-copy (list &optional tree recur-internal)
@@ -427,7 +427,7 @@ Modifies LIST and returns the modified value."
      list)
     (t
      list)))
-(define-obsolete-function-alias 'list-utils-make-improper 'list-utils-make-improper-inplace)
+(define-obsolete-function-alias 'list-utils-make-improper 'list-utils-make-improper-inplace "v0.4.2")
 
 ;;;###autoload
 (defun list-utils-linear-subseq (list &optional cycle-length)
