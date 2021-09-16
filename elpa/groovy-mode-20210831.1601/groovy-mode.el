@@ -8,7 +8,7 @@
 ;; Maintainer:  Russel Winder <russel@winder.org.uk>
 ;; Created: 2006-08-01
 ;; Keywords: languages
-;; Version: 2.1
+;; Version: 2.2
 ;; Package-Requires: ((s "1.12.0") (emacs "24.3") (dash "2.13.0"))
 
 ;; This program is free software: you can redistribute it and/or modify
@@ -182,6 +182,15 @@
   (save-excursion
     (nth 3 (syntax-ppss pos))))
 
+(defun groovy--preceded-by-odd-number-of-backslashes ()
+  "Return non-nil if point is preceded by an odd number of backslashes."
+  (let ((point (- (point) 2))
+        (slashes 0))
+    (while (eq (char-before point) ?\\)
+      (cl-incf slashes)
+      (cl-decf point))
+    (cl-oddp slashes)))
+
 (defvar groovy-font-lock-keywords
   ;; Annotations are defined with the @interface, which is a keyword:
   ;; http://groovy-lang.org/objectorientation.html#_annotation
@@ -286,8 +295,8 @@
                   (search-forward "${" limit t))
             (let* ((string-delimiter-pos (nth 8 (syntax-ppss)))
                    (string-delimiter (char-after string-delimiter-pos))
-                   (escaped-p (eq (char-before (- (point) 2))
-                                  ?\\)))
+                   (escaped-p (and (not (eq string-delimiter ?/))
+                                   (groovy--preceded-by-odd-number-of-backslashes))))
               (when (and (groovy--in-string-p)
                          ;; Interpolation does not apply in single-quoted strings.
                          (not (eq string-delimiter ?'))
@@ -651,6 +660,7 @@ dollar-slashy-quoted strings."
    `(or symbol-end
         space
         (syntax string-quote)
+        (syntax string-delimiter)
         (syntax close-parenthesis)
         (regexp ,groovy-postfix-operator-regex))))
 
@@ -994,7 +1004,9 @@ Key bindings:
        groovy-syntax-propertize-function)
   (setq imenu-generic-expression groovy-imenu-regexp)
   (set (make-local-variable 'indent-line-function) #'groovy-indent-line)
-  (set (make-local-variable 'comment-start) "//"))
+  (set (make-local-variable 'comment-start) "//")
+  (set (make-local-variable 'comment-start-skip)
+       (rx (or "//" "/*" "/**" "/**@") (zero-or-more space))))
 
 (provide 'groovy-mode)
 
