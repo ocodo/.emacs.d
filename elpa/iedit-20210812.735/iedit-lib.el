@@ -1,9 +1,9 @@
 ;;; iedit-lib.el --- APIs for editing multiple regions in the same way
 ;;; simultaneously.
 
-;; Copyright (C) 2010, 2011, 2012 Victor Ren
+;; Copyright (C) 2010 - 2019, 2020, 2021 Victor Ren
 
-;; Time-stamp: <2020-07-28 22:59:25 Victor Ren>
+;; Time-stamp: <2021-08-12 15:17:29 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous rectangle refactoring
 ;; Version: 0.9.9.9
@@ -36,7 +36,7 @@
 ;; - Modify the occurrences
 ;; - Hide/show
 ;; - Other basic support APIs
-;; 
+;;
 ;; A few concepts that help you understand what this is about:
 ;;
 ;; Occurrence - one of the regions that are selected, highlighted, usually the
@@ -55,6 +55,8 @@
 ;;; Code:
 
 ;; (eval-when-compile (require 'cl-lib))
+
+(declare-function c-before-change "cc-mode.el")
 
 (defgroup iedit nil
   "Edit multiple regions in the same way simultaneously.
@@ -104,7 +106,7 @@ the traverse of the long `iedit-occurrences-overlays' list."
   :type 'integer
   :group 'iedit)
 
-(defcustom iedit-increment-format-string "%03d "
+(defcustom iedit-increment-format-string "%03d"
   "Format string used to format incremented numbers.
 This is used by `iedit-number-occurrences'."
   :type 'string
@@ -124,7 +126,20 @@ configurable via `iedit-ready-only-occurrence'.")
 
 (defvar iedit-case-sensitive iedit-case-sensitive-default
   "This is buffer local variable.
-If no-nil, matching is case sensitive.")
+If no-nil, matching is case sensitive.  If nil and `case-replace'
+is no-nil, iedit try to preserve the case pattern of each
+occurrence.")
+
+(defvar iedit-search-invisible search-invisible
+  "search-invisible while matching.
+Either nil, t, or 'open.  'open means the same as t except that
+opens hidden overlays. ")
+
+(defvar iedit-lib-skip-invisible-count 0
+  "This is buffer local varible which is the number of skipped invisible occurrence. ")
+
+(defvar iedit-lib-skip-filtered-count 0
+  "This is buffer local varible which is the number of filtered occurrence. ")
 
 (defvar iedit-hiding nil
   "This is buffer local variable which indicates whether buffer lines are hided. ")
@@ -147,7 +162,7 @@ that is going to be changed.")
 (defvar iedit-before-buffering-point nil
   "This is buffer local variable which is the point before modification.")
 
-;; `iedit-update-occurrences' gets called twice when change==0 and
+;; `iedit-record-changes' gets called twice when change==0 and
 ;; occurrence is zero-width (beg==end) -- for front and back insertion.
 (defvar iedit-skip-modification-once t
   "Variable used to skip first modification hook run when
@@ -156,8 +171,9 @@ insertion against a zero-width occurrence.")
 (defvar iedit-aborting nil
   "This is buffer local variable which indicates Iedit mode is aborting.")
 
-(defvar iedit-aborting-hook nil
-  "Functions to call before iedit-abort.  Normally it should be mode exit function.")
+(defvar iedit-lib-quit-func nil
+  "Function to call to exit mode using `iedit-lib'.
+Should be set in `iedit-lib-start'.")
 
 (defvar iedit-post-undo-hook-installed nil
   "This is buffer local variable which indicated if
@@ -184,12 +200,15 @@ occurrence.")
 It replaces `inhibit-modification-hooks' which prevents calling
 `after-change-functions'.")
 
+(defvar iedit-line-move-ignore-invisible-value nil
+  "Used to save and restore the value of `line-move-ignore-invisible'.")
+
 (make-variable-buffer-local 'iedit-updating)
 (make-variable-buffer-local 'iedit-after-change-list)
 (make-variable-buffer-local 'iedit-occurrences-overlays)
 (make-variable-buffer-local 'iedit-read-only-occurrences-overlays)
 (make-variable-buffer-local 'iedit-hiding)
-(make-local-variable 'iedit-case-sensitive)
+(make-variable-buffer-local 'iedit-case-sensitive)
 (make-variable-buffer-local 'iedit-forward-success)
 (make-variable-buffer-local 'iedit-before-modification-string)
 (make-variable-buffer-local 'iedit-before-buffering-string)
@@ -202,6 +221,10 @@ It replaces `inhibit-modification-hooks' which prevents calling
 (make-variable-buffer-local 'iedit-post-undo-hook-installed)
 (make-variable-buffer-local 'iedit-occurrence-context-lines)
 (make-variable-buffer-local 'iedit-occurrence-index)
+(make-variable-buffer-local 'iedit-lib-quit-func)
+(make-variable-buffer-local 'iedit-lib-skip-invisible-count)
+(make-variable-buffer-local 'iedit-lib-skip-filtered-count)
+(make-variable-buffer-local 'iedit-line-move-ignore-invisible-value)
 
 (defconst iedit-occurrence-overlay-name 'iedit-occurrence-overlay-name)
 (defconst iedit-invisible-overlay-name 'iedit-invisible-overlay-name)
@@ -238,8 +261,8 @@ It replaces `inhibit-modification-hooks' which prevents calling
     (define-key map (kbd "M-<") 'iedit-goto-first-occurrence)
     (define-key map (kbd "M->") 'iedit-goto-last-occurrence)
     (define-key map (kbd "C-?") 'iedit-help-for-occurrences)
-    (define-key map [remap keyboard-escape-quit] 'iedit-quit)
-    (define-key map [remap keyboard-quit] 'iedit-quit)
+    (define-key map [remap keyboard-escape-quit] 'iedit--quit)
+    (define-key map [remap keyboard-quit] 'iedit--quit)
     map)
   "Default keymap used within occurrence overlays.")
 
@@ -260,15 +283,14 @@ cursors."
 	   (master (point)))
       (save-excursion
         (dolist (occurrence iedit-occurrences-overlays)
-	  (goto-char (+ (overlay-start occurrence) offset))
-	  (unless (= master (point))
-	    (mc/create-fake-cursor-at-point))))
-      (run-hooks 'iedit-aborting-hook)
+		  (goto-char (+ (overlay-start occurrence) offset))
+		  (unless (= master (point))
+			(mc/create-fake-cursor-at-point))))
+      (iedit--quit)
       (multiple-cursors-mode 1)))
-  ;; `multiple-cursors-mode' runs `post-command-hook' function for all the
-  ;; cursors. `post-command-hook' is setup in `iedit-switch-to-mc-mode' So the
-  ;; function is executed after `iedit-switch-to-mc-mode'. It is not expected.
-  ;; `mc/cmds-to-run-once' is for skipping this.
+  ;; `multiple-cursors-mode' runs `post-command-hook' function on all the
+  ;; cursors for updating them .  `iedit-switch-to-mc-mode' is not supposed to
+  ;; be run in mc mode.  `mc/cmds-to-run-once' is for skipping this.
   (add-to-list 'mc/cmds-to-run-once 'iedit-switch-to-mc-mode)
   (define-key iedit-occurrence-keymap-default (kbd "M-M") 'iedit-switch-to-mc-mode))
 
@@ -291,10 +313,10 @@ It should be set before occurrence overlay is created.")
                    (substitute-command-keys "\\[iedit-goto-last-occurrence]") ":first/last "
                    )))
 
-(defun iedit-quit ()
-  "Quit the current mode."
+(defun iedit--quit ()
+  "Quit the current mode by calling mode exit function."
   (interactive)
-  (run-hooks 'iedit-aborting-hook))
+  (funcall iedit-lib-quit-func))
 
 (defun iedit-make-markers-overlays (markers)
   "Create occurrence overlays on a list of markers."
@@ -306,13 +328,15 @@ It should be set before occurrence overlay is created.")
 (defun iedit-make-occurrences-overlays (occurrence-regexp beg end)
   "Create occurrence overlays for `occurrence-regexp' in a region.
 Return the number of occurrences."
-  (setq iedit-aborting nil)
   (setq iedit-occurrences-overlays nil)
   (setq iedit-read-only-occurrences-overlays nil)
+  (setq iedit-lib-skip-invisible-count 0)
+  (setq iedit-lib-skip-filtered-count 0)
   ;; Find and record each occurrence's markers and add the overlay to the occurrences
   (let ((counter 0)
         (case-fold-search (not iedit-case-sensitive))
-	(length 0))
+		(search-invisible iedit-search-invisible)
+		(length 0))
     (save-excursion
       (save-window-excursion
         (goto-char end)
@@ -322,15 +346,22 @@ Return the number of occurrences."
         (while (re-search-forward occurrence-regexp end t)
           (let ((beginning (match-beginning 0))
                 (ending (match-end 0)))
-	    (if (and (> length 0) (/= (- ending beginning) length))
-		(throw 'not-same-length 'not-same-length)
-	      (setq length (- ending beginning)))
-            (if (text-property-not-all beginning ending 'read-only nil)
-                (push (iedit-make-read-only-occurrence-overlay beginning ending)
-                      iedit-read-only-occurrences-overlays)
+			(if (and (> length 0) (/= (- ending beginning) length))
+				(throw 'not-same-length 'not-same-length)
+			  (setq length (- ending beginning)))
+			(cond
+             ((text-property-not-all beginning ending 'read-only nil)
+              (push (iedit-make-read-only-occurrence-overlay beginning ending)
+                    iedit-read-only-occurrences-overlays))
+			 ((and (not (eq search-invisible t))
+				   (isearch-range-invisible beginning ending))
+			  (setq iedit-lib-skip-invisible-count (1+ iedit-lib-skip-invisible-count)))
+			 ((not (funcall isearch-filter-predicate beginning ending))
+			  (setq iedit-lib-skip-filtered-count (1+ iedit-lib-skip-filtered-count)))
+			 (t
               (push (iedit-make-occurrence-overlay beginning ending)
-                    iedit-occurrences-overlays))
-            (setq counter (1+ counter))))))
+                    iedit-occurrences-overlays)
+			  (setq counter (1+ counter))))))))
     (iedit-update-index)
     counter))
 
@@ -402,16 +433,29 @@ there are."
     (iedit-update-index)
     )) ;; todo test this function
 
-(defun iedit-lib-start ()
+(defun iedit-lib-start (mode-exit-func)
   "Initialize the hooks."
-  (add-hook 'post-command-hook 'iedit-update-occurrences-2 nil t)
+  (when iedit-auto-buffering
+	(iedit-start-buffering))
+  (setq iedit-aborting nil)
+  ;; Enforce skip modification once, errors may happen to cause this to be
+  ;; unset.
+  (setq iedit-skip-modification-once t)
+  (setq iedit-lib-quit-func mode-exit-func)
+  (add-hook 'post-command-hook 'iedit-update-occurrences nil t)
+  (add-hook 'before-revert-hook iedit-lib-quit-func nil t)
+  (add-hook 'kbd-macro-termination-hook iedit-lib-quit-func nil t)
+  (add-hook 'change-major-mode-hook iedit-lib-quit-func nil t)
   (setq iedit-after-change-list nil))
 
 (defun iedit-lib-cleanup ()
   "Clean up occurrence overlay, invisible overlay and local variables."
-  (remove-hook 'post-command-hook 'iedit-update-occurrences-2 t)
-  (remove-overlays nil nil iedit-occurrence-overlay-name t)
-  (iedit-show-all)
+  (iedit-cleanup-occurrences-overlays)
+  (remove-hook 'post-command-hook 'iedit-update-occurrences t)
+  (remove-hook 'before-revert-hook iedit-lib-quit-func t)
+  (remove-hook 'kbd-macro-termination-hook iedit-lib-quit-func t)
+  (remove-hook 'change-major-mode-hook iedit-lib-quit-func t)
+  (setq iedit-lib-quit-func nil)
   (setq iedit-occurrences-overlays nil)
   (setq iedit-read-only-occurrences-overlays nil)
   (setq iedit-aborting nil)
@@ -428,11 +472,14 @@ occurrences if the user starts typing."
     (overlay-put occurrence iedit-occurrence-overlay-name t)
     (overlay-put occurrence 'face 'iedit-occurrence)
     (overlay-put occurrence 'keymap iedit-occurrence-keymap)
-    (overlay-put occurrence 'insert-in-front-hooks '(iedit-update-occurrences))
-    (overlay-put occurrence 'insert-behind-hooks '(iedit-update-occurrences))
-    (overlay-put occurrence 'modification-hooks '(iedit-update-occurrences))
+    (overlay-put occurrence 'insert-in-front-hooks '(iedit-record-changes))
+    (overlay-put occurrence 'insert-behind-hooks '(iedit-record-changes))
+    (overlay-put occurrence 'modification-hooks '(iedit-record-changes))
     (overlay-put occurrence 'priority iedit-overlay-priority)
-    (overlay-put occurrence 'category 'iedit-overlay)
+	;; Identify case pattern of the occurrence.
+    (overlay-put occurrence 'category (if (and (not iedit-case-sensitive) case-replace)
+										  (iedit-case-pattern begin end)
+										'no-change))
     occurrence))
 
 (defun iedit-make-read-only-occurrence-overlay (begin end)
@@ -457,7 +504,7 @@ This is added to `post-command-hook' when undo command is executed
 in occurrences."
   (if (iedit-same-length)
       nil
-    (run-hooks 'iedit-aborting-hook))
+    (iedit--quit))
   (remove-hook 'post-command-hook 'iedit-post-undo t)
   (setq iedit-post-undo-hook-installed nil))
 
@@ -465,27 +512,28 @@ in occurrences."
   "Turning Iedit mode off and reset `iedit-aborting'.
 
 This is added to `post-command-hook' when aborting Iedit mode is
-decided.  `iedit-aborting-hook' is postponed after the current
-command is executed for avoiding `iedit-update-occurrences'
+decided.  `iedit-lib-quit-func' is postponed after the current
+command is executed for avoiding `iedit-record-changes'
 is called for a removed overlay."
-  (run-hooks 'iedit-aborting-hook)
+  (iedit--quit)
   (remove-hook 'post-command-hook 'iedit-reset-aborting t)
   (setq iedit-aborting nil))
 
 ;; There are two ways to update all occurrences.  One is to redefine all key
 ;; stroke map for overlay, the other is to figure out three basic modifications
 ;; in the modification hook.  This function chooses the latter.
-(defun iedit-update-occurrences (occurrence after beg end &optional change)
-  "Update all occurrences.
+(defun iedit-record-changes (occurrence after beg end &optional change)
+  "Record the changes to the current occurrence.
 This modification hook is triggered when a user edits any
-occurrence and is responsible for updating all other
-occurrences. Refer to `modification-hooks' for more details.
-Current supported edits are insertion, yank, deletion and
-replacement.  If this modification is going out of the
+occurrence and is responsible for recording all the changes to
+the current occurrence.  Refer to `modification-hooks' for more
+details.  Current supported edits are insertion, yank, deletion
+and replacement.  If this modification is going out of the
 occurrence, it will abort Iedit mode."
-  (if undo-in-progress
-      ;; If the "undo" change make occurrences different, it is going to mess up
-      ;; occurrences.  So a length check will be done after undo command is executed.
+  (if (and undo-in-progress (null iedit-after-change-list))
+      ;; If the "undo" change (not part of another command) make occurrences
+      ;; different, it is going to mess up occurrences.  So a length check will
+      ;; be done after undo command is executed.
       (when (not iedit-post-undo-hook-installed)
         (add-hook 'post-command-hook 'iedit-post-undo nil t)
         (setq iedit-post-undo-hook-installed t))
@@ -516,117 +564,157 @@ occurrence, it will abort Iedit mode."
 			  (let* ((inslen (- end beg))
 					 (dellen change))
 				(push (list occurrence
-							(- beg 1)			; From 1 to beg
-							(- (point-max) end) ; From end to point-max
+							(- beg (overlay-start occurrence))			; From 1 to beg
+							(- (overlay-end occurrence) end) ; From end to point-max
 							(- inslen dellen))	; changed number
 					  iedit-after-change-list)))))))))
 
-(defun iedit-update-occurrences-2 ()
-  "The second part of updating other occurrences.
-
+(defun iedit-update-occurrences ()
+  "Updating other occurrences.
 This part is running in `post-command-hook'. It combines
-`iedit-after-change-list' into one change and then call the third
-part to apply it to all the other occurrences."
+`iedit-after-change-list' into one change and apply it to all the
+other occurrences."
   (when (and (not iedit-updating) iedit-after-change-list)
-	(let ((beg (buffer-size))
+	(let ((occurrence (caar iedit-after-change-list))
+		  (beg (buffer-size))
 		  (end (buffer-size))
 		  (change 0))
 	  (dolist (mod iedit-after-change-list)
 		(setq beg (min beg (nth 1 mod)))
 		(setq end (min end (nth 2 mod)))
 		(setq change (+ change (nth 3 mod))))
-	  (let* ((begpos (1+ beg))
-			 (endpos (- (point-max) end))
+	  (let* ((begpos (+ (overlay-start occurrence) beg))
+			 (endpos (- (overlay-end occurrence) end))
 			 (inslen (- endpos begpos))
 			 (dellen (- inslen change))
 			 (endpos (+ begpos inslen)))
-		(iedit-update-occurrences-3
-		 (caar iedit-after-change-list)
+		(iedit-apply-change
+		 occurrence
 		 begpos
 		 endpos
 		 dellen)
 		(setq iedit-after-change-list nil)))))
-  
-(defun iedit-update-occurrences-3 (occurrence beg end &optional change)
-  "The third part of updateing occurrences.
-Apply the change to all the other occurrences. "
+
+(defun iedit-apply-change (occurrence beg end &optional change)
+  "Apply the change to all the other occurrences. "
   (let ((iedit-updating t)
         (offset (- beg (overlay-start occurrence)))
-        (value (buffer-substring-no-properties beg end))
-		;; c-before-change is really slow. It is safe to skip change functions
-		;; for all the other occurrences
-		(inhibit-modification-hooks (memq #'c-before-change before-change-functions)))
+        (value (buffer-substring-no-properties beg end)))
     (save-excursion
+	  (iedit-move-conjoined-overlays occurrence)
+	  (when (/= beg end)
+		;; apply the case pattern on the current occurrence
+		(cl-case (overlay-get occurrence 'category)
+		  (all-caps
+		   (upcase-region beg end))
+		  (cap-initial
+		   (when (= 0 offset) (capitalize-region beg end )))))
       (dolist (another-occurrence iedit-occurrences-overlays)
-            (let* ((beginning (+ (overlay-start another-occurrence) offset))
-                   (ending (+ beginning (- end beg))))
-              (when (not (eq another-occurrence occurrence))
-				(when change (delete-region beginning (+ beginning change))) ;; delete
-				(when (/= beg end) ;; insert
-				  (goto-char beginning)
-				  (insert-and-inherit value)))
-              (iedit-move-conjoined-overlays another-occurrence))))
-	(when inhibit-modification-hooks
-	  ;; run the after change functions only once. It seems OK for c-mode
-	  (run-hook-with-args 'after-change-functions beg end change))))
+        (when (not (eq another-occurrence occurrence))
+          (let* ((beginning (+ (overlay-start another-occurrence) offset))
+				 (ending (+ beginning (- end beg))))
+			(when (/= 0 change) (delete-region beginning (+ beginning change))) ;; delete
+			(when (/= beg end) ;; insert
+			  (goto-char beginning)
+			  (insert-and-inherit
+			   ;; preserve the case pattern of each occurrence
+			   (cl-case (overlay-get another-occurrence 'category)
+			     (no-change value)
+			     (all-caps
+			      (upcase value))
+			     (cap-initial
+			      (if (= 0 offset)
+                                  (capitalize value)
+				value))))))
+          (iedit-move-conjoined-overlays another-occurrence))))))
 
-(defun iedit-next-occurrence ()
+(defun iedit-next-occurrence (&optional arg)
   "Move forward to the next occurrence in the `iedit'.
-If the point is already in the last occurrences, you are asked to type
+Move ARG occurrences forward (backward if ARG is negative).
+Interactively, ARG is the numeric prefix argument.
+If ARG is omitted or nil, move 1 occurrences forward.
+If point reaches the last occurrences, you are asked to type
 another `iedit-next-occurrence', it starts again from the
-beginning of the buffer."
-  (interactive)
-  (let ((pos (point))
-        (in-occurrence (get-char-property (point) 'iedit-occurrence-overlay-name)))
-    (when in-occurrence
-      (setq pos (next-single-char-property-change pos 'iedit-occurrence-overlay-name)))
-    (setq pos (next-single-char-property-change pos 'iedit-occurrence-overlay-name))
-    (if (/= pos (point-max))
-        (setq iedit-forward-success t)
-      (if (and iedit-forward-success in-occurrence)
-          (progn (message "This is the last occurrence.")
-                 (setq iedit-forward-success nil))
-        (progn
-          (if (get-char-property (point-min) 'iedit-occurrence-overlay-name)
-              (setq pos (point-min))
-            (setq pos (next-single-char-property-change
-                       (point-min)
-                       'iedit-occurrence-overlay-name)))
-          (setq iedit-forward-success t)
-          (message "Located the first occurrence."))))
-    (when iedit-forward-success
-      (iedit-update-index pos)
-      (goto-char pos))))
+beginning of the buffer. If used with prefix argument, wrapping
+from last to first occurrence will cost one repetition."
+  (interactive "p")
+  (cond ((< arg 0) (iedit-prev-occurrence (abs arg)))
+        ((> arg 0)
+         (dotimes (i arg)
+           (let* ((pos (point))
+                  (ov (iedit-find-current-occurrence-overlay)))
+             (if ov
+                 (if (iedit-find-overlay-at-point (overlay-end ov) 'iedit-occurrence-overlay-name)
+                     (setq pos (overlay-end ov)) ; conjoined overlay
+                   ;; from inside
+                   (setq pos (next-single-char-property-change pos 'iedit-occurrence-overlay-name))
+                   (setq pos (next-single-char-property-change pos 'iedit-occurrence-overlay-name)))
+               ;; from outside
+               (setq pos (next-single-char-property-change pos 'iedit-occurrence-overlay-name)))
 
-(defun iedit-prev-occurrence ()
+             (if (/= pos (point-max))
+                 (setq iedit-forward-success t)
+               (if (and iedit-forward-success ov)
+                   (progn (message "This is the last occurrence.")
+                          (setq iedit-forward-success nil))
+                 (progn
+                   (if (get-char-property (point-min) 'iedit-occurrence-overlay-name)
+                       (setq pos (point-min))
+                     (setq pos (next-single-char-property-change
+                                (point-min)
+                                'iedit-occurrence-overlay-name)))
+                   (setq iedit-forward-success t)
+                   (message "Located the first occurrence."))))
+             (when iedit-forward-success
+               (iedit-update-index pos)
+               (goto-char pos)))))))
+
+(defun iedit-prev-occurrence (&optional arg)
   "Move backward to the previous occurrence in the `iedit'.
-If the point is already in the first occurrences, you are asked to type
-another `iedit-prev-occurrence', it starts again from the end of
-the buffer."
-  (interactive)
-  (let ((pos (point))
-        (in-occurrence (get-char-property (point) 'iedit-occurrence-overlay-name)))
-    (when in-occurrence
-      (setq pos (previous-single-char-property-change pos 'iedit-occurrence-overlay-name)))
-    (setq pos (previous-single-char-property-change pos 'iedit-occurrence-overlay-name))
-    ;; At the start of the first occurrence
-    (if (or (and (eq pos (point-min))
-                 (not (get-char-property (point-min) 'iedit-occurrence-overlay-name)))
-            (and (eq (point) (point-min))
-                 in-occurrence))
-        (if (and iedit-forward-success in-occurrence)
-            (progn (message "This is the first occurrence.")
-                   (setq iedit-forward-success nil))
-          (progn
-            (setq pos (previous-single-char-property-change (point-max) 'iedit-occurrence-overlay-name))
-            (if (not (get-char-property (- (point-max) 1) 'iedit-occurrence-overlay-name))
-                (setq pos (previous-single-char-property-change pos 'iedit-occurrence-overlay-name)))
-            (setq iedit-forward-success t)
-            (message "Located the last occurrence.")))
-      (setq iedit-forward-success t))
-    (when iedit-forward-success
-      (iedit-update-index pos)
-      (goto-char pos))))
+Move ARG occurrences backward (forward if ARG is negative).
+Interactively, ARG is the numeric prefix argument.
+If ARG is omitted or nil, move 1 occurrences back.
+If point reaches the first occurrences, you are asked to type
+another `iedit-prev-occurrence', it starts again from the
+end of the buffer. If used with prefix argument, wrapping
+from first to last occurrence will cost one repetition."
+  (interactive "p")
+  (cond ((< arg 0) (iedit-next-occurrence (abs arg)))
+        ((> arg 0)
+         (dotimes (i arg)
+           (let ((pos (point))
+                 (ov (iedit-find-current-occurrence-overlay))
+                 (previous-overlay))
+             (when (/= pos (point-min))
+               (when ov (setq pos (overlay-start ov)))
+               (if (and ov
+                        (setq previous-overlay (iedit-find-overlay-at-point (1- pos) 'iedit-occurrence-overlay-name)))
+                   (setq pos (overlay-start previous-overlay)) ;conjoined
+                 (setq pos (previous-single-char-property-change pos 'iedit-occurrence-overlay-name))
+                 (setq pos (previous-single-char-property-change pos 'iedit-occurrence-overlay-name))))
+             ;; At the start of the first occurrence
+             (if (or (and (eq pos (point-min))
+                          (not (get-char-property (point-min) 'iedit-occurrence-overlay-name)))
+                     (and (eq (point) (point-min))
+                          ov))
+                 (if (and iedit-forward-success ov)
+                     (progn (message "This is the first occurrence.")
+                            (setq iedit-forward-success nil))
+                   (progn
+                     (setq pos (iedit-last-occurrence))
+                     (setq iedit-forward-success t)
+                     (message "Located the last occurrence.")))
+               (setq iedit-forward-success t))
+             (when iedit-forward-success
+               (iedit-update-index pos)
+               (goto-char pos)))))))
+
+(defun iedit-first-occurrence ()
+  "return the position of the first occurrence."
+  (if (get-char-property (point-min) 'iedit-occurrence-overlay-name)
+      (point-min)
+    (next-single-char-property-change
+     (point-min) 'iedit-occurrence-overlay-name)))
 
 (defun iedit-goto-first-occurrence ()
   "Move to the first occurrence."
@@ -635,13 +723,6 @@ the buffer."
   (setq iedit-forward-success t)
   (setq iedit-occurrence-index 1)
   (message "Located the first occurrence."))
-
-(defun iedit-first-occurrence ()
-  "return the position of the first occurrence."
-  (if (get-char-property (point-min) 'iedit-occurrence-overlay-name)
-      (point-min)
-    (next-single-char-property-change
-     (point-min) 'iedit-occurrence-overlay-name)))
 
 (defun iedit-goto-last-occurrence ()
   "Move to the last occurrence."
@@ -653,10 +734,12 @@ the buffer."
 
 (defun iedit-last-occurrence ()
   "return the position of the last occurrence."
-  (let ((pos (previous-single-char-property-change (point-max) 'iedit-occurrence-overlay-name)))
-    (if (not (get-char-property (- (point-max) 1) 'iedit-occurrence-overlay-name))
-        (setq pos (previous-single-char-property-change pos 'iedit-occurrence-overlay-name)))
-    pos))
+  (let ((ov (iedit-find-overlay-at-point (1- (point-max)) 'iedit-occurrence-overlay-name))
+		(pos (point-max)))
+	(if ov
+		(overlay-start ov)
+	  (setq pos (previous-single-char-property-change pos 'iedit-occurrence-overlay-name))
+	  (overlay-start (iedit-find-overlay-at-point (1- pos) 'iedit-occurrence-overlay-name)))))
 
 (defun iedit-show/hide-context-lines (&optional arg)
   "Show or hide context lines.
@@ -686,7 +769,7 @@ value of `iedit-occurrence-context-lines' is used for this time."
 
 (defun iedit-show-all()
   "Show hidden lines."
-  (setq line-move-ignore-invisible nil)
+  (setq-local line-move-ignore-invisible iedit-line-move-ignore-invisible-value)
   (remove-from-invisibility-spec '(iedit-invisible-overlay-name . t))
   (remove-overlays nil nil iedit-invisible-overlay-name t))
 
@@ -713,7 +796,9 @@ value of `iedit-occurrence-context-lines' is used for this time."
       (if (< prev-occurrence-end (point-max))
           (push (list prev-occurrence-end (point-max)) hidden-regions))
       (when hidden-regions
-        (set (make-local-variable 'line-move-ignore-invisible) t)
+		(setq iedit-line-move-ignore-invisible-value
+			  (buffer-local-value 'line-move-ignore-invisible (current-buffer)))
+        (setq-local line-move-ignore-invisible t)
         (add-to-invisibility-spec '(iedit-invisible-overlay-name . t))
         (dolist (region hidden-regions)
           (iedit-make-invisible-overlay (car region) (cadr region)))))
@@ -740,8 +825,9 @@ value of `iedit-occurrence-context-lines' is used for this time."
 			(push (list beginning end) hidden-regions)
 			(setq beginning (line-beginning-position)))))
 	  (when hidden-regions
-		(set (make-local-variable 'line-move-ignore-invisible) t)
-		(add-to-invisibility-spec '(iedit-invisible-overlay-name . t))
+		(setq iedit-line-move-ignore-invisible-value
+			  (buffer-local-value 'line-move-ignore-invisible (current-buffer)))
+        (setq-local line-move-ignore-invisible t)
 		(dolist (region hidden-regions)
           (iedit-make-invisible-overlay (car region) (cadr region))))
 	    ;; Value returned is for ert
@@ -763,13 +849,13 @@ value of `iedit-occurrence-context-lines' is used for this time."
           (apply function (overlay-start occurrence) (overlay-end occurrence) args)))))
 
 (defun iedit-upcase-occurrences ()
-  "Covert occurrences to upper case."
+  "Convert occurrences to upper case."
   (interactive "*")
   (iedit-barf-if-buffering)
   (iedit-apply-on-occurrences 'upcase-region))
 
 (defun iedit-downcase-occurrences()
-  "Covert occurrences to lower case."
+  "Convert occurrences to lower case."
   (interactive "*")
   (iedit-barf-if-buffering)
   (iedit-apply-on-occurrences 'downcase-region))
@@ -794,16 +880,21 @@ FORMAT."
   (let ((number start-at)
         (iedit-updating t))
     (save-excursion
-	  (cl-loop for occurrence in (reverse iedit-occurrences-overlays)
-               for counter from number
-               for beg = (overlay-start occurrence)
-               for end = (overlay-end occurrence)
-               do (progn
-					(goto-char beg)
-					(if (re-search-forward "\\\\#" end t)
-						(replace-match (format format-string counter) t)
-					  (insert (format format-string counter)))
-					(iedit-move-conjoined-overlays occurrence))))))
+	  (goto-char (iedit-first-occurrence))
+	  (cl-loop for counter from number
+			   for ov = (iedit-find-current-occurrence-overlay)
+			   while (/= (point) (point-max))
+			   do (progn
+		  (if (re-search-forward "\\\\#" (overlay-end ov) t)
+			  (replace-match (format format-string counter) t)
+			(insert (format format-string counter)))
+		  (iedit-move-conjoined-overlays ov)
+		  ;; goto the beginning of the next occourrence overlay
+		  (if (iedit-find-overlay-at-point (overlay-end ov) 'iedit-occurrence-overlay-name)
+			  (goto-char (overlay-end ov)) ; conjoined overlay
+			(when (< (point) (overlay-end ov))
+			  (goto-char (next-single-char-property-change (point) 'iedit-occurrence-overlay-name)))
+			(goto-char (next-single-char-property-change (point) 'iedit-occurrence-overlay-name))))))))
 
 ;;; Don't downcase from-string to allow case freedom!
 (defun iedit-replace-occurrences(&optional to-string)
@@ -825,7 +916,7 @@ FORMAT."
      (lambda (beg end from-string to-string)
        (goto-char beg)
        (search-forward from-string end)
-       (replace-match to-string t))
+       (replace-match to-string (not (and (not iedit-case-sensitive) case-replace))))
      from-string to-string)
     (goto-char (+ (overlay-start ov) offset))))
 
@@ -875,6 +966,50 @@ be applied to other occurrences when buffering is off."
   (buffer-disable-undo)
   (message "Start buffering editing..."))
 
+(defun iedit-case-pattern (beg end)
+  "Distinguish the case pattern of the text between `beg' and `end'.
+
+These case ptterns are the same as the ones Emacs replace
+commands can recognized - three alternatives - all caps,
+captilized, the others.
+
+If the text has only capital letters and has at least one
+multiletter word, it is 'all caps'. If all words are capitalized,
+it is captilized.'"
+  (let ((some-word nil)
+		(some-lowercase nil)
+		(some-uppercase nil)
+		(some-non-uppercase-init nil)
+		(previous-char ?\n)
+		(char nil)
+		(index 0)
+		(text (buffer-substring beg end)))
+	(while (< index (- end beg))
+	  (setq char (elt text index))
+	  (if (and (= char (downcase char))
+			   (/= char (upcase char)))
+		  (progn
+			(setq some-lowercase t)
+			(if (/= ?w (char-syntax previous-char))
+				(setq some-non-uppercase-init t)
+			  (setq some-word t)))
+		(if (/= char (downcase char))
+			(progn
+			  (setq some-uppercase t)
+			  (when (= ?w (char-syntax previous-char))
+				(setq some-word t)))
+		  (when (/= ?w (char-syntax previous-char))
+			(setq some-non-uppercase-init t))))
+	  (setq previous-char char)
+	  (setq index (1+ index)))
+	(if (and (null some-lowercase) some-word)
+		'all-caps
+	  (if (and (null some-non-uppercase-init) some-word)
+		  'cap-initial
+		(if (and (null some-non-uppercase-init) some-uppercase)
+			'all-caps
+		  'no-change)))))
+
 (defun iedit-stop-buffering ()
   "Stop buffering and apply the modification to other occurrences.
 If current point is not at any occurrence, the buffered
@@ -904,7 +1039,15 @@ modification is not going to be applied to other occurrences."
                 (delete-region beginning ending)
                 (unless (eq beg end) ;; replacement
                   (goto-char beginning)
-                  (insert-and-inherit modified-string))
+                  (insert-and-inherit
+				   (cl-case (overlay-get occurrence 'category)
+				     (all-caps
+				      (upcase modified-string))
+				     (cap-initial
+				      (if (= 0 offset)
+                          (capitalize modified-string)
+						modified-string))
+				     (t modified-string))))
                 (iedit-move-conjoined-overlays occurrence))))
           (goto-char (+ (overlay-start ov) offset))))))
   (setq iedit-buffering nil)
@@ -1018,18 +1161,26 @@ Return nil if occurrence string is empty string."
           (setq overlays (cdr overlays)))))
     found))
 
-(defun iedit-cleanup-occurrences-overlays (beg end &optional inclusive)
-  "Remove deleted overlays from list `iedit-occurrences-overlays'."
-  (if inclusive
-      (remove-overlays beg end iedit-occurrence-overlay-name t)
-    (remove-overlays (point-min) beg iedit-occurrence-overlay-name t)
-    (remove-overlays end (point-max) iedit-occurrence-overlay-name t))
-  (let (overlays)
-    (dolist (overlay iedit-occurrences-overlays)
-      (if (overlay-buffer overlay)
-          (push overlay overlays)))
-    (setq iedit-occurrences-overlays overlays)
-    (iedit-update-index)))
+(defun iedit-cleanup-occurrences-overlays (&optional beg end inclusive)
+  "Remove overlays from list `iedit-occurrences-overlays'."
+  (when iedit-buffering
+    (iedit-stop-buffering))
+  ;; Close overlays opened by `isearch-range-invisible'
+  (isearch-clean-overlays)
+  (when iedit-hiding
+	(iedit-show-all))
+  (if (null beg)
+	  (remove-overlays nil nil iedit-occurrence-overlay-name t)
+	(if inclusive
+		(remove-overlays beg end iedit-occurrence-overlay-name t)
+      (remove-overlays (point-min) beg iedit-occurrence-overlay-name t)
+      (remove-overlays end (point-max) iedit-occurrence-overlay-name t))
+	(let (overlays)
+      (dolist (overlay iedit-occurrences-overlays)
+		(if (overlay-buffer overlay)
+			(push overlay overlays)))
+      (setq iedit-occurrences-overlays overlays)
+      (iedit-update-index))))
 
 (defun iedit-printable (string)
   "Return a omitted substring that is not longer than 50.

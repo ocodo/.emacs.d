@@ -1,8 +1,8 @@
 ;;; iedit-rect.el --- visible rectangle editing support based on Iedit.
 
-;; Copyright (C) 2010, 2011, 2012 Victor Ren
+;; Copyright (C) 2010 - 2019, 2020 Victor Ren
 
-;; Time-stamp: <2020-07-21 11:35:39 Victor Ren>
+;; Time-stamp: <2021-01-06 11:17:35 Victor Ren>
 ;; Author: Victor Ren <victorhge@gmail.com>
 ;; Keywords: occurrence region simultaneous rectangle refactoring
 ;; Version: 0.9.9.9
@@ -126,7 +126,7 @@ Commands:
     (let ((beg-col (progn (goto-char beg) (current-column)))
           (end-col (progn (goto-char end) (current-column))))
       (when (< end-col beg-col)
-        (rotatef beg-col end-col))
+        (cl-rotatef beg-col end-col))
       (goto-char beg)
       (while
           (progn
@@ -146,12 +146,8 @@ Commands:
                  (number-to-string (length iedit-occurrences-overlays)))
          'face
          'font-lock-warning-face))
-  (iedit-lib-start)
-  (force-mode-line-update)
-  (add-hook 'before-revert-hook 'iedit-rectangle-done nil t)
-  (add-hook 'kbd-macro-termination-hook 'iedit-rectangle-done nil t)
-  (add-hook 'change-major-mode-hook 'iedit-rectangle-done nil t)
-  (add-hook 'iedit-aborting-hook 'iedit-rectangle-done nil t))
+  (iedit-lib-start 'iedit-rectangle-done)
+  (force-mode-line-update))
 
 (defun iedit-rectangle-done ()
   "Exit Iedit mode.
@@ -161,11 +157,7 @@ the initial string globally."
     (iedit-stop-buffering))
   (iedit-lib-cleanup)
   (setq iedit-rectangle-mode nil)
-  (force-mode-line-update)
-  (remove-hook 'before-revert-hook 'iedit-rectangle-done t)
-  (remove-hook 'kbd-macro-termination-hook 'iedit-rectangle-done t)
-  (remove-hook 'change-major-mode-hook 'iedit-rectangle-done t)
-  (remove-hook 'iedit-aborting-hook 'iedit-rectangle-done t))
+  (force-mode-line-update))
 
 (defun iedit-kill-rectangle(&optional fill)
   "Kill the rectangle.
