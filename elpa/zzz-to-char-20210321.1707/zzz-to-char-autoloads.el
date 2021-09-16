@@ -12,7 +12,7 @@
 (autoload 'zzz-to-char "zzz-to-char" "\
 Kill text between the point and the character CHAR.
 
-This command is similar to `zap-to-char', it kills target
+This command is similar to `zap-to-char', it kills the target
 character too.
 
 \(fn CHAR)" t nil)
@@ -20,7 +20,7 @@ character too.
 (autoload 'zzz-up-to-char "zzz-to-char" "\
 Kill text between the point and the character CHAR.
 
-This command is similar to `zap-up-to-char', it doesn't kill
+This command is similar to `zap-up-to-char', it doesn't kill the
 target character.
 
 \(fn CHAR)" t nil)
