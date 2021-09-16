@@ -1,0 +1,2 @@
+;;; Generated package description from dart-mode.el  -*- no-byte-compile: t -*-
+(define-package "dart-mode" "20210830.0" "Major mode for editing Dart files" '((emacs "24.3")) :commit "3bac14200f9f8f8fcebc383087572da5c3823c34" :authors '(("https://github.com/bradyt/dart-mode/issues")) :maintainer '("https://github.com/bradyt/dart-mode/issues") :keywords '("languages") :url "https://github.com/bradyt/dart-mode")

@@ -1,12 +1,24 @@
 ;;; dart-mode.el --- Major mode for editing Dart files -*- lexical-binding: t; -*-
 
-;; Author: Brady Trainor <mail@bradyt.net>
+;; Author: https://github.com/bradyt/dart-mode/issues
 ;; URL: https://github.com/bradyt/dart-mode
-;; Package-Version: 20190827.2102
-;; Package-Commit: 04fcd649f19d49390079fbf2920a10bf37f6a634
-;; Version: 1.0.4
+;; Package-Version: 20210830.0
+;; Package-Commit: 3bac14200f9f8f8fcebc383087572da5c3823c34
+;; Version: 1.0.7
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: languages
+
+;; The author is Brady Trainor, but removed from keywords in attempt
+;; to avoid some class of robots.
+
+;; Honorable mention to previous author, maintainer and
+;; contributors. Please see git history for significant
+;; contributions. They are mostly gone from the current repo, replaced
+;; or split out to dart-server repo. Most of the Github stars are from
+;; previous management. The mistakes and regressions in the rewrite
+;; below are my own. The previous implementation was done with cc-mode
+;; framework. Let me know if you think it should be added back as an
+;; option.
 
 ;;; Commentary:
 
@@ -104,9 +116,28 @@ indentation levels from right to left."
 (defvar dart--builtins
   ;; ECMA 408; Section: Identifier Reference
   ;; "Built-in identifiers"
-  '("abstract" "as" "covariant" "deferred" "dynamic" "export"
-    "external" "factory" "Function" "get" "implements" "import"
-    "interface" "library" "mixin" "operator" "part" "set" "static"
+  '("abstract"
+    "as"
+    "covariant"
+    "deferred"
+    "dynamic"
+    "export"
+    "extension"
+    "external"
+    "factory"
+    "Function"
+    "get"
+    "implements"
+    "import"
+    "interface"
+    "late"
+    "library"
+    "mixin"
+    "operator"
+    "part"
+    "required"
+    "set"
+    "static"
     "typedef"))
 
 (defvar dart--keywords
