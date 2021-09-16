@@ -4,7 +4,7 @@
 ;;
 ;; Author: Alex Bennée <alex@bennee.com>
 ;; Maintainer: Alex Bennée <alex@bennee.com>
-;; Version: 0.5
+;; Version: 0.6
 ;; Package-Requires: ((s "1.12.0") (dash "2.0.0") (emacs "24"))
 ;; Homepage: https://github.com/stsquad/dired-rsync
 ;;
@@ -104,16 +104,25 @@ It is run in the context of the failed process buffer."
   "A regex to extract the % complete from a file.")
 
 (defvar dired-remote-portfwd
-  "ssh -p 50000 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-  "An explicit ssh command for rsync to use port forwarded proxy.")
+  "ssh -p %d -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+  "An explicit ssh command for rsync to use port forwarded proxy.
+The string is treated as a format string where %d is replaced with the
+results of `dired-rsync--get-remote-port'.")
 
 ;; Helpers
+(defun dired-rsync--get-remote-port ()
+  "Return the remote port we shall use for the reverse port-forward."
+  (+ 50000 (length (dired-rsync--get-active-buffers))))
+
+(defun dired-rsync--get-remote-portfwd ()
+  (format dired-remote-portfwd (dired-rsync--get-remote-port)))
 
 (defun dired-rsync--quote-and-maybe-convert-from-tramp (file-or-path)
   "Reformat a tramp FILE-OR-PATH to one usable for rsync."
   (if (tramp-tramp-file-p file-or-path)
       (with-parsed-tramp-file-name file-or-path tfop
-        (format "%s:\"%s\"" tfop-host (shell-quote-argument tfop-localname)))
+        (format "%s%s:\"%s\"" (if tfop-user (format "%s@" tfop-user) "") tfop-host
+                (shell-quote-argument tfop-localname)))
     (shell-quote-argument file-or-path)))
 
 (defun dired-rsync--extract-host-from-tramp (file-or-path &optional split-user)
@@ -292,13 +301,14 @@ destination.  This requires ssh'ing to the source and running the rsync
 there."
   (s-join " " (-flatten
                (list "ssh" "-A"
-                     "-R" (format "localhost:50000:%s:22" dhost)
+                     "-R" (format "localhost:%d:%s:22"
+                                  (dired-rsync--get-remote-port) dhost)
                      shost
                      (format
-                      "'%s %s -e \"%s\" %s %s@localhost:%s'"
+                      "\"%s %s -e \\\"%s\\\" %s %s@localhost:%s\""
                       dired-rsync-command
                       dired-rsync-options
-                      dired-remote-portfwd
+                      (dired-rsync--get-remote-portfwd)
                       (s-join " " sfiles)
                       duser
                       dpath)))))
@@ -336,7 +346,7 @@ ssh/scp tramp connections."
             (dired-rsync--remote-to-from-local-cmd sfiles dest)))
     (dired-rsync--do-run cmd
                          (list :marked-files sfiles
-                               :dired-buffer (buffer-name)))))
+                               :dired-buffer (current-buffer)))))
 
 (provide 'dired-rsync)
 ;;; dired-rsync.el ends here
