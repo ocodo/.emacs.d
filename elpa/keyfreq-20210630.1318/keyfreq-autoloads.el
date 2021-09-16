@@ -24,6 +24,11 @@ Keyfreq mode records number of times each command was
 called making it possible to access usage statistics through
 various keyfreq-* functions.
 
+If called interactively, enable Keyfreq mode if ARG is positive,
+and disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it if
+ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (defvar keyfreq-autosave-mode nil "\
@@ -41,12 +46,15 @@ Keyfreq Autosave mode automatically saves
 `keyfreq-table' every `keyfreq-autosave-timeout' seconds
 and when emacs is killed.
 
+If called interactively, enable Keyfreq-Autosave mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (autoload 'keyfreq-save-now "keyfreq" "\
-Save keyfreq data now.
-
-\(fn)" t nil)
+Save keyfreq data now." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "keyfreq" '("keyfreq-")))
 
