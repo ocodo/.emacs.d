@@ -1,10 +1,11 @@
-;;; oauth2.el --- OAuth 2.0 Authorization Protocol
+;;; oauth2.el --- OAuth 2.0 Authorization Protocol  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc
 
 ;; Author: Julien Danjou <julien@danjou.info>
-;; Version: 0.13
+;; Version: 0.16
 ;; Keywords: comm
+;; Package-Requires: ((cl-lib "0.5") (nadvice "0.3"))
 
 ;; This file is part of GNU Emacs.
 
@@ -35,10 +36,22 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'plstore)
 (require 'json)
 (require 'url-http)
+
+(defvar url-http-data)
+(defvar url-http-method)
+(defvar url-http-extra-headers)
+(defvar url-callback-arguments)
+(defvar url-callback-function)
+
+(defgroup oauth2 nil
+  "OAuth 2.0 Authorization Protocol."
+  :group 'comm
+  :link '(url-link :tag "Savannah" "http://git.savannah.gnu.org/cgit/emacs/elpa.git/tree/?h=externals/oauth2")
+  :link '(url-link :tag "ELPA" "https://elpa.gnu.org/packages/oauth2.html"))
 
 (defun oauth2-request-authorization (auth-url client-id &optional scope state redirect-uri)
   "Request OAuth authorization at AUTH-URL by launching `browse-url'.
@@ -70,7 +83,7 @@ It returns the code provided by the service."
         (kill-buffer (current-buffer))
         data))))
 
-(defstruct oauth2-token
+(cl-defstruct oauth2-token
   plstore
   plstore-id
   client-id
@@ -90,7 +103,8 @@ Return an `oauth2-token' structure."
             token-url
             (concat
              "client_id=" client-id
-             "&client_secret=" client-secret
+	     (when client-secret
+               (concat  "&client_secret=" client-secret))
              "&code=" code
              "&redirect_uri=" (url-hexify-string (or redirect-uri "urn:ietf:wg:oauth:2.0:oob"))
              "&grant_type=authorization_code"))))
@@ -110,7 +124,8 @@ TOKEN should be obtained with `oauth2-request-access'."
                     (oauth2-make-access-request
                      (oauth2-token-token-url token)
                      (concat "client_id=" (oauth2-token-client-id token)
-                             "&client_secret=" (oauth2-token-client-secret token)
+			     (when (oauth2-token-client-secret token)
+                               (concat "&client_secret=" (oauth2-token-client-secret token)))
                              "&refresh_token=" (oauth2-token-refresh-token token)
                              "&grant_type=refresh_token")))))
   ;; If the token has a plstore, update it
@@ -200,20 +215,22 @@ This allows to store the token in an unique way."
 
 
 ;; FIXME: We should change URL so that this can be done without an advice.
-(defadvice url-http-handle-authentication (around oauth-hack activate)
+(defun oauth2--url-http-handle-authentication-hack (orig-fun &rest args)
   (if (not oauth--url-advice)
-      ad-do-it
+      (apply orig-fun args)
     (let ((url-request-method url-http-method)
           (url-request-data url-http-data)
           (url-request-extra-headers
-           (oauth2-extra-headers url-http-extra-headers))))
-    (oauth2-refresh-access (car oauth--token-data))
-    (url-retrieve-internal (cdr oauth--token-data)
-               url-callback-function
-               url-callback-arguments)
-    ;; This is to make `url' think it's done.
-    (when (boundp 'success) (setq success t)) ;For URL library in Emacs<24.4.
-    (setq ad-return-value t)))                ;For URL library in Emacs≥24.4.
+           (oauth2-extra-headers url-http-extra-headers)))
+      (oauth2-refresh-access (car oauth--token-data))
+      (url-retrieve-internal (cdr oauth--token-data)
+                             url-callback-function
+                             url-callback-arguments)
+      ;; This is to make `url' think it's done.
+      (when (boundp 'success) (setq success t)) ;For URL library in Emacs<24.4.
+      t)))                                      ;For URL library in Emacs≥24.4.
+(advice-add 'url-http-handle-authentication :around
+            #'oauth2--url-http-handle-authentication-hack)
 
 ;;;###autoload
 (defun oauth2-url-retrieve-synchronously (token url &optional request-method request-data request-extra-headers)
@@ -242,127 +259,6 @@ when finished.  See `url-retrieve'."
           (url-request-extra-headers
            (oauth2-extra-headers request-extra-headers)))
       (url-retrieve url callback cbargs))))
-
-;;;; ChangeLog:
-
-;; 2020-04-04  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	fix(oauth2): rename forgotten instance of resource-url -> scope
-;; 
-;; 	This is version 0.13
-;; 
-;; 	Thanks Rainer Gemulla <rgemulla@uni-mannheim.de>
-;; 
-;; 2020-03-27  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	feat(oauth2): add state parameter support, rename resource-url to scope
-;; 
-;; 	The resource-url is actually a scope. Add support for optional state
-;; 	parameter.
-;; 
-;; 	This is version 0.12.
-;; 
-;; 	Thanks Xu Chunyang <xuchunyang56@gmail.com>
-;; 
-;; 2016-07-11  Paul Eggert	 <eggert@cs.ucla.edu>
-;; 
-;; 	Fix some quoting problems in doc strings
-;; 
-;; 	Most of these are minor issues involving, e.g., quoting `like this' 
-;; 	instead of 'like this'.	 A few involve escaping ` and ' with a preceding
-;; 	\= when the characters should not be turned into curved single quotes.
-;; 
-;; 2016-07-09  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	oauth2: send authentication token via Authorization header
-;; 
-;; 2014-01-28  Rüdiger Sonderfeld  <ruediger@c-plusplus.de>
-;; 
-;; 	oauth2.el: Add support for async retrieve.
-;; 
-;; 	* packages/oauth2/oauth2.el (oauth--tokens-need-renew): Remove.
-;; 	 (oauth--token-data): New variable.
-;; 	 (url-http-handle-authentication): Call `url-retrieve-internal'
-;; 	 directly instead of depending on `oauth--tokens-need-renew'.
-;; 	 (oauth2-url-retrieve-synchronously): Call `url-retrieve' once.
-;; 	 (oauth2-url-retrieve): New function.
-;; 
-;; 	Signed-off-by: Rüdiger Sonderfeld <ruediger@c-plusplus.de> 
-;; 	Signed-off-by: Julien Danjou <julien@danjou.info>
-;; 
-;; 2013-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
-;; 
-;; 	* oauth2.el: Only require CL at compile time and avoid flet.
-;; 	(success): Don't defvar.
-;; 	(oauth--url-advice, oauth--tokens-need-renew): New dynbind variables.
-;; 	(url-http-handle-authentication): Add advice.
-;; 	(oauth2-url-retrieve-synchronously): Use the advice instead of flet.
-;; 
-;; 2013-06-29  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	oauth2: release 0.9, require url-http
-;; 
-;; 	This is needed so that the `flet' calls doesn't restore the overriden 
-;; 	function to an unbound one.
-;; 
-;; 	Signed-off-by: Julien Danjou <julien@danjou.info>
-;; 
-;; 2012-08-01  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	oauth2: upgrade to 0.8, add missing require on cl
-;; 
-;; 2012-07-03  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	oauth2: store access-reponse, bump versino to 0.7
-;; 
-;; 2012-06-25  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	oauth2: add redirect-uri parameter, update to 0.6
-;; 
-;; 2012-05-29  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	* packages/oauth2/oauth2.el: Revert fix URL double escaping, update to
-;; 	0.5
-;; 
-;; 2012-05-04  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	* packages/oauth2/oauth2.el: Don't use aget, update to 0.4
-;; 
-;; 2012-04-19  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	* packages/oauth2/oauth2.el: Fix URL double escaping, update to 0.3
-;; 
-;; 2011-12-20  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	oauth2: update version 0.2
-;; 
-;; 	* oauth2: update version to 0.2
-;; 
-;; 2011-12-20  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	oauth2: allow to use any HTTP request type
-;; 
-;; 	* oauth2: allow to use any HTTP request type
-;; 
-;; 2011-10-08  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	* oauth2.el: Require json.
-;; 	 Fix compilation warning with success variable from url.el.
-;; 
-;; 2011-09-26  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	* packages/oauth2/oauth2.el (oauth2-request-authorization): Add missing
-;; 	 calls to url-hexify-string.
-;; 
-;; 2011-09-26  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	* packages/oauth2/oauth2.el: Reformat to avoid long lines.
-;; 
-;; 2011-09-23  Julien Danjou  <julien@danjou.info>
-;; 
-;; 	New package oauth2
-;; 
-
 
 (provide 'oauth2)
 

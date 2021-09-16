@@ -42,6 +42,10 @@ when finished.  See `url-retrieve'.
 
 ;;;***
 
+;;;### (autoloads nil nil ("oauth2-pkg.el") (0 0 0 0))
+
+;;;***
+
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
