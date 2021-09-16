@@ -1,9 +1,21 @@
-;;; jade-mode.el --- Major mode for editing .jade files
-;;;
-;;; URL: https://github.com/brianc/jade-mode
-;; Package-Version: 20160525.1441
-;;; Author: Brian M. Carlson and other contributors
-;;; inspired by http://xahlee.org/emacs/elisp_syntax_coloring.html
+;;; jade-mode.el --- Major mode for editing .jade files  -*- lexical-binding: t -*-
+
+;; Copyright 2010-2021  Brian Carlson
+
+;; Author: Brian M. Carlson and other contributors
+;; Version: 1.0.1
+;; Package-Version: 20210908.2121
+;; Package-Commit: 111460b056838854e470a6383041a99f843b93ee
+;; Keywords: languages
+;; URL: https://github.com/brianc/jade-mode
+
+;;; Commentary:
+
+;; Major mode for the Jade templating language
+;; (https://jade-lang.com/).
+
+;;; Code:
+
 (require 'font-lock)
 (require 'js)
 
@@ -55,6 +67,8 @@
     ;; to next line for convenience
     (comment-or-uncomment-region start end)
     (forward-line)))
+
+;; Inspired by http://xahlee.org/emacs/elisp_syntax_coloring.html
 
 (defconst jade-keywords
   (eval-when-compile
