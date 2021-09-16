@@ -3,11 +3,11 @@
 ;; Copyright: (c) 2011, Jeremie Dimino <jeremie@dimino.org>
 ;; Author: Jeremie Dimino <jeremie@dimino.org>
 ;; URL: https://github.com/diml/utop
-;; Package-Version: 20190715.1836
-;; Package-Commit: 7bc5117d3449fc19f5c706a6decfdb2a30984507
+;; Package-Version: 20210607.1941
+;; Package-Commit: c87b8b2817eefd0cd53564618911386b89b587c5
 ;; Licence: BSD3
 ;; Version: 1.11
-;; Package-Requires: ((emacs "24"))
+;; Package-Requires: ((emacs "24") (tuareg "2.2.0"))
 ;; Keywords: ocaml languages
 
 ;; This file is a part of utop.
@@ -22,6 +22,7 @@
 (require 'easymenu)
 (require 'pcase)
 (require 'tabulated-list)
+(require 'tuareg)
 
 ;; +-----------------------------------------------------------------+
 ;; | License                                                         |
@@ -176,6 +177,9 @@ This hook is only run if exiting actually kills the buffer."
 (defvar utop-completion nil
   "Current completion.")
 
+(defvar utop-completion-prefixes nil
+  "Prefixes for current completion.")
+
 (defvar utop-inhibit-check nil
   "When set to a non-nil value, always insert text, even if it is
 before the end of prompt.")
@@ -271,12 +275,18 @@ modes you need to set these variables:
 
 (defun utop-tuareg-next-phrase ()
   "Move to the next phrase after point."
-  (let* ((pos (tuareg--after-double-colon))
+  (let* ((pos (save-excursion
+                (when (looking-at-p "[;[:blank:]]*$")
+                  (skip-chars-backward ";[:blank:]")
+                  (when (> (point) 1)
+                    (- (point) 1)))))
          (pos (if pos pos (point)))
          (phrase (tuareg-discover-phrase pos)))
     (when phrase
       (goto-char (caddr phrase))
-      (tuareg--skip-double-colon)
+      (tuareg-skip-blank-and-comments)
+      (when (looking-at ";;[ \t\n]*")
+        (goto-char (match-end 0)))
       (tuareg-skip-blank-and-comments))))
 
 (defun utop-compat-next-phrase-beginning ()
@@ -640,7 +650,11 @@ it is started."
        (setq utop-completion nil))
       ;; A new possible completion
       ("completion"
-       (push argument utop-completion))
+       (catch 'done
+         (dolist (prefix utop-completion-prefixes)
+           (when (string-prefix-p prefix argument)
+             (push argument utop-completion)
+             (throw 'done t)))))
       ;; End of completion
       ("completion-stop"
        (utop-set-state 'edit)
@@ -752,6 +766,9 @@ If ADD-TO-HISTORY is t then the input will be added to history."
      (if (utop--supports-company)
          "complete-company:\n"
        "complete:\n"))
+    ;; Keep track of the prefixes, so we can avoid returning
+    ;; completion which don't have a match.
+    (setq utop-completion-prefixes lines)
     (dolist (line lines)
       ;; Send the line
       (utop-send-string (concat "data:" line "\n")))
@@ -1076,8 +1093,8 @@ defaults to 0."
   "Return the arguments of the utop command to run."
   ;; Read the command to run
   (when utop-edit-command
-    (setq utop-command (read-shell-command "utop command line: " utop-command))
-    (utop-arguments)))
+    (setq utop-command (read-shell-command "utop command line: " utop-command)))
+  (utop-arguments))
 
 (defun utop-start (arguments)
   "Start utop given ARGUMENTS."
@@ -1133,6 +1150,8 @@ See https://github.com/diml/utop for configuration information."))
             map)
   ;; Load local file variables
   (add-hook 'hack-local-variables-hook 'utop-hack-local-variables))
+
+(defvar company-backends)
 
 ;;;###autoload
 (define-derived-mode utop-mode fundamental-mode "utop"
@@ -1217,6 +1236,9 @@ Special keys for utop:
         ;; Put it in utop mode
         (with-current-buffer buf (utop-mode)))))
     buf))
+
+(declare-function company-begin-backend "ext:company")
+(declare-function company-grab-symbol-cons "ext:company")
 
 (defun utop-company-backend (command &optional _arg &rest ignored)
   "company backend for utop completions"
