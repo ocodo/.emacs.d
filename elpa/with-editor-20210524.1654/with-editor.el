@@ -1,31 +1,34 @@
 ;;; with-editor.el --- Use the Emacsclient as $EDITOR -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2020  The Magit Project Contributors
+;; Copyright (C) 2014-2021  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file.  If not,
 ;; see https://github.com/magit/with-editor/blob/master/AUTHORS.md.
 
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
-
-;; Package-Requires: ((emacs "24.4") (async "1.9"))
 ;; Keywords: tools
 ;; Homepage: https://github.com/magit/with-editor
 
-;; This file is not part of GNU Emacs.
+;; Package-Requires: ((emacs "24.4"))
+;; Package-Version: 3.0.4
+
+;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
-
+;;
 ;; This file is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with Magit.  If not, see http://www.gnu.org/licenses.
+
+;; This file is not part of GNU Emacs.
 
 ;;; Commentary:
 
@@ -54,15 +57,16 @@
 ;; use `shell-command' to asynchronously run some shell command.
 
 ;; The command `with-editor-export-editor' exports `$EDITOR' or
-;; another such environment variable in `shell-mode', `term-mode' and
-;; `eshell-mode' buffers.  Use this Emacs command before executing a
-;; shell command which needs the editor set, or always arrange for the
-;; current Emacs instance to be used as editor by adding it to the
-;; appropriate mode hooks:
+;; another such environment variable in `shell-mode', `eshell-mode',
+;; `term-mode' and `vterm-mode' buffers.  Use this Emacs command
+;; before executing a shell command which needs the editor set, or
+;; always arrange for the current Emacs instance to be used as editor
+;; by adding it to the appropriate mode hooks:
 ;;
 ;;   (add-hook 'shell-mode-hook  'with-editor-export-editor)
-;;   (add-hook 'term-exec-hook   'with-editor-export-editor)
 ;;   (add-hook 'eshell-mode-hook 'with-editor-export-editor)
+;;   (add-hook 'term-exec-hook   'with-editor-export-editor)
+;;   (add-hook 'vterm-mode-hook  'with-editor-export-editor)
 
 ;; Some variants of this function exist, these two forms are
 ;; equivalent:
@@ -80,28 +84,27 @@
 ;;; Code:
 
 (require 'cl-lib)
-;; `pcase-dolist' is not autoloaded on Emacs 24.
-(eval-when-compile (require 'pcase))
+(eval-when-compile
+  (require 'pcase) ; `pcase-dolist' is not autoloaded on Emacs 24.
+  (require 'subr-x))
 (require 'server)
 (require 'shell)
-
-(and (require 'async-bytecomp nil t)
-     (let ((pkgs (bound-and-true-p async-bytecomp-allowed-packages)))
-       (if (consp pkgs)
-           (cl-intersection '(all magit) pkgs)
-         (memq pkgs '(all t))))
-     (fboundp 'async-bytecomp-package-mode)
-     (async-bytecomp-package-mode 1))
 
 (eval-when-compile
   (progn (require 'dired nil t)
          (require 'eshell nil t)
          (require 'term nil t)
+         (condition-case err
+             (require 'vterm nil t)
+           (error (message "Error(vterm): %S" err)))
          (require 'warnings nil t)))
 (declare-function dired-get-filename 'dired)
 (declare-function term-emulate-terminal 'term)
+(declare-function vterm-send-return 'vterm)
+(declare-function vterm-send-string 'vterm)
 (defvar eshell-preoutput-filter-functions)
 (defvar git-commit-post-finish-hook)
+(defvar vterm--process)
 
 ;;; Options
 
@@ -318,12 +321,9 @@ And some tools that do not handle $EDITOR properly also break."
 (put 'with-editor-post-finish-hook 'permanent-local t)
 (put 'with-editor-post-cancel-hook 'permanent-local t)
 
-(defvar with-editor-show-usage t)
-(defvar with-editor-cancel-message nil)
-(defvar with-editor-previous-winconf nil)
-(make-variable-buffer-local 'with-editor-show-usage)
-(make-variable-buffer-local 'with-editor-cancel-message)
-(make-variable-buffer-local 'with-editor-previous-winconf)
+(defvar-local with-editor-show-usage t)
+(defvar-local with-editor-cancel-message nil)
+(defvar-local with-editor-previous-winconf nil)
 (put 'with-editor-cancel-message 'permanent-local t)
 (put 'with-editor-previous-winconf 'permanent-local t)
 
@@ -540,7 +540,7 @@ at run-time.
       server-window))
 
 (defun server-switch-buffer--with-editor-server-window-alist
-    (fn &optional next-buffer killed-one filepos)
+    (fn &optional next-buffer &rest args)
   "Honor `with-editor-server-window-alist' (which see)."
   (let ((server-window (with-current-buffer
                            (or next-buffer (current-buffer))
@@ -548,7 +548,7 @@ at run-time.
                            (setq with-editor-previous-winconf
                                  (current-window-configuration)))
                          (with-editor-server-window))))
-    (funcall fn next-buffer killed-one filepos)))
+    (apply fn next-buffer args)))
 
 (advice-add 'server-switch-buffer :around
             'server-switch-buffer--with-editor-server-window-alist)
@@ -692,11 +692,12 @@ Set and export the environment variable ENVVAR, by default
 \"EDITOR\".  The value is automatically generated to teach
 commands to use the current Emacs instance as \"the editor\".
 
-This works in `shell-mode', `term-mode' and `eshell-mode'."
+This works in `shell-mode', `term-mode', `eshell-mode' and
+`vterm'."
   (interactive (list (with-editor-read-envvar)))
   (cond
    ((derived-mode-p 'comint-mode 'term-mode)
-    (let ((process (get-buffer-process (current-buffer))))
+    (when-let ((process (get-buffer-process (current-buffer))))
       (goto-char (process-mark process))
       (process-send-string
        process (format " export %s=%s\n" envvar
@@ -710,6 +711,19 @@ This works in `shell-mode', `term-mode' and `eshell-mode'."
     (add-to-list 'eshell-preoutput-filter-functions
                  'with-editor-output-filter)
     (setenv envvar with-editor-sleeping-editor))
+   ((derived-mode-p 'vterm-mode)
+    (if with-editor-emacsclient-executable
+        (let ((with-editor--envvar envvar)
+              (process-environment process-environment))
+          (with-editor--setup)
+          (while (accept-process-output vterm--process 0.1))
+          (when-let ((v (getenv envvar)))
+            (vterm-send-string (format "export %s=%S" envvar v))
+            (vterm-send-return))
+          (when-let ((v (getenv "EMACS_SERVER_FILE")))
+            (vterm-send-string (format "export EMACS_SERVER_FILE=%S" v))
+            (vterm-send-return)))
+      (error "Cannot use sleeping editor in this buffer")))
    (t
     (error "Cannot export environment variables in this buffer")))
   (message "Successfully exported %s" envvar))

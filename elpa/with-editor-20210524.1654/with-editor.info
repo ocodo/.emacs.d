@@ -1,7 +1,7 @@
-This is with-editor.info, produced by makeinfo version 6.5 from
+This is with-editor.info, produced by makeinfo version 6.7 from
 with-editor.texi.
 
-     Copyright (C) 2015-2020 Jonas Bernoulli <jonas@bernoul.li>
+     Copyright (C) 2015-2021 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
      of the GNU General Public License as published by the Free Software
@@ -39,9 +39,9 @@ library is made available as a separate package.  It also defines some
 additional functionality which makes it useful even for end-users, who
 don’t use Magit or another package which uses it internally.
 
-This manual is for With-Editor version 2.9.4.
+This manual is for With-Editor version 3.0.4.
 
-     Copyright (C) 2015-2020 Jonas Bernoulli <jonas@bernoul.li>
+     Copyright (C) 2015-2021 Jonas Bernoulli <jonas@bernoul.li>
 
      You can redistribute this document and/or modify it under the terms
      of the GNU General Public License as published by the Free Software
@@ -232,14 +232,16 @@ for an alternative environment variable such as ‘$GIT_EDITOR’.
      they are defined in Emacs or in some third-party package.
 
    The command ‘with-editor-export-editor’ exports ‘$EDITOR’ or another
-such environment variable in ‘shell-mode’, ‘term-mode’ and ‘eshell-mode’
-buffers.  Use this Emacs command before executing a shell command which
-needs the editor set, or always arrange for the current Emacs instance
-to be used as editor by adding it to the appropriate mode hooks:
+such environment variable in ‘shell-mode’, ‘eshell-mode’, ‘term-mode’
+and ‘vterm-mode’ buffers.  Use this Emacs command before executing a
+shell command which needs the editor set, or always arrange for the
+current Emacs instance to be used as editor by adding it to the
+appropriate mode hooks:
 
      (add-hook 'shell-mode-hook  'with-editor-export-editor)
-     (add-hook 'term-exec-hook   'with-editor-export-editor)
      (add-hook 'eshell-mode-hook 'with-editor-export-editor)
+     (add-hook 'term-exec-hook   'with-editor-export-editor)
+     (add-hook 'vterm-exec-hook  'with-editor-export-editor)
 
    Some variants of this function exist; these two forms are equivalent:
 
@@ -249,9 +251,9 @@ to be used as editor by adding it to the appropriate mode hooks:
 
  -- Command: with-editor-export-editor
 
-     When invoked in a ‘shell-mode’, ‘term-mode’, or ‘eshell-mode’
-     buffer, this command teaches shell commands to use the current
-     Emacs instance as the editor, by exporting ‘$EDITOR’.
+     When invoked in a ‘shell-mode’, ‘eshell-mode’, ‘term-mode’ or
+     ‘vterm-mode’ buffer, this command teaches shell commands to use the
+     current Emacs instance as the editor, by exporting ‘$EDITOR’.
 
  -- Command: with-editor-export-git-editor
 
@@ -340,11 +342,11 @@ Appendix A Command Index
 * with-editor-async-shell-command:       Using With-Editor commands.
                                                                (line 17)
 * with-editor-export-editor:             Using With-Editor commands.
-                                                               (line 60)
+                                                               (line 62)
 * with-editor-export-git-editor:         Using With-Editor commands.
-                                                               (line 66)
+                                                               (line 68)
 * with-editor-export-hg-editor:          Using With-Editor commands.
-                                                               (line 71)
+                                                               (line 73)
 * with-editor-shell-command:             Using With-Editor commands.
                                                                (line 22)
 
@@ -364,11 +366,11 @@ Appendix B Function Index
 * with-editor-async-shell-command:       Using With-Editor commands.
                                                                (line 17)
 * with-editor-export-editor:             Using With-Editor commands.
-                                                               (line 60)
+                                                               (line 62)
 * with-editor-export-git-editor:         Using With-Editor commands.
-                                                               (line 66)
+                                                               (line 68)
 * with-editor-export-hg-editor:          Using With-Editor commands.
-                                                               (line 71)
+                                                               (line 73)
 * with-editor-locate-emacsclient:        Configuring With-Editor.
                                                                (line 42)
 * with-editor-set-process-filter:        Using With-Editor as a library.
@@ -399,11 +401,11 @@ Node: Top773
 Node: Using the With-Editor package2569
 Node: Configuring With-Editor3155
 Node: Using With-Editor commands7704
-Node: Using With-Editor as a library10899
-Node: Debugging12862
-Node: Command Index13741
-Node: Function Index14623
-Node: Variable Index16089
+Node: Using With-Editor as a library10995
+Node: Debugging12958
+Node: Command Index13837
+Node: Function Index14719
+Node: Variable Index16185
 
 End Tag Table
 

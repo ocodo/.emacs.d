@@ -16,7 +16,8 @@ Set and export the environment variable ENVVAR, by default
 \"EDITOR\".  The value is automatically generated to teach
 commands to use the current Emacs instance as \"the editor\".
 
-This works in `shell-mode', `term-mode' and `eshell-mode'.
+This works in `shell-mode', `term-mode', `eshell-mode' and
+`vterm'.
 
 \(fn &optional (ENVVAR \"EDITOR\"))" t nil)
 
