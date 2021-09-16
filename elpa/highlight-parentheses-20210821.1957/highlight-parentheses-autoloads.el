@@ -13,7 +13,14 @@
 (autoload 'highlight-parentheses-mode "highlight-parentheses" "\
 Minor mode to highlight the surrounding parentheses.
 
+If called interactively, enable Highlight-Parentheses mode if ARG
+is positive, and disable it if ARG is zero or negative.  If
+called from Lisp, also enable the mode if ARG is omitted or nil,
+and toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
+
+(put 'global-highlight-parentheses-mode 'globalized-minor-mode t)
 
 (defvar global-highlight-parentheses-mode nil "\
 Non-nil if Global Highlight-Parentheses mode is enabled.
@@ -37,7 +44,7 @@ See `highlight-parentheses-mode' for more information on Highlight-Parentheses m
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "highlight-parentheses" '("hl-paren-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "highlight-parentheses" '("highlight-parentheses-" "hl-paren-face")))
 
 ;;;***
 
