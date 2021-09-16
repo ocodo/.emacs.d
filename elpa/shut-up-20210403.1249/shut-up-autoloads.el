@@ -36,11 +36,9 @@ Silence Emacs.
 Change Emacs settings to reduce the output.
 
 WARNING: This function has GLOBAL SIDE-EFFECTS.  You should only
-call this function in `noninteractive' sessions.
+call this function in `noninteractive' sessions." nil nil)
 
-\(fn)" nil nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "shut-up" '("shut-up-" "inhibit-message")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "shut-up" '("inhibit-message" "shut-up-")))
 
 ;;;***
 
