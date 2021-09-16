@@ -5,8 +5,8 @@
 ;; Author: Syohei YOSHIDA <syohex@gmail.com>
 ;; Maintainer: Neil Okamoto
 ;; URL: https://github.com/emacsorphanage/git-messenger
-;; Package-Version: 20200321.2337
-;; Package-Commit: 2d64e62e33be9f881ebb019afc183caac9c62eda
+;; Package-Version: 20201202.1637
+;; Package-Commit: a69b6f359bd34b77335619103c82cef07ecdbc7c
 ;; Version: 0.18
 ;; Package-Requires: ((emacs "24.3") (popup "0.5.3"))
 
@@ -323,12 +323,15 @@ and menus.")
 (defun git-messenger:find-vcs ()
   (let ((longest 0)
         result)
-    (dolist (vcs git-messenger:handled-backends result)
+    (dolist (vcs git-messenger:handled-backends)
       (let* ((dir (assoc-default vcs git-messenger:directory-of-vcs))
              (vcs-root (locate-dominating-file default-directory dir)))
         (when (and vcs-root (> (length vcs-root) longest))
           (setq longest (length vcs-root)
-                result vcs))))))
+                result vcs))))
+    (unless result
+      (error "Failed to find a supported version control repository"))
+    result))
 
 (defun git-messenger:svn-message (msg)
   (with-temp-buffer
