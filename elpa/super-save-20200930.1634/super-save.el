@@ -1,11 +1,11 @@
 ;;; super-save.el --- Auto-save buffers, based on your activity. -*- lexical-binding: t -*-
 
-;; Copyright © 2015-2018 Bozhidar Batsov <bozhidar@batsov.com>
+;; Copyright © 2015-2020 Bozhidar Batsov <bozhidar@batsov.com>
 
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/super-save
-;; Package-Version: 20190806.915
-;; Package-Commit: 279aa8e0103d6bd367619b7f57f9d60d7a3c5cfd
+;; Package-Version: 20200930.1634
+;; Package-Commit: 886b5518c8a8b4e1f5e59c332d5d80d95b61201d
 ;; Keywords: convenience
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "24.4"))
