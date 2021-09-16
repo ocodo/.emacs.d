@@ -4,10 +4,10 @@
 
 ;; Author: Alexander I.Grafov <grafov@gmail.com>
 ;; URL: https://github.com/grafov/go-playground
-;; Package-Version: 20190625.1855
-;; Package-Commit: 508294fbc22b22b37f587b2dbc8f3a48a16a07a6
+;; Package-Version: 20200818.2215
+;; Package-Commit: ede417a52c0eea1a69658f4c6c6c12d6165e64a4
 ;; Keywords: tools, golang
-;; Version: 1.6.1
+;; Version: 1.7
 ;; Package-Requires: ((emacs "24") (go-mode "1.4.0") (gotest "0.13.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -69,8 +69,29 @@ By default confirmation required."
   :type 'file
   :group 'go-playground)
 
-(defcustom go-playground-go-command-args "run *.go"
-  "The arguments that passed to `go` compiler.`"
+(defcustom go-playground-go-compiler-args "run *.go"
+  "The arguments that passed to `go` compiler."
+  :type 'string
+  :group 'go-playground)
+
+(defcustom go-playground-go-command ""
+  "The `go` compiler custom command.
+
+With empty value this option uses variable `go-command` defined
+in `go-mode`. You could use separate command specially for
+go-playground (for example run the compiler in special
+environment like \"GO111MODULE=on go\")."
+  :type 'string
+  :group 'go-playground)
+
+(defun go-playground-go ()
+  "Evaluates really used compiler command with args."
+  (concat
+   (if (string= go-playground-go-command "")
+       go-command go-playground-go-command) " " go-playground-go-compiler-args))
+
+(defcustom go-playground-init-command "go mod init"
+  "The shell command executed once when the snippet just created."
   :type 'string
   :group 'go-playground)
 
@@ -79,19 +100,23 @@ By default confirmation required."
   :init-value nil
   :lighter "Play(Go)"
   :keymap '(([C-return] . go-playground-exec)
-			([M-return] . :cmd)))
+	    ([M-return] . go-playground-cmd)))
 
 (defun go-playground-snippet-file-name(&optional snippet-name)
-  (let ((file-name (cond (snippet-name)
-						 (go-playground-ask-file-name
-						  (read-string "Go Playground filename: "))
-						 ("snippet"))))
-	(concat (go-playground-snippet-unique-dir file-name) "/" file-name ".go")))
+  (let* ((file-name (cond (snippet-name)
+			 (go-playground-ask-file-name
+			  (read-string "Go Playground filename: "))
+			 ("snippet")))
+	 (snippet-dir (go-playground-snippet-unique-dir file-name)))
+    (cd snippet-dir)
+    (shell-command go-playground-init-command)
+    (concat snippet-dir "/" file-name ".go")))
 
 ;
 (defun go-playground-save-and-run ()
   "Obsoleted by go-playground-exec."
   (interactive)
+
   (go-playground-exec))
 
 (defun go-playground-exec ()
@@ -101,7 +126,7 @@ By default confirmation required."
 	  (progn
 		(save-buffer t)
 		(make-local-variable 'compile-command)
-		(compile (concat go-command " " go-playground-go-command-args)))))
+		(compile (go-playground-go)))))
 
 (defun go-playground-cmd (cmd)
   "Save the buffer then apply custom compile command from

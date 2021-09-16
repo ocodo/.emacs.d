@@ -1,0 +1,2 @@
+;;; Generated package description from go-playground.el  -*- no-byte-compile: t -*-
+(define-package "go-playground" "20200818.2215" "Local Golang playground for short snippets." '((emacs "24") (go-mode "1.4.0") (gotest "0.13.0")) :commit "ede417a52c0eea1a69658f4c6c6c12d6165e64a4" :authors '(("Alexander I.Grafov" . "grafov@gmail.com")) :maintainer '("Alexander I.Grafov" . "grafov@gmail.com") :keywords '("tools" "golang") :url "https://github.com/grafov/go-playground")
