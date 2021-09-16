@@ -20,6 +20,18 @@ Major mode for screenwriting in Fountain markup.
 
 ;;;***
 
+;;;### (autoloads nil "fountain-theme" "fountain-theme.el" (0 0 0
+;;;;;;  0))
+;;; Generated autoloads from fountain-theme.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "fountain-theme" '("fountain")))
+
+;;;***
+
+;;;### (autoloads nil nil ("fountain-mode-pkg.el") (0 0 0 0))
+
+;;;***
+
 ;; Local Variables:
 ;; version-control: never
 ;; no-byte-compile: t
