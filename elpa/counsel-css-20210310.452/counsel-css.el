@@ -7,8 +7,8 @@
 ;; Created: June 3, 2016
 ;; Modified: March 31, 2020
 ;; Version: 1.0.8
-;; Package-Version: 20200331.632
-;; Package-Commit: 6427dfcbda0d2bbd81db03f9d6b56b06c260ac02
+;; Package-Version: 20210310.452
+;; Package-Commit: f7647b4195b9b4e97f1ee1acede6054ae38df630
 ;; Keywords: convenience tools counsel swiper selector css less scss
 ;; Homepage: https://github.com/hlissner/emacs-counsel-css
 ;; Package-Requires: ((emacs "24.4") (counsel "0.7.0") (cl-lib "0.5"))
@@ -129,13 +129,13 @@ doesn't move."
     ;; Collect multiple selector across previous lines
     ;; (i.e. "div, \n p, \n span {...}")
     (save-excursion
-      (while (string-match-p ",[\s\t]*$"
+      (while (string-match-p (if (looking-at-p "^[\s\t]*{") "" ",[\s\t]*$")
                              (setq s (counsel-css--fetch-previous-line)))
         ;; Skip commented selector (i.e. " // .blue,")
         (save-excursion
           (move-beginning-of-line 1)
           (setq po3 (point))
-          (setq commentp (counsel-css--comment-p (search-forward ","))))
+          (setq commentp (counsel-css--comment-p (end-of-line))))
         (unless commentp
           (setq multi (format "%s %s" (string-trim s) multi)))))
     ;; Extract selector include one-line-nesting (i.e. "div { p {...} }")

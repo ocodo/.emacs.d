@@ -125,7 +125,7 @@ Call the \"git log --grep\" shell command." t nil)
 Forward to `find-file'.
 When INITIAL-INPUT is non-nil, use it in the minibuffer during completion.
 
-\(fn &optional INITIAL-INPUT)" t nil)
+\(fn &optional INITIAL-INPUT INITIAL-DIRECTORY)" t nil)
 
 (autoload 'counsel-dired "counsel" "\
 Forward to `dired'.
@@ -162,7 +162,7 @@ Pass X to `xdg-open' or equivalent command via the shell.
 \(fn X)" t nil)
 
 (autoload 'counsel-locate "counsel" "\
-Call the \"locate\" shell command.
+Call a \"locate\" style shell command.
 INITIAL-INPUT can be given as the initial minibuffer input.
 
 \(fn &optional INITIAL-INPUT)" t nil)
@@ -200,9 +200,10 @@ INITIAL-DIRECTORY, if non-nil, is used as the root directory for search.
 \(fn &optional INITIAL-INPUT INITIAL-DIRECTORY)" t nil)
 
 (autoload 'counsel-ag "counsel" "\
-Grep for a string in a root directory using ag.
+Grep for a string in a root directory using `ag'.
 
-By default, the root directory is the first directory containing a .git subdirectory.
+By default, the root directory is the first directory containing
+a .git subdirectory.
 
 INITIAL-INPUT can be given as the initial minibuffer input.
 INITIAL-DIRECTORY, if non-nil, is used as the root directory for search.
@@ -232,7 +233,7 @@ This uses `counsel-ag' with `counsel-ack-base-command' replacing
 \(fn &optional INITIAL-INPUT)" t nil)
 
 (autoload 'counsel-rg "counsel" "\
-Grep for a string in the current directory using rg.
+Grep for a string in the current directory using `rg'.
 INITIAL-INPUT can be given as the initial minibuffer input.
 INITIAL-DIRECTORY, if non-nil, is used as the root directory for search.
 EXTRA-RG-ARGS string, if non-nil, is appended to `counsel-rg-base-command'.

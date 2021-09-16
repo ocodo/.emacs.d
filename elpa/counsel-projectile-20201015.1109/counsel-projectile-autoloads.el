@@ -33,7 +33,14 @@ With a prefix ARG, invalidate the cache first.
 \(fn &optional ARG)" t nil)
 
 (autoload 'counsel-projectile-switch-to-buffer "counsel-projectile" "\
-Jump to a buffer in the current project." t nil)
+Jump to a buffer in the current project.
+
+If `counsel-projectile-preview-buffers' is non-nil, display a
+preview of the selected ivy completion candidate buffer as in
+`counsel-switch-buffer', falling back to the current buffer or
+optionally FROM-BUFFER.
+
+\(fn &optional FROM-BUFFER)" t nil)
 
 (autoload 'counsel-projectile-grep "counsel-projectile" "\
 Search the current project with grep.
@@ -44,7 +51,7 @@ use git grep. Otherwise use grep recursively.
 OPTIONS-OR-CMD, if non-nil, is a string containing either
 additional options to be passed to grep, or an alternative git
 grep command. It is read from the minibuffer if the function is
-called with a prefix argument.
+called with a `\\[universal-argument]' prefix argument.
 
 \(fn &optional OPTIONS-OR-CMD)" t nil)
 
@@ -53,7 +60,7 @@ Search the current project with git grep.
 
 CMD, if non-nil, is a string containing an alternative git grep
 command. It is read from the minibuffer if the function is called
-with a prefix argument.
+with a `\\[universal-argument]' prefix argument.
 
 \(fn &optional CMD)" t nil)
 
@@ -62,7 +69,7 @@ Search the current project with ag.
 
 OPTIONS, if non-nil, is a string containing additional options to
 be passed to ag. It is read from the minibuffer if the function
-is called with a prefix argument.
+is called with a `\\[universal-argument]' prefix argument.
 
 \(fn &optional OPTIONS)" t nil)
 
@@ -71,7 +78,7 @@ Search the current project with rg.
 
 OPTIONS, if non-nil, is a string containing additional options to
 be passed to rg. It is read from the minibuffer if the function
-is called with a prefix argument.
+is called with a `\\[universal-argument]' prefix argument.
 
 \(fn &optional OPTIONS)" t nil)
 
@@ -117,9 +124,16 @@ Jump to a buffer or file in the current project.
 
 With a prefix ARG, invalidate the cache first.
 
-If not inside a project, call `counsel-projectile-switch-project'.
+If `counsel-projectile-preview-buffers' is non-nil, display a
+preview of the selected ivy completion candidate buffer as in
+`counsel-switch-buffer', falling back to the current buffer or
+optionally FROM-BUFFER.
 
-\(fn &optional ARG)" t nil)
+If `counsel-switch-buffer-preview-virtual-buffers' is also
+non-nil, also display a preview of the selected ivy completion
+candidate non-visited file.
+
+\(fn &optional ARG FROM-BUFFER)" t nil)
 
 (defvar counsel-projectile-mode nil "\
 Non-nil if Counsel-Projectile mode is enabled.

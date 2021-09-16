@@ -4,8 +4,8 @@
 
 ;; Author: Masashı Mıyaura
 ;; URL: https://github.com/masasam/emacs-counsel-tramp
-;; Package-Version: 20190616.122
-;; Package-Commit: 719b38ba2242cc1c6d1d79cab106c8c8b1afa775
+;; Package-Version: 20210518.1153
+;; Package-Commit: 76719eebb791920272c69e75e234f05a815bb5c2
 ;; Version: 0.7.5
 ;; Package-Requires: ((emacs "24.3") (counsel "0.10"))
 
@@ -156,7 +156,7 @@ Kill all remote buffers."
 	      (push
 	       (concat "/" counsel-tramp-default-method ":" hostuser "@" hostname "#" port "|sudo:root@" hostname ":/")
 	       hosts))))))
-    (when (require 'docker-tramp nil t)
+    (when (and (require 'docker-tramp nil t) (ignore-errors (apply #'process-lines "pgrep" (list "-f" "docker"))))
       (cl-loop for line in (cdr (ignore-errors (apply #'process-lines "docker" (list "ps"))))
 	       for info = (reverse (split-string line "[[:space:]]+" t))
 	       collect (progn (push
