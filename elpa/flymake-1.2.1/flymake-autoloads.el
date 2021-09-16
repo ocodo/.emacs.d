@@ -12,30 +12,39 @@
 (autoload 'flymake-log "flymake" "\
 Log, at level LEVEL, the message MSG formatted with ARGS.
 LEVEL is passed to `display-warning', which is used to display
-the warning.  If this form is included in a byte-compiled file,
+the warning.  If this form is included in a file,
 the generated warning contains an indication of the file that
 generated it.
 
 \(fn LEVEL MSG &rest ARGS)" nil t)
 
 (autoload 'flymake-make-diagnostic "flymake" "\
-Make a Flymake diagnostic for BUFFER's region from BEG to END.
+Make a Flymake diagnostic for LOCUS's region from BEG to END.
+LOCUS is a buffer object or a string designating a file name.
+
 TYPE is a diagnostic symbol and TEXT is string describing the
 problem detected in this region.  DATA is any object that the
 caller wishes to attach to the created diagnostic for later
-retrieval.
+retrieval with `flymake-diagnostic-data'.
+
+If LOCUS is a buffer BEG and END should be buffer positions
+inside it.  If LOCUS designates a file, BEG and END should be a
+cons (LINE . COL) indicating a file position.  In this second
+case, END may be ommited in which case the region is computed
+using `flymake-diag-region' if the diagnostic is appended to an
+actual buffer.
 
 OVERLAY-PROPERTIES is an alist of properties attached to the
 created diagnostic, overriding the default properties and any
-properties of `flymake-overlay-control' of the diagnostic's
-type.
+properties listed in the `flymake-overlay-control' property of
+the diagnostic's type symbol.
 
-\(fn BUFFER BEG END TYPE TEXT &optional DATA OVERLAY-PROPERTIES)" nil nil)
+\(fn LOCUS BEG END TYPE TEXT &optional DATA OVERLAY-PROPERTIES)" nil nil)
 
 (autoload 'flymake-diagnostics "flymake" "\
 Get Flymake diagnostics in region determined by BEG and END.
 
-If neither BEG or END is supplied, use the whole buffer,
+If neither BEG or END is supplied, use whole accessible buffer,
 otherwise if BEG is non-nil and END is nil, consider only
 diagnostics at BEG.
 
@@ -44,7 +53,7 @@ diagnostics at BEG.
 (autoload 'flymake-diag-region "flymake" "\
 Compute BUFFER's region (BEG . END) corresponding to LINE and COL.
 If COL is nil, return a region just for LINE.  Return nil if the
-region is invalid.
+region is invalid.  This function saves match data.
 
 \(fn BUFFER LINE &optional COL)" nil nil)
 
@@ -95,6 +104,10 @@ Turn Flymake mode on." nil nil)
 Turn Flymake mode off." nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "flymake" '("flymake-")))
+
+;;;***
+
+;;;### (autoloads nil nil ("flymake-pkg.el") (0 0 0 0))
 
 ;;;***
 
