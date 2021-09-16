@@ -14,16 +14,16 @@ Return the singularized version of STR.
 
 \(fn STR)" nil nil)
 
-(define-obsolete-function-alias 'singularize-string 'inflection-singularize-string)
+(define-obsolete-function-alias 'singularize-string 'inflection-singularize-string "2.6")
 
 (autoload 'inflection-pluralize-string "inflections" "\
 Return the pluralized version of STR.
 
 \(fn STR)" nil nil)
 
-(define-obsolete-function-alias 'pluralize-string 'inflection-pluralize-string)
+(define-obsolete-function-alias 'pluralize-string 'inflection-pluralize-string "2.6")
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "inflections" '("inflection-" "define-inflectors")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "inflections" '("define-inflectors" "inflection-")))
 
 ;;;***
 
