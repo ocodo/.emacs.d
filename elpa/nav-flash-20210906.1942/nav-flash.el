@@ -1,14 +1,14 @@
 ;;; nav-flash.el --- Briefly highlight the current line
 ;;
-;; Copyright (c) 2012-13 Roland Walker
+;; Copyright (c) 2012-2021 Roland Walker
 ;;
 ;; Author: Roland Walker <walker@pobox.com>
 ;; Homepage: http://github.com/rolandwalker/nav-flash
 ;; URL: http://raw.githubusercontent.com/rolandwalker/nav-flash/master/nav-flash.el
-;; Package-Version: 20191204.1427
-;; Package-Commit: dbb91216637e0a1e8bfd59aa883c75d45db70daf
-;; Version: 1.1.0
-;; Last-Updated: 25 Oct 2013
+;; Package-Version: 20210906.1942
+;; Package-Commit: 2e31f32085757e1dfdd8ec78e9940fd1c88750de
+;; Version: 1.1.2
+;; Last-Updated:  6 Sep 2021
 ;; EmacsWiki: NavFlash
 ;; Keywords: extensions, navigation, interface
 ;;
@@ -66,7 +66,9 @@
 ;;
 ;; Compatibility and Requirements
 ;;
-;;     GNU Emacs version 24.4-devel     : yes, at the time of writing
+;;     GNU Emacs version 25.1-devel     : not tested
+;;     GNU Emacs version 24.5           : not tested
+;;     GNU Emacs version 24.4           : yes
 ;;     GNU Emacs version 24.3           : yes
 ;;     GNU Emacs version 23.3           : yes
 ;;     GNU Emacs version 22.2           : yes, with some limitations
@@ -90,14 +92,14 @@
 ;; without modification, are permitted provided that the following
 ;; conditions are met:
 ;;
-;;    1. Redistributions of source code must retain the above
-;;       copyright notice, this list of conditions and the following
-;;       disclaimer.
+;;   1. Redistributions of source code must retain the above
+;;      copyright notice, this list of conditions and the following
+;;      disclaimer.
 ;;
-;;    2. Redistributions in binary form must reproduce the above
-;;       copyright notice, this list of conditions and the following
-;;       disclaimer in the documentation and/or other materials
-;;       provided with the distribution.
+;;   2. Redistributions in binary form must reproduce the above
+;;      copyright notice, this list of conditions and the following
+;;      disclaimer in the documentation and/or other materials
+;;      provided with the distribution.
 ;;
 ;; This software is provided by Roland Walker "AS IS" and any express
 ;; or implied warranties, including, but not limited to, the implied
@@ -134,7 +136,7 @@
 ;;;###autoload
 (defgroup nav-flash nil
   "Briefly highlight the current line."
-  :version "1.1.0"
+  :version "1.1.2"
   :link '(emacs-commentary-link :tag "Commentary" "nav-flash")
   :link '(url-link :tag "GitHub" "http://github.com/rolandwalker/nav-flash")
   :link '(url-link :tag "EmacsWiki" "http://emacswiki.org/emacs/NavFlash")
@@ -159,7 +161,7 @@ Setting this to nil or 0 will turn off the indicator."
 
 ;; note nav-flash-face is customizable, but nav-flash-pulse-face is not
 (defface nav-flash-face
-  '((t (:inherit highlight)))
+  '((t (:inherit highlight :extend t)))
   "Face to flash the current line."
   :group 'nav-flash)
 
@@ -191,14 +193,16 @@ this function a no-op."
   (cl-callf or pos (point))
   (unless end-pos
     (save-excursion
-      (let ((inhibit-point-motion-hooks t))
+      (let ((inhibit-point-motion-hooks t)
+            (cursor-intangible-mode nil)
+            (cursor-sensor-mode nil))
         (goto-char pos)
         (beginning-of-visual-line)
         (setq pos (point))
         (end-of-visual-line)
         (setq end-pos (1+ (point))))))
   (when (eq pos end-pos)
-    (incf end-pos))
+    (cl-incf end-pos))
   (cl-callf or delay nav-flash-delay)
   (cl-callf or face 'nav-flash-face)
   (when (and (numberp delay)

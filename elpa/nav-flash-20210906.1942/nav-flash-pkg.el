@@ -1,0 +1,2 @@
+;;; Generated package description from nav-flash.el  -*- no-byte-compile: t -*-
+(define-package "nav-flash" "20210906.1942" "Briefly highlight the current line" 'nil :commit "2e31f32085757e1dfdd8ec78e9940fd1c88750de" :authors '(("Roland Walker" . "walker@pobox.com")) :maintainer '("Roland Walker" . "walker@pobox.com") :keywords '("extensions" "navigation" "interface") :url "http://github.com/rolandwalker/nav-flash")
