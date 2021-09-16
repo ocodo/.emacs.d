@@ -4,8 +4,8 @@
 ;;
 ;; Author: Mark Karpov <markkarpov92@gmail.com>
 ;; URL: https://github.com/mrkkrp/kill-or-bury-alive
-;; Package-Version: 20190713.1340
-;; Package-Commit: 7db85a3f3004ff400e24105d1875f4e3a6eec7a6
+;; Package-Version: 20210320.1231
+;; Package-Commit: 534300796d5dc528462e2d5deb4c7a8932936909
 ;; Version: 0.1.3
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5"))
 ;; Keywords: buffer, killing, convenience
@@ -28,20 +28,14 @@
 ;;; Commentary:
 
 ;; Have you ever killed a buffer that you might want to leave alive?
-;; Motivation for killing is usually “get out of my way for now”, and
-;; killing may be not the best choice in many cases unless your RAM is
-;; very-very limited.  This package allows to teach Emacs which buffers to
-;; kill and which to bury alive.
+;; Motivation for killing is usually “get out of my way,” and killing may be
+;; not the best choice in some cases.  This package allows us to teach Emacs
+;; which buffers to kill and which to bury alive.
 ;;
-;; When we really want to kill a buffer, it turns out that not all buffers
-;; would like to die the same way.  The package allows to specify *how* to
-;; kill various kinds of buffers.  This may be especially useful when you're
-;; working with some buffer that has an associated process, for example.
-;;
-;; Sometimes you may want to get rid of most buffers and bring Emacs to some
-;; more-or-less virgin state.  You probably don't want to kill scratch
-;; buffer and maybe ERC-related buffers too.  You can specify which buffers
-;; to purge.
+;; When we want to kill a buffer, it turns out that not all buffers would
+;; like to die in the same way.  To help with that, the package allows us to
+;; specify *how* to kill different kinds of buffers.  This may be especially
+;; useful when a buffer has an associated process.
 
 ;;; Code:
 
@@ -50,19 +44,19 @@
 (defgroup kill-or-bury-alive nil
   "Precise control over buffer killing in Emacs."
   :group  'convenience
-  :tag    "Kill or Bury Alive"
+  :tag    "Kill or bury alive"
   :prefix "kill-or-bury-alive-"
   :link   '(url-link :tag "GitHub"
                      "https://github.com/mrkkrp/kill-or-bury-alive"))
 
 ;;;###autoload
 (defcustom kill-or-bury-alive-must-die-list nil
-  "List of buffer designators for buffers that always should be killed.
+  "A list of buffer designators for buffers that always should be killed.
 
-See description of `kill-or-bury-alive--buffer-match' for
+See the description of `kill-or-bury-alive--buffer-match' for
 information about the concept of buffer designators.
 
-This variable is used by `kill-or-bury-alive' function."
+This variable is used by the `kill-or-bury-alive' function."
   :tag "Must die list"
   :type '(repeat :tag "Buffer Designators"
                  (choice (regexp :tag "Buffer Name")
@@ -72,13 +66,14 @@ This variable is used by `kill-or-bury-alive' function."
 (defcustom kill-or-bury-alive-killing-function-alist nil
   "AList that maps buffer designators to functions that should kill them.
 
-See description of `kill-or-bury-alive--buffer-match' for
+See the description of `kill-or-bury-alive--buffer-match' for
 information about the concept of buffer designators.
 
 This variable is used by `kill-or-bury-alive' and
 `kill-or-bury-alive-purge-buffers'.
 
-You can use `kill-or-bury-alive-kill-with' to add elements to this alist."
+You can use `kill-or-bury-alive-kill-with' to add elements to
+this alist."
   :tag "Killing function alist"
   :type '(alist :key-type (choice :tag "Buffer Designator"
                                   (regexp :tag "Buffer Name")
@@ -91,9 +86,9 @@ You can use `kill-or-bury-alive-kill-with' to add elements to this alist."
     "^\\*Messages\\*$"
     "^ ?\\*git-credential-cache--daemon\\*$"
     erc-mode)
-  "List of buffer designators for buffers that should not be purged.
+  "A list of buffer designators for buffers that should not be purged.
 
-See description of `kill-or-bury-alive--buffer-match' for
+See the description of `kill-or-bury-alive--buffer-match' for
 information about the concept of buffer designators.
 
 This variable is used by `kill-or-bury-alive-purge-buffers'."
@@ -117,7 +112,7 @@ If value of the variable is NIL, `kill-buffer' is used."
                  (const :tag "Use Default" nil)))
 
 (defcustom kill-or-bury-alive-burying-function nil
-  "Function used by `kill-or-bury-alive' to bury a buffer.
+  "The function used by `kill-or-bury-alive' to bury a buffer.
 
 The function should be able to take one argument: buffer object
 to bury or its name.
@@ -136,16 +131,16 @@ If value of the variable is NIL,
 ;;;###autoload
 (defun kill-or-bury-alive-kill-with
     (buffer-designator killing-function &optional simple)
-  "Kill buffers selected by BUFFER-DESIGNATOR with KILLING-FUNCTION.
+  "Kill buffers selected by the BUFFER-DESIGNATOR with KILLING-FUNCTION.
 
-See description of `kill-or-bury-alive--buffer-match' for
+See the description of `kill-or-bury-alive--buffer-match' for
 information about the concept of buffer designators.
 
 Normally, KILLING-FUNCTION should be able to take one argument:
 buffer object.  However, you can use a function that operates on
-current buffer and doesn't take any arguments.  Just pass non-NIL
-SIMPLE argument and KILLING-FUNCTION will be wrapped as needed
-automatically."
+the current buffer and doesn't take any arguments.  Just pass
+non-NIL SIMPLE argument and KILLING-FUNCTION will be wrapped as
+needed automatically."
   (push (cons buffer-designator
               (if simple
                   (lambda (buffer)
@@ -155,11 +150,11 @@ automatically."
         kill-or-bury-alive-killing-function-alist))
 
 (defun kill-or-bury-alive--buffer-match (buffer buffer-designator)
-  "Return non-NIL value if BUFFER matches BUFFER-DESIGNATOR.
+  "Return a non-NIL value if BUFFER matches BUFFER-DESIGNATOR.
 
-BUFFER should be a buffer object.  Buffer designator can be a
-string (regexp to match name of buffer) or a symbol (major mode
-of buffer)."
+BUFFER should be a buffer object.  BUFFER-DESIGNATOR can be a
+string (regexp to match the name of a buffer) or a symbol (the
+major mode of a buffer)."
   (when (get-buffer buffer)
     (if (stringp buffer-designator)
         (string-match-p buffer-designator
@@ -169,20 +164,20 @@ of buffer)."
             (derived-mode-p buffer-designator))))))
 
 (defun kill-or-bury-alive--must-die-p (buffer)
-  "Return non-NIL value when BUFFER must be killed no matter what."
+  "Return a non-NIL value when BUFFER must be killed no matter what."
   (cl-some (apply-partially #'kill-or-bury-alive--buffer-match buffer)
            kill-or-bury-alive-must-die-list))
 
 (defun kill-or-bury-alive--long-lasting-p (buffer)
-  "Return non-NIL value when BUFFER is a long lasting one."
+  "Return a non-NIL value when BUFFER is a long lasting one."
   (cl-some (apply-partially #'kill-or-bury-alive--buffer-match buffer)
            kill-or-bury-alive-long-lasting-list))
 
 (defun kill-or-bury-alive--kill-buffer (buffer)
-  "Kill buffer BUFFER according to killing preferences.
+  "Kill the buffer BUFFER according to the killing preferences.
 
-Variable `kill-or-bury-alive-killing-function-alist' is used to find how to
-kill BUFFER.  If nothing special is found,
+The variable `kill-or-bury-alive-killing-function-alist' is used
+to determine how to kill the BUFFER.  If nothing is found, the
 `kill-or-bury-alive-killing-function' is used."
   (funcall
    (or (cdr
@@ -195,7 +190,7 @@ kill BUFFER.  If nothing special is found,
    buffer))
 
 (defun kill-or-bury-alive--bury-buffer* (buffer-or-name)
-  "This is rewrite of `bury-buffer' that works for any BUFFER-OR-NAME."
+  "This is a rewrite of `bury-buffer' that works for any BUFFER-OR-NAME."
   (let ((buffer (window-normalize-buffer buffer-or-name)))
     (bury-buffer-internal buffer)
     (when (eq buffer (window-buffer))
@@ -205,7 +200,7 @@ kill BUFFER.  If nothing special is found,
     nil))
 
 (defun kill-or-bury-alive--bury-buffer (buffer)
-  "Bury buffer BUFFER according to burying preferences.
+  "Bury the BUFFER according to the burying preferences.
 
 `kill-or-bury-alive-burying-function' is used to bury the buffer,
 see its description for more information."
@@ -218,10 +213,10 @@ see its description for more information."
   "Kill or bury the current buffer.
 
 This is a universal killing mechanism.  When argument ARG is
-given and it's not NIL, kill current buffer.  Otherwise behavior
-of this command varies.  If current buffer matches a buffer
-designator listed in `kill-or-bury-alive-must-die-list', kill it
-immediately, otherwise just bury it.
+given and it's not NIL, kill the current buffer.  Otherwise the
+behavior of this command varies.  If the current buffer matches a
+buffer designator listed in `kill-or-bury-alive-must-die-list',
+kill it immediately, otherwise just bury it.
 
 You can specify how to kill various kinds of buffers, see
 `kill-or-bury-alive-killing-function-alist' for more information.
@@ -239,12 +234,13 @@ default."
 
 ;;;###autoload
 (defun kill-or-bury-alive-purge-buffers (&optional arg)
-  "Kill all buffers except for long lasting ones.
+  "Kill all buffers except for the long lasting ones.
 
-Long lasting buffers are specified in `kill-or-bury-alive-long-lasting-list'.
+The long lasting buffers are specified in
+`kill-or-bury-alive-long-lasting-list'.
 
-If `kill-or-bury-alive-base-buffer' is not NIL, switch to buffer
-with that name after purging and delete all other windows.
+If `kill-or-bury-alive-base-buffer' is not NIL, switch to the
+buffer with that name after purging and delete all other windows.
 
 When ARG is given and it's not NIL, ask to confirm killing of
 every buffer."
