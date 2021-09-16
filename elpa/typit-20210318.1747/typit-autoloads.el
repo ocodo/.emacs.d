@@ -10,12 +10,10 @@
 ;;; Generated autoloads from typit.el
 
 (autoload 'typit-test "typit" "\
-Run typing test with using NUM most common words from dictionary.
+Run a typing test using the NUM most common words from the dictionary.
 
 Dictionary is an array of words in `typit-dict'.  By default it's
-English words ordered from most common to least common.  You can
-let-bind the variable and change it, it's recommended to use at
-least 1000 words so `typit-advanced-test' could work properly.
+English words ordered from most common to least common.
 
 \(fn NUM)" t nil)
 

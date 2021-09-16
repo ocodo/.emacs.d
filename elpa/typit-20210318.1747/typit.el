@@ -26,10 +26,10 @@
 ;;; Commentary:
 
 ;; This is a typing game for Emacs.  In this game, you type words that are
-;; picked randomly from N most frequent words in language you're practicing,
-;; until time is up (by default it's one minute).  Typit is quite similar to
-;; the “10 fast fingers” tests, with the difference that it's playable and
-;; fully configurable inside your Emacs.
+;; picked randomly from the most frequent words in the language you are
+;; practicing, until time is up (by default it is one minute).  Typit is
+;; similar to the “10 fast fingers” tests, with the difference that it is
+;; playable and fully configurable from your Emacs.
 
 ;;; Code:
 
@@ -42,7 +42,7 @@
 ;; Settings & variables
 
 (defgroup typit nil
-  "Typing game similar to the tests on 10 fast fingers."
+  "Typing game similar to the “10 fast fingers” tests."
   :group  'games
   :tag    "Typit"
   :prefix "typit-"
@@ -87,7 +87,7 @@
 (defcustom typit-dict-dir
   (when load-file-name
     (f-slash (f-join (f-parent load-file-name) "dict")))
-  "Path to directory with collection of dictionaries."
+  "Path to the directory containing the dictionaries."
   :tag  "Directory with dictionary files"
   :type 'directory)
 
@@ -97,7 +97,7 @@
   :type 'integer)
 
 (defcustom typit-test-time 60
-  "Number of second a test takes."
+  "Duration of a test in seconds."
   :tag  "Test duration in seconds"
   :type 'integer)
 
@@ -108,7 +108,7 @@ If the value is NIL, it means that no dictionary has been loaded
 yet.")
 
 (defvar typit--dict-file nil
-  "File name of currently loaded dictionary.
+  "File name of the currently loaded dictionary.
 
 If no dictionary is loaded, it's NIL.")
 
@@ -135,22 +135,22 @@ If no dictionary is loaded, it's NIL.")
 (defun typit--pick-word (num)
   "Pick a word from `typit--dict'.
 
-Use first NUM words from loaded dictionary (if NUM is bigger than
-length of the dictionary, use all words).  All words in
+Use the first NUM words from loaded dictionary (if NUM is bigger
+than the length of the dictionary, use all words).  All words in
 `typit--dict' have approximately the same probability."
   (elt typit--dict (random (min num (length typit--dict)))))
 
 (defun typit--generate-line (num)
-  "Generate a line of appropriate length picking random words.
+  "Generate a line of an appropriate length picking random words.
 
-NUM is the number of words to use from loaded dictionary (if NUM
-is bigger than length of the dictionary, use all words).
+NUM is the number of words to use from the loaded dictionary (if
+NUM is bigger than length of the dictionary, use all words).
 
-This uses words from `typit--dict', which should be initialized
-by the time the function is called.  Result is returned as a list
-of strings with assumption that only one space is inserted
-between each word (then total length should be close to
-`typit-line-length')."
+This uses the words from `typit--dict', which should be
+initialized by the time the function is called.  The result is
+returned as a list of strings with the assumption that only one
+space is inserted between words (then the total length should be
+close to `typit-line-length')."
   (let ((words nil)
         (acc   0))
     (while (< acc typit-line-length)
@@ -163,14 +163,13 @@ between each word (then total length should be close to
     (cdr words)))
 
 (defun typit--render-line (words)
-  "Transform list of words WORDS into one string."
+  "Transform a list of words WORDS into one string."
   (mapconcat #'identity words " "))
 
 (defun typit--render-lines (offset first-line second-line)
-  "Render the both lines in current buffer.
+  "Render both lines in the current buffer.
 
-The lines are placed beginning from OFFSET (text from OFFSET to
-end of buffer is deleted).  FIRST-LINE and SECOND-LINE are
+The lines are placed at OFFSET.  FIRST-LINE and SECOND-LINE are
 rendered with `typit--render-line'."
   (let ((inhibit-read-only t))
     (delete-region offset (point-max))
@@ -185,9 +184,10 @@ rendered with `typit--render-line'."
 (defun typit--select-word (offset current-word &optional unselect)
   "Change font properties of a word.
 
-OFFSET specifies position where word starts.  CURRENT-WORD is the
-word to highlight.  By default the word is selected, unless
-UNSELECT is not NIL—in this case it's unselected."
+OFFSET specifies the position where the word starts.
+CURRENT-WORD is the word to highlight.  By default, the word is
+selected, unless UNSELECT is not NIL—in that case it is
+unselected."
   (if unselect
       (dolist (v (overlays-at offset))
         (when (eq (overlay-get v 'type) 'typit-current-word)
@@ -201,7 +201,7 @@ UNSELECT is not NIL—in this case it's unselected."
       (overlay-put overlay 'face 'typit-current-word))))
 
 (defun typit--highlight-diff-char (pos correct &optional clear)
-  "Highlight diff for one char at position POS.
+  "Highlight diff for one char at the position POS.
 
 If the char should be highlighted as correctly typed, pass
 non-NIL CORRECT.  If CLEAR is not NIL, just clear that char."
@@ -221,13 +221,10 @@ non-NIL CORRECT.  If CLEAR is not NIL, just clear that char."
   "Perform actions using a new temporary Typit buffer and window.
 
 Make new Typit buffer and make it current buffer.  QUIT-FUNCTION
-receives current window object and value returned by BODY as its
-arguments.  It describes what to do when contents of buffer
+receives the current window object and the value returned by
+BODY.  It describes what to do when contents of the buffer
 generated in BODY are shown to the user.  By the time the buffer
-is shown it's in read-only state.  Note that BODY is evaluated,
-buffer is made empty.
-
-The window is guaranteed to be killed at the end of the day."
+is shown it's in a read-only state."
   (declare (indent defun))
   (mmt-with-gensyms (buffer window value)
     `(let ((,buffer (get-buffer-create "*typit*")))
@@ -256,11 +253,11 @@ The window is guaranteed to be killed at the end of the day."
      good-words
      bad-words
      num)
-  "Report results of Typit test to the user.
+  "Report the results of a Typit test to the user.
 
 TOTAL-TIME, GOOD-STROKES, BAD-STROKES, GOOD-WORDS, and BAD-WORDS
 are used to calculate statistics.  NUM is the number of words to
-use as argument of `typit-test' if user chooses to play again."
+use as argument of `typit-test' if the user chooses to play again."
   (typit--with-buffer
     ;; quit-function
     (lambda (_window _buffer)
@@ -308,12 +305,10 @@ use as argument of `typit-test' if user chooses to play again."
 
 ;;;###autoload
 (defun typit-test (num)
-  "Run typing test with using NUM most common words from dictionary.
+  "Run a typing test using the NUM most common words from the dictionary.
 
 Dictionary is an array of words in `typit-dict'.  By default it's
-English words ordered from most common to least common.  You can
-let-bind the variable and change it, it's recommended to use at
-least 1000 words so `typit-advanced-test' could work properly."
+English words ordered from most common to least common."
   (interactive "p")
   (typit--prepare-dict)
   (let ((first-line   (typit--generate-line num))
