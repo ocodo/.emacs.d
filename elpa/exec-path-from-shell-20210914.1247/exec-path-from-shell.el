@@ -4,11 +4,11 @@
 
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; Keywords: unix, environment
-;; Package-Commit: e5647b910900972bc59acea7b74e932ba0a94ce2
+;; Package-Commit: 0a07f5489c66f76249e6207362614b595b80c230
 ;; URL: https://github.com/purcell/exec-path-from-shell
-;; Package-Version: 20200526.324
+;; Package-Version: 20210914.1247
 ;; Package-X-Original-Version: 0
-;; Package-Requires: ((emacs "24.1"))
+;; Package-Requires: ((emacs "24.1") (cl-lib "0.6"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -77,6 +77,7 @@
 
 ;; Satisfy the byte compiler
 (eval-when-compile (require 'eshell))
+(require 'cl-lib)
 
 (defgroup exec-path-from-shell nil
   "Make Emacs use shell-defined values for $PATH etc."
@@ -89,12 +90,9 @@
   :type '(repeat (string :tag "Environment variable"))
   :group 'exec-path-from-shell)
 
-(defcustom exec-path-from-shell-check-startup-files t
-  "If non-nil, warn if variables are being set in the wrong shell startup files.
-Environment variables should be set in .profile or .zshenv rather than
-.bashrc or .zshrc."
-  :type 'boolean
-  :group 'exec-path-from-shell)
+(defcustom exec-path-from-shell-warn-duration-millis 500
+  "Print a warning if shell execution takes longer than this many milliseconds."
+  :type 'integer)
 
 (defcustom exec-path-from-shell-shell-name nil
   "If non-nil, use this shell executable.
@@ -143,6 +141,19 @@ The default value denotes an interactive login shell."
   "Return non-nil iff SHELL supports the standard ${VAR-default} syntax."
   (not (string-match "\\(fish\\|t?csh\\)$" shell)))
 
+(defmacro exec-path-from-shell--warn-duration (&rest body)
+  "Evaluate BODY and warn if execution duration exceeds a time limit.
+The limit is given by `exec-path-from-shell-warn-duration-millis'."
+  (let ((start-time (cl-gensym))
+        (duration-millis (cl-gensym)))
+    `(let ((,start-time (current-time)))
+       (prog1
+           (progn ,@body)
+         (let ((,duration-millis (* 1000.0 (float-time (time-subtract (current-time) ,start-time)))))
+           (if (> ,duration-millis exec-path-from-shell-warn-duration-millis)
+               (message "Warning: exec-path-from-shell execution took %dms. See the README for tips on reducing this." ,duration-millis)
+             (exec-path-from-shell--debug "Shell execution took %dms" ,duration-millis)))))))
+
 (defun exec-path-from-shell-printf (str &optional args)
   "Return the result of printing STR in the user's shell.
 
@@ -168,7 +179,8 @@ shell-escaped, so they may contain $ etc."
                                      (concat "sh -c " (shell-quote-argument printf-command)))))))
     (with-temp-buffer
       (exec-path-from-shell--debug "Invoking shell %s with args %S" shell shell-args)
-      (let ((exit-code (apply #'call-process shell nil t nil shell-args)))
+      (let ((exit-code (exec-path-from-shell--warn-duration
+                        (apply #'call-process shell nil t nil shell-args))))
         (exec-path-from-shell--debug "Shell printed: %S" (buffer-string))
         (unless (zerop exit-code)
           (error "Non-zero exit code from shell %s invoked with args %S.  Output was:\n%S"
@@ -211,48 +223,35 @@ variable of NAME and return this output as string."
 
 (defun exec-path-from-shell-setenv (name value)
   "Set the value of environment var NAME to VALUE.
-Additionally, if NAME is \"PATH\" then also set corresponding
-variables such as `exec-path'."
+Additionally, if NAME is \"PATH\" then also update the
+variables `exec-path' and `eshell-path-env'."
   (setenv name value)
   (when (string-equal "PATH" name)
-    (setq eshell-path-env value
-          exec-path (append (parse-colon-path value) (list exec-directory)))))
+    (setq exec-path (append (parse-colon-path value) (list exec-directory)))
+    ;; `eshell-path-env' is a buffer local variable, so change its default
+    ;; value.
+    (setq-default eshell-path-env value)))
 
 ;;;###autoload
 (defun exec-path-from-shell-copy-envs (names)
   "Set the environment variables with NAMES from the user's shell.
 
-As a special case, if the variable is $PATH, then `exec-path' and
-`eshell-path-env' are also set appropriately.  The result is an alist,
-as described by `exec-path-from-shell-getenvs'."
+As a special case, if the variable is $PATH, then the variables
+`exec-path' and `eshell-path-env' are also set appropriately.
+The result is an alist, as described by
+`exec-path-from-shell-getenvs'."
   (let ((pairs (exec-path-from-shell-getenvs names)))
-    (when exec-path-from-shell-check-startup-files
-      (exec-path-from-shell--maybe-warn-about-startup-files pairs))
     (mapc (lambda (pair)
             (exec-path-from-shell-setenv (car pair) (cdr pair)))
           pairs)))
-
-(defun exec-path-from-shell--maybe-warn-about-startup-files (pairs)
-  "Warn the user if the value of PAIRS seems to depend on interactive shell startup files."
-  (let ((without-minus-i (remove "-i" exec-path-from-shell-arguments)))
-    ;; If the user is using "-i", we warn them if it is necessary.
-    (unless (eq exec-path-from-shell-arguments without-minus-i)
-      (let* ((exec-path-from-shell-arguments without-minus-i)
-             (alt-pairs (exec-path-from-shell-getenvs (mapcar 'car pairs)))
-             different)
-        (dolist (pair pairs)
-          (unless (equal pair (assoc (car pair) alt-pairs))
-            (push (car pair) different)))
-        (when different
-          (message "You appear to be setting environment variables %S in your .bashrc or .zshrc: those files are only read by interactive shells, so you should instead set environment variables in startup files like .profile, .bash_profile or .zshenv.  Refer to your shell's man page for more info.  Customize `exec-path-from-shell-arguments' to remove \"-i\" when done, or disable `exec-path-from-shell-check-startup-files' to disable this message." different))))))
 
 ;;;###autoload
 (defun exec-path-from-shell-copy-env (name)
   "Set the environment variable $NAME from the user's shell.
 
-As a special case, if the variable is $PATH, then `exec-path' and
-`eshell-path-env' are also set appropriately.  Return the value
-of the environment variable."
+As a special case, if the variable is $PATH, then the variables
+`exec-path' and `eshell-path-env' are also set appropriately.
+Return the value of the environment variable."
   (interactive "sCopy value of which environment variable from shell? ")
   (cdar (exec-path-from-shell-copy-envs (list name))))
 
