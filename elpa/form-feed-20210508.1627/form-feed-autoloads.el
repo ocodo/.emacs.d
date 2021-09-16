@@ -23,6 +23,30 @@ window.
 
 \(fn &optional ARG)" t nil)
 
+(put 'global-form-feed-mode 'globalized-minor-mode t)
+
+(defvar global-form-feed-mode nil "\
+Non-nil if Global Form-Feed mode is enabled.
+See the `global-form-feed-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `global-form-feed-mode'.")
+
+(custom-autoload 'global-form-feed-mode "form-feed" nil)
+
+(autoload 'global-form-feed-mode "form-feed" "\
+Toggle Form-Feed mode in all buffers.
+With prefix ARG, enable Global Form-Feed mode if ARG is positive;
+otherwise, disable it.  If called from Lisp, enable the mode if
+ARG is omitted or nil.
+
+Form-Feed mode is enabled in all buffers where
+`form-feed--turn-on-mode-if-desired' would do it.
+See `form-feed-mode' for more information on Form-Feed mode.
+
+\(fn &optional ARG)" t nil)
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "form-feed" '("form-feed-")))
 
 ;;;***

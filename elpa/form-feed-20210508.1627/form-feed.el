@@ -4,10 +4,11 @@
 
 ;; Author: Vasilij Schneidermann <mail@vasilij.de>
 ;; URL: https://depp.brause.cc/form-feed
-;; Package-Version: 20200527.2152
-;; Package-Commit: fc06255e185d32b1616bd86b69b55c1daabbe378
+;; Package-Version: 20210508.1627
+;; Package-Commit: ac1f0ef30a11979f5dfe12d8c05a666739e486ff
+;; Version: 0.2.3
+;; Package-Requires: ((emacs "24.1"))
 ;; Keywords: faces
-;; Version: 0.2.2
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -108,6 +109,24 @@ columns.  A value of -1 would leave the last column empty."
   :group 'form-feed
   :risky t)
 
+(defcustom form-feed-include-modes '(prog-mode text-mode help-mode)
+  "Major modes in which `form-feed-mode' is activated.
+This is used by `global-form-feed-mode' which activates
+`form-feed-mode' in all buffers whose major mode derives from one
+of the modes listed here, but not from one of the modes listed in
+`form-feed-exclude-modes'."
+  :type '(repeat function)
+  :group 'form-feed)
+
+(defcustom form-feed-exclude-modes nil
+  "Major modes in which `form-feed-mode' is not activated.
+This is used by `global-form-feed-mode' which activates
+`form-feed-mode' in all buffers whose major mode derives from one
+of the modes listed in `form-feed-include-modes', but not from
+one of the modes listed here."
+  :type '(repeat function)
+  :group 'form-feed)
+
 
 ;;; Functions
 
@@ -142,6 +161,16 @@ window."
     (if (fboundp 'font-lock-flush)
         (font-lock-flush)
       (font-lock-fontify-buffer))))
+
+;;;###autoload
+(define-globalized-minor-mode global-form-feed-mode
+  form-feed-mode form-feed--turn-on-mode-if-desired)
+
+(defun form-feed--turn-on-mode-if-desired ()
+  (when (and (apply 'derived-mode-p form-feed-include-modes)
+             (not (apply 'derived-mode-p form-feed-exclude-modes))
+             (not (bound-and-true-p enriched-mode)))
+    (form-feed-mode)))
 
 (provide 'form-feed)
 ;;; form-feed.el ends here
