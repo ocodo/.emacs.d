@@ -1,10 +1,10 @@
 ;;; window-purpose.el --- Purpose-based window management for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2018 Bar Magal & contributors
+;; Copyright (C) 2015-2021 Bar Magal & contributors
 
 ;; Author: Bar Magal
 ;; Package: purpose
-;; Version: 1.7
+;; Version: 1.8.1
 ;; Keywords: frames
 ;; Homepage: https://github.com/bmag/emacs-purpose
 ;; Package-Requires: ((emacs "24.4") (let-alist "1.0.3") (imenu-list "0.1"))
@@ -72,7 +72,7 @@
 (require 'window-purpose-prefix-overload)
 (require 'window-purpose-fixes)
 
-(defconst purpose-version "1.7.0"
+(defconst purpose-version "1.8.1"
   "Purpose's version.")
 
 
@@ -298,9 +298,13 @@ This function is called when `purpose-mode' is deactivated."
         (setq display-buffer-overriding-action
               '(purpose--action-function . nil))
         (setq purpose--active-p t)
-        (purpose-fix-install))
+        (unless purpose-fix-togglers-hook
+          (purpose-fix-install))
+        (run-hooks 'purpose-fix-togglers-hook))
+
     (purpose--remove-advices)
-    (setq purpose--active-p nil)))
+    (setq purpose--active-p nil)
+    (run-hooks 'purpose-fix-togglers-hook)))
 
 (push '(purpose-dedicated . writable) window-persistent-parameters)
 (provide 'window-purpose)

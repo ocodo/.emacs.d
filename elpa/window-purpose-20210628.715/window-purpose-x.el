@@ -1,6 +1,6 @@
 ;;; window-purpose-x.el --- Extensions for Purpose -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2018 Bar Magal & contributors
+;; Copyright (C) 2015-2021 Bar Magal & contributors
 
 ;; Author: Bar Magal
 ;; Package: purpose
@@ -143,7 +143,7 @@ Uses `frame-or-buffer-changed-p' to determine whether the frame or
 buffer had changed."
   (when (frame-or-buffer-changed-p 'purpose-x-code1-buffers-changed)
     (purpose-x-code1-update-dired)
-    (imenu-list-update-safe)))
+    (imenu-list-update)))
 
 ;;;###autoload
 (defun purpose-x-code1-setup ()
@@ -215,22 +215,54 @@ imenu."
                     (magit-wazzup-mode . magit-wazzup)))
   "Configuration that gives each magit major mode its own purpose.")
 
+(defvar purpose-x-old-magit-display-buffer-function nil
+  "Stores `magit-display-buffer-function'.
+
+The value of `magit-display-buffer-function' at the time
+`purpose-x-magit-single-on' or `purpose-x-magit-multi-on' is
+invoked.")
+
+(defun purpose-x-magit-display-buffer-function (buffer)
+  "Integrate `magit' with `window-purpose'."
+  (let ((display-buffer-overriding-action '(purpose--action-function . nil)))
+    (funcall purpose-x-old-magit-display-buffer-function buffer)))
+
 ;;;###autoload
 (defun purpose-x-magit-single-on ()
   "Turn on magit-single purpose configuration."
   (interactive)
+  (with-eval-after-load 'magit
+    ;; if `purpose-x-old-magit-display-buffer-function' is non-nil, then it
+    ;; means magit-single-on was activated while magit-single-on or
+    ;; magit-multi-on is already active. Magit's variable is already backed up,
+    ;; so "backing it up" again will actually override it with a wrong value.
+    (unless purpose-x-old-magit-display-buffer-function
+      (setq purpose-x-old-magit-display-buffer-function magit-display-buffer-function))
+    (setq magit-display-buffer-function 'purpose-x-magit-display-buffer-function))
   (purpose-set-extension-configuration :magit purpose-x-magit-single-conf))
 
 ;;;###autoload
 (defun purpose-x-magit-multi-on ()
   "Turn on magit-multi purpose configuration."
   (interactive)
+  (with-eval-after-load 'magit
+    ;; if `purpose-x-old-magit-display-buffer-function' is non-nil, then it
+    ;; means magit-multi-on was activated while magit-single-on or
+    ;; magit-multi-on is already active. Magit's variable is already backed up,
+    ;; so "backing it up" again will actually override it with a wrong value.
+    (unless purpose-x-old-magit-display-buffer-function
+      (setq purpose-x-old-magit-display-buffer-function magit-display-buffer-function))
+    (setq magit-display-buffer-function 'purpose-x-magit-display-buffer-function))
   (purpose-set-extension-configuration :magit purpose-x-magit-multi-conf))
 
 (defun purpose-x-magit-off ()
   "Turn off magit purpose configuration (single or multi)."
   (interactive)
-  (purpose-del-extension-configuration :magit))
+  (purpose-del-extension-configuration :magit)
+  (with-eval-after-load 'magit
+    (when purpose-x-old-magit-display-buffer-function
+      (setq magit-display-buffer-function purpose-x-old-magit-display-buffer-function))
+    (setq purpose-x-old-magit-display-buffer-function nil)))
 
 ;;; --- purpose-x-magit ends here ---
 
@@ -302,7 +334,7 @@ compatible with `display-buffer'."
                  (const left)
                  (const right)
                  function)
-  :package-version "1.4")
+  :package-version '(window-purpose . "1.4"))
 
 (defcustom purpose-x-popwin-width 0.4
   "Width of popup window when displayed at left or right.
@@ -311,7 +343,7 @@ Can have the same values as `purpose-display-at-left-width' and
   :group 'purpose
   :type '(choice number
                  (const nil))
-  :package-version "1.4")
+  :package-version '(window-purpose . "1.4"))
 
 (defcustom purpose-x-popwin-height 0.35
   "Height of popup window when displayed at top or bottom.
@@ -320,7 +352,7 @@ Can have the same values as `purpose-display-at-top-height' and
   :group 'purpose
   :type '(choice number
                  (const nil))
-  :package-version "1.4")
+  :package-version '(window-purpose . "1.4"))
 
 (defcustom purpose-x-popwin-major-modes '(help-mode
                                           compilation-mode
@@ -334,7 +366,7 @@ When changing the value of this variable in elisp code, you should call
            (prog1 (set-default symbol value)
              (purpose-x-popwin-update-conf)))
   :initialize 'custom-initialize-default
-  :package-version "1.4")
+  :package-version '(window-purpose . "1.4"))
 
 (defcustom purpose-x-popwin-buffer-names '("*Shell Command Output*")
   "List of buffer names that should be opened as popup windows.
@@ -348,7 +380,7 @@ When changing the value of this variable in elisp code, you should call
            (prog1 (set-default symbol value)
              (purpose-x-popwin-update-conf)))
   :initialize 'custom-initialize-default
-  :package-version "1.4")
+  :package-version '(window-purpose . "1.4"))
 
 (defcustom purpose-x-popwin-buffer-name-regexps nil
   "List of regexp that should be opened as popup windows.
@@ -362,7 +394,7 @@ When changing the value of this variable in elisp code, you should call
            (prog1 (set-default symbol value)
              (purpose-x-popwin-update-conf)))
   :initialize 'custom-initialize-default
-  :package-version "1.4")
+  :package-version '(window-purpose . "1.4"))
 
 (defun purpose-x-popupify-purpose (purpose &optional display-fn)
   "Set up a popup-like behavior for buffers with purpose PURPOSE.
@@ -484,6 +516,16 @@ the popup window doesn't need to close."
         (purpose-x-popwin-close-windows)
       (purpose-x-popwin-remove-hooks))))
 
+(defun purpose-x-popwin-quit-restore-window-advice (fn &optional window bury-or-kill)
+  "Close pop up window when there aren't previous buffers can be shown in it."
+  (when-let* ((window (ignore-errors (window-normalize-window window t))))
+    (funcall fn window bury-or-kill)
+    (when (and (window-live-p window)
+               ;; quit-restore-window did not kill window
+               (null (window-parameter window 'quit-restore))
+               (not (window-prev-buffers window)))
+      (ignore-errors (delete-window window)))))
+
 ;;;###autoload
 (defun purpose-x-popwin-setup ()
   "Activate `popwin' emulation.
@@ -500,14 +542,16 @@ Look at `purpose-x-popwin-*' variables and functions to learn more."
   (purpose-x-popwin-update-conf)
   (setq purpose-special-action-sequences
         (cl-delete 'popup purpose-special-action-sequences :key #'car))
-  (purpose-x-popupify-purpose 'popup #'purpose-x-popwin-display-buffer))
+  (purpose-x-popupify-purpose 'popup #'purpose-x-popwin-display-buffer)
+  (advice-add 'quit-restore-window :around 'purpose-x-popwin-quit-restore-window-advice))
 
 (defun purpose-x-popwin-unset ()
   "Deactivate `popwin' emulation."
   (interactive)
   (purpose-del-extension-configuration :popwin)
   (purpose-x-unpopupify-purpose 'popup)
-  (purpose-x-popwin-remove-hooks))
+  (purpose-x-popwin-remove-hooks)
+  (advice-remove 'quit-restore-window 'purpose-x-popwin-quit-restore-window-advice))
 
 ;;; --- purpose-x-popup ends here ---
 
