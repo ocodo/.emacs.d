@@ -72,7 +72,7 @@ anzu version of `isearch-query-replace-regexp'.
 
 \(fn ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "anzu" '("anzu-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "anzu" '("anzu")))
 
 ;;;***
 
