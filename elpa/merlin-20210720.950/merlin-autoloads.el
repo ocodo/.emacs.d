@@ -23,14 +23,7 @@ Short cuts:
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "merlin" '("bounds-of-ocaml-atom-at-point" "merlin")))
-
-;;;***
-
-;;;### (autoloads nil "merlin-ac" "merlin-ac.el" (0 0 0 0))
-;;; Generated autoloads from merlin-ac.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "merlin-ac" '("ac-merlin-locate" "merlin-ac-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "merlin" '("merlin-")))
 
 ;;;***
 
@@ -38,26 +31,6 @@ Short cuts:
 ;;; Generated autoloads from merlin-cap.el
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "merlin-cap" '("merlin-c")))
-
-;;;***
-
-;;;### (autoloads nil "merlin-company" "merlin-company.el" (0 0 0
-;;;;;;  0))
-;;; Generated autoloads from merlin-company.el
-
-(autoload 'merlin-company-backend "merlin-company" "\
-
-
-\(fn COMMAND &optional ARG &rest IGNORED)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "merlin-company" '("merlin-company-")))
-
-;;;***
-
-;;;### (autoloads nil "merlin-iedit" "merlin-iedit.el" (0 0 0 0))
-;;; Generated autoloads from merlin-iedit.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "merlin-iedit" '("merlin-iedit-")))
 
 ;;;***
 

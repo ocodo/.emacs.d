@@ -1,10 +1,12 @@
-;;; merlin.el --- Mode for Merlin, an assistant for OCaml.   -*- coding: utf-8 -*-
+;;; merlin.el --- Mode for Merlin, an assistant for OCaml   -*- coding: utf-8; lexical-binding: t -*-
+
 ;; Licensed under the MIT license.
 
 ;; Author: Frédéric Bour <frederic.bour(_)lakaban.net>
 ;; Created: 30 August 2016
 ;; Version: 3.0
 ;; Keywords: ocaml languages
+;; Package-Requires: ((emacs "25.1"))
 ;; URL: https://github.com/ocaml/merlin
 
 ;;; Commentary:
@@ -18,9 +20,9 @@
 ;;; Usage:
 ;; TODO
 
-;;;; Code:
+;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 (require 'crm) ;; for completing-read-multiple
 ;; caml-types for highlighting
 ;; (https://github.com/ocaml/merlin/issues/331)
@@ -32,12 +34,6 @@
 (defgroup merlin nil
   "merlin binding mode allowing completion and typing in OCaml files."
   :group 'languages :prefix "merlin-")
-
-(unless (fboundp 'defvar-local)
-  (defmacro defvar-local (var val &optional docstring)
-    "Compatibility macro setup by Merlin for Emacs < 24.3"
-    `(progn (defvar ,var ,val ,docstring)
-            (make-variable-buffer-local (quote ,var)))))
 
 ;;
 ;; Faces
@@ -74,7 +70,8 @@
   "The function takes four arguments:
    - the path to the merlin binary
    - the name of the command
-   - the total time spent in the server (or -1 if that information is not available)
+   - the total time spent in the server (or -1 if that information
+     is not available)
    - the resulting state (\"return\", \"failure\" or \"interrupted\")
 Its return value is ignored."
   :group 'merlin :type 'symbol)
@@ -95,11 +92,13 @@ buffer, in a form suitable for `merlin-buffer-configuration'."
                                 (const :tag "Use current opam switch" opam)))
 
 (defcustom merlin-completion-with-doc nil
-  "If non-nil, tries to retrieve ocamldoc comments associated with each completion candidate"
+  "If non-nil, tries to retrieve ocamldoc comments associated with each
+completion candidate."
   :group 'merlin :type 'boolean)
 
 (defcustom merlin-completion-dwim t
-  "If non-nil, fallback to fuzzier completion when normal completion gives no result."
+  "If non-nil, fallback to fuzzier completion when normal completion gives
+no result."
   :group 'merlin :type 'boolean)
 
 (defcustom merlin-completion-types t
@@ -107,11 +106,13 @@ buffer, in a form suitable for `merlin-buffer-configuration'."
   :group 'merlin :type 'boolean)
 
 (defcustom merlin-completion-arg-type t
-  "If non-nil, print the type of the expected argument during completion on an application."
+  "If non-nil, print the type of the expected argument during completion
+on an application."
   :group 'merlin :type 'boolean)
 
 (defcustom merlin-debug nil
-  "If non-nil, log the data sent and received from merlin into `merlin-log-buffer-name' buffer."
+  "If non-nil, log the data sent and received from merlin into
+`merlin-log-buffer-name' buffer."
   :group 'merlin :type 'boolean)
 
 (defcustom merlin-report-warnings t
@@ -119,7 +120,8 @@ buffer, in a form suitable for `merlin-buffer-configuration'."
   :group 'merlin :type 'boolean)
 
 (defcustom merlin-occurrences-buffer-name "*merlin-occurrences*"
-  "The name of the buffer listing occurrences of an identifier after a call to `merlin-occurrences'."
+  "The name of the buffer listing occurrences of an identifier after
+a call to `merlin-occurrences'."
   :group 'merlin :type 'string)
 
 (defcustom merlin-type-buffer-name "*merlin-types*"
@@ -127,7 +129,8 @@ buffer, in a form suitable for `merlin-buffer-configuration'."
   :group 'merlin :type 'string)
 
 (defcustom merlin-log-buffer-name "*merlin-log*"
-  "The name of the buffer storing log messages and debug information. See `merlin-debug'."
+  "The name of the buffer storing log messages and debug information.
+See `merlin-debug'."
   :group 'merlin :type 'string)
 
 (defcustom merlin-favourite-caml-mode nil
@@ -138,7 +141,8 @@ buffer, in a form suitable for `merlin-buffer-configuration'."
   "Determines whether merlin should check for errors after saving.
 If t, always check for errors after saving.
 If nil, never check.
-If a string list, check only if the extension of the buffer-file-name is in the list."
+If a string list, check only if the extension of the buffer-file-name
+ is in the list."
   :group 'merlin :type '(choice (repeat string) boolean))
 
 (defcustom merlin-error-in-fringe (>= emacs-major-version 24)
@@ -150,7 +154,8 @@ If a string list, check only if the extension of the buffer-file-name is in the 
   :group 'merlin :type 'boolean)
 
 (defcustom merlin-error-check-then-move t
-  "If t, merlin-error-next and merlin-error-prev first update the errors then move the cursor.
+  "If t, merlin-error-next and merlin-error-prev first update the errors
+then move the cursor.
 If nil, they both update and move at the same time."
   :group 'merlin :type 'boolean)
 
@@ -159,13 +164,15 @@ If nil, they both update and move at the same time."
   :group 'merlin :type '(repeat string))
 
 (defcustom merlin-occurrences-show-buffer 'other
-  "Determine how to display the occurrences list after a call to `merlin-occurrences'."
+  "Determine how to display the occurrences list after a call to
+`merlin-occurrences'."
   :group 'merlin :type '(choice (const :tag "Don't show list" never)
                                 (const :tag "Show in the current window" same)
                                 (const :tag "Show in another window" other)))
 
 (defcustom merlin-locate-in-new-window 'diff
-  "Determine whether to display results of `merlin-locate' in a new window or not."
+  "Determine whether to display results of `merlin-locate' in
+a new window or not."
   :group 'merlin :type '(choice (const :tag "Always open a new window" always)
                                 (const :tag "Never open a new window" never)
                                 (const :tag "Open a new window only if the target file is different from current buffer." diff)))
@@ -184,7 +191,9 @@ If nil, they both update and move at the same time."
   :group 'merlin :type 'filename)
 
 (defcustom merlin-arrow-keys-type-enclosing t
-  "If non-nil, after a type enclosing, C+up and C+down arrow are used to go up and down the AST. As well, C+w copy the type to the kill ring and C+d destructure the expression."
+  "If non-nil, after a type enclosing, C-up and C-down are used
+to go up and down the AST. In addition, C-w copies the type to the
+kill ring and C-d destructures the expression."
   :group 'merlin :type 'boolean)
 
 (defcustom merlin-type-after-locate nil
@@ -192,7 +201,8 @@ If nil, they both update and move at the same time."
   :group 'merlin :type 'boolean)
 
 (defcustom merlin-allow-sit-for t
-  "When user attention is required, merlin will use `sit-for' only if `merlin-allow-sit-for' is `t'."
+  "When user attention is required, merlin will use `sit-for' only if
+`merlin-allow-sit-for' is `t'."
   :group 'merlin :type 'boolean)
 
 (defalias 'merlin-find-file 'find-file-other-window
@@ -204,7 +214,8 @@ merlin-locate, see `merlin-locate-in-new-window').")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar-local merlin-buffer-configuration nil
-  "An association list describing the configuration of merlin binary for the current buffer.  Customize `merlin-configuration-function` to initialize it.
+  "An association list describing the configuration of merlin binary for the
+current buffer.  Customize `merlin-configuration-function` to initialize it.
 The association list can contain the following optional keys:
 - `flags': extra flags to give merlin
 
@@ -224,6 +235,9 @@ The association list can contain the following optional keys:
 
 (defvar-local merlin-buffer-packages nil
    "List of packages loaded in the buffer")
+
+(defvar-local merlin-buffer-packages-path nil
+   "List of path of packages loaded in the buffer")
 
 (defvar-local merlin-buffer-extensions nil
    "List of syntax extensions active in the buffer")
@@ -265,7 +279,7 @@ The association list can contain the following optional keys:
 
 ;; Verbosity
 
-(defconst merlin/verbosity-context nil
+(defconst merlin-verbosity-context nil
   "If non-nil, a simple key used to determine verbosity")
 
 (defvar-local merlin--verbosity-cache nil
@@ -324,16 +338,14 @@ The association list can contain the following optional keys:
     (message "Last commands executed, most recent at the end:\n%s"
              (mapconcat 'identity buf "\n"))))
 
-(defun merlin/buffer-substring (start end)
-   "Return content of buffer between two points or empty string if points are not valid"
-   (if (< start end) (buffer-substring-no-properties start end) ""))
+(defun merlin-buffer-substring (start end)
+  "Return content of buffer between two points or empty string if points are not valid"
+  (if (< start end) (buffer-substring-no-properties start end) ""))
 
-(defun merlin-lookup (key list &optional default)
+(defsubst merlin-lookup (key list &optional default)
   "Lookup KEY in LIST which is a list of pairs. If not found,
 return DEFAULT or the value associated to KEY."
-  (let ((v (assoc key list)))
-    (if v (cdr v)
-      default)))
+  (assoc-default key list nil default))
 
 (defun merlin--differs-from-current-file (path)
   (not (string-equal path (buffer-file-name))))
@@ -390,22 +402,20 @@ containing fields file, line and col."
 (defun merlin--highlight (bounds face)
   "Create an overlay on BOUNDS (of the form (START . END)) and give it FACE."
   (remove-overlays nil nil 'merlin-kind 'highlight)
-  (lexical-let ((overlay (make-overlay (car bounds) (cdr bounds))))
+  (let ((overlay (make-overlay (car bounds) (cdr bounds))))
     (overlay-put overlay 'face face)
     (overlay-put overlay 'merlin-kind 'highlight)
     (if merlin-allow-sit-for
-        (unwind-protect (sit-for 60) (delete-overlay overlay)))
+        (unwind-protect (sit-for 60) (delete-overlay overlay))
       (run-with-idle-timer 0.5 nil
-        (lambda () (delete-overlay overlay)))))
+        (lambda () (delete-overlay overlay))))))
 
 ;; Position management
 
 (defun merlin--goto-point (data)
   "Go to the point indicated by DATA which must be an assoc list with fields
 line and col. If narrowing is in effect, widen if DATA is outside the visible region."
-  (let ((line-num (merlin-lookup 'line data 0))
-        (col-byte-offset (merlin-lookup 'col data 0))
-        (target-pos (merlin--point-of-pos data)))
+  (let ((target-pos (merlin--point-of-pos data)))
     ;; If our target position is outside the narrowed region, we'll
     ;; have to widen.
     (when (or (< target-pos (point-min))
@@ -430,11 +440,11 @@ DATA must be an assoc list with fields line and col."
                (target-off (+ bol-offset col-offset)))
           (byte-to-position target-off))))))
 
-(defun merlin/make-point (data)
+(defun merlin-make-point (data)
   "Transform DATA (a remote merlin position) into a point."
   (merlin--point-of-pos data))
 
-(defun merlin/unmake-point (point)
+(defun merlin-unmake-point (point)
   "Destruct POINT to line / col."
   (save-excursion
    (save-restriction
@@ -444,12 +454,14 @@ DATA must be an assoc list with fields line and col."
              (- (position-bytes (point))
                 (position-bytes (line-beginning-position)))))))
 
+(define-obsolete-function-alias 'merlin/unmake-point 'merlin-unmake-point "2021-01-27")
+
 (defun merlin--make-bounds (data)
   "From a remote merlin object DATA {\"start\": LOC1; \"end\": LOC2},
 return (LOC1 . LOC2)."
   (cons
-   (merlin/make-point (cdr (assoc 'start data)))
-   (merlin/make-point (cdr (assoc 'end data)))))
+   (merlin-make-point (cdr (assoc 'start data)))
+   (merlin-make-point (cdr (assoc 'end data)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;; PROCESS MANAGEMENT ;;
@@ -483,18 +495,18 @@ return (LOC1 . LOC2)."
 
 (defun merlin--call-merlin (command &rest args)
   "Invoke merlin binary with the proper setup to execute the command passed as argument (lookup appropriate binary, setup logging, pass global settings)"
-  ; Really start process
+  ;; Really start process
   (let ((binary      (merlin-command))
-        (flags       (merlin-lookup 'flags merlin-buffer-configuration))
-        (process-environment (copy-list process-environment))
+        ;; (flags       (merlin-lookup 'flags merlin-buffer-configuration))
+        (process-environment (cl-copy-list process-environment))
         (dot-merlin  (merlin-lookup 'dot-merlin merlin-buffer-configuration))
-        ; FIXME use logfile
-        (logfile     (or (merlin-lookup 'logfile merlin-buffer-configuration)
-                         merlin-logfile))
+        ;; FIXME use logfile
+        ;; (logfile     (or (merlin-lookup 'logfile merlin-buffer-configuration)
+        ;;                  merlin-logfile))
         (extensions  (merlin--map-flatten (lambda (x) (cons "-extension" x))
                                           merlin-buffer-extensions))
-        (packages    (merlin--map-flatten (lambda (x) (cons "-package" x))
-                                          merlin-buffer-packages))
+        (packages    (merlin--map-flatten (lambda (x) (cons "-I" x))
+                                          merlin-buffer-packages-path))
         (filename    (buffer-file-name (buffer-base-buffer))))
     ;; Update environment
     (dolist (binding (merlin-lookup 'env merlin-buffer-configuration))
@@ -503,34 +515,34 @@ return (LOC1 . LOC2)."
                        (substring binding 0 (1+ equal-pos))
                        binding))
              (is-prefix (lambda (x) (string-prefix-p prefix x))))
-        (setq process-environment (delete-if is-prefix process-environment))
+        (setq process-environment (cl-delete-if is-prefix process-environment))
         (when equal-pos
           (setq process-environment (cons binding process-environment)))))
     ;; Compute verbosity
-    (when (eq merlin/verbosity-context t)
-        (setq merlin/verbosity-context (cons command args)))
-    (if (not merlin/verbosity-context)
+    (when (eq merlin-verbosity-context t)
+      (setq merlin-verbosity-context (cons command args)))
+    (if (not merlin-verbosity-context)
         (setq merlin--verbosity-cache nil)
-      (if (equal merlin/verbosity-context (car-safe merlin--verbosity-cache))
+      (if (equal merlin-verbosity-context (car-safe merlin--verbosity-cache))
           (setcdr merlin--verbosity-cache (1+ (cdr merlin--verbosity-cache)))
-        (setq merlin--verbosity-cache (cons merlin/verbosity-context 0))))
+        (setq merlin--verbosity-cache (cons merlin-verbosity-context 0))))
     ;; Compute full command line.
     (setq args (merlin--map-flatten-to-string
-                 "server" command "-protocol" "sexp"
-                 (when dot-merlin
-                   (list "-dot-merlin" dot-merlin))
-                 ;; Is debug mode enabled
-                 (when merlin-debug '("-log-file" "-"))
-                 ;; If command is repeated, increase verbosity
-                 (when merlin/verbosity-context
-                   (list "-verbosity" (cdr merlin--verbosity-cache)))
-                 packages
-                 extensions
-                 (unless (string-equal merlin-buffer-flags "")
-                   (cons "-flags" merlin-buffer-flags))
-                 (when filename
-                   (cons "-filename" filename))
-                 args))
+                "server" command "-protocol" "sexp"
+                (when dot-merlin
+                  (list "-dot-merlin" dot-merlin))
+                ;; Is debug mode enabled
+                (when merlin-debug '("-log-file" "-"))
+                ;; If command is repeated, increase verbosity
+                (when merlin-verbosity-context
+                  (list "-verbosity" (cdr merlin--verbosity-cache)))
+                packages
+                extensions
+                (unless (string-equal merlin-buffer-flags "")
+                  (cons "-flags" merlin-buffer-flags))
+                (when filename
+                  (cons "-filename" filename))
+                args))
     ;; Log last commands
     (setq merlin-debug-last-commands
           (cons (cons (cons binary args) nil) merlin-debug-last-commands))
@@ -543,7 +555,7 @@ return (LOC1 . LOC2)."
   (when merlin-client-log-function
     (funcall merlin-client-log-function binary cmd timing result)))
 
-(defun merlin/call (command &rest args)
+(defun merlin-call (command &rest args)
   "Execute a command and parse output: return an sexp on success or throw an error"
   (let* ((binary (merlin-command))
          (result (merlin--call-merlin command args)))
@@ -562,12 +574,13 @@ return (LOC1 . LOC2)."
       (merlin-client-logger binary command timing class)
       (dolist (notification notifications)
         (message "(merlin) %s" notification))
-      (cond ((string-equal class "return") value)
-            ((string-equal class "failure")
-             (error "merlin-mode failure: %s" value))
-            ((string-equal class "error")
-             (error "merlin: %s" value))
-            (t (error "unknown answer: %S:%S" class value))))))
+      (pcase class
+        ("return" value)
+        ("failure" (error "merlin-mode failure: %s" value))
+        ("error" (error "merlin: %s" value))
+        (_ (error "unknown answer: %S:%S" class value))))))
+
+(define-obsolete-function-alias 'merlin/call 'merlin-call "2021-01-27")
 
 (defun merlin-stop-server ()
   "Shutdown merlin server."
@@ -587,12 +600,12 @@ return (LOC1 . LOC2)."
 
 (defun merlin-switch-list-by-ext (&rest exts)
   "List filenames ending by any of EXTS in the path."
-  (merlin/call "list-modules"
+  (merlin-call "list-modules"
                (merlin--map-flatten (lambda (x) (cons "-ext" x)) exts)))
 
 (defun merlin-switch-to (name &rest exts)
   "Switch to NAME.EXTS."
-  (let ((file (merlin/call "path-of-source"
+  (let ((file (merlin-call "path-of-source"
                (merlin--map-flatten
                  (lambda (ext) (cons "-file" (concat name ext))) exts))))
     (when file (merlin-find-file file))))
@@ -614,10 +627,12 @@ return (LOC1 . LOC2)."
 ;;;;;;;;;;;;;;;;;;
 
 (defvar-local merlin--last-edit nil
-  "Coordinates (start . end) of last edition or nil, to prevent error messages from flickering when cursor is around edition.")
+  "Coordinates (start . end) of last edit or nil, to prevent error messages
+from flickering when cursor is around the edit.")
 
-(defun merlin--on-edit (start end length)
-  "Memorize coordinates of last edition to avoid flickering error messages around the cursor"
+(defun merlin--on-edit (start end _length)
+  "Memorize coordinates of last edition to avoid flickering error messages
+around the cursor"
   (setq merlin--last-edit (cons start end)))
 
 (defun merlin--error-position-delta (point err)
@@ -637,7 +652,8 @@ return (LOC1 . LOC2)."
           (setq d d-) (setq err err-))))))
 
 (defun merlin-show-error-on-current-line ()
-  "Show the error of the current line in the echo area.  If there is no error, do nothing."
+  "Show the error of the current line in the echo area.
+If there is no error, do nothing."
   (when (and merlin-mode (not (current-message)))
     (let* ((errors (overlays-in (line-beginning-position) (line-end-position)))
            (err nil))
@@ -649,28 +665,30 @@ return (LOC1 . LOC2)."
         (when err (message "%s" (cdr (assoc 'message err))))))))
 
 (defun merlin--overlay-next-property-set (point prop &optional limit)
-  "Find next point where PROP is set (like next-single-char-property-change but ensure that prop is not-nil)."
+  "Find next point where PROP is set.
+(Like `next-single-char-property-change' but ensure that prop is not-nil)."
   (setq point (next-single-char-property-change point prop nil limit))
-  (unless (find-if (lambda (a) (overlay-get a prop)) (overlays-at point))
+  (unless (cl-find-if (lambda (a) (overlay-get a prop)) (overlays-at point))
     (setq point (next-single-char-property-change point prop nil limit)))
   point)
 
 (defun merlin--overlay-previous-property-set (point prop &optional limit)
-  "Find previous point where PROP is set (like previous-single-char-property-change but ensure that prop is not-nil)."
+  "Find previous point where PROP is set.
+(Like `previous-single-char-property-change' but ensure that prop is not-nil)."
   (setq point (previous-single-char-property-change point prop nil limit))
-  (unless (find-if (lambda (a) (overlay-get a prop)) (overlays-at point))
+  (unless (cl-find-if (lambda (a) (overlay-get a prop)) (overlays-at point))
     (setq point (previous-single-char-property-change point prop nil limit)))
   point)
 
-;; group is dynamically scoped
-(defun merlin--error-group-pred (err)
-  (eq (overlay-get err 'merlin-error-group) group))
+(defun merlin--has-error-group-overlay-at-point (point group)
+  (cl-some (lambda (err) (eq (overlay-get err 'merlin-error-group) group))
+           (overlays-at point)))
 
 (defun merlin--error-group-next (point group &optional limit)
   (let ((point (merlin--overlay-next-property-set point 'merlin-pending-error limit)))
     (when group
       (while (not (or (eq point (point-max))
-                      (find-if 'merlin--error-group-pred (overlays-at point))))
+                      (merlin--has-error-group-overlay-at-point point group)))
         (setq point (merlin--overlay-next-property-set point 'merlin-pending-error limit))))
     point))
 
@@ -678,7 +696,7 @@ return (LOC1 . LOC2)."
   (let ((point (merlin--overlay-previous-property-set point 'merlin-pending-error limit)))
     (when group
       (while (not (or (eq point (point-min))
-                      (find-if 'merlin--error-group-pred (overlays-at point))))
+                      (merlin--has-error-group-overlay-at-point point group)))
         (setq point (merlin--overlay-next-property-set point 'merlin-pending-error limit))))
     point))
 
@@ -779,7 +797,7 @@ return (LOC1 . LOC2)."
   "Returns non-nil if OVERLAY is about a pending error."
   (if overlay (overlay-get overlay 'merlin-pending-error) nil))
 
-(defun merlin--kill-error-if-edited (overlay is-after beg end &optional length)
+(defun merlin--kill-error-if-edited (overlay is-after _beg _end &optional _length)
   "Remove an error from the pending error lists if it is edited by the user."
   (when is-after (delete-overlay overlay)))
 
@@ -798,8 +816,8 @@ return (LOC1 . LOC2)."
                      (cons (car bounds) (1+ (cdr bounds))))))
     (setq bounds (cons (copy-marker (car bounds))
                        (copy-marker (cdr bounds))))
-    (acons 'sub (mapcar 'merlin--transform-add-error-bounds subs)
-           (acons 'bounds bounds err))))
+    (cl-acons 'sub (mapcar 'merlin--transform-add-error-bounds subs)
+              (cl-acons 'bounds bounds err))))
 
 (defun merlin-transform-display-errors (errors)
   "Populate the error list with ERRORS, transformed into an emacs-friendly
@@ -833,15 +851,15 @@ form. Do display of error list."
 Return t if there were not any or nil if there were.  Moreover, it displays the
 errors in the fringe.  If VIEW-ERRORS-P is non-nil, display a count of them."
   (merlin-error-reset)
-  (let* ((errors (merlin/call "errors"))
-         (no-loc (remove-if (lambda (e) (assoc 'start e)) errors)))
-    (setq errors (remove-if-not (lambda (e) (assoc 'start e)) errors))
+  (let* ((errors (merlin-call "errors"))
+         (no-loc (cl-remove-if (lambda (e) (assoc 'start e)) errors)))
+    (setq errors (cl-remove-if-not (lambda (e) (assoc 'start e)) errors))
     (unless merlin-report-warnings
-      (setq errors (remove-if (lambda (e)
-                                (or
-                                  (eq (cdr-safe (assoc 'message e)) "warning")
-                                  (merlin--error-warning-p (cdr (assoc 'message e)))))
-                              errors)))
+      (setq errors (cl-remove-if (lambda (e)
+                                   (or
+                                    (eq (cdr-safe (assoc 'message e)) "warning")
+                                    (merlin--error-warning-p (cdr (assoc 'message e)))))
+                                 errors)))
     (setq merlin-erroneous-buffer (or errors no-loc))
     (dolist (e no-loc)
       (message "%s" (cdr (assoc 'message e))))
@@ -884,7 +902,7 @@ errors in the fringe.  If VIEW-ERRORS-P is non-nil, display a count of them."
 ;; COMPLETION HELPERS ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun merlin/completion-entry-short-description (entry)
+(defun merlin-completion-entry-short-description (entry)
   "Return a short string describing the content a completion entry (e.g kind of
 identifier, type of a value, etc)."
   (let* ((kind (cdr (assoc 'kind entry)))
@@ -894,20 +912,20 @@ identifier, type of a value, etc)."
                      (t desc))))
     (replace-regexp-in-string "[\n ]+" " " type)))
 
-(defun merlin/completion-entry-text (compl-prefix entry)
+(defun merlin-completion-entry-text (compl-prefix entry)
   "Return the text that should replace COMPL-PREFIX in the buffer if the user
 chooses this completion entry.
 COMPL-PREFIX is the prefix that was used to start completion."
   (let ((entry-name (cdr (assoc 'name entry))))
     (if merlin--dwimed entry-name (concat compl-prefix entry-name))))
 
-(defun merlin/completion-prefix (ident)
+(defun merlin-completion-prefix (ident)
   "Compute the prefix of IDENT.  The prefix of `Foo.bar' is `Foo.' and the
 prefix of `bar' is `'."
-  (car (merlin/completion-split-ident ident)))
+  (car (merlin-completion-split-ident ident)))
 
-(defun merlin/completion-split-ident (ident)
-  "Split IDENT into a (cons prefix suffix). See merlin/completion-prefix."
+(defun merlin-completion-split-ident (ident)
+  "Split IDENT into a (cons prefix suffix). See merlin-completion-prefix."
   (let* ((l (split-string ident "\\."))
          (s (mapconcat 'identity (butlast l) "."))
          (suffix (if l (car (last l)) ident))
@@ -924,16 +942,15 @@ prefix of `bar' is `'."
                       (string-prefix-p prefix name)))
            collect (append x '((kind . "Label") (info . nil)))))
 
-(defun merlin/complete (ident)
+(defun merlin-complete (ident)
   "Return the data for completion of IDENT, i.e. a list of tuples of the form
   '(NAME TYPE KIND INFO)."
   (setq-local merlin--dwimed nil)
-  (let* ((merlin/verbosity-context t) ; increase verbosity level if necessary
-         (ident- (merlin/completion-split-ident ident))
+  (let* ((merlin-verbosity-context t) ; increase verbosity level if necessary
+         (ident- (merlin-completion-split-ident ident))
          (suffix (cdr ident-))
-         (prefix (car ident-))
-         (data   (merlin/call "complete-prefix"
-                              "-position" (merlin/unmake-point (point))
+         (data   (merlin-call "complete-prefix"
+                              "-position" (merlin-unmake-point (point))
                               "-prefix" ident
                               "-doc" (if merlin-completion-with-doc "y" "n")))
          ;; all classic entries
@@ -953,12 +970,11 @@ prefix of `bar' is `'."
     (setq labels (merlin--completion-prepare-labels labels suffix))
     ;; DWIM completion
     (when (and merlin-completion-dwim (not labels) (not entries))
-      (setq data (merlin/call "expand-prefix"
-                              "-position" (merlin/unmake-point (point))
+      (setq data (merlin-call "expand-prefix"
+                              "-position" (merlin-unmake-point (point))
                               "-prefix" ident))
       (setq entries (cdr (assoc 'entries data)))
-      (setq-local merlin--dwimed t)
-      (setq prefix ""))
+      (setq-local merlin--dwimed t))
     ;; Concat results
     (let ((result (append labels entries)))
       (if expected-ty
@@ -967,7 +983,7 @@ prefix of `bar' is `'."
         result))))
 
 ;; FIXME: merlin shouldn't rely on editor to compute bounds
-(defun bounds-of-ocaml-atom-at-point ()
+(defun merlin-bounds-of-ocaml-atom-at-point ()
   "Return the start and end points of an ocaml atom near point.
 An ocaml atom is any string containing [a-z_0-9A-Z`.]."
   (save-excursion
@@ -980,9 +996,9 @@ An ocaml atom is any string containing [a-z_0-9A-Z`.]."
         nil)))) ; no atom at point
 
 (put 'ocaml-atom 'bounds-of-thing-at-point
-     'bounds-of-ocaml-atom-at-point)
+     'merlin-bounds-of-ocaml-atom-at-point)
 
-(defun merlin/completion-bounds ()
+(defun merlin-completion-bounds ()
   "Returns a pair (start . end) of the content to complete"
   (let ((bounds (bounds-of-thing-at-point 'ocaml-atom)))
     (cons (if bounds (car bounds) (point))
@@ -993,9 +1009,9 @@ An ocaml atom is any string containing [a-z_0-9A-Z`.]."
 ;;;;;;;;;;;;;;;;;;;;;
 
 (defun merlin--search (query)
-  (merlin/call "search-by-polarity"
+  (merlin-call "search-by-polarity"
                "-query" query
-               "-position" (merlin/unmake-point (point))))
+               "-position" (merlin-unmake-point (point))))
 
 (defun merlin-search (query)
   (interactive "sSearch pattern: ")
@@ -1003,8 +1019,8 @@ An ocaml atom is any string containing [a-z_0-9A-Z`.]."
          (entries (cdr (assoc 'entries result)))
          (transform
           (lambda (entry)
-            (let ((text (merlin/completion-entry-text "" entry))
-                  (desc (merlin/completion-entry-short-description entry)))
+            (let ((text (merlin-completion-entry-text "" entry))
+                  (desc (merlin-completion-entry-short-description entry)))
               (vector (concat text " : " desc)
                       `(lambda () (insert ,text)))))))
     (popup-menu (easy-menu-create-menu "Results" (mapcar transform entries)))))
@@ -1030,12 +1046,12 @@ An ocaml atom is any string containing [a-z_0-9A-Z`.]."
     map)
   "Keymap for types buffer.")
 
-(defun merlin/display-in-type-buffer (text)
+(defun merlin-display-in-type-buffer (text)
   "Change content of type-buffer."
   (let ((curr-dir default-directory))
     (with-current-buffer (get-buffer-create merlin-type-buffer-name)
       (when (member major-mode '(nil fundamental-mode))
-                                          ; Guess value for merlin-favourite-caml-mode
+        ;; Guess value for merlin-favourite-caml-mode
         (let ((caml-mode (or merlin-favourite-caml-mode
                              merlin-guessed-favorite-caml-mode)))
           (when caml-mode
@@ -1047,26 +1063,28 @@ An ocaml atom is any string containing [a-z_0-9A-Z`.]."
       (goto-char (point-min))
       (read-only-mode 1)
       (use-local-map merlin-types-buffer-map)
-      ; finally make sure that the type buffer directory is the same as the last
-      ; (ml) buffer we were in.
-      ; Indeed if people move to that buffer and start looking for a file we
-      ; want them to be in the directory they were in when they last requested a
-      ; type, not in the directory they were in when they first requested a
-      ; type (for long lived emacs sessions that directory might not even exist
-      ; anymore).
+      ;; finally make sure that the type buffer directory is the same as the last
+      ;; (ml) buffer we were in.
+      ;; Indeed if people move to that buffer and start looking for a file we
+      ;; want them to be in the directory they were in when they last requested a
+      ;; type, not in the directory they were in when they first requested a
+      ;; type (for long lived emacs sessions that directory might not even exist
+      ;; anymore).
       (setq default-directory curr-dir))))
+
+(define-obsolete-function-alias 'merlin/display-in-type-buffer 'merlin-display-in-type-buffer "2021-01-27")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; EXPRESSION TYPING ;;
 ;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun merlin--type-expression (exp callback-if-success &optional callback-if-exn)
+(defun merlin--type-expression (exp callback-if-success &optional _callback-if-exn)
   "Get the type of EXP inside the local context."
   (when exp
     (funcall callback-if-success
-             (merlin/call "type-expression"
-                          "-position" (merlin/unmake-point (point))
+             (merlin-call "type-expression"
+                          "-position" (merlin-unmake-point (point))
                           "-expression" exp))
     ;; FIXME: callback-if-exn
     ))
@@ -1076,29 +1094,29 @@ An ocaml atom is any string containing [a-z_0-9A-Z`.]."
 If QUIET is non nil, then an overlay and the merlin types can be used."
   (if (not type)
       (unless quiet (message "<no information>"))
-    (merlin/display-in-type-buffer type)
+    (merlin-display-in-type-buffer type)
     (if (merlin--is-short type)
         (message "%s"
-          (with-current-buffer merlin-type-buffer-name
-            (font-lock-fontify-region (point-min) (point-max))
-            (buffer-string)))
+                 (with-current-buffer merlin-type-buffer-name
+                   (font-lock-fontify-region (point-min) (point-max))
+                   (buffer-string)))
       (display-buffer merlin-type-buffer-name))
     (if (and (not quiet) bounds)
         (merlin--highlight bounds 'merlin-type-face))))
 
 (defun merlin--type-region ()
   "Show the type of the region."
-  (lexical-let*
-    ((substring  (merlin/buffer-substring (region-beginning) (region-end)))
-     (on-success (lambda (type) (merlin--type-display nil type nil)))
-     (on-error   (lambda (err)
-                   (let ((msg (assoc 'message err))
-                         (typ (assoc 'type err)))
-                     (cond ((and typ (equal (cdr typ) "parser"))
-                            (message "Error: the content of the region failed to parse."))
-                           (msg (message "Error: %s" (cdr msg)))
-                           (t
-                            (message "Unexpected error")))))))
+  (let*
+      ((substring  (merlin-buffer-substring (region-beginning) (region-end)))
+       (on-success (lambda (type) (merlin--type-display nil type nil)))
+       (on-error   (lambda (err)
+                     (let ((msg (assoc 'message err))
+                           (typ (assoc 'type err)))
+                       (cond ((and typ (equal (cdr typ) "parser"))
+                              (message "Error: the content of the region failed to parse."))
+                             (msg (message "Error: %s" (cdr msg)))
+                             (t
+                              (message "Unexpected error")))))))
     (merlin--type-expression substring on-success on-error)))
 
 (defun merlin-type-expr (exp)
@@ -1113,10 +1131,10 @@ If QUIET is non nil, then an overlay and the merlin types can be used."
 
 (defvar merlin-type-enclosing-map
   (let ((keymap (make-sparse-keymap)))
-    (define-key keymap (kbd "C-<up>") 'merlin-type-enclosing-go-up)
-    (define-key keymap (kbd "C-<down>") 'merlin-type-enclosing-go-down)
-    (define-key keymap (kbd "C-d") 'merlin-destruct-enclosing)
-    (define-key keymap (kbd "C-w") 'merlin-copy-enclosing)
+    (define-key keymap (kbd "C-<up>") #'merlin-type-enclosing-go-up)
+    (define-key keymap (kbd "C-<down>") #'merlin-type-enclosing-go-down)
+    (define-key keymap (kbd "C-d") #'merlin-destruct-enclosing)
+    (define-key keymap (kbd "C-w") #'merlin-copy-enclosing)
     keymap)
   "The local map to navigate type enclosing.")
 
@@ -1131,7 +1149,7 @@ If QUIET is non nil, then an overlay and the merlin types can be used."
     (unless (or (not (eq map (cadr overriding-terminal-local-map)))
                 (eq this-command (lookup-key map (this-command-keys-vector))))
       (merlin--type-enclosing-reset)
-      (remove-hook 'pre-command-hook 'merlin--type-enclosing-reset-hooked))))
+      (remove-hook 'pre-command-hook #'merlin--type-enclosing-reset-hooked))))
 
 (defun merlin--type-enclosing-text (item)
   (if (stringp (car item))
@@ -1142,7 +1160,7 @@ If QUIET is non nil, then an overlay and the merlin types can be used."
              (position  (elt key 1))
              (tail      (elt key 2))
              (verbosity (elt key 3))
-             (types (merlin/call
+             (types (merlin-call
                       "type-enclosing" "-position" position "-index" index
                       (when verbosity (cons "-verbosity" verbosity))))
              (obj (elt types index))
@@ -1153,10 +1171,10 @@ If QUIET is non nil, then an overlay and the merlin types can be used."
 (defun merlin--type-enclosing-query ()
   "Get the enclosings around point from merlin and sets MERLIN-ENCLOSING-TYPES."
   (merlin--type-enclosing-reset)
-  (let* ((merlin/verbosity-context t) ; increase verbosity level if necessary
-         (position (merlin/unmake-point (point)))
+  (let* ((merlin-verbosity-context t) ; increase verbosity level if necessary
+         (position (merlin-unmake-point (point)))
          (verbosity (cdr-safe merlin--verbosity-cache))
-         (types (merlin/call "type-enclosing" "-position" position "-index" 0))
+         (types (merlin-call "type-enclosing" "-position" position "-index" 0))
          (types (ignore-errors
                   (mapcar (lambda (obj)
                             (let* ((tail (cdr (assoc 'tail obj)))
@@ -1214,7 +1232,7 @@ If QUIET is non nil, then an overlay and the merlin types can be used."
     (if (version< emacs-version "24.4")
         (progn
           (set-temporary-overlay-map merlin-type-enclosing-map t)
-          (add-hook 'pre-command-hook 'merlin--type-enclosing-reset-hooked))
+          (add-hook 'pre-command-hook #'merlin--type-enclosing-reset-hooked))
       (set-temporary-overlay-map merlin-type-enclosing-map t
                                  'merlin--type-enclosing-reset))))
 
@@ -1231,31 +1249,106 @@ If called repeatedly, increase the verbosity of the type shown."
 (defun merlin--find-extents (list low high)
   "Return the smallest extent in LIST that LOW and HIGH fit
 strictly within, or nil if there is no such element."
-  (find-if (lambda (extent)
-             (let ((start (merlin--point-of-pos (assoc 'start extent)))
-                   (end (merlin--point-of-pos (assoc 'end extent))))
-               (or (and (> low start)
-                        (<= high end))
-                   (and (< high end)
-                        (>= low start)))))
-           list))
+  (cl-find-if (lambda (extent)
+                (let ((start (merlin--point-of-pos (assoc 'start extent)))
+                      (end (merlin--point-of-pos (assoc 'end extent))))
+                  (or (and (> low start)
+                           (<= high end))
+                      (and (< high end)
+                           (>= low start)))))
+              list))
 
 (defun merlin-enclosing-expand ()
   "Select the construct enclosing point (or the region, if it is active)."
   (interactive)
   (let* ((enclosing-extents
-           (merlin/call "enclosing"
-                        "-position" (merlin/unmake-point (point))))
+           (merlin-call "enclosing"
+                        "-position" (merlin-unmake-point (point))))
          (extents (if (use-region-p)
-                    (merlin--find-extents enclosing-extents
-                                          (region-beginning)
-                                          (region-end))
-                    (first enclosing-extents))))
+                      (merlin--find-extents enclosing-extents
+                                            (region-beginning)
+                                            (region-end))
+                    (cl-first enclosing-extents))))
     (if (not extents)
               (error "No enclosing construct")
       (merlin--goto-point (cdr (assoc 'start extents)))
       (push-mark (merlin--point-of-pos (cdr (assoc 'end extents)))
                  t t))))
+
+;;;;;;;;;;;
+;; HOLES ;;
+;;;;;;;;;;;
+
+(defun merlin--holes ()
+  "Query the list of holes (and their types)"
+  (merlin-call "holes"))
+
+(defun merlin--first-hole-aux (holes current-point comp)
+  "Returns the first `hole` of the list such that
+    `(funcall comp hole current-point)`"
+  (when holes
+    (let* ((head (car holes))
+           (tail (cdr holes))
+           (start (merlin-lookup 'start head))
+           (hole-point (merlin-make-point start)))
+      (if (funcall comp hole-point current-point)
+        head
+        (merlin--first-hole-aux tail current-point comp)))))
+
+(defun merlin--first-hole (holes current-point comp)
+  "Returns the first `hole` of the list that such that
+    `(funcall comp hole current-point)`. If no hole match
+    that condition the first one of the list is returned."
+  (let ((hole (merlin--first-hole-aux holes current-point comp)))
+    (if hole hole (car holes))))
+
+(defun merlin-previous-hole ()
+  "Jump to the previous hole and print its type"
+  (interactive)
+  (let* ((current-point (point))
+         (holes (reverse (merlin--holes)))
+         (hole (merlin--first-hole holes current-point '<)))
+    (when hole
+      (progn
+        (merlin--goto-point (merlin-lookup 'start hole))
+        (message "%s" (merlin-lookup 'type hole))))))
+
+(defun merlin--next-hole-between (pmin pmax)
+  "Jump to the next hole and print its type only if it is in the given range"
+  (let* ((current-point (point))
+         (hole (merlin--first-hole (merlin--holes) current-point '>)))
+    (when hole
+      (let* ((start (merlin-lookup 'start hole))
+             (typ (merlin-lookup 'type hole))
+             (hole-point (merlin-make-point start)))
+        (if (and
+              (>= hole-point pmin)
+              (<= hole-point pmax))
+          (progn
+            (merlin--goto-point start)
+            (message "%s" typ)))))))
+
+(defun merlin--first-hole-between (pmin pmax)
+  "Jump to the first hole in the given range and prints its type"
+  (let* ((hole (merlin--first-hole (merlin--holes) pmin '>)))
+    (when hole
+      (let* ((start (merlin-lookup 'start hole))
+             (typ (merlin-lookup 'type hole))
+             (hole-point (merlin-make-point start)))
+        (if (<= hole-point pmax)
+          (progn
+            (merlin--goto-point start)
+            (message "%s" typ)))))))
+
+(defun merlin-next-hole ()
+  "Jump to the next hole and print its type"
+  (interactive)
+  (let* ((current-point (point))
+         (hole (merlin--first-hole (merlin--holes) current-point '>)))
+    (when hole
+      (progn
+        (merlin--goto-point (merlin-lookup 'start hole))
+        (message "%s" (merlin-lookup 'type hole))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; DESTRUCT / CASE ANALYSIS ;;
@@ -1264,17 +1357,19 @@ strictly within, or nil if there is no such element."
 (defun merlin--replace-buff-portion (start stop txt)
   (let ((start (merlin--point-of-pos start))
         (stop  (merlin--point-of-pos stop)))
-    (save-excursion
-      (delete-region start stop)
-      (goto-char start)
-      (insert txt)
-      (indent-region start (point)))))
+    (progn
+      (save-excursion
+        (delete-region start stop)
+        (goto-char start)
+        (insert txt)
+        (indent-region start (point)))
+      (merlin--next-hole-between start (+ start (length txt))))))
 
 (defun merlin--destruct-bounds (bounds)
   "Execute a case analysis on BOUNDS"
-  (let ((result (merlin/call "case-analysis"
-                            "-start" (merlin/unmake-point (car bounds))
-                            "-end" (merlin/unmake-point (cdr bounds)))))
+  (let ((result (merlin-call "case-analysis"
+                            "-start" (merlin-unmake-point (car bounds))
+                            "-end" (merlin-unmake-point (cdr bounds)))))
     (when result
       (let* ((loc   (car result))
              (start (cdr (assoc 'start loc)))
@@ -1295,6 +1390,45 @@ strictly within, or nil if there is no such element."
                              (cons (region-beginning) (region-end))
                              (cons (point) (point)))))
 
+;;;;;;;;;;;;;;;
+;; CONSTRUCT ;;
+;;;;;;;;;;;;;;;
+
+
+(defun merlin--construct-complete (start stop results)
+  (let ((start (merlin--point-of-pos start))
+        (stop  (merlin--point-of-pos stop)))
+    (cl-labels ((insert-choice (_b _e newtext)
+          (completion--replace start stop newtext)
+          (merlin--first-hole-between start (+ start (length newtext)))))
+      (if (= (length results) 1)
+        (insert-choice 0 0 (car results))
+        (with-output-to-temp-buffer "*Constructions*"
+          (progn 
+            (with-current-buffer "*Constructions*"
+              (setq-local 
+                completion-list-insert-choice-function
+                #'insert-choice))
+            (display-completion-list results)))))))
+
+(defun merlin--construct-point (point)
+  "Execute a construct on POINT"
+  (progn
+    (ignore point) ; Without this Emacs bytecode compiler complains about an    
+                   ; unused variable. This may be a bug in the compiler
+    (let ((result (merlin-call "construct"
+                              "-position" (merlin-unmake-point (point)))))
+      (when result
+        (let* ((loc   (car result))
+              (start (cdr (assoc 'start loc)))
+              (stop  (cdr (assoc 'end loc))))
+          (merlin--construct-complete start stop (cadr result)))))))
+
+(defun merlin-construct ()
+  "Construct over the current hole"
+  (interactive)
+  (merlin--construct-point (cons (point) (point))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; PACKAGE, PROJECT AND FLAGS MANAGEMENT ;;
@@ -1302,13 +1436,15 @@ strictly within, or nil if there is no such element."
 
 (defun merlin-get-packages ()
   "Get the list of available findlib package."
-  (merlin/call "findlib-list"))
+  (let* ((packages-string (shell-command-to-string "ocamlfind list"))
+        (packages-list (split-string packages-string "\n")))
+    (mapcar 'car (mapcar 'split-string packages-list))))
 
 (defun merlin--project-get ()
   "Returns a pair of two string lists (dot_merlins . failures) with a list of
 .merlins file loaded and a list of error messages, if any error occurred during
 loading"
-  (let ((ret (merlin/call "check-configuration")))
+  (let ((ret (merlin-call "check-configuration")))
     (setq merlin--project-cache
           (cons (cdr (assoc 'dot_merlins ret))
                 (cdr (assoc 'failures ret))))))
@@ -1324,6 +1460,10 @@ loading"
             (mapconcat 'identity merlin-buffer-packages " ")))))
   (setq merlin-buffer-packages
         (delete-dups (merlin--map-flatten 'identity pkgs)))
+  (let* ((arguments (cons "ocamlfind query" merlin-buffer-packages))
+        (command (mapconcat 'identity arguments " "))
+        (paths (shell-command-to-string command)))
+    (setq merlin-buffer-packages-path (split-string paths "\n")))
   (merlin-error-reset)
   (merlin-configuration-check t))
 
@@ -1332,7 +1472,7 @@ loading"
   (interactive
    (list (completing-read-multiple
           "Enabled extensions (separate with ','): "
-          (merlin/call "extension-list") nil nil
+          (merlin-call "extension-list") nil nil
           (mapconcat 'identity merlin-buffer-extensions ","))))
   (setq merlin-buffer-extensions
         (delete-dups (merlin--map-flatten 'identity extensions)))
@@ -1354,7 +1494,7 @@ loading"
                       (crm-local-completion-map
                        (merlin--completion-map-with-space crm-local-completion-map)))
                   (completing-read-multiple
-                   "Flags: " (merlin/call "flags-list") nil nil
+                   "Flags: " (merlin-call "flags-list") nil nil
                    merlin-buffer-flags))))
   (setq merlin-buffer-flags
         (mapconcat 'identity (merlin--map-flatten 'identity flags) " "))
@@ -1365,16 +1505,16 @@ loading"
 ;; LOCATE ;;
 ;;;;;;;;;;;;
 
-(defun merlin/locate (&optional ident)
+(defun merlin-call-locate (&optional ident)
   "Locate the identifier IDENT at point."
-  (let ((result (merlin/call "locate"
+  (let ((result (merlin-call "locate"
                              (when ident (list "-prefix" ident))
-                             "-position" (merlin/unmake-point (point))
+                             "-position" (merlin-unmake-point (point))
                              "-look-for" merlin-locate-preference)))
     (unless result
       (error "Not found. (Check *Messages* for potential errors)"))
     (unless (listp result)
-      (error "%S" result))
+      (user-error "%s" result))
     result))
 
 (defun merlin--locate-result (result)
@@ -1385,12 +1525,23 @@ loading"
 (defun merlin-locate-ident (ident)
   "Locate the inputed identifier"
   (interactive "s> ")
-  (merlin--locate-result (merlin/locate ident)))
+  (merlin--locate-result (merlin-call-locate ident)))
 
 (defun merlin-locate ()
   "Locate the identifier under point"
   (interactive)
-  (merlin--locate-result (merlin/locate)))
+  (merlin--locate-result (merlin-call-locate)))
+
+(defun merlin-locate-type ()
+  "Locate the type of the expression under point."
+  (interactive)
+  (let ((result (merlin-call "locate-type"
+                             "-position" (merlin-unmake-point (point)))))
+    (unless result
+      (error "Not found. (Check *Messages* for potential errors)"))
+    (unless (listp result)
+      (user-error "%s" result))
+    (merlin--goto-file-and-point result)))
 
 (defun merlin-pop-stack ()
   "Go back to the last position where the user did a locate."
@@ -1408,17 +1559,17 @@ loading"
 ;; JUMP ;;
 ;;;;;;;;;;
 
-(defun merlin/jump (&optional target)
+(defun merlin-call-jump (&optional target)
   "Jump to the TARGET"
   (if (or (not target) (equal target ""))
-    (setq target "fun let module match"))
-  (let ((result (merlin/call "jump"
-                 "-position" (merlin/unmake-point (point))
-                 "-target" target)))
+      (setq target "fun let module match"))
+  (let ((result (merlin-call "jump"
+                             "-position" (merlin-unmake-point (point))
+                             "-target" target)))
     (unless result
       (error "Not found. (Check *Messages* for potential errors)"))
     (unless (listp result)
-      (error result))
+      (user-error "%s" result))
     result))
 
 (defun merlin-jump (&optional target)
@@ -1430,15 +1581,15 @@ fun let or module or module fun match
 
 Empty string defaults to jumping to all these."
   (interactive "sfun, let, module or match > ")
-  (merlin--goto-file-and-point (merlin/jump target)))
+  (merlin--goto-file-and-point (merlin-call-jump target)))
 
-(defun merlin/phrase (target)
+(defun merlin-call-phrase (target)
   "Move to next phrase (TARGET = 'next) or previous phrase (TARGET = 'prev)"
   (if (or (not target) (equal target ""))
-    (setq target "fun let module match"))
-  (let ((result (merlin/call "phrase"
-                 "-position" (merlin/unmake-point (point))
-                 "-target" target)))
+      (setq target "fun let module match"))
+  (let ((result (merlin-call "phrase"
+                             "-position" (merlin-unmake-point (point))
+                             "-target" target)))
     (unless result
       (error "Not found. (Check *Messages* for potential errors)"))
     (unless (listp result)
@@ -1448,12 +1599,12 @@ Empty string defaults to jumping to all these."
 (defun merlin-phrase-next ()
   "Go to the beginning of the next phrase."
   (interactive)
-  (merlin--goto-file-and-point (merlin/phrase 'next)))
+  (merlin--goto-file-and-point (merlin-call-phrase 'next)))
 
 (defun merlin-phrase-prev ()
   "Go to the beginning of the previous phrase."
   (interactive)
-  (merlin--goto-file-and-point (merlin/phrase 'prev)))
+  (merlin--goto-file-and-point (merlin-call-phrase 'prev)))
 
 ;;;;;;;;;;;;;;
 ;; DOCUMENT ;;
@@ -1461,15 +1612,15 @@ Empty string defaults to jumping to all these."
 
 (defun merlin--document-pos (ident)
   "Document the identifier IDENT at point and return the result."
-  (merlin/call "document"
-               "-position" (merlin/unmake-point (point))
+  (merlin-call "document"
+               "-position" (merlin-unmake-point (point))
                (when ident (cons "-identifier" ident))))
 
 (defun merlin--document-pure (&optional ident)
   "Document the identifier IDENT at point."
   (let* ((raw-doc  (merlin--document-pos ident))
          (doc      (concat "(*" raw-doc "*)")))
-    (merlin/display-in-type-buffer doc)
+    (merlin-display-in-type-buffer doc)
     (with-current-buffer merlin-type-buffer-name
       (if (> (line-number-at-pos (point-max)) 8)
           (display-buffer merlin-type-buffer-name)
@@ -1585,14 +1736,15 @@ Empty string defaults to jumping to all these."
 (defun merlin-occurrences-list (lst)
   (save-excursion
     (merlin-occurrences-populate-buffer lst)
-    (cond ((equal merlin-occurrences-show-buffer 'same)
-           (switch-to-buffer (merlin--get-occ-buff)))
-          ((equal merlin-occurrences-show-buffer 'other)
-           (switch-to-buffer-other-window (merlin--get-occ-buff)))
-          (t nil))))
+    (cl-case merlin-occurrences-show-buffer
+      ('same
+       (switch-to-buffer (merlin--get-occ-buff)))
+      ('other
+       (switch-to-buffer-other-window (merlin--get-occ-buff)))
+      (t nil))))
 
 (defun merlin--occurrences ()
-  (merlin/call "occurrences" "-identifier-at" (merlin/unmake-point (point))))
+  (merlin-call "occurrences" "-identifier-at" (merlin-unmake-point (point))))
 
 (defun merlin-occurrences ()
   "List all occurrences of identifier under cursor in buffer."
@@ -1607,28 +1759,29 @@ Empty string defaults to jumping to all these."
 ;; OPEN REFACTOR ;;
 ;;;;;;;;;;;;;;;;;;;
 
-(defun merlin/refactor-open (mode)
+(defun merlin--refactor-open (mode)
   "Refactor open statement under cursor. mode can be 'qualify or 'unqualify"
   (save-excursion
-    (dolist (occurrence (nreverse (merlin/call
+    (dolist (occurrence (nreverse (merlin-call
                                    "refactor-open"
-                                   "-position" (merlin/unmake-point (point))
+                                   "-position" (merlin-unmake-point (point))
                                    "-action" mode)))
       (let ((bounds (merlin--make-bounds occurrence))
             (content (cdr (assoc 'content occurrence))))
-        (goto-char (car bounds))
-        (delete-char (- (cdr bounds) (car bounds)))
-        (insert content)))))
+        (unless (equal content (buffer-substring (car bounds) (cdr bounds)))
+          (goto-char (car bounds))
+          (delete-char (- (cdr bounds) (car bounds)))
+          (insert content))))))
 
 (defun merlin-refactor-open ()
   "Refactor open statement under cursor: unqualify paths"
   (interactive)
-  (merlin/refactor-open 'unqualify))
+  (merlin--refactor-open 'unqualify))
 
 (defun merlin-refactor-open-qualify ()
   "Refactor open statement under cursor: qualify paths"
   (interactive)
-  (merlin/refactor-open 'qualify))
+  (merlin--refactor-open 'qualify))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; SEMANTIC MOVEMENT ;;
@@ -1694,7 +1847,7 @@ Empty string defaults to jumping to all these."
         ((equal merlin-command 'opam)
          (with-temp-buffer
            (if (eq (call-process-shell-command
-                    "opam config var bin" nil (current-buffer) nil) 0)
+                    "opam var bin" nil (current-buffer) nil) 0)
                (let ((bin-path
                       (replace-regexp-in-string "\n$" "" (buffer-string))))
                  ;; the opam bin dir needs to be on the path, so if merlin
@@ -1710,7 +1863,7 @@ Empty string defaults to jumping to all these."
              ;; best effort if opam is not available, lookup for the binary in
              ;; the existing env
              (progn
-               (message "merlin-command: opam config failed (%S)"
+               (message "merlin-command: opam var failed (%S)"
                         (buffer-string))
                "ocamlmerlin"))))))
 
@@ -1730,14 +1883,14 @@ Empty string defaults to jumping to all these."
   (let ((merlin-map (make-sparse-keymap))
         (merlin-menu-map (make-sparse-keymap))
         (merlin-show-type-map (make-sparse-keymap)))
-    (define-key merlin-map (kbd "C-c C-x") 'merlin-error-next)
-    (define-key merlin-map (kbd "C-c C-l") 'merlin-locate)
-    (define-key merlin-map (kbd "C-c &"  ) 'merlin-pop-stack)
-    (define-key merlin-map (kbd "C-c C-r") 'merlin-error-check)
-    (define-key merlin-map (kbd "C-c C-t") 'merlin-type-enclosing)
-    (define-key merlin-map (kbd "C-c C-d") 'merlin-destruct)
-    (define-key merlin-map (kbd "C-c C-n") 'merlin-phrase-next)
-    (define-key merlin-map (kbd "C-c C-p") 'merlin-phrase-prev)
+    (define-key merlin-map (kbd "C-c C-x") #'merlin-error-next)
+    (define-key merlin-map (kbd "C-c C-l") #'merlin-locate)
+    (define-key merlin-map (kbd "C-c &"  ) #'merlin-pop-stack)
+    (define-key merlin-map (kbd "C-c C-r") #'merlin-error-check)
+    (define-key merlin-map (kbd "C-c C-t") #'merlin-type-enclosing)
+    (define-key merlin-map (kbd "C-c C-d") #'merlin-destruct)
+    (define-key merlin-map (kbd "C-c C-n") #'merlin-phrase-next)
+    (define-key merlin-map (kbd "C-c C-p") #'merlin-phrase-prev)
     (define-key merlin-menu-map [customize]
       '("Customize merlin-mode" . merlin-customize))
     (define-key merlin-menu-map [separator]
@@ -1775,17 +1928,6 @@ Empty string defaults to jumping to all these."
     merlin-map
     ))
 
-(defun merlin-setup ()
-  "Set up a buffer for use with merlin."
-  (interactive)
-  (let ((configuration (merlin--configuration)))
-    (when configuration (setq merlin-buffer-configuration configuration)))
-  (add-to-list 'after-change-functions 'merlin--on-edit)
-  ;; TODO: Sanity check for selected merlin version
-  (unless merlin--idle-timer
-    (setq merlin--idle-timer
-          (run-with-idle-timer 0.5 t 'merlin-show-error-on-current-line))))
-
 (defun merlin-can-handle-buffer ()
   "Simple sanity check (used to avoid running merlin on, e.g., completion buffer)."
   (cond ((equal (buffer-name) merlin-type-buffer-name) nil)
@@ -1814,16 +1956,12 @@ Empty string defaults to jumping to all these."
 
 ;;; DEPRECATED FUNCTIONS
 
-;; No need to synchronize explicitly
-(defun merlin/sync ())
-(make-obsolete 'merlin/sync nil "Synchronization happens automatically since Merlin 3.0")
+(define-obsolete-function-alias 'merlin-project-check 'merlin-configuration-check "v3.0.0")
 
-(define-obsolete-function-alias 'merlin-project-check 'merlin-configuration-check)
+(define-obsolete-function-alias 'merlin--copy-enclosing 'merlin-copy-enclosing "v3.0.0")
+(define-obsolete-function-alias 'merlin--destruct-enclosing 'merlin-destruct-enclosing "v3.0.0")
 
-(define-obsolete-function-alias 'merlin--copy-enclosing 'merlin-copy-enclosing)
-(define-obsolete-function-alias 'merlin--destruct-enclosing 'merlin-destruct-enclosing)
-
-(define-obsolete-function-alias 'merlin-restart-process 'merlin-stop-server)
+(define-obsolete-function-alias 'merlin-restart-process 'merlin-stop-server "v3.0.0")
 
 ;;;###autoload
 (define-minor-mode merlin-mode
@@ -1832,30 +1970,37 @@ Runs a merlin process in the background and perform queries on it.
 
 Short cuts:
 \\{merlin-mode-map}"
-  nil
+  :init-value nil
   :lighter (:eval (merlin-lighter))
   :keymap merlin-mode-map
   (if merlin-mode
-    ;; When enabling merlin
-    (progn
-      (when (member major-mode '(tuareg-mode caml-mode reason-mode))
-	(setq merlin-guessed-favorite-caml-mode major-mode))
-      (if (merlin-can-handle-buffer)
-          (merlin-setup)
-        (merlin-mode -1)))
+      ;; When enabling merlin
+      (progn
+        (when (derived-mode-p 'tuareg-mode 'caml-mode 'reason-mode)
+	  (setq merlin-guessed-favorite-caml-mode major-mode))
+        (if (merlin-can-handle-buffer)
+            (progn
+              (let ((configuration (merlin--configuration)))
+                (when configuration (setq merlin-buffer-configuration configuration)))
+              (add-to-list 'after-change-functions 'merlin--on-edit)
+              (add-hook 'xref-backend-functions #'merlin-xref-backend nil t)
+              ;; TODO: Sanity check for selected merlin version
+              (unless merlin--idle-timer
+                (setq merlin--idle-timer
+                      (run-with-idle-timer 0.5 t 'merlin-show-error-on-current-line))))
+          (merlin-mode -1)))
     ;; When disabling merlin
     (progn
       (when merlin-highlight-overlay
         (delete-overlay merlin-highlight-overlay))
       (remove-overlays nil nil 'merlin-kind 'highlight)
-      (remove-overlays nil nil 'merlin-kind 'error))))
+      (remove-overlays nil nil 'merlin-kind 'error)
+      (remove-hook 'xref-backend-functions #'merlin-xref-backend t))))
 
 (provide 'merlin)
 
 ;; Load these after (provide 'merlin) because they (require 'merlin)
-(eval-after-load 'merlin '(require 'merlin-cap))
-(eval-after-load 'company '(require 'merlin-company))
-(eval-after-load 'auto-complete '(require 'merlin-ac))
-(eval-after-load 'iedit '(require 'merlin-iedit))
+(require 'merlin-cap)
+(require 'merlin-xref)
 
 ;;; merlin.el ends here
