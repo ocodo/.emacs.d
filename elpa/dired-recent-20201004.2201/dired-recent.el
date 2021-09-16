@@ -4,8 +4,8 @@
 
 ;; Author: Wojciech Siewierski <wojciech dot siewierski at onet dot pl>
 ;; URL: https://github.com/vifon/dired-recent.el
-;; Package-Version: 20200712.716
-;; Package-Commit: 860e70b15983ac7164648de8148a529bdcdb8833
+;; Package-Version: 20201004.2201
+;; Package-Commit: d62ace45cc72d49d77862ecf00f52d794ecc5677
 ;; Keywords: files
 ;; Version: 0.9
 ;; Package-Requires: ((emacs "24"))
@@ -244,7 +244,9 @@ potentially slow."
   "Save the dired history to `dired-recent-directories-file'."
   (interactive)
   (with-temp-file dired-recent-directories-file
-    (prin1 dired-recent-directories (current-buffer))))
+    (let ((print-length nil)
+          (print-level nil))
+      (prin1 dired-recent-directories (current-buffer)))))
 
 ;;;###autoload
 (define-minor-mode dired-recent-mode
