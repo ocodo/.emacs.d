@@ -3,7 +3,8 @@
 ;; Copyright (C) 2015 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
-;; Version: 1.7.3
+;; Version: 1.7.4
+;; Package-Requires: ((emacs "24.3"))
 ;; URL: https://github.com/Malabarba/spinner.el
 ;; Keywords: processes mode-line
 
@@ -98,7 +99,7 @@
 
 ;;; Code:
 (eval-when-compile
-  (require 'cl))
+  (require 'cl-lib))
 
 (defconst spinner-types
   '((3-line-clock . ["┤" "┘" "┴" "└" "├" "┌" "┬" "┐"])
@@ -118,7 +119,7 @@
     (box-in-box . ["◰" "◳" "◲" "◱"])
     (box-in-circle . ["◴" "◷" "◶" "◵"])
     (half-circle . ["◐" "◓" "◑" "◒"])
-    (moon . ["🌑" "🌘" "🌖" "🌕" "🌔" "🌒"]))
+    (moon . ["🌑" "🌘" "🌗" "🌖" "🌕" "🌔" "🌓" "🌒"]))
   "Predefined alist of spinners.
 Each car is a symbol identifying the spinner, and each cdr is a
 vector, the spinner itself.")
@@ -126,7 +127,7 @@ vector, the spinner itself.")
 (defun spinner-make-progress-bar (width &optional char)
   "Return a vector of strings of the given WIDTH.
 The vector is a valid spinner type and is similar to the
-`progress-bar' spinner, except without the sorrounding brackets.
+`progress-bar' spinner, except without the surrounding brackets.
 CHAR is the character to use for the moving bar (defaults to =)."
   (let ((whole-string (concat (make-string (1- width) ?\s)
                               (make-string 4 (or char ?=))
@@ -135,7 +136,7 @@ CHAR is the character to use for the moving bar (defaults to =)."
                             (number-sequence (+ width 3) 0 -1)))))
 
 (defvar spinner-current nil
-  "Spinner curently being displayed on the `mode-line-process'.")
+  "Spinner currently being displayed on the `mode-line-process'.")
 (make-variable-buffer-local 'spinner-current)
 
 (defconst spinner--mode-line-construct
@@ -158,7 +159,7 @@ below).
 If TYPE is nil, the frames of this spinner are given by the first
 element of `spinner-types'.
 If TYPE is a symbol, it specifies an element of `spinner-types'.
-If TYPE is `random', use a random element of `spinner-types'.
+If TYPE is 'random, use a random element of `spinner-types'.
 If TYPE is a list, it should be a list of symbols, and a random
 one is chosen as the spinner type.
 If TYPE is a vector, it should be a vector of strings and these
@@ -176,10 +177,10 @@ own spinner animations."
    ((symbolp type) (cdr (assq type spinner-types)))
    (t (error "Unknown spinner type: %s" type))))
 
-(defstruct (spinner
-            (:copier nil)
-            (:conc-name spinner--)
-            (:constructor make-spinner (&optional type buffer-local frames-per-second delay-before-start)))
+(cl-defstruct (spinner
+               (:copier nil)
+               (:conc-name spinner--)
+               (:constructor make-spinner (&optional type buffer-local frames-per-second delay-before-start)))
   (frames (spinner--type-to-frames type))
   (counter 0)
   (fps (or frames-per-second spinner-frames-per-second))
@@ -205,7 +206,7 @@ buffer, use that instead of current buffer.
 
 When started, in order to function properly, the spinner runs a
 timer which periodically calls `force-mode-line-update' in the
-curent buffer.  If BUFFER-LOCAL was set at creation time, then
+current buffer.  If BUFFER-LOCAL was set at creation time, then
 `force-mode-line-update' is called in that buffer instead.  When
 the spinner is stopped, the timer is deactivated.
 
@@ -234,9 +235,9 @@ stop the SPINNER's timer."
             (and buffer (not (buffer-live-p buffer))))
         (spinner-stop spinner)
       ;; Increment
-      (callf (lambda (x) (if (< x 0)
-                        (1+ x)
-                      (% (1+ x) (length (spinner--frames spinner)))))
+      (cl-callf (lambda (x) (if (< x 0)
+                           (1+ x)
+                         (% (1+ x) (length (spinner--frames spinner)))))
           (spinner--counter spinner))
       ;; Update mode-line.
       (if (buffer-live-p buffer)
@@ -254,8 +255,9 @@ stop the SPINNER's timer."
 
     (unless (ignore-errors (> (spinner--fps spinner) 0))
       (error "A spinner's FPS must be a positive number"))
-    (setf (spinner--counter spinner) (round (- (* (or (spinner--delay spinner) 0)
-                                           (spinner--fps spinner)))))
+    (setf (spinner--counter spinner)
+          (round (- (* (or (spinner--delay spinner) 0)
+                       (spinner--fps spinner)))))
     ;; Create timer.
     (let* ((repeat (/ 1.0 (spinner--fps spinner)))
            (time (timer-next-integral-multiple-of-time (current-time) repeat))
@@ -275,7 +277,7 @@ stop the SPINNER's timer."
 If TYPE-OR-OBJECT is an object created with `make-spinner',
 simply activate it.  This method is designed for minor modes, so
 they can use the spinner as part of their lighter by doing:
-    \\='(:eval (spinner-print THE-SPINNER))
+    '(:eval (spinner-print THE-SPINNER))
 To stop this spinner, call `spinner-stop' on it.
 
 If TYPE-OR-OBJECT is anything else, a buffer-local spinner is
@@ -301,7 +303,8 @@ this time, in which case it won't display at all."
       (setq spinner-current (make-spinner type-or-object (current-buffer) fps delay)))
     (setq type-or-object spinner-current)
     ;; Maybe add to mode-line.
-    (unless (memq 'spinner--mode-line-construct mode-line-process)
+    (unless (and (listp mode-line-process)
+                 (memq 'spinner--mode-line-construct mode-line-process))
       (setq mode-line-process
             (list (or mode-line-process "")
                   'spinner--mode-line-construct))))
@@ -329,78 +332,9 @@ active spinner."
       (setf (spinner--active-p spinner) nil)
       (force-mode-line-update))))
 
-;;;; ChangeLog:
-
-;; 2016-11-17  Artur Malabarba  <bruce.connor.am@gmail.com>
-;; 
-;; 	Merge commit '0637791f005f747532b4439439a81c3415961377'
-;; 
-;; 2016-07-11  Paul Eggert	 <eggert@cs.ucla.edu>
-;; 
-;; 	Fix some quoting problems in doc strings
-;; 
-;; 	Most of these are minor issues involving, e.g., quoting `like this' 
-;; 	instead of 'like this'.	 A few involve escaping ` and ' with a preceding
-;; 	\= when the characters should not be turned into curved single quotes.
-;; 
-;; 2016-04-01  Artur Malabarba  <bruce.connor.am@gmail.com>
-;; 
-;; 	Remove reference to thread-last
-;; 
-;; 2016-02-08  Artur Malabarba  <bruce.connor.am@gmail.com>
-;; 
-;; 	Spinner version 1.7
-;; 
-;; 	Offer a spinner-make-progress-bar function. Make spinner-stop never
-;; 	signal. Allow floating-point delays.
-;; 
-;; 2016-02-07  Artur Malabarba  <bruce.connor.am@gmail.com>
-;; 
-;; 	Update the mode-line after spinner-stop
-;; 
-;; 2015-08-11  Artur Malabarba  <bruce.connor.am@gmail.com>
-;; 
-;; 	Merge commit '8d8c459d7757cf5774f11be9147d7a54f5f9bbd7'
-;; 
-;; 2015-05-02  Artur Malabarba  <bruce.connor.am@gmail.com>
-;; 
-;; 	* spinner: Rename constructor.
-;; 
-;; 2015-04-30  Artur Malabarba  <bruce.connor.am@gmail.com>
-;; 
-;; 	* spinner/spinner.el: Rewrite spinners as structures
-;; 
-;; 2015-04-09  Artur Malabarba  <bruce.connor.am@gmail.com>
-;; 
-;; 	spinner: Fix readme
-;; 
-;; 2015-04-09  Artur Malabarba  <bruce.connor.am@gmail.com>
-;; 
-;; 	spinner: Fix leftover mode-line-format code
-;; 
-;; 2015-04-09  Artur Malabarba  <bruce.connor.am@gmail.com>
-;; 
-;; 	Merge commit 'c44ef65515f50bd38304a6f50adebc984fb8e431'
-;; 
-;; 2015-03-07  Artur Malabarba  <bruce.connor.am@gmail.com>
-;; 
-;; 	Merge commit '7eca7d023c95bc21c7838467b3a58d549afaf68d'
-;; 
-;; 2015-03-07  Artur Malabarba  <bruce.connor.am@gmail.com>
-;; 
-;; 	Merge commit 'a7b4e52766977b58c6b9899305e962a2b5235bda'
-;; 
-;; 2015-03-07  Artur Malabarba  <bruce.connor.am@gmail.com>
-;; 
-;; 	Add 'packages/spinner/' from commit
-;; 	'9477ee899d62259d4b946f243cdcdd9cdeb1e910'
-;; 
-;; 	git-subtree-dir: packages/spinner git-subtree-mainline:
-;; 	5736e852fd48a0f1ba1c328dd4d03e3fa008a406 git-subtree-split:
-;; 	9477ee899d62259d4b946f243cdcdd9cdeb1e910
-;; 
-
-
 (provide 'spinner)
 
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
 ;;; spinner.el ends here
