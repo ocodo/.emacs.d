@@ -114,7 +114,8 @@
     ("::" . ,(decode-char 'ucs 8759))
     ("forall" . ,(decode-char 'ucs 8704)))
   "A set of symbol compositions for use as `prettify-symbols-alist'."
-  :group 'purescript)
+  :group 'purescript
+  :type '(repeat (cons string character)))
 
 ;; Use new vars for the font-lock faces.  The indirection allows people to
 ;; use different faces than in other modes, as before.
@@ -360,6 +361,8 @@ that should be commented under LaTeX-style literate scripts."
 
 (defvar purescript-font-lock-seen-docstring nil)
 (make-variable-buffer-local 'purescript-font-lock-seen-docstring)
+
+(defvar purescript-literate)
 
 (defun purescript-syntactic-face-function (state)
   "`font-lock-syntactic-face-function' for PureScript."

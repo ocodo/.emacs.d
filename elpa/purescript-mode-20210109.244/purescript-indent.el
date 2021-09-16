@@ -1395,7 +1395,7 @@ TYPE is either 'guard or 'rpurs."
               (let ((eqn (caar eqns-start)))
                 (setq lastpos (if (cdr eqns-start)
                                   (save-excursion
-                                    (goto-char (caadr eqns-start))
+                                    (goto-char (cl-caadr eqns-start))
                                     (purescript-indent-forward-line -1)
                                     (line-end-position))
                                 end-block))

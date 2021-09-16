@@ -522,6 +522,8 @@ autofill-mode."
                              "in" purescript-indentation-expression))))
     ("do"    . (lambda () (purescript-indentation-with-starter
                            #'purescript-indentation-expression-layout nil)))
+    ("ado"   . (lambda () (purescript-indentation-with-starter
+                           #'purescript-indentation-expression-layout nil)))
     ("mdo"   . (lambda () (purescript-indentation-with-starter
                            #'purescript-indentation-expression-layout nil)))
     ("rec"   . (lambda () (purescript-indentation-with-starter
@@ -977,7 +979,7 @@ autofill-mode."
 
 (defun purescript-indentation-peek-token ()
   "Return token starting at point."
-  (cond ((looking-at "\\(if\\|then\\|else\\|let\\|in\\|mdo\\|rec\\|\\(?:[[:word:]]+\\.\\)*do\\|proc\\|case\\|of\\|where\\|module\\|deriving\\|data\\|type\\|newtype\\|class\\|instance\\)\\([^[:alnum:]'_]\\|$\\)")
+  (cond ((looking-at "\\(if\\|then\\|else\\|let\\|in\\|ado\\|mdo\\|rec\\|\\(?:[[:word:]]+\\.\\)*do\\|proc\\|case\\|of\\|where\\|module\\|deriving\\|data\\|type\\|newtype\\|class\\|instance\\)\\([^[:alnum:]'_]\\|$\\)")
          (match-string-no-properties 1))
         ((looking-at "[][(){}[,;]")
          (match-string-no-properties 0))
