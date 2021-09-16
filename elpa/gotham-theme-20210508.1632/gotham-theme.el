@@ -1,12 +1,13 @@
-;;; gotham-theme.el --- A very dark Emacs color theme.
+;;; gotham-theme.el --- A very dark Emacs color theme
 
 ;; Copyright (C) 2014 Vasilij Schneidermann <mail@vasilij.de>
 
 ;; Author: Vasilij Schneidermann <mail@vasilij.de>
 ;; URL: https://depp.brause.cc/gotham-theme
-;; Package-Version: 20200506.1250
-;; Package-Commit: 0e5965f897c8c976d6b2ca2471dec0dec9b29bbb
+;; Package-Version: 20210508.1632
+;; Package-Commit: 8a97fb8a68cef8e431c972b3d5713b637e21dd7e
 ;; Version: 1.1.8
+;; Package-Requires: ((emacs "24.1"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -582,9 +583,9 @@ depending on DISPLAY for keys which are either :foreground or
    (debbugs-gnu-tagged :foreground red)
 
    ;; diff-hl
-   (diff-hl-change :foreground cyan)
-   (diff-hl-delete :foreground red)
-   (diff-hl-insert :foreground green)
+   (diff-hl-change :foreground cyan :background base5)
+   (diff-hl-delete :foreground red :background orange)
+   (diff-hl-insert :foreground green :background base2)
 
    ;; dired-async
    (dired-async-failures :inherit error)
@@ -820,7 +821,7 @@ depending on DISPLAY for keys which are either :foreground or
    (magit-diff-removed-highlight :foreground red :weight bold)
    (magit-diffstat-added :foreground green)
    (magit-diffstat-removed :foreground red)
-   (magit-dimmed :inherit shadow)
+   (magit-dimmed :foreground base1)
    (magit-hash :foreground base5)
    (magit-log-author :foreground orange)
    (magit-log-date :foreground magenta)
