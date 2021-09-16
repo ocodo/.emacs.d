@@ -9,6 +9,20 @@
 ;;;### (autoloads nil "inf-clojure" "inf-clojure.el" (0 0 0 0))
 ;;; Generated autoloads from inf-clojure.el
 
+(defvar inf-clojure-mode-line '(:eval (format " inf-clojure[%s]" (inf-clojure--modeline-info))) "\
+Mode line lighter for cider mode.
+
+The value of this variable is a mode line template as in
+`mode-line-format'.  See Info Node `(elisp)Mode Line Format' for details
+about mode line templates.
+
+Customize this variable to change how inf-clojure-minor-mode
+displays its status in the mode line.  The default value displays
+the current REPL.  Set this variable to nil to disable the
+mode line entirely.")
+
+(custom-autoload 'inf-clojure-mode-line "inf-clojure" t)
+
 (autoload 'inf-clojure-minor-mode "inf-clojure" "\
 Minor mode for interacting with the inferior Clojure process buffer.
 
@@ -44,7 +58,7 @@ process buffer for a list of commands.)
 \(fn CMD)" t nil)
 
 (autoload 'inf-clojure-connect "inf-clojure" "\
-Connect to a running socket-repl via `inf-clojure'.
+Connect to a running socket REPL server via `inf-clojure'.
 HOST is the host the process is running on, PORT is where it's listening.
 
 \(fn HOST PORT)" t nil)

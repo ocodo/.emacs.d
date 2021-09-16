@@ -1,15 +1,15 @@
 ;;; inf-clojure.el --- Run an external Clojure process in an Emacs buffer -*- lexical-binding: t; -*-
 
-;; Copyright © 2014-2020 Bozhidar Batsov
+;; Copyright © 2014-2021 Bozhidar Batsov
 
-;; Authors: Bozhidar Batsov <bozhidar@batsov.com>
+;; Authors: Bozhidar Batsov <bozhidar@batsov.dev>
 ;;       Olin Shivers <shivers@cs.cmu.edu>
 ;; URL: http://github.com/clojure-emacs/inf-clojure
-;; Package-Version: 20200801.1128
-;; Package-Commit: 2c8e46b584be71fe1a585c9072da86382710dc59
+;; Package-Version: 20210811.645
+;; Package-Commit: 38e7dc1829646b93473c31d704bda0dee6644a38
 ;; Keywords: processes, clojure
-;; Version: 3.0.0
-;; Package-Requires: ((emacs "24.4") (clojure-mode "5.11"))
+;; Version: 3.1.0
+;; Package-Requires: ((emacs "25.1") (clojure-mode "5.11"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -71,7 +71,6 @@
 (require 'ansi-color)
 (require 'cl-lib)
 (require 'subr-x)
-(require 'seq)
 
 (defvar inf-clojure-startup-forms '((lein . "lein repl")
                                     (boot . "boot repl")
@@ -194,13 +193,46 @@ Given a REPL-TYPE ('clojure, 'lumo, ...) and a FEATURE ('doc,
 
 (defun inf-clojure-proc (&optional no-error)
   "Return the current inferior Clojure process.
-When NO-ERROR is non-nil, don't throw an error when no connection
+When NO-ERROR is non-nil, don't throw an error when no process
 has been found.  See also variable `inf-clojure-buffer'."
   (or (get-buffer-process (if (derived-mode-p 'inf-clojure-mode)
                               (current-buffer)
                             inf-clojure-buffer))
       (unless no-error
         (error "No Clojure subprocess; see variable `inf-clojure-buffer'"))))
+
+(defun inf-clojure-repl-p (&optional buf)
+  "Indicates if BUF is an inf-clojure REPL.
+If BUF is nil then defaults to the current buffer.
+Checks the mode and that there is a live process."
+  (let ((buf (or buf (current-buffer))))
+    (and (with-current-buffer buf (derived-mode-p 'inf-clojure-mode))
+         (get-buffer-process buf)
+         (process-live-p (get-buffer-process buf)))))
+
+(defun inf-clojure-repls ()
+  "Return a list of all inf-clojure REPL buffers."
+  (let (repl-buffers)
+    (dolist (b (buffer-list))
+      (when (inf-clojure-repl-p b)
+        (push (buffer-name b) repl-buffers)))
+    repl-buffers))
+
+(defun inf-clojure-set-repl (always-ask)
+  "Set an inf-clojure buffer as the active (default) REPL.
+If in a REPL buffer already, use that unless a prefix is used (or
+ALWAYS-ASK).  Otherwise get a list of all active inf-clojure
+REPLS and offer a choice.  It's recommended to rename REPL
+buffers after they are created with `rename-buffer'."
+  (interactive "P")
+  (if (and (not always-ask)
+           (inf-clojure-repl-p))
+      (setq inf-clojure-buffer (current-buffer))
+    (let ((repl-buffers (inf-clojure-repls)))
+     (if (> (length repl-buffers) 0)
+         (when-let ((repl-buffer (completing-read "Select default REPL: " repl-buffers nil t)))
+           (setq inf-clojure-buffer (get-buffer repl-buffer)))
+       (user-error "No buffers have an inf-clojure process")))))
 
 (defvar-local inf-clojure-repl-type nil
   "Symbol to define your REPL type.
@@ -244,6 +276,15 @@ Input matching this regexp is not saved on the input history in Inferior Clojure
 mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 \(as in :a, :c, etc.)"
   :type 'regexp)
+
+(defun inf-clojure--modeline-info ()
+  "Return modeline info for `inf-clojure-minor-mode'.
+Either \"no process\" or \"buffer-name(repl-type)\""
+  (if (and (bufferp inf-clojure-buffer)
+           (buffer-live-p inf-clojure-buffer))
+      (with-current-buffer inf-clojure-buffer
+        (format "%s(%s)" (buffer-name (current-buffer)) inf-clojure-repl-type))
+    "no process"))
 
 (defvar inf-clojure-mode-map
   (let ((map (copy-keymap comint-mode-map)))
@@ -330,13 +371,30 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
     map))
 
 ;;;###autoload
+(defcustom inf-clojure-mode-line
+  '(:eval (format " inf-clojure[%s]" (inf-clojure--modeline-info)))
+  "Mode line lighter for cider mode.
+
+The value of this variable is a mode line template as in
+`mode-line-format'.  See Info Node `(elisp)Mode Line Format' for details
+about mode line templates.
+
+Customize this variable to change how inf-clojure-minor-mode
+displays its status in the mode line.  The default value displays
+the current REPL.  Set this variable to nil to disable the
+mode line entirely."
+  :type 'sexp
+  :risky t)
+
+;;;###autoload
 (define-minor-mode inf-clojure-minor-mode
   "Minor mode for interacting with the inferior Clojure process buffer.
 
 The following commands are available:
 
 \\{inf-clojure-minor-mode-map}"
-  :lighter "" :keymap inf-clojure-minor-mode-map
+  :lighter inf-clojure-mode-line
+  :keymap inf-clojure-minor-mode-map
   (setq-local comint-input-sender 'inf-clojure--send-string)
   (inf-clojure-eldoc-setup)
   (make-local-variable 'completion-at-point-functions)
@@ -377,24 +435,12 @@ Should be a symbol that is a key in `inf-clojure-repl-features'."
   "Return non-nil iff STRING is a whole line semicolon comment."
   (string-match-p "^\s*;" string))
 
-(defun inf-clojure--make-single-line (string)
-  "Convert a multi-line STRING in a single-line STRING.
-It also reduces redundant whitespace for readability and removes
-comments."
-  (let* ((lines (seq-filter (lambda (s) (not (inf-clojure--whole-comment-line-p s)))
-                            (split-string string "[\r\n]" t))))
-    (mapconcat (lambda (s)
-                 (if (not (string-match-p ";" s))
-                     (replace-regexp-in-string "\s+" " " s)
-                   (concat s "\n")))
-               lines " ")))
-
 (defun inf-clojure--sanitize-command (command)
   "Sanitize COMMAND for sending it to a process.
 An example of things that this function does is to add a final
 newline at the end of the form.  Return an empty string if the
 sanitized command is empty."
-  (let ((sanitized (inf-clojure--make-single-line command)))
+  (let ((sanitized (string-trim-right command)))
     (if (string-blank-p sanitized)
         ""
       (concat sanitized "\n"))))
@@ -471,6 +517,34 @@ This should usually be a combination of `inf-clojure-prompt' and
                  (const :tag "different" nil))
   :safe #'booleanp
   :package-version '(inf-clojure . "2.0.0"))
+
+(defcustom inf-clojure-auto-mode t
+  "When non-nil, automatically enable inf-clojure-minor-mode for all Clojure buffers."
+  :type 'boolean
+  :safe #'booleanp
+  :package-version '(inf-clojure . "3.1.0"))
+
+(defun inf-clojure--clojure-buffers ()
+  "Return a list of all existing `clojure-mode' buffers."
+  (cl-remove-if-not
+   (lambda (buffer) (with-current-buffer buffer (derived-mode-p 'clojure-mode)))
+   (buffer-list)))
+
+(defun inf-clojure-enable-on-existing-clojure-buffers ()
+  "Enable inf-clojure's minor mode on existing Clojure buffers.
+See command `inf-clojure-minor-mode'."
+  (interactive)
+  (add-hook 'clojure-mode-hook #'inf-clojure-minor-mode)
+  (dolist (buffer (inf-clojure--clojure-buffers))
+    (with-current-buffer buffer
+      (inf-clojure-minor-mode +1))))
+
+(defun inf-clojure-disable-on-existing-clojure-buffers ()
+  "Disable command `inf-clojure-minor-mode' on existing Clojure buffers."
+  (interactive)
+  (dolist (buffer (inf-clojure--clojure-buffers))
+    (with-current-buffer buffer
+      (inf-clojure-minor-mode -1))))
 
 (defvar inf-clojure-buffer nil
   "The current `inf-clojure' process buffer.
@@ -565,7 +639,9 @@ to continue it."
   (setq-local comint-prompt-read-only inf-clojure-prompt-read-only)
   (add-hook 'comint-preoutput-filter-functions #'inf-clojure-preoutput-filter nil t)
   (add-hook 'completion-at-point-functions #'inf-clojure-completion-at-point nil t)
-  (ansi-color-for-comint-mode-on))
+  (ansi-color-for-comint-mode-on)
+  (when inf-clojure-auto-mode
+    (inf-clojure-enable-on-existing-clojure-buffers)))
 
 (defun inf-clojure-get-old-input ()
   "Return a string containing the sexp ending at point."
@@ -646,6 +722,11 @@ to suppress the usage of the target buffer discovery logic."
     (call-interactively #'inf-clojure)
     (rename-buffer target-buffer-name)))
 
+(defun inf-clojure--project-name (dir)
+  "Extract a project name from a project DIR.
+The name is simply the final segment of the path."
+  (file-name-nondirectory (directory-file-name dir)))
+
 ;;;###autoload
 (defun inf-clojure (cmd)
   "Run an inferior Clojure process, input and output via buffer `*inf-clojure*'.
@@ -670,9 +751,16 @@ process buffer for a list of commands.)"
                                           (mapcar #'cdr inf-clojure-startup-forms)
                                           nil
                                           'confirm-after-completion))))
-  (if (not (comint-check-proc "*inf-clojure*"))
+  (let* ((project-dir (clojure-project-dir))
+         (process-buffer-name (if project-dir
+                                  (format "inf-clojure %s" (inf-clojure--project-name project-dir))
+                                "inf-clojure"))
+         ;; comint adds the asterisks to both sides
+         (repl-buffer-name (format "*%s*" process-buffer-name)))
+    ;; Create a new comint buffer if needed
+    (unless (comint-check-proc repl-buffer-name)
       ;; run the new process in the project's root when in a project folder
-      (let ((default-directory (or (clojure-project-dir) default-directory))
+      (let ((default-directory (or project-dir default-directory))
             (cmdlist (if (consp cmd)
                          (list cmd)
                        (split-string cmd)))
@@ -682,32 +770,57 @@ process buffer for a list of commands.)"
                            (inf-clojure--prompt-repl-type))))
         (message "Starting Clojure REPL via `%s'..." cmd)
         (with-current-buffer (apply #'make-comint
-                                    "inf-clojure" (car cmdlist) nil (cdr cmdlist))
+                                    process-buffer-name (car cmdlist) nil (cdr cmdlist))
           (inf-clojure-mode)
           (setq-local inf-clojure-repl-type repl-type)
           (hack-dir-local-variables-non-file-buffer))))
-  (setq inf-clojure-buffer "*inf-clojure*")
-  (if inf-clojure-repl-use-same-window
-      (pop-to-buffer-same-window "*inf-clojure*")
-    (pop-to-buffer "*inf-clojure*")))
+    ;; update the default comint buffer and switch to it
+    (setq inf-clojure-buffer (get-buffer repl-buffer-name))
+    (if inf-clojure-repl-use-same-window
+        (pop-to-buffer-same-window repl-buffer-name)
+      (pop-to-buffer repl-buffer-name))))
 
 ;;;###autoload
 (defun inf-clojure-connect (host port)
-  "Connect to a running socket-repl via `inf-clojure'.
+  "Connect to a running socket REPL server via `inf-clojure'.
 HOST is the host the process is running on, PORT is where it's listening."
   (interactive "shost: \nnport: ")
   (inf-clojure (cons host port)))
+
+(defun inf-clojure--forms-without-newlines (str)
+  "Remove newlines between toplevel forms.
+STR is a string of contents to be evaluated.  When sending
+multiple forms to a REPL, each newline triggers a prompt.
+So we replace all newlines between top level forms but not inside
+of forms."
+  (condition-case nil
+      (with-temp-buffer
+        (progn
+          (clojurec-mode)
+          (insert str)
+          (whitespace-cleanup)
+          (goto-char (point-min))
+          (while (not (eobp))
+            (while (looking-at "\n")
+              (delete-char 1))
+            (unless (eobp)
+              (clojure-forward-logical-sexp))
+            (unless (eobp)
+              (forward-char)))
+          (buffer-substring-no-properties (point-min) (point-max))))
+    (scan-error str)))
 
 (defun inf-clojure-eval-region (start end &optional and-go)
   "Send the current region to the inferior Clojure process.
 Sends substring between START and END.  Prefix argument AND-GO
 means switch to the Clojure buffer afterwards."
   (interactive "r\nP")
-  ;; drops newlines at the end of the region
-  (let ((str (replace-regexp-in-string
-              "[\n]+\\'" ""
-              (buffer-substring-no-properties start end))))
-    (inf-clojure--send-string (inf-clojure-proc) str))
+  (let* ((str (buffer-substring-no-properties start end))
+         ;; newlines over a socket repl between top level forms cause
+         ;; a prompt to be returned. so here we dump the region into a
+         ;; temp buffer, and delete all newlines between the forms
+         (formatted (inf-clojure--forms-without-newlines str)))
+    (inf-clojure--send-string (inf-clojure-proc) formatted))
   (when and-go (inf-clojure-switch-to-repl t)))
 
 (defun inf-clojure-eval-string (code)
@@ -767,7 +880,9 @@ Indent FORM.  FORM is expected to have been trimmed."
         (insert (format "%s" form))
         (let ((end (point)))
           (goto-char beginning)
-          (indent-sexp end)))
+          (indent-sexp end)
+          ;; font-lock the inserted code
+          (font-lock-ensure beginning end)))
       (comint-send-input t t))))
 
 (defun inf-clojure-insert-defun ()
@@ -1336,7 +1451,7 @@ Useful for commands that can invoked outside of an ‘inf-clojure’ buffer
   "Send FORM and apply MATCH-P on the result of sending it to PROC.
 Note that this function will add a \n to the end of the string
 for evaluation, therefore FORM should not include it."
-  (funcall match-p (inf-clojure--process-response form proc nil)))
+p  (funcall match-p (inf-clojure--process-response form proc nil)))
 
 (provide 'inf-clojure)
 
