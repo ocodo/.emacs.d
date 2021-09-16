@@ -1,6 +1,6 @@
 ;;; eldoc-eval.el --- Enable eldoc support when minibuffer is in use. -*- lexical-binding: t -*-
-;; Package-Version: 20190423.1858
-;; Package-Commit: a67fe3637378dcb6c5f9e140acc8131f0d2346b3
+;; Package-Version: 20200902.1339
+;; Package-Commit: f6e639047d9b3695877e63dd3de8f24e704d6d23
 
 ;; Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
@@ -58,6 +58,8 @@
     (defalias 'eldoc-fnsym-in-current-sexp 'elisp--fnsym-in-current-sexp)
     (defalias 'eldoc-get-fnsym-args-string 'elisp-get-fnsym-args-string)
     (defalias 'eldoc-get-var-docstring 'elisp-get-var-docstring)))
+
+(defvar composition-function-table)
 
 ;;; Minibuffer support.
 ;;  Enable displaying eldoc info in something else
@@ -183,6 +185,18 @@ See `with-eldoc-in-minibuffer'."
              'above (minibuffer-window)))
            (t (minibuffer-selected-window))))))
 
+(defun eldoc-eval--get-string (str)
+  ;; Avoid error when ligature-mode is enabled. The error comes from
+  ;; composite.c.
+  ;; (error "Attempt to shape unibyte text"). This happen when string
+  ;; comes with [...] at end.
+  (with-temp-buffer
+    (let ((composition-function-table
+           (default-value 'composition-function-table)))
+      (when (stringp str)
+        (insert str)
+        (buffer-string)))))
+
 (defun eldoc-show-in-mode-line (input)
   "Display string STR in the mode-line next to minibuffer."
   (with-current-buffer (eldoc-current-buffer)
@@ -190,14 +204,17 @@ See `with-eldoc-in-minibuffer'."
            (str              (and (stringp input) (concat " " input)))
            (len              (length str))
            (tmp-str          str)
-           (mode-line-format (or str mode-line-format))
+           (mode-line-format
+            (or (eldoc-eval--get-string str)
+                mode-line-format))
            roll mode-line-in-non-selected-windows)
       (catch 'break
         (if (and (> len max) eldoc-mode-line-rolling-flag)
             (progn
               (while (setq roll (sit-for 0.3))
                 (setq tmp-str (substring tmp-str 2)
-                      mode-line-format (concat tmp-str " [<]" str))
+                      mode-line-format (eldoc-eval--get-string
+                                        (concat tmp-str " [<]" str)))
                 (force-mode-line-update)
                 (when (< (length tmp-str) 2) (setq tmp-str str)))
               (unless roll
