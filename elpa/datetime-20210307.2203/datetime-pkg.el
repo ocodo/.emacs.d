@@ -1,12 +1,12 @@
-(define-package "datetime" "20200621.2103" "Parsing, formatting and matching timestamps"
+(define-package "datetime" "20210307.2203" "Parsing, formatting and matching timestamps"
   '((emacs "24.4")
     (extmap "1.1.1"))
-  :commit "c51eeb6df180f6c7d1676d1c0af78255bb0fdf95" :keywords
-  '("lisp" "i18n")
-  :authors
+  :commit "276f9d4304180301edabc160d5d17f46532489a1" :authors
   '(("Paul Pogonyshev" . "pogonyshev@gmail.com"))
   :maintainer
   '("Paul Pogonyshev" . "pogonyshev@gmail.com")
+  :keywords
+  '("lisp" "i18n")
   :url "https://github.com/doublep/datetime")
 ;; Local Variables:
 ;; no-byte-compile: t

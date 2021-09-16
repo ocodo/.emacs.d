@@ -1,10 +1,10 @@
 ;;; datetime.el --- Parsing, formatting and matching timestamps  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2020 Paul Pogonyshev
+;; Copyright (C) 2016-2021 Paul Pogonyshev
 
 ;; Author:     Paul Pogonyshev <pogonyshev@gmail.com>
 ;; Maintainer: Paul Pogonyshev <pogonyshev@gmail.com>
-;; Version:    0.6.6
+;; Version:    0.7
 ;; Keywords:   lisp, i18n
 ;; Homepage:   https://github.com/doublep/datetime
 ;; Package-Requires: ((emacs "24.4") (extmap "1.1.1"))
@@ -1521,7 +1521,7 @@ OPTIONS are passed to `datetime-recode-pattern'.  Currently no
 options can affect result of this function."
   (datetime--pattern-includes-p type pattern options second-fractional))
 
-(define-obsolete-function-alias 'datetime-pattern-includes-millisecond-p 'datetime-pattern-includes-second-fractionals-p)
+(define-obsolete-function-alias 'datetime-pattern-includes-millisecond-p 'datetime-pattern-includes-second-fractionals-p "0.6.1")
 
 (defun datetime-pattern-num-second-fractionals (type pattern &rest options)
   "Determine number of second fractional digits in the PATTERN.
@@ -1689,7 +1689,7 @@ create based on timezones `datetime' knows about and their rules.
 
 Locale-specific timezone names are contained in a different
 database.  See `datetime-timezone-name-database-version'."
-  5)
+  6)
 
 (defun datetime-timezone-name-database-version ()
   "Return timezone name database version, a simple integer.
@@ -1702,7 +1702,7 @@ Other locale-specific data as well as locale-independent data
 about timezones is contained in different databases.  See
 `datetime-locale-database-version' and
 `datetime-timezone-database-version'."
-  1)
+  2)
 
 
 (provide 'datetime)
