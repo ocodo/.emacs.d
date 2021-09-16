@@ -25,6 +25,19 @@ region, unless called with the universal prefix (C-u)
 
 \(fn REGEX)" t nil)
 
+(autoload 'loccur-isearch "loccur" "\
+Incrementally filter buffer lines.
+
+Like Isearch, but hide buffer lines not matching the search
+string.  If Isearch is already active, toggle filtering on or
+off.
+
+MODE only has effect if called from outside Isearch, and has the
+same meaning as `search-default-mode'.  Interactively, that
+default value is used.
+
+\(fn &optional MODE)" t nil)
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "loccur" '("loccur-")))
 
 ;;;***

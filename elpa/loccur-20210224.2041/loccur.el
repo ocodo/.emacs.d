@@ -5,13 +5,13 @@
 ;; Author: Alexey Veretennikov <alexey.veretennikov@gmail.com>
 ;;
 ;; Created: 2009-09-08
-;; Version: 1.2.4
-;; Package-Version: 20191022.1955
-;; Package-Commit: 4934c0560d2f63e6314b4584211a0cc0a7e671c4
-;; Package-Requires: ((emacs "24.3"))
+;; Version: 1.2.5
+;; Package-Version: 20210224.2041
+;; Package-Commit: 01b7afa62589432a98171074abb8c5a1e089034a
+;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: matching
 ;; URL: https://github.com/fourier/loccur
-;; Compatibility: GNU Emacs 24.3
+;; Compatibility: GNU Emacs 25.1
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -64,6 +64,8 @@
 ;;                   'loccur)))
 ;;
 ;;      And then just call this function instead of loccur.
+;; 2021-02-24 (1.2.5)
+;;    + Added loccur-isearch function
 ;;
 ;; 2016-12-26 (1.2.3)
 ;;    + Removed empty line in the beginning of the buffer.
@@ -352,9 +354,48 @@ containing match"
         (forward-line 1))
       (setq lines (nreverse lines)))))
 
+(defun loccur-isearch-update ()
+  "Apply `loccur' according the current Isearch state."
+  (let ((loccur-mode nil)
+        (loccur-highlight-matching-regexp nil)
+        (case-fold-search isearch-case-fold-search)
+        (search-spaces-regexp (if (if isearch-regexp
+                                      isearch-regexp-lax-whitespace
+                                    isearch-lax-whitespace)
+                                  search-whitespace-regexp)))
+    (loccur (cond
+	     ((functionp isearch-regexp-function)
+	      (funcall isearch-regexp-function isearch-string))
+	     (isearch-regexp-function (word-search-regexp isearch-string))
+	     (isearch-regexp isearch-string)
+	     (t (regexp-quote isearch-string))))))
 
+(defun loccur-isearch-exit ()
+  "Deactivate `loccur-isearch'."
+  (remove-hook 'isearch-update-post-hook 'loccur-isearch-update)
+  (remove-hook 'isearch-mode-end-hook 'loccur-isearch-exit)
+  (loccur nil))
 
+;;;###autoload
+(defun loccur-isearch (&optional mode)
+  "Incrementally filter buffer lines.
 
+Like Isearch, but hide buffer lines not matching the search
+string.  If Isearch is already active, toggle filtering on or
+off.
+
+MODE only has effect if called from outside Isearch, and has the
+same meaning as `search-default-mode'.  Interactively, that
+default value is used."
+  (interactive (list search-default-mode))
+  (unless isearch-mode
+    (isearch-mode t (eq t mode) nil nil (and (functionp mode) mode)))
+  (if (memq 'loccur-isearch-update isearch-update-post-hook)
+      (loccur-isearch-exit)
+    (add-hook 'isearch-update-post-hook 'loccur-isearch-update)
+    (add-hook 'isearch-mode-end-hook 'loccur-isearch-exit)
+    (isearch-update))
+  (funcall (or isearch-message-function #'isearch-message)))
 
 (provide 'loccur)
 ;;; loccur.el ends here
