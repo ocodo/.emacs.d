@@ -1,0 +1,2 @@
+;;; Generated package description from occur-context-resize.el  -*- no-byte-compile: t -*-
+(define-package "occur-context-resize" "20210121.50" "dynamically resize context around matches in occur-mode" 'nil :commit "9d62a5b5c39ab7921dfc12dd0ab139b38dd16582" :authors '(("Charles L.G. Comstock" . "dgtized@gmail.com")) :maintainer '("Charles L.G. Comstock" . "dgtized@gmail.com") :keywords '("matching") :url "https://github.com/dgtized/occur-context-resize.el")
