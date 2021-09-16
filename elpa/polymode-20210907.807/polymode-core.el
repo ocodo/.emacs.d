@@ -875,10 +875,10 @@ TYPE is either a symbol or a list of symbols of span types."
                 (set mm old-state))))
           (pm--collect-parent-slots pm/polymode '-minor-mode))))
 
-(defun pm--run-init-hooks (object type &optional emacs-hook)
+(defun pm--run-init-hooks (object type &optional global-hook)
   (unless pm-initialization-in-progress
-    (when emacs-hook
-      (run-hooks emacs-hook))
+    (when global-hook
+      (run-hooks global-hook))
     (pm--run-hooks object :init-functions (or type 'host))))
 
 (defun pm--collect-parent-slots (object slot &optional do-when inclusive)
@@ -2090,14 +2090,14 @@ Elements of LIST can be either strings or symbols."
                              (stringp pm--output-file)
                              (pm--file-mod-time pm--output-file)))
                    (imt (and omt (pm--file-mod-time pm--input-file)))
-                   (action (if is-exporter "exporting" "weaving"))
                    (ofile (if (and imt (time-less-p imt omt))
                               (progn
                                 (message "Not re-%s as input file '%s' hasn't changed"
-                                         (file-name-nondirectory ifile) action)
+                                         (if is-exporter "exporting" "weaving")
+                                         (file-name-nondirectory ifile))
                                 pm--output-file)
                             (message "%s '%s' with '%s' ..."
-                                     (capitalize action)
+                                     (if is-exporter "EXPORTING" "WEAVING")
                                      (file-name-nondirectory ifile)
                                      (eieio-object-name processor))
                             (let ((fn (with-no-warnings
