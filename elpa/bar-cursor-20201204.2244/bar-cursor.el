@@ -3,12 +3,13 @@
 ;; This file is not part of Emacs
 
 ;; Copyright (C) 2001 by Joseph L. Casadonte Jr.
-;; Copyright (C) 2013-2018 by Andrew Johnson
+;; Copyright (C) 2013-2021 by Andrew Johnson
 ;; Author:          Joe Casadonte (emacs@northbound-train.com)
 ;; Maintainer:      Andrew Johnson (andrew@andrewjamesjohnson.com)
 ;; Created:         July 1, 2001
 ;; Keywords:        files
-;; Package-Version: 20180227.45
+;; Package-Version: 20201204.2244
+;; Package-Commit: 78f195b6db63459033c4f1c7e7add5d82f3ce424
 ;; URL: https://github.com/ajsquared/bar-cursor
 ;; Version: 2.0
 

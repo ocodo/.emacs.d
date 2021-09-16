@@ -22,6 +22,11 @@ or call the function `bar-cursor-mode'.")
 (autoload 'bar-cursor-mode "bar-cursor" "\
 Toggle use of 'bar-cursor-mode'.
 
+If called interactively, enable Bar-Cursor mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 This global minor mode changes cursor to a bar cursor in insert
 mode, and a block cursor in overwrite mode.
 
