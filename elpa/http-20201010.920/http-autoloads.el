@@ -15,14 +15,10 @@ Default hostname used when url is an endpoint.")
 (put 'http-hostname 'safe-local-variable #'stringp)
 
 (autoload 'http-edit-body-indirect "http" "\
-Edit body in a indirect buffer.
-
-\(fn)" t nil)
+Edit body in a indirect buffer." t nil)
 
 (autoload 'http-curl-command "http" "\
-Kill current http request as curl command.
-
-\(fn)" t nil)
+Kill current http request as curl command." t nil)
 
 (autoload 'http-process "http" "\
 Process a http request.

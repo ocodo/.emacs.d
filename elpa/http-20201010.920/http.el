@@ -4,7 +4,8 @@
 
 ;; Author: Mario Rodas <marsam@users.noreply.github.com>
 ;; URL: https://github.com/emacs-pe/http.el
-;; Package-Version: 20181008.2121
+;; Package-Version: 20201010.920
+;; Package-Commit: 5fdceed1fbf36e274e578e349a53ce922c574774
 ;; Keywords: convenience
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "24.4") (request "0.2.0") (edit-indirect "0.1.4"))
@@ -276,13 +277,13 @@ Used to fontify the response buffer and comment the response headers.")
              (guessed-mode (assoc-default ctype-name http-content-type-mode-alist))
              (pretty-callback (assoc-default ctype-name http-pretty-callback-alist)))
         (if (eq guessed-mode 'image-mode)
-            (let* ((data-p t)
-                   (data (string-make-unibyte data))
-                   (type (if (fboundp 'imagemagick-types)
-                             'imagemagick
-                           (image-type data nil data-p)))
-                   (image (create-image data type data-p)))
-              (insert-image image))
+            (let ((data (encode-coding-string data 'utf-8))
+                  (type (if (or (and (fboundp 'image-transforms-p)
+                                     (image-transforms-p))
+                                (not (fboundp 'imagemagick-types)))
+                            nil
+                          'imagemagick)))
+              (insert-image (create-image data type t)))
           (when (stringp data)
             (setq data (decode-coding-string data (or coding-system 'utf-8)))
             (let ((text (or (and http-prettify-response
