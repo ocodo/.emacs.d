@@ -11,7 +11,7 @@
 ;;; Generated autoloads from all-the-icons-dired.el
 
 (autoload 'all-the-icons-dired-mode "all-the-icons-dired" "\
-Display all-the-icons icon for each files in a dired buffer.
+Display all-the-icons icon for each file in a dired buffer.
 
 If called interactively, enable All-The-Icons-Dired mode if ARG
 is positive, and disable it if ARG is zero or negative.  If

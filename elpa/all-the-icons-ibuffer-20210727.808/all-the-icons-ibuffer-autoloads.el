@@ -9,8 +9,6 @@
 ;;;### (autoloads nil "all-the-icons-ibuffer" "all-the-icons-ibuffer.el"
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from all-the-icons-ibuffer.el
-(autoload 'ibuffer-make-column-size-h "all-the-icons-ibuffer")
-(autoload 'ibuffer-make-column-icon "all-the-icons-ibuffer")
 
 (defvar all-the-icons-ibuffer-mode nil "\
 Non-nil if All-The-Icons-Ibuffer mode is enabled.
@@ -32,7 +30,7 @@ and toggle it if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "all-the-icons-ibuffer" '("all-the-icons-ibuffer-" "icon" "size-h")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "all-the-icons-ibuffer" '("all-the-icons-ibuffer-" "filename-and-process+" "icon" "mode+" "size-h")))
 
 ;;;***
 
