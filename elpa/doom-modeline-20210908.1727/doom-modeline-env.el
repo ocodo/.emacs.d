@@ -30,12 +30,12 @@
 (require 'subr-x)
 (require 'doom-modeline-core)
 
+
 ;; Externals
 (defvar python-shell-interpreter)
 
-;;
+
 ;; Customizations
-;;
 
 (defgroup doom-modeline-env nil
   "The environment parser for doom-modeline."
@@ -43,7 +43,7 @@
   :link '(url-link :tag "Homepage" "https://github.com/seagle0128/doom-modeline"))
 
 (defcustom doom-modeline-env-load-string "..."
-  "What to dispaly as the version while a new one is being loaded."
+  "What to display as the version while a new one is being loaded."
   :type 'string
   :group 'doom-modeline-env)
 
@@ -57,19 +57,28 @@
   :type 'hook
   :group 'doom-modeline-env)
 
+
+;; Variables
+
 ;; Show version string for multi-version managers like rvm, rbenv, pyenv, etc.
 (defvar-local doom-modeline-env--version nil
   "The version to display with major-mode in mode-line.
 Example: \"2.6.0\"")
+
 (defvar-local doom-modeline-env--command nil
   "A program that we're looking to extract version information from.
 Example: \"ruby\"")
+
 (defvar-local doom-modeline-env--command-args nil
-  "A list of arguments to pass to `doom-modeline-env--command` to extract the version from.
+  "A list of arguments for the command to extract the version from.
 Example: '(\"--version\") ")
+
 (defvar-local doom-modeline-env--parser nil
-  "A function that returns version number from a programs --version (or similar) command.
+  "A function that returns version number from a command --version (or similar).
 Example: 'doom-modeline-env--ruby")
+
+
+;; Functions & Macros
 
 (defun doom-modeline-update-env ()
   "Update environment info on mode-line."
@@ -103,7 +112,7 @@ Example: 'doom-modeline-env--ruby")
 
 (defun doom-modeline-env--get (prog args callback)
   "Start a sub process using PROG and apply the ARGS to the sub process.
-Once it recieves information from STDOUT, it closes off the subprocess and
+Once it receives information from STDOUT, it closes off the subprocess and
 passes on the information into the CALLBACK.
 Example:
   (doom-modeline-env--get
@@ -152,7 +161,7 @@ PARSER should be a function for parsing COMMAND's output line-by-line, to
          ,(concat "A function that returns the shell command and arguments (as a list) to\n"
                   "produce a version string."))
        (defvar ,parser-var ',parse-fn
-         ,(format "The function for parsing each line of `%s's output." command-var))
+         ,(format "The function to parse each line of `%s'\'s output." command-var))
        (defcustom ,exe-var nil
          ,(format (concat "What executable to use for the version indicator in %s buffers.\n\n"
                           "If nil, the default binary for this language is used.")
@@ -186,11 +195,9 @@ PARSER should be a function for parsing COMMAND's output line-by-line, to
          (dolist (hook (if (listp hooks) hooks (list hooks)))
            (add-hook hook #',setup-fn)))))))
 
-
-;;
+
 ;; Bootstrap
 ;; Versions, support Python, Ruby, Perl and Golang, etc.
-;;
 
 ;;;###autoload (autoload 'doom-modeline-env-setup-python "doom-modeline-env")
 (doom-modeline-def-env python
@@ -202,11 +209,15 @@ PARSER should be a function for parsing COMMAND's output line-by-line, to
                                   python-shell-interpreter
                                   "python")
                               "--version"))
+                       ((executable-find "pyenv") (list "pyenv" "version-name"))
                        ((list (or doom-modeline-env-python-executable
                                   python-shell-interpreter
                                   "python")
                               "--version"))))
-  :parser  (lambda (line) (cadr (split-string line))))
+  :parser  (lambda (line) (let ((version (split-string line)))
+                       (if (>= (length version) 2)
+                           (cadr version)
+                         (car version)))))
 
 ;;;###autoload (autoload 'doom-modeline-env-setup-ruby "doom-modeline-env")
 (doom-modeline-def-env ruby

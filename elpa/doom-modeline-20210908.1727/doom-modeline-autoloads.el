@@ -22,7 +22,7 @@ If DEFAULT is non-nil, set the default mode-line for all buffers.
 Set minimal mode-line." nil nil)
 
 (autoload 'doom-modeline-set-special-modeline "doom-modeline" "\
-Set sepcial mode-line." nil nil)
+Set special mode-line." nil nil)
 
 (autoload 'doom-modeline-set-project-modeline "doom-modeline" "\
 Set project mode-line." nil nil)
@@ -79,7 +79,7 @@ toggle it if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-modeline" '("doom-modeline-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "doom-modeline" '("doom-modeline-mode-map")))
 
 ;;;***
 
