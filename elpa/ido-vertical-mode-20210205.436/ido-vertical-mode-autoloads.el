@@ -23,9 +23,14 @@ or call the function `ido-vertical-mode'.")
 (autoload 'ido-vertical-mode "ido-vertical-mode" "\
 Makes ido-mode display vertically.
 
+If called interactively, enable Ido-Vertical mode if ARG is
+positive, and disable it if ARG is zero or negative.  If called
+from Lisp, also enable the mode if ARG is omitted or nil, and
+toggle it if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ido-vertical-mode" '("ido-vertical-" "turn-o")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ido-vertical-mode" '("ido-vertical-")))
 
 ;;;***
 
