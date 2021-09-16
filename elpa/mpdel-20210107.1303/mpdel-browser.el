@@ -4,7 +4,7 @@
 
 ;; Author: Jose A Ortega Ruiz <jao@gnu.org>
 ;; Keywords: multimedia
-;; Url: https://gitlab.petton.fr/mpdel/mpdel
+;; Url: https://gitea.petton.fr/mpdel/mpdel
 ;; Package-requires: ((emacs "25.1"))
 ;; Version: 1.0.0
 
@@ -57,6 +57,7 @@ Each entry is shown as a selectable line with the entry's
 description; selecting it with the keyboard or mouse will list
 its contents in a new buffer."
   :type '(repeat (choice (const :tag "Directories" directories)
+                         (string :tag "Directory")
                          (const :tag "All albums" albums)
                          (const :tag "All artists" artists)
                          (const :tag "Stored playlists" stored-playlists)
@@ -185,6 +186,13 @@ orderings."
 (mpdel-browser--defsearch title)
 (mpdel-browser--defsearch filter)
 
+(cl-defmethod libmpdel-entity-name ((path string))
+  path)
+
+(navigel-method mpdel navigel-open ((path string) target)
+  (let ((navigel-app 'mpdel))
+    (navigel-open (libmpdel--directory-create :path path) target)))
+
 (cl-defmethod libmpdel-entity-name ((_e (eql browser)))
   "The name of the top level browser entity."
   "Browser")
@@ -250,24 +258,17 @@ This listing is constructed using `mpdel-browser-top-level-entries'."
 (navigel-method mpdel navigel-entity-tablist-mode ((_e (eql stored-playlists)))
   (mpdel-browser-mode))
 
-(defun mpdel-browser--entry-is-parent-directory-p (entity)
-  "Check whether the given ENTITY is a parent directory."
-  (let ((name (when (libmpdel-directory-p entity)
-                (libmpdel-entity-name entity))))
-    ;; Browser buffers showing children of 'directories or the point
-    ;; to their parent via a tablist entry called "Music directory",
-    ;; while real directory children use the conventional "..".
-    (or (eql 'directories entity)
-        (eql 'browser entity)
-        (string= ".." name)
-        (string= "Music directory" name))))
+(navigel-method mpdel navigel-delete ((stored-playlists list) &context (major-mode mpdel-browser-mode) &optional _callback)
+  (libmpdel-stored-playlists-delete stored-playlists))
 
-(cl-defmethod navigel-parent-to-open (entity &context (major-mode mpdel-browser-mode))
+(cl-defmethod navigel-parent-to-open (_e &context (major-mode mpdel-browser-mode))
   "Find parent of ENTITY when in a buffer with MAJOR-MODE `mpdel-browser-mode'."
-  (cons (car (cl-find-if #'mpdel-browser--entry-is-parent-directory-p
-                         tabulated-list-entries
-                         :key #'car-safe))
-        entity))
+  (list (or (navigel-parent navigel-entity) 'browser)))
+
+(cl-defmethod navigel-parent-to-open
+  (_e &context (major-mode mpdel-playlist-current-playlist-mode))
+  "Find parent of ENTITY when in a buffer with MAJOR-MODE `mpdel-playlist-current-playlist-mode'."
+  '(browser . current-playlist))
 
 (define-key mpdel-core-map (kbd ":") #'mpdel-browser-open)
 

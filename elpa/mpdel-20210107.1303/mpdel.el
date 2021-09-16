@@ -4,7 +4,7 @@
 
 ;; Author: Damien Cassou <damien@cassou.me>
 ;; Keywords: multimedia
-;; Url: https://gitlab.petton.fr/mpdel/mpdel
+;; Url: https://gitea.petton.fr/mpdel/mpdel
 ;; Package-requires: ((emacs "25.1") (libmpdel "1.2.0") (navigel "0.7.0"))
 ;; Version: 1.0.0
 
