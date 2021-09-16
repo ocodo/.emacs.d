@@ -3,6 +3,7 @@
 # key: deployment
 # expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
 # --
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

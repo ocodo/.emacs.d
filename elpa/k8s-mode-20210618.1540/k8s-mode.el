@@ -12,7 +12,7 @@
 ;; Put # -*- mode: k8s -*- in first line of file, if you want to autoload.
 ;;
 ;; If you're using yas-minor-mode and want to enable on k8s-mode
-;; (add-hook 'k8s-mode-hook 'yas-minor-mode)
+;; (add-hook 'k8s-mode-hook #'yas-minor-mode)
 ;;
 ;; With use-package style
 ;; (use-package k8s-mode
@@ -35,13 +35,21 @@
   :type 'hook
   :group 'k8s)
 
+(defcustom k8s-mode-lighter "K8s"
+  "K8s-mode lighter."
+  :type 'string
+  :group 'k8s)
+
 (defcustom k8s-indent-offset 2
   "The tab width to use when indenting."
   :type 'integer
   :group 'k8s)
 
 (defvar k8s-keywords
-  '("apiVersion"))
+  '("kind"))
+
+(defvar k8s-imenu-generic-expression
+  '(("kind: " "^kind:\\(.*\\)" 1)))
 
 (defvar k8s-font-lock-keywords
   `((,(regexp-opt k8s-keywords) . font-lock-builtin-face)
@@ -69,7 +77,7 @@
   :group 'k8s
   :type 'string)
 
-(defcustom k8s-site-docs-version "v1.13"
+(defcustom k8s-site-docs-version "v1.21"
   "Default version API."
   :group 'k8s
   :type 'string)
@@ -103,11 +111,13 @@ See `k8s-search-documentation-browser-function'."
   (k8s-search-web-documentation))
 
 ;;;###autoload
-(define-derived-mode k8s-mode yaml-mode "K8S"
-  "Major mode for editing Kubernetes configuration file"
+(define-derived-mode k8s-mode yaml-mode k8s-mode-lighter
+  "Major mode for editing Kubernetes configuration file."
   (font-lock-add-keywords nil k8s-font-lock-keywords)
   ;; indentation
   (set (make-local-variable 'yaml-indent-offset) k8s-indent-offset)
+  ;; imenu
+  (set (make-local-variable 'yaml-imenu-generic-expression) k8s-imenu-generic-expression)
   ;; completion
   (make-local-variable 'completion-at-point-functions)
   (push 'k8s-complete-at-point completion-at-point-functions))

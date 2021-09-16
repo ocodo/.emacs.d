@@ -3,6 +3,7 @@
 # key: pvc
 # expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
 # --
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

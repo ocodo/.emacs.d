@@ -3,7 +3,8 @@
 # key: ingress
 # expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
 # --
-apiVersion: extensions/v1beta1
+---
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ${1}
@@ -14,8 +15,11 @@ spec:
   - secretName: ${3:secret}}
   rules:
   - http:
-    paths:
-    - path: ${4:/}
-      backend:
-        serviceName: ${5:service}
-        servicePort: ${6:80}
+      paths:
+      - path: ${4:/}
+        pathType: ${5:Prefix}
+        backend:
+          service:
+            name: ${6:service}
+            port:
+              number: ${7:80}

@@ -3,11 +3,14 @@
 # key: service
 # expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
 # --
+---
 apiVersion: v1
 kind: Service
 metadata:
   name: ${1:myapp}
 spec:
+  ${4:type: ClusterIP}
+  ${5:clusterIP: None # headless service}
   selector:
     app: $1
   ports:

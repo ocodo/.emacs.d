@@ -1,0 +1,66 @@
+# -*- mode: snippet -*-
+# name: statefulset
+# key: statefulset
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
+# --
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ${1:myname}
+  app: $1
+spec:
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: $1
+  serviceName: ${3:$1}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: $1
+    spec:
+      containers:
+      - name: $1
+        image: k8s.gcr.io/nginx-slim:0.8
+        ports:
+        - containerPort: 80
+          name: web
+        envFrom:
+        - secretRef:
+          name: nginx
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi

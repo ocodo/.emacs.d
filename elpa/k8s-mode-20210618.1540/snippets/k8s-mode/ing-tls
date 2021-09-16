@@ -1,9 +1,10 @@
 # -*- mode: snippet -*-
-# name: namespace
-# key: namespace
+# name: ing-tls
+# key: tls
 # expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
 # --
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: ${1:name}
+---
+tls:
+- secretName: ${2:$1.tls}
+  hosts:
+  - ${1:host}

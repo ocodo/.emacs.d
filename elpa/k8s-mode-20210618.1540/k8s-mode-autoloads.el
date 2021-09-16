@@ -10,7 +10,7 @@
 ;;; Generated autoloads from k8s-mode.el
 
 (autoload 'k8s-mode "k8s-mode" "\
-Major mode for editing Kubernetes configuration file
+Major mode for editing Kubernetes configuration file.
 
 \(fn)" t nil)
 

@@ -3,6 +3,7 @@
 # key: network-deny
 # expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
 # --
+---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

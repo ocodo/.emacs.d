@@ -1,0 +1,24 @@
+# -*- mode: snippet -*-
+# name: cronjob
+# key: cronjob
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
+# --
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ${1:cronjobname}
+  namespace: ${2:default}
+spec:
+  schedule: "${3:*/1 * * * *}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: ${4:$1}
+            image: ${5:busybox}
+            args: ['/bin/sh', '-c', 'date']
+          restartPolicy: OnFailure

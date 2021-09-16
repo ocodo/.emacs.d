@@ -1,16 +1,20 @@
 # -*- mode: snippet -*-
-# name: deamonset
-# key: deamonset
+# name: daemonset
+# key: daemonset
 # expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region nil))
 # --
+---
 apiVersion: apps/v1
-kind: Daemonset
+kind: DaemonSet
 metadata:
   namespace: ${1:default}
   name: ${2:name}
   labels:
     app: $2
 spec:
+  selector:
+    matchLabels:
+      app: $2
   template:
     metadata:
       namespace: ${1:default}
