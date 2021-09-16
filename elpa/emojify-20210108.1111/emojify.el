@@ -429,6 +429,13 @@ can customize `emojify-inhibit-major-modes' and
 
 
 
+;; Obsolete vars
+
+(define-obsolete-variable-alias 'emojify-emoji-style 'emojify-emoji-styles "0.2")
+(define-obsolete-function-alias 'emojify-set-emoji-style 'emojify-set-emoji-styles "0.2")
+
+
+
 ;; Customizations to control display of emojis
 
 (defvar emojify-emoji-style-change-hook nil
@@ -638,13 +645,6 @@ the visible area."
 
 
 
-;; Obsolete vars
-
-(define-obsolete-variable-alias 'emojify-emoji-style 'emojify-emoji-styles "0.2")
-(define-obsolete-function-alias 'emojify-set-emoji-style 'emojify-set-emoji-styles "0.2")
-
-
-
 ;; Customizations to control the behaviour when point enters emojified text
 
 (defcustom emojify-point-entered-behaviour 'echo
@@ -667,7 +667,7 @@ Does nothing if the value is anything else."
 
 (defcustom emojify-reveal-on-isearch t
   "Should underlying emoji be displayed when point enters emoji while in isearch mode."
-  :type 'bool
+  :type 'boolean
   :group 'emojify)
 
 (defcustom emojify-show-help t
@@ -1824,16 +1824,16 @@ HIST, DEF, INHERIT-INPUT-METHOD correspond to the arguments for
 `emojify-completing-read-function' and are passed to
 ‘emojify-completing-read-function’ without any interpretation.
 
-For each possible emoji PREDICATE is called with emoji text and data about the
-emoji as a hash-table, the predate should return nil if it the emoji should
-not be displayed for selection.
+For each possible emoji PREDICATE is called with a string of the form
+'<emoji> - <name> (<style>)', the predicate should return nil if it the emoji should not be
+displayed for selection.
 
 For example the following can be used to display only github style emojis for
 selection
 
 \(emojify-completing-read \"Select a Github style emoji: \"
-                         (lambda (emoji data)
-                           (equal (gethash \"style\" data) \"github\")))
+                         (lambda (display-string)
+                           (s-suffix? display-string \"(github)\")))
 
 This function sets up `ido', `icicles', `helm', `ivy' and vanilla Emacs
 completion UI to display properly emojis."
