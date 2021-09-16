@@ -4,7 +4,7 @@
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: comm
-;; URL: http://julien.danjou.info/projects/emacs-packages#google-contacts
+;; URL: https://github.com/jd/google-contacts.el
 ;; Package-Requires: ((oauth2 "0.10") (cl-lib "0.5"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -38,7 +38,7 @@
 
 (defgroup google-contacts nil
   "Google Contacts."
-  :link '(url-link "http://julien.danjou.info/projects/emacs-packages#google-contacts")
+  :link '(url-link "https://github.com/jd/google-contacts.el")
   :prefix "google-contacts-"
   :group 'comm)
 
