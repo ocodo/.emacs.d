@@ -1,9 +1,20 @@
-;;; sws-mode.el --- (S)ignificant (W)hite(S)pace mode
-;;;
-;;; URL: https://github.com/brianc/jade-mode
-;; Package-Version: 20150317.1945
-;;; Author: Brian M. Carlson and other contributors
-;;;
+;;; sws-mode.el --- (S)ignificant (W)hite(S)pace mode  -*- lexical-binding: t -*-
+
+;; Copyright 2011-2021  Brian Carlson
+
+;; Author: Brian M. Carlson and other contributors
+;; Version: 1.0.1
+;; Package-Version: 20210908.2121
+;; Package-Commit: 111460b056838854e470a6383041a99f843b93ee
+;; Keywords: languages
+;; URL: https://github.com/brianc/jade-mode
+
+;;; Commentary:
+
+;; Common code for the jade-mode and stylus-mode.
+
+;;; Code:
+
 (require 'font-lock)
 
 (defvar sws-tab-width 2)
@@ -123,10 +134,9 @@
 (define-key sws-mode-map [backtab] 'sws-dendent-line)
 
 ;;;###autoload
-(define-derived-mode sws-mode fundamental-mode
+(define-derived-mode sws-mode text-mode
   "sws"
   "Major mode for editing significant whitespace files"
-  (kill-all-local-variables)
 
   ;; default tab width
   (setq sws-tab-width 2)
@@ -137,11 +147,7 @@
   (setq indent-region-function 'sws-indent-region)
 
   ;; TODO needed?
-  (setq indent-tabs-mode nil)
-
-  ;; keymap
-  (use-local-map sws-mode-map)
-  (setq major-mode 'sws-mode))
+  (setq indent-tabs-mode nil))
 
 (provide 'sws-mode)
 ;;; sws-mode.el ends here
