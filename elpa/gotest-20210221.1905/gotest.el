@@ -2,8 +2,8 @@
 
 ;; Author: Nicolas Lamirault <nicolas.lamirault@gmail.com>
 ;; URL: https://github.com/nlamirault/gotest.el
-;; Package-Version: 20191128.1111
-;; Package-Commit: 70f63eafda1f6a2f0a01a9320cc4d2edee9a17b2
+;; Package-Version: 20210221.1905
+;; Package-Commit: 9b1dc4eba1b22d751cb2f0a12e29912e010fac60
 ;; Version: 0.14.0
 ;; Keywords: languages, go, tests
 
@@ -276,7 +276,7 @@ For example, if the current buffer is `foo.go', the buffer for
         (error "Unable to find data"))
       (save-excursion
         (search-forward prefix)
-        (setq name (thing-at-point 'word))))
+        (setq name (thing-at-point 'symbol t))))
     name))
 
 (defun go-test--get-current-test-info ()
@@ -363,10 +363,10 @@ For example, if the current buffer is `foo.go', the buffer for
 (defun go-test--arguments (args)
   "Make the go test command argurments using `ARGS'."
   (let ((opts args))
-    (when go-test-verbose
-      (setq opts (s-concat opts " -v")))
     (when go-test-args
-      (setq opts (s-concat opts " " go-test-args)))
+      (setq opts (s-concat go-test-args " " opts)))
+    (when go-test-verbose
+      (setq opts (s-concat "-v " opts)))
     (go-test--get-arguments opts 'go-test-history)))
 
 
@@ -473,7 +473,7 @@ For example, if the current buffer is `foo.go', the buffer for
     (setq go-test--current-test-cache (go-test--get-current-test-info)))
   (when go-test--current-test-cache
     (cl-destructuring-bind (test-suite test-name) go-test--current-test-cache
-      (let ((test-flag (if (> (length test-suite) 0) "-m " "-run "))
+      (let ((test-flag (if (> (length test-suite) 0) "-testify.m " "-run "))
             (additional-arguments (if go-test-additional-arguments-function
                                       (funcall go-test-additional-arguments-function
                                                test-suite test-name) "")))
