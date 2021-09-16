@@ -4,8 +4,8 @@
 ;;         Justin Burkett <justin@burkett.cc>
 ;; Maintainer: Titus von der Malsburg <malsburg@posteo.de>
 ;; URL: https://github.com/tmalsburg/helm-bibtex
-;; Package-Version: 20200513.852
-;; Package-Commit: 8a0dd9841316793aacddea744d6b8ca4a7857a35
+;; Package-Version: 20210725.1459
+;; Package-Commit: b85662081de98077f13f1a9fac03764702325d28
 ;; Version: 1.0.0
 ;; Package-Requires: ((parsebib "1.0") (s "1.9.0") (dash "2.6.0") (f "0.16.2") (cl-lib "0.5") (biblio "0.2") (emacs "26.1"))
 
@@ -115,6 +115,8 @@ This should be a single character."
   '((org-mode      . bibtex-completion-format-citation-ebib)
     (latex-mode    . bibtex-completion-format-citation-cite)
     (markdown-mode . bibtex-completion-format-citation-pandoc-citeproc)
+    (python-mode   . bibtex-completion-format-citation-sphinxcontrib-bibtex)
+    (rst-mode      . bibtex-completion-format-citation-sphinxcontrib-bibtex)
     (default       . bibtex-completion-format-citation-default))
   "The functions used for formatting citations.
 The publication can be cited, for example, as \cite{key} or
@@ -122,7 +124,7 @@ ebib:key depending on the major mode of the current buffer.  Note
 that the functions should accept a list of keys as input.  With
 multiple marked entries one can insert multiple keys at once,
 e.g. \cite{key1,key2}.  See the functions
-`bibtex-completion-format-citation-ebib' and
+`bibtex-completion-format-citation-org-cite' and
 `bibtex-completion-format-citation-cite' as examples."
   :group 'bibtex-completion
   :type '(alist :key-type symbol :value-type function))
@@ -419,7 +421,7 @@ Also sets `bibtex-completion-display-formats-internal'."
                   (let* ((format-string (cdr format))
                          (fields-width 0)
                          (string-width
-                          (length
+                          (string-width
                            (s-format format-string
                                      (lambda (field)
                                        (setq fields-width
@@ -481,7 +483,7 @@ for string replacement."
 (defun bibtex-completion-candidates ()
   "Read the BibTeX files and return a list of conses, one for each entry.
 The first element of these conses is a string containing authors,
-editors, title, year, type, and key of the entry.  This is string
+editors, title, year, type, and key of the entry.  This string
 is used for matching.  The second element is the entry (only the
 fields listed above) as an alist."
   (let ((files (nreverse (bibtex-completion-normalize-bibliography 'bibtex)))
@@ -638,9 +640,11 @@ the hash table."
 
 (defun bibtex-completion-make-candidate (entry)
   "Return a candidate for ENTRY."
-  (cons (bibtex-completion-clean-string
-         (s-join " " (-map #'cdr entry)))
-        entry))
+  (let* ((candidate (bibtex-completion-clean-string
+                     (s-join " " (-map #'cdr entry))))
+         (candidate (concat candidate " " (car (assoc "=has-pdf=" entry))))
+         (candidate (concat candidate " " (car (assoc "=has-note=" entry)))))
+    (cons candidate entry)))
 
 (defun bibtex-completion-parse-bibliography (&optional ht-strings)
   "Parse the BibTeX entries listed in the current buffer and return a list of entries in the order in which they appeared in the BibTeX file.
@@ -705,8 +709,8 @@ does not exist, or if `bibtex-completion-pdf-field' is nil."
        ((not value) nil)         ; Field not defined.
        ((f-file? value) (list value))   ; A bare full path was found.
        ((-any 'f-file? (--map (f-join it (f-filename value)) (-flatten bibtex-completion-library-path))) (-filter 'f-file? (--map (f-join it (f-filename value)) (-flatten bibtex-completion-library-path))))
-       (t                               ; Zotero/Mendeley/JabRef format:
-        (let ((value (replace-regexp-in-string "\\([^\\]\\);" "\\1\^^" value)))
+       (t                               ; Zotero/Mendeley/JabRef/Calibre format:
+        (let ((value (replace-regexp-in-string "\\([^\\]\\)[;,]" "\\1\^^" value)))
           (cl-loop  ; Looping over the files:
            for record in (s-split "\^^" value)
                                         ; Replace unescaped colons by field separator:
@@ -1032,6 +1036,10 @@ only adds KEYS to it."
   (s-join ", "
           (--map (format "ebib:%s" it) keys)))
 
+(defun bibtex-completion-format-citation-sphinxcontrib-bibtex (keys)
+  "Format sphinxcontrib-bibtex references for keys in KEYS."
+  (format ":cite:`%s`" (s-join "," keys)))
+
 (defun bibtex-completion-format-citation-org-link-to-PDF (keys)
   "Format org-links to PDFs associated with entries in KEYS.
 Uses first matching PDF if several are available.  Entries for
@@ -1040,6 +1048,12 @@ which no PDF is available are omitted."
                 for key in keys
                 for pdfs = (bibtex-completion-find-pdf key bibtex-completion-find-additional-pdfs)
                 append (with-no-warnings (--map (org-make-link-string it key) pdfs)))))
+
+(defun bibtex-completion-format-citation-org-cite (keys)
+  "Format org-links using Org mode's own cite syntax."
+  (format "[cite:%s]"
+    (s-join ";"
+            (--map (format "@%s" it) keys))))
 
 (defun bibtex-completion-format-citation-org-apa-link-to-PDF (keys)
   "Format org-links to PDF for entries in KEYS.
@@ -1198,7 +1212,7 @@ Return DEFAULT if FIELD is not present in ENTRY."
              ("year" (or value
                          (car (split-string (bibtex-completion-get-value "date" entry "") "-"))))
              (_ value))
-         "")))))
+         (or default ""))))))
 
 (defun bibtex-completion-apa-format-authors (value &optional abbrev)
   "Format author list in VALUE in APA style.
@@ -1284,7 +1298,10 @@ Surrounding curly braces are stripped."
         (replace-regexp-in-string
          "\\(^[[:space:]]*[\"{][[:space:]]*\\)\\|\\([[:space:]]*[\"}][[:space:]]*$\\)"
          ""
-         (s-collapse-whitespace value))
+         ;; Collapse whitespaces when the content is not a path:
+         (if (equal bibtex-completion-pdf-field field)
+             value
+           (s-collapse-whitespace value)))
       default)))
 
 (defun bibtex-completion-insert-key (keys)
@@ -1529,51 +1546,84 @@ bibliography file that will open that file for editing."
 
 (defun bibtex-completion-find-local-bibliography ()
   "Return a list of BibTeX files associated with the current file.
-If the current file is a BibTeX file, return this
-file.  Otherwise, try to use `reftex' to find the associated
-BibTeX files.  If this fails, return nil."
+
+If the current file is a BibTeX file, return this file.  In LaTeX
+documents, use `reftex' to find associated BibTeX files.  In org
+files return the local or global org bibliography (see oc.el).
+If all fails, return nil."
   (or (and (buffer-file-name)
            (string= (or (f-ext (buffer-file-name)) "") "bib")
            (list (buffer-file-name)))
+      ;; LaTeX:
       (and (buffer-file-name)
+           (string= (or (f-ext (buffer-file-name)) "") "tex")
            (require 'reftex-cite nil t)
-           (ignore-errors (reftex-get-bibfile-list)))))
+           (ignore-errors (reftex-get-bibfile-list)))
+      ;; Org (with oc.el):
+      (and (buffer-file-name)
+           (string= (or (f-ext (buffer-file-name)) "") "org")
+           (fboundp 'org-cite-list-bibliography-files)
+           (org-cite-list-bibliography-files))))
+
+(defun bibtex-completion-get-key-bibtex ()
+  "Return the key of the BibTeX entry at point, nil otherwise.
+This function can be used by `bibtex-completion-key-at-point' to
+find the key of the BibTeX entry at point in a BibTeX-mode
+buffer."
+  (when (eq major-mode 'bibtex-mode)
+    (save-excursion
+      (bibtex-beginning-of-entry)
+      (and (looking-at bibtex-entry-maybe-empty-head)
+           (bibtex-key-in-head)))))
+
+(defun bibtex-completion-get-key-latex ()
+  "Return the key of the BibTeX entry at point, nil otherwise.
+This function can be used by `bibtex-completion-key-at-point' to
+find the key of the BibTeX entry at point in a LaTeX buffer."
+  (when (and (derived-mode-p 'latex-mode)
+             (require 'reftex-parse nil t))
+    (save-excursion
+      (skip-chars-backward "[:space:],;}")
+      (let ((macro (reftex-what-macro 1)))
+        (and (stringp (car macro))
+             (string-match "\\`\\\\cite\\|cite\\'" (car macro))
+             ;; allow '_' in citekeys
+             (let ((temp-syn-table (make-syntax-table)))
+               (modify-syntax-entry ?_ "_" temp-syn-table)
+               (with-syntax-table temp-syn-table
+                 (thing-at-point 'symbol))))))))
+
+(defun bibtex-completion-get-key-org-bibtex ()
+  "Return the key of the BibTeX entry at point, nil otherwise.
+This function can be used by `bibtex-completion-key-at-point' to
+find the key of the BibTeX entry at point in an Org-mode buffer."
+  (when (eq major-mode 'org-mode)
+    (let (key)
+      (and (setq key (org-entry-get nil
+                                    (if (boundp 'org-bibtex-key-property)
+                                        org-bibtex-key-property
+                                      "CUSTOM_ID")
+                                    t))
+           ;; KEY may be the empty string the the property is
+           ;; present but has no value
+           (> (length key) 0)
+           key))))
+
+(defvar bibtex-completion-key-at-point-functions
+  (list #'bibtex-completion-get-key-bibtex
+        #'bibtex-completion-get-key-latex
+        #'bibtex-completion-get-key-org-bibtex)
+  "List of functions to use to find the BibTeX key.
+The functions should take no argument and return the BibTeX
+key.  Stops as soon as a function returns something.
+See `bibtex-completion-key-at-point' for details.")
 
 (defun bibtex-completion-key-at-point ()
   "Return the key of the BibTeX entry at point.
-If the current file is a BibTeX file, return the key of the entry
-at point.  Otherwise, try to use `reftex' to check whether point
-is at a citation macro, and if so return the key at
-point.  Otherwise, if the current file is an org mode file, return
-the value of `org-bibtex-key-property' (or default to
-\"CUSTOM_ID\").  Otherwise, return nil."
-  (or (and (eq major-mode 'bibtex-mode)
-           (save-excursion
-             (bibtex-beginning-of-entry)
-             (and (looking-at bibtex-entry-maybe-empty-head)
-                  (bibtex-key-in-head))))
-      (and (require 'reftex-parse nil t)
-           (save-excursion
-             (skip-chars-backward "[:space:],;}")
-             (let ((macro (reftex-what-macro 1)))
-               (and (stringp (car macro))
-                    (string-match "\\`\\\\cite\\|cite\\'" (car macro))
-                    ;; allow '_' in citekeys
-                    (let ((temp-syn-table (make-syntax-table)))
-                      (modify-syntax-entry ?_ "_" temp-syn-table)
-                      (with-syntax-table temp-syn-table
-                        (thing-at-point 'symbol)))))))
-      (and (eq major-mode 'org-mode)
-           (let (key)
-             (and (setq key (org-entry-get nil
-                                           (if (boundp 'org-bibtex-key-property)
-                                               org-bibtex-key-property
-                                             "CUSTOM_ID")
-                                           t))
-                  ;; KEY may be the empty string the the property is
-                  ;; present but has no value
-                  (> (length key) 0)
-                  key)))))
+The functions used to match the keys are defined in
+`bibtex-completion-key-at-point-functions'."
+  (cl-some #'identity
+           (mapcar #'funcall bibtex-completion-key-at-point-functions)))
 
 (provide 'bibtex-completion)
 
