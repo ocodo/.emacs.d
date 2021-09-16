@@ -117,6 +117,16 @@ Enable font locking properties for inserted text." t nil)
 
 ;;;***
 
+;;;### (autoloads nil "lentic-markdown" "lentic-markdown.el" (0 0
+;;;;;;  0 0))
+;;; Generated autoloads from lentic-markdown.el
+
+(autoload 'lentic-clojure-markdown-init "lentic-markdown" nil nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lentic-markdown" '("lentic-")))
+
+;;;***
+
 ;;;### (autoloads nil "lentic-mode" "lentic-mode.el" (0 0 0 0))
 ;;; Generated autoloads from lentic-mode.el
 
