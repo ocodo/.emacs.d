@@ -5,8 +5,8 @@
 ;; Authors: Jason Pellerin
 ;;          crystal-lang-tools
 ;; URL: https://github.com/crystal-lang-tools/emacs-crystal-mode
-;; Package-Version: 20191121.1447
-;; Package-Commit: f9e4db16ff9fdc6a296363aa35d19cfb4926e472
+;; Package-Version: 20201228.1539
+;; Package-Commit: 15998140b0a4172cd4b4d14d0377fba96a8917fc
 ;; Created: Tue Jun 23 2015
 ;; Keywords: languages crystal
 ;; Version: 0.2.0
@@ -442,6 +442,11 @@ It is used when `crystal-encoding-magic-comment-style' is set to `custom'."
 
          (dot-stmt (stmt) (stmt "." dot-stmt))
 
+         (type (id)
+               (type "::" id))
+
+         (type-spec (":" type))
+
          (stmt ("def" stmts-rescue-stmts "end")
                ("begin" stmts-rescue-stmts "end")
                ("do" stmts-rescue-stmts "end")
@@ -451,7 +456,7 @@ It is used when `crystal-encoding-magic-comment-style' is set to `custom'."
                ;; c-binding
                ("lib" stmts"end")
                ("struct" stmts "end")
-               ("fun" stmts "end")
+               ("fun" id "(" stmts ")" type-spec)
                ("enum" stmts "end")
                ("union" stmts "end")
                ;; control exp
