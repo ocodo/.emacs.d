@@ -6,8 +6,8 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2012
 ;; Keywords: http
-;; Package-Version: 20200502.831
-;; Package-Commit: ac8aad6c6b9e9d918062fa3c89c22c2f4ec48bc3
+;; Package-Version: 20210813.841
+;; Package-Commit: 176d9cb6552f04d98c33e29fc673862bdf3bca03
 
 ;; This file is not part of GNU Emacs.
 ;; This file is public domain software. Do what you want.
@@ -23,6 +23,8 @@
 (require 'url)
 (require 'json)
 (require 'outline)
+(eval-when-compile (require 'subr-x))
+(eval-when-compile (require 'cl))
 
 (defgroup restclient nil
   "An interactive HTTP client for Emacs."
@@ -472,7 +474,7 @@ The buffer contains the raw HTTP response sent by the server."
     `(lambda ()
        (message "Unknown restclient hook type %s" ,cb-type))))
 
-(defun resetclient-register-result-func (name creation-func description)
+(defun restclient-register-result-func (name creation-func description)
   (let ((new-cell (cons name (cons creation-func description))))
     (setq restclient-result-handlers (cons new-cell restclient-result-handlers))))
 
@@ -512,7 +514,7 @@ The buffer contains the raw HTTP response sent by the server."
     (goto-char (restclient-current-min))
     (when (re-search-forward restclient-method-url-regexp (point-max) t)
       (let ((method (match-string-no-properties 1))
-            (url (match-string-no-properties 2))
+            (url (string-trim (match-string-no-properties 2)))
             (vars (restclient-find-vars-before-point))
             (headers '()))
         (forward-line)
@@ -564,10 +566,10 @@ The buffer contains the raw HTTP response sent by the server."
     (lambda ()
       (eval form))))
 
-(resetclient-register-result-func
+(restclient-register-result-func
  "run-hook" #'restclient-elisp-result-function
- "Call the provided (possibly multi-line) elisp when the result 
-  buffer is formatted. Equivalent to a restclient-response-loaded-hook 
+ "Call the provided (possibly multi-line) elisp when the result
+  buffer is formatted. Equivalent to a restclient-response-loaded-hook
   that only runs for this request.
   eg. -> on-response (message \"my hook called\")" )
 

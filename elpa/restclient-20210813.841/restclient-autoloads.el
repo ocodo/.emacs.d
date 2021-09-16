@@ -27,7 +27,7 @@ Turn on restclient mode.
 
 \(fn)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "restclient" '("res")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "restclient" '("restclient-")))
 
 ;;;***
 
