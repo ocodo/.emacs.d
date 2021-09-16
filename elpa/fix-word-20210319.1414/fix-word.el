@@ -4,8 +4,8 @@
 ;;
 ;; Author: Mark Karpov <markkarpov92@gmail.com>
 ;; URL: https://github.com/mrkkrp/fix-word
-;; Package-Version: 20190713.1338
-;; Package-Commit: 46487e5279a3079730e2d7146ace7c8ad42371ac
+;; Package-Version: 20210319.1414
+;; Package-Commit: e967dd4ac98d777deeede8b497d6337634c06df4
 ;; Version: 0.2.0
 ;; Package-Requires: ((emacs "24.1") (cl-lib "0.5"))
 ;; Keywords: word, convenience
@@ -27,9 +27,10 @@
 
 ;;; Commentary:
 
-;; This package provides a means of lifting functions that transform strings
-;; into commands that have different behavior depending on active region,
-;; position of point, etc.
+;; This is a package that allows us to transform words intelligently.  It
+;; provides the function `fix-word' that lifts functions that do string
+;; transformation into commands with interesting behavior.  There are also
+;; some built-in commands built on top of `fix-word'.
 
 ;;; Code:
 
@@ -44,10 +45,10 @@
 
 (defcustom fix-word-bounds-of-thing-function
   #'bounds-of-thing-at-point
-  "Function to get the bounds of a thing at point.
+  "Function to get the boundaries of a thing at point.
 
 This variable lets you customize the way this package determines
-the bounds of a word."
+the boundaries of a word."
   :group 'fix-word
   :type  'function)
 
@@ -65,23 +66,23 @@ This should be a symbol that can be passed as the argument to
 
 The following behaviors are implemented:
 
-If the point is placed outside of a word, apply FNC to previous
-word.  If the command is invoked repeatedly, every its invocation
-transforms one more word moving from right to left.  For
-example (upcasing, ^ shows position of point/cursor):
+If the point is placed outside of a word, apply FNC to the
+previous word.  When the command is invoked repeatedly, every its
+invocation transforms one more word moving from right to left.
+For example (upcasing, ^ shows the position of the point):
 
   The quick brown fox jumps over the lazy dog.^
   The quick brown fox jumps over the lazy DOG.^
   The quick brown fox jumps over the LAZY DOG.^
   The quick brown fox jumps over THE LAZY DOG.^
 
-The point doesn't move, this allows user to fix recently entered
+The point doesn't move, this allows us to fix recently entered
 words and continue typing.
 
-If the point is placed inside any part of a word, the whole word
-is transformed.  The point is moved to first character of the
-next word.  This allows to transform words repeatedly pressing
-dedicated key binding.
+If the point is placed inside a word, the entire word is
+transformed.  The point is moved to the first character of the
+next word.  This allows us to transform several words by invoking
+the command repeatedly.
 
   ^The quick brown fox jumps over the lazy dog.
   THE ^quick brown fox jumps over the lazy dog.
@@ -120,7 +121,7 @@ There is also a macro that defines such commands for you:
 (defun fix-word--fix-and-move (fnc &optional arg)
   "Transform the current word with function FNC and move to the next word.
 
-If argument ARG is supplied, repeat the operation that many times."
+If the argument ARG is supplied, repeat the operation ARG times."
   (dotimes (_ (or arg 1))
     (fix-word--transform-word fnc)
     (forward-word 2)
@@ -130,11 +131,11 @@ If argument ARG is supplied, repeat the operation that many times."
   "How many times `fix-word--fix-quickly' has been invoked consequently.")
 
 (defun fix-word--fix-quickly (fnc &optional arg)
-  "Transform the previous word with function FNC.
+  "Transform the previous word with the function FNC.
 
 If this function is invoked repeatedly, transform more words
-moving from right to left.  If argument ARG is supplied, repeat
-the operation that many times."
+moving from right to left.  If the argument ARG is supplied,
+repeat the operation ARG times."
   (interactive)
   (let* ((origin (point))
          (i (if (eq last-command this-command)
@@ -152,7 +153,7 @@ the operation that many times."
     (goto-char origin)))
 
 (defun fix-word--transform-word (fnc)
-  "Transform the word at the point with function FNC."
+  "Transform the word at the point with the function FNC."
   (let ((bounds (funcall (or fix-word-bounds-of-thing-function
                              'bounds-of-thing-at-point)
                          (or fix-word-thing 'word))))
@@ -166,9 +167,9 @@ the operation that many times."
 
 ;;;###autoload
 (defmacro fix-word-define-command (name fnc &optional doc)
-  "Define `fix-word'-based command named NAME.
+  "Define a `fix-word'-based command named NAME.
 
-FNC is the processing function and DOC is documentation string."
+FNC is the processing function and DOC is the documentation string."
   (declare (indent defun))
   `(defalias ',name (fix-word ,fnc)
      ,(concat (or doc "Name of the command should be self-explanatory.")
@@ -179,13 +180,13 @@ FNC is the processing function and DOC is documentation string."
 
 ;;;###autoload
 (fix-word-define-command fix-word-upcase #'upcase
-  "Upcase word intelligently.")
+  "Upcase words intelligently.")
 ;;;###autoload
 (fix-word-define-command fix-word-downcase #'downcase
-  "Downcase word intelligently.")
+  "Downcase words intelligently.")
 ;;;###autoload
 (fix-word-define-command fix-word-capitalize #'capitalize
-  "Capitalize word intelligently.")
+  "Capitalize words intelligently.")
 
 (provide 'fix-word)
 
