@@ -238,6 +238,10 @@ The caller of `lispy--show' might use a substitute e.g. `describe-function'."
     (error
      (lispy--cleanup-overlay))))
 
+(declare-function cider-nrepl-op-supported-p "ext:cider-client")
+(declare-function cider-sync-request:info "ext:cider-client")
+(declare-function nrepl-dict-get "ext:nrepl-dict")
+
 (defun lispy--docstring (sym)
   "Get the docstring for SYM."
   (cond
@@ -251,6 +255,13 @@ The caller of `lispy--show' might use a substitute e.g. `describe-function'."
                  sym 'variable-documentation)
                 "undocumented"))
            (t "unbound")))
+    ((eq major-mode 'clojurescript-mode)
+     (let (info)
+       (or
+        (and (cider-nrepl-op-supported-p "info")
+             (setq info (cider-sync-request:info sym))
+             (nrepl-dict-get info "doc"))
+        (concat "No doc for " sym))))
     ((or (memq major-mode lispy-clojure-modes)
          (memq major-mode '(cider-repl-mode)))
      (require 'le-clojure)
@@ -259,13 +270,11 @@ The caller of `lispy--show' might use a substitute e.g. `describe-function'."
         (replace-regexp-in-string
          "^\\(?:-+\n\\|\n*.*$.*@.*\n*\\)" ""
          (cond ((stringp rsymbol)
-                (read
-                 (lispy--eval-clojure-cider
-                  (format "(with-out-str (clojure.repl/doc %s))" rsymbol))))
+                (lispy--eval-clojure-cider
+                 (format "(with-out-str (clojure.repl/doc %s))" rsymbol)))
                ((eq rsymbol 'special)
-                (read
-                 (lispy--eval-clojure-cider
-                  (format "(with-out-str (clojure.repl/doc %s))" sym))))
+                (lispy--eval-clojure-cider
+                 (format "(with-out-str (clojure.repl/doc %s))" sym)))
                ((eq rsymbol 'keyword)
                 "No docs for keywords")
                ((and (listp rsymbol)

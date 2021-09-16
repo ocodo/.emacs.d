@@ -6,6 +6,13 @@
                          (or (file-name-directory #$) (car load-path))))
 
 
+;;;### (autoloads nil "elpa" "elpa.el" (0 0 0 0))
+;;; Generated autoloads from elpa.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "elpa" '("straight-reload-all")))
+
+;;;***
+
 ;;;### (autoloads nil "le-clojure" "le-clojure.el" (0 0 0 0))
 ;;; Generated autoloads from le-clojure.el
 
@@ -87,7 +94,7 @@ backward through lists, which is useful to move into special.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lispy" '("ac-trigger-commands" "hydra-lispy-x" "lh-knight" "lispy-" "mc/cmds-to-run-" "unsupported-mode-error")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "lispy" '("ac-trigger-commands" "eval-error" "hydra-lispy-x" "lh-knight" "lispy-" "mc/cmds-to-run-" "unsupported-mode-error")))
 
 ;;;***
 
@@ -105,7 +112,7 @@ backward through lists, which is useful to move into special.
 
 ;;;***
 
-;;;### (autoloads nil nil ("elpa.el" "lispy-pkg.el") (0 0 0 0))
+;;;### (autoloads nil nil ("lispy-pkg.el") (0 0 0 0))
 
 ;;;***
 

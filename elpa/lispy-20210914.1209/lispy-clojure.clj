@@ -17,7 +17,7 @@
 ;; For a full copy of the GNU General Public License
 ;; see <http://www.gnu.org/licenses/>.
 
-(ns lispy-clojure
+(ns lispy.clojure
   (:require [clojure.repl :as repl]
             [clojure.pprint]
             [clojure.java.io :as io]
@@ -37,7 +37,7 @@
 (defn expand-file-name [name dir]
   (. (io/file dir name) getCanonicalPath))
 
-(use-package 'compliment "0.3.6")
+(use-package 'compliment "0.3.11")
 (require '[compliment.core :as compliment])
 
 (use-package 'me.raynes/fs "1.4.6")
@@ -544,34 +544,7 @@ malleable to refactoring."
     (xcond ((:l-file m)
             (list (:l-file m) (:l-line m)))
            ((and (:file m) (not (re-matches #"^/tmp/" (:file m))))
-            (list (file->elisp (:file m)) (:line m)))
-           ;; ((class? rs)
-           ;;  (let [sym (symbol (class-name rs))
-           ;;        info (parser/source-info sym)]
-           ;;    (list
-           ;;      (file->elisp
-           ;;        (:file info))
-           ;;      (:line info))))
-           ;; ((nil? rs)
-           ;;  (let [name (str sym)
-           ;;        [cls method] (str/split name #"/")
-           ;;        file (-> (clojure.core/symbol cls)
-           ;;                 (resolve)
-           ;;                 (class-name)
-           ;;                 (parser/source-path)
-           ;;                 (file->elisp))
-           ;;        line (-> (symbol cls)
-           ;;                 (resolve)
-           ;;                 (class-name)
-           ;;                 (symbol)
-           ;;                 (parser/source-info)
-           ;;                 (:members)
-           ;;                 (get (clojure.core/symbol method))
-           ;;                 (vals)
-           ;;                 (first)
-           ;;                 (:line))]
-           ;;    (list file line)))
-           )))
+            (list (file->elisp (:file m)) (:line m))))))
 
 (defn pp [expr]
   (with-out-str

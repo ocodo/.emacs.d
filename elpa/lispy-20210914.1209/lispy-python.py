@@ -228,6 +228,8 @@ def print_elisp(obj, end="\n"):
                     print_elisp(x)
                 print(")")
             elif type(obj) is str:
+                # quote strings?
+                # print("\"'" + re.sub("\"", "\\\"", obj) + "'\"", end=" ")
                 print('"' + re.sub("\"", "\\\"", obj) + '"', end=" ")
             else:
                 print('"' +  repr(obj) + '"', end=" ")
@@ -332,4 +334,13 @@ def pprint(x):
     if len(r1) > 1000 and repr1:
         print(repr1.repr(x))
     else:
-        pp1.pprint(x)
+        if type(x) == collections.OrderedDict:
+            print("{" + ",\n ".join([str(k) + ": " + str(v) for (k, v) in x.items()]) + "}")
+        else:
+            pp1.pprint(x)
+
+def step_in(fn, *args):
+    spec = inspect.getargspec(fn)
+    f_globals = top_level().f_globals
+    for (arg_name, arg_val) in zip(spec.args, args):
+        f_globals[arg_name] = arg_val

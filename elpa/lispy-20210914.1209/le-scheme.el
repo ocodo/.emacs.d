@@ -35,6 +35,7 @@
 (declare-function geiser-eval--retort-error "geiser-eval")
 (declare-function geiser-mode "geiser-mode")
 (declare-function geiser-edit-symbol "geiser-edit")
+(declare-function geiser-racket--language "geiser-racket")
 
 (defun lispy--eval-scheme (str)
   "Eval STR as Scheme code."
@@ -44,7 +45,8 @@
           (run-geiser geiser-impl--implementation)
         (call-interactively 'run-geiser))
       (geiser-mode 1)))
-  (when (string-match "(\\(?:define\\|set!\\|struct\\)[ (]+\\(\\(?:\\w\\|\\s_\\)+\\)" str)
+  (when (and (not (member (geiser-racket--language) '(plait)))
+             (string-match "(\\(?:define\\|set!\\|struct\\)[ (]+\\(\\(?:\\w\\|\\s_\\)+\\)" str))
     (let ((name (match-string 1 str)))
       (setq str (format "(begin %s %s)" str name))))
   (with-current-buffer (geiser-repl--buffer-name geiser-impl--implementation)
