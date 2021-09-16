@@ -41,11 +41,32 @@ t: call as interactive
 
 :r-beg record begin
 Beginning of next record.
-Can be a regular expression or a function without args.
-If the function finds a record beginning it should return its position
+Can be a regular expression, a function without args
+or a list of record delimiters.
+If the function finds a record beginning, it should return its position
 like `search-forward'.
-Search starts at buffer beginning or at end of last recurd.
+Search starts at buffer beginning or at end of last record.
 Defaults to `point-min'.
+A list of record delimiters allows to define nested records.
+One example where this becomes handy is, when one wants to grep
+for identifiers in org source blocks within certain sections of Org-files.
+In that example the first record could start at a match of \"^\\* SECTION\"
+and end at a match of \"^\\* \\|\\'\"
+and the second record could be delimited by matches of
+\" *#+begin_src\" and \" *#+end_src\".
+A list of record delimiters is marked with the value t in its first element.
+Starting with its cdr, it contains record delimiters.
+Each record delimiter is a list.
+The first element of that list is the regular expression or
+the function matching the beginning of the record
+and the second element of that list is the regular expression
+or function matching the end of the record.
+For the above example the `elgrep' command would look like:
+\(elgrep ...
+    :r-beg (t
+            (\"^\\\\* W:22205\" \"^\\\\* \\\\|\\\\'\")
+            (\" *#\\\\+begin_src\" \" *#\\\\+end_src \"))
+    ...)
 
 :r-end record end
 End of record.
@@ -58,14 +79,14 @@ Defaults to `point-max'.
 :c-beg context begin (line beginning)
 Lines before match defaults to 0. Can also be a regular expression.
 Then this re is searched for in backward-direction
-starting at the current elgrep-match.
+starting at the beginning of the current elgrep-match.
 It can also be a function moving point to the context beginning
 starting at the match of RE.
 
 :c-end context end (line end)
-Lines behind match defaults to 0
+Lines behind match defaults to 0. Can also be a regular expression.
 Then this re is searched for in forward-direction
-starting at the current elgrep-match.
+starting at the end of the current elgrep-match.
 It can also be a function moving point to the context end
 starting at the match of :c-beg.
 

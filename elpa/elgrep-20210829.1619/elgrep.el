@@ -4,11 +4,11 @@
 
 ;; Author: Tobias Zawada <i@tn-home.de>
 ;; Keywords: tools, matching, files, unix
-;; Package-Version: 20191203.1227
-;; Package-Commit: c475cee98bc607746901318ef9da463c96d5e04e
+;; Package-Version: 20210829.1619
+;; Package-Commit: ed1ddf377447a82d643b46f3a72cbf5ecb21fb4b
 ;; Version: 1.0.0
 ;; URL: https://github.com/TobiasZawada/elgrep
-;; Package-Requires: ((emacs "26.1") (async "1.5"))
+;; Package-Requires: ((emacs "26.2") (async "1.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -118,10 +118,20 @@ See `elgrep' and `elgrep-menu' for details."
   (setq header-line-format (substitute-command-keys "Quit (burry-buffer): \\[quit-window]; go to occurence: \\[compile-goto-error]; elgrep-edit-mode: \\[elgrep-edit-mode]")))
 
 (define-key elgrep-mode-map (kbd "C-c C-e") #'elgrep-edit-mode)
+(define-key elgrep-mode-map (kbd "g") #'elgrep-rerun)
+
 (easy-menu-define nil elgrep-mode-map
   "Menu for `elgrep-mode'."
   '("Elgrep"
-    ["Elgrep-edit" elgrep-edit-mode t]))
+    ["Next Match" compilation-next-error :enable t :help "Visit the next match and corresponding location"]
+    ["Previous Match" compilation-previous-error :enable t :help "Visit the previous match and corresponding location"]
+    ["First Match" first-error :enable t :help "Restart at the first match, visit corresponding location"]
+    "--"
+    ["Elgrep-edit" elgrep-edit-mode :enable t :help "Toggle Elgrep Edit Mode for editing matches and saving them"]
+    ["Rerun Elgrep" elgrep-rerun :enable t :help "Rerun Elgrep, C-u: Read command from minibuffer with previous command as default input"]))
+
+(define-key elgrep-mode-map (kbd "<menu-bar> <grep>") nil)
+(define-key elgrep-mode-map (kbd "<menu-bar> <compilation>") nil)
 
 (defvar elgrep-re-hist nil
   "History for elgrep regular expressions for `elgrep' (which see).
@@ -175,10 +185,12 @@ VISIT is passed as second argument to `insert-file-contents'."
   (dired-mode)
   (dired-build-subdir-alist))
 
-(defmacro elgrep-line-position (limiter pos-op search-op)
-  "If LIMITER is a number then act like (POS-OP (1+ LIMITER)).
-Thereby POS-OP is `line-end-position' or `line-beginning-position'.
+(defmacro elgrep-line-position (limiter match-bound ctx-bound pos-op search-op)
+  "If LIMITER is a number act like (POS-OP (1+ LIMITER)).
+Thereby count lines starting at MATCH-BOUND.
+POS-OP is either `line-end-position' or `line-beginning-position'.
 If LIMITER is a regular expression search with SEARCH-OP for that RE
+starting at CTX-BOUND
 and return `line-end-position' or `line-beginning-position'
 of the line with the match, respectively.
 If LIMITER is a function call it with no args, call POS-OP afterwards,
@@ -186,22 +198,24 @@ and return `line-end-position' or `line-beginning-position'
 of the line with the match, respectively.
 
 Default action is (POS-OP)."
-  `(cond
-    ((stringp ,limiter)
-     (save-excursion
+  `(save-excursion
+     (cond
+      ((stringp ,limiter)
+       (goto-char ,ctx-bound)
        (save-match-data
 	 (when (,search-op ,limiter nil t) ;; t=noerror
 	   (,pos-op))
-	 )))
-    ((numberp ,limiter)
-     (,pos-op (1+ ,limiter)))
-    ((functionp ,limiter)
-     (save-excursion
+	 ))
+      ((numberp ,limiter)
+       (goto-char ,match-bound)
+       (,pos-op (1+ ,limiter)))
+      ((functionp ,limiter)
+       (goto-char ,ctx-bound)
        (save-match-data
 	 (when (funcall ,limiter)
-	   (,pos-op)))))
-    (t
-     (save-excursion
+	   (,pos-op))))
+      (t
+       (goto-char ,match-bound)
        (save-match-data
 	 (when (eval ,limiter)
 	   (,pos-op)))))))
@@ -291,11 +305,22 @@ Comparison done with `equal'."
 	(setf (nthcdr hist-length (symbol-value hist-var)) nil)))
     ret))
 
+(defun elgrep-widget-set-choice (widget current &optional value)
+  "Set `menu-choice' WIDGET to CURRENT with VALUE.
+CURRENT should be one of the elements of (widget-get widget :args)."
+  (widget-put widget :explicit-choice current)
+  (widget-value-set widget value)
+  (widget-setup)
+  (widget-apply widget :notify widget nil))
+
 (defun elgrep-menu-record-p (rec)
-  "Check whether REC is an admissible value for `elgrep-w-r-beg'."
-  (or (stringp rec)
-      (functionp rec)
-      (listp rec)))
+  "Check whether REC is an admissible value for `elgrep-w-r-end'."
+  (or
+   (eq rec t)
+   (stringp rec)
+   (functionp rec)
+   (listp rec) ;; TODO: `listp' is rather unspecific.
+   ))
 
 (defun elgrep-menu-context-p (ctxt)
   "Check whether CTXT is an admissible value for `elgrep-w-c-beg'."
@@ -574,6 +599,10 @@ If the value of OLD is nil no old widget is deleted."
       (list b (point) obarray
 	    :predicate #'fboundp))))
 
+(define-widget 'elgrep-invisible-const-widget 'const
+  "An invisible constant widget."
+  :format "")
+
 (define-widget 'elgrep-elisp-widget 'sexp
   "Widget for elisp input as function or lisp form."
   :tag "Function or Elisp Form"
@@ -583,6 +612,30 @@ If the value of OLD is nil no old widget is deleted."
   "Widget type for `elgrep-w-r-beg' and `elgrep-w-r-end'."
   :args '((regexp :tag "Regexp")
 	  (elgrep-elisp-widget)))
+
+(defun elgrep-record-list-notify (this &rest rest)
+  "Control activity of record end widget depending on THIS.
+If the record begin widget is a list deactivate the end widget
+and activate it otherwise.
+Call `widget-default-notify' with THIS and REST."
+  (let ((end (widget-get this :elgrep-record-end-widget)))
+    (cl-assert end "Internal error record end not registered")
+    (if (eq (widget-type (widget-get this :choice)) 'elgrep-record-widget)
+	(widget-apply end :activate)
+      (widget-apply end :deactivate)))
+  (apply #'widget-default-notify this rest))
+
+(define-widget 'elgrep-record-list-widget 'menu-choice
+  "Let the user choose between simple record and nested records."
+  :args '((cons :tag "Nested" :format "%t%v"
+		(elgrep-invisible-const-widget :tag "" :value t)
+		(repeat :tag ""
+			(list
+			 (elgrep-record-widget :tag "Record Begin")
+			 (elgrep-record-widget :tag "Record End"))))
+	  (elgrep-record-widget :tag "Begin"))
+	  :notify #'elgrep-record-list-notify
+	  :elgrep-record-end-widget nil)
 
 (define-widget 'elgrep-context-widget 'menu-choice
   "Widget type for `elgrep-w-c-beg' and `elgrep-w-c-end'."
@@ -1076,7 +1129,10 @@ You can adjust the parameters there and start `elgrep'."
     (setq default-directory
 	  (or
 	   (cl-loop for buf in (buffer-list)
-		    if (buffer-file-name buf)
+		    if (or
+			(buffer-file-name buf)
+			(with-current-buffer buf
+			  (derived-mode-p 'dired-mode 'eshell-mode)))
 		    return (with-current-buffer buf default-directory))
 	   default-directory))
     (let ((inhibit-read-only t))
@@ -1134,8 +1190,9 @@ Hint: Try <M-tab> for completion, and <M-up>/<M-down> for history access.
 					 (const :tag "Synchronous" nil))))
     (setq-local elgrep-w-mindepth (elgrep-widget-create 'number :format "Minimal Recursion Depth: %v" 0))
     (setq-local elgrep-w-maxdepth (elgrep-widget-create 'number :format "Maximal Recursion Depth: %v" most-positive-fixnum))
-    (setq-local elgrep-w-r-beg (elgrep-widget-create 'elgrep-record-widget :tag "Beginning of Record" :value #'point-min))
-    (setq-local elgrep-w-r-end (elgrep-widget-create 'elgrep-record-widget :tag "End of Record" :value #'point-max))
+    (setq-local elgrep-w-r-beg (elgrep-widget-create 'elgrep-record-list-widget :tag "Record" :value nil))
+    (setq-local elgrep-w-r-end (elgrep-widget-create 'elgrep-record-widget :tag "Record End" :value nil))
+    (widget-put elgrep-w-r-beg :elgrep-record-end-widget elgrep-w-r-end)
     (setq-local elgrep-w-c-beg (elgrep-widget-create 'elgrep-context-widget :tag "Context Lines Before The Match"))
     (setq-local elgrep-w-c-end (elgrep-widget-create 'elgrep-context-widget :tag "Context Lines After The Match"))
     (setq-local elgrep-w-case-fold-search
@@ -1355,14 +1412,25 @@ The record boundaries are searched with `elgrep--search-forward'."
   (let ((pt-min (point-min))
 	(pt-max (point-max))
 	b (e (1- (point-min))))
+    (when (eq r-end t)
+      (when (cdr r-beg)
+	(let ((r-beg-new (cdr r-beg))
+	      (old-fun fun))
+	  (setq fun (lambda ()
+		      (elgrep-with-records-f
+		       r-beg-new
+		       t
+		       old-fun)))))
+      (setq r-end (cadar r-beg)
+	    r-beg (caar r-beg)))
     (while
 	(when (and (setq b (elgrep--search-forward r-beg t))
 		   (setq b (if (< e b) ;; Search for r-beg:"^" and r-end:"$" in "\n\n"
 			       b        ;; finds the same position.
 			     (and (< e (point-max))
 				  (goto-char (1+ e))
-				  (elgrep--search-forward r-beg t)))))
-	  (setq e (elgrep--search-forward r-end))
+				  (elgrep--search-forward r-beg t))))
+		   (setq e (elgrep--search-forward r-end)))
 	  (narrow-to-region b e)
 	  (goto-char b)
 	  (save-restriction
@@ -1436,11 +1504,32 @@ t: call as interactive
 
 :r-beg record begin
 Beginning of next record.
-Can be a regular expression or a function without args.
-If the function finds a record beginning it should return its position
+Can be a regular expression, a function without args
+or a list of record delimiters.
+If the function finds a record beginning, it should return its position
 like `search-forward'.
-Search starts at buffer beginning or at end of last recurd.
+Search starts at buffer beginning or at end of last record.
 Defaults to `point-min'.
+A list of record delimiters allows to define nested records.
+One example where this becomes handy is, when one wants to grep
+for identifiers in org source blocks within certain sections of Org-files.
+In that example the first record could start at a match of \"^\\* SECTION\"
+and end at a match of \"^\\* \\|\\'\"
+and the second record could be delimited by matches of
+\" *#+begin_src\" and \" *#+end_src\".
+A list of record delimiters is marked with the value t in its first element.
+Starting with its cdr, it contains record delimiters.
+Each record delimiter is a list.
+The first element of that list is the regular expression or
+the function matching the beginning of the record
+and the second element of that list is the regular expression
+or function matching the end of the record.
+For the above example the `elgrep' command would look like:
+\(elgrep ...
+    :r-beg (t
+            (\"^\\\\* W:22205\" \"^\\\\* \\\\|\\\\'\")
+            (\" *#\\\\+begin_src\" \" *#\\\\+end_src \"))
+    ...)
 
 :r-end record end
 End of record.
@@ -1453,14 +1542,14 @@ Defaults to `point-max'.
 :c-beg context begin (line beginning)
 Lines before match defaults to 0. Can also be a regular expression.
 Then this re is searched for in backward-direction
-starting at the current elgrep-match.
+starting at the beginning of the current elgrep-match.
 It can also be a function moving point to the context beginning
 starting at the match of RE.
 
 :c-end context end (line end)
-Lines behind match defaults to 0
+Lines behind match defaults to 0. Can also be a regular expression.
 Then this re is searched for in forward-direction
-starting at the current elgrep-match.
+starting at the end of the current elgrep-match.
 It can also be a function moving point to the context end
 starting at the match of :c-beg.
 
@@ -1636,7 +1725,7 @@ when all requirements are fulfilled."
 (defun elgrep-occur-search (re &rest options)
   "Collect lines matching RE in the records of the current buffer.
 
-The following set of OPTIONS is describe in the help of `elgrep':
+The following set of OPTIONS is described in the help of `elgrep':
 :c-op
 :c-beg
 :c-end
@@ -1658,6 +1747,10 @@ The structure of MATCHDATA is described in the doc string of `elgrep-search'."
 	 matches
 	 (last-pos (point-min))
 	 (last-line-number 1))
+    (when (and (consp r-beg)
+	       (eq (car r-beg) t))
+      (setq r-beg (cdr r-beg)
+	    r-end t))
     (elgrep-with-records r-beg r-end
       (let (match
 	    (required-matches (cdr-safe re))
@@ -1679,13 +1772,19 @@ The structure of MATCHDATA is described in the doc string of `elgrep-search'."
 	    (when-let* (pos-found
 			(n (/ (length (match-data)) 2))
 			(context-beginning
-			 (save-excursion
-			   (goto-char (match-beginning 0))
-			   (elgrep-line-position c-beg line-beginning-position re-search-backward)))
+			 (elgrep-line-position
+			  c-beg
+			  (match-beginning 0)
+			  (match-beginning 0)
+			  line-beginning-position
+			  re-search-backward))
 			(context-end
-			 (save-excursion
-			   (goto-char context-beginning)
-			   (elgrep-line-position c-end line-end-position re-search-forward)))
+			 (elgrep-line-position
+			  c-end
+			  (match-end 0)
+			  context-beginning
+			  line-end-position
+			  re-search-forward))
 			(matchdata (and
 				    (<= (match-end 0) context-end)
 				    (cl-loop
@@ -1811,6 +1910,30 @@ See `elgrep' for the valid options in plist OPTIONS."
 		   filematches)))))
       filematches)))
 
+(defun elgrep-split-args-options (args)
+  "Separate elgrep arguments from options in ARGS.
+return a list ((DIR FILE-NAME-RE RE) OPTIONS)."
+  (apply (lambda (dir file-name-re re &rest options)
+	   (list (list dir file-name-re re) options))
+	 args))
+;; Test:
+;; (elgrep-split-args-options '("dir" "file-name-re" "re" :interactive t :buffer "*elgrep*"))
+
+(defun elgrep-rerun (&optional edit)
+  "Rerun `elgrep' in Elgrep buffer with previous arguments.
+Give the user the possibility to edit the command if EDIT is non-nil."
+  (interactive "P")
+  (unless (derived-mode-p 'elgrep-mode)
+    (error "`elgrep-rerun' can only be called in elgrep buffers"))
+  (cl-multiple-value-bind (args options) (elgrep-split-args-options elgrep-args)
+    (setq options (plist-put options :buffer (buffer-name))
+	  args (append args options))
+    (if edit
+	(edit-and-eval-command
+	 "Elgrep-command:"
+	 (cons 'elgrep/i args))
+      (apply #'elgrep args))))
+
 (defun elgrep-show (filematches dir file-name-re re &rest options)
   "Show FILEMATCHES generated by `elgrep-search'.
 The parameters DIR FILE-NAME-RE RE OPTIONS are the same as for `elgrep-search'.
@@ -1819,7 +1942,7 @@ See `elgrep' for the valid options in the plist OPTIONS."
     (unless dir
       (setq dir (or default-directory)))
     (let ((inhibit-read-only t))
-      (with-current-buffer (get-buffer-create "*elgrep*")
+      (with-current-buffer (get-buffer-create (or (plist-get options :buffer) "*elgrep*"))
 	(if filematches
 	    (progn
 	      (unless (plist-get options :abs)
@@ -2404,6 +2527,5 @@ The interactive call is accomplished by appending (:interactive t) to ARGS."
   `(apply #'elgrep '(,@args :interactive t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (provide 'elgrep)
 ;;; elgrep.el ends here
