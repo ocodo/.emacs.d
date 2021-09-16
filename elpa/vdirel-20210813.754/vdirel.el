@@ -4,8 +4,8 @@
 
 ;; Author: Damien Cassou <damien@cassou.me>
 ;; Version: 0.1.1
-;; Package-Version: 20190430.624
-;; Package-Commit: a9ef32a70a1f14416e3dc5fee478ce138cc011d3
+;; Package-Version: 20210813.754
+;; Package-Commit: dccc51bf68ad3f0066a462b354ec395229bd6a7f
 ;; Url: https://github.com/DamienCassou/vdirel
 ;; Package-Requires: ((emacs "24.4") (org-vcard "0.1.0") (helm "1.7.0") (seq "1.11"))
 ;; Created: 09 Dec 2015
@@ -191,7 +191,8 @@ without further argument."
                                         (vdirel-contact-fullname contact)
                                         email)
                                 (list (vdirel-contact-fullname contact)
-                                      email)))
+                                      email
+                                      (vdirel--contact-property "VDIREL-FILENAME" contact))))
                         (vdirel-contact-emails contact)))
               contacts))
 
@@ -205,6 +206,12 @@ CANDIDATE is ignored."
                                (cadr pair)))
                      (helm-marked-candidates)
                      ", ")))
+
+(defun vdirel--open-file (candidate)
+  "Open files assosiated to selected contacts.
+CANDIDATE is ignored."
+  (ignore candidate)
+  (mapcar (lambda (entry) (find-file (caddr entry))) (helm-marked-candidates)))
 
 ;;;###autoload
 (defun vdirel-helm-select-email (&optional refresh repository)
@@ -223,7 +230,8 @@ CANDIDATE is ignored."
    (helm-build-sync-source "Contacts"
      :candidates (vdirel--helm-email-candidates (vdirel--cache-contacts repository))
      :action (helm-make-actions
-              "Insert" #'vdirel--helm-insert-contact-email))))
+              "Insert" #'vdirel--helm-insert-contact-email
+              "Open file" #'vdirel--open-file))))
 
 (provide 'vdirel)
 

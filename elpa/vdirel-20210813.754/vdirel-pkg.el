@@ -1,0 +1,2 @@
+;;; Generated package description from vdirel.el  -*- no-byte-compile: t -*-
+(define-package "vdirel" "20210813.754" "Manipulate vdir (i.e., vCard) repositories" '((emacs "24.4") (org-vcard "0.1.0") (helm "1.7.0") (seq "1.11")) :commit "dccc51bf68ad3f0066a462b354ec395229bd6a7f" :authors '(("Damien Cassou" . "damien@cassou.me")) :maintainer '("Damien Cassou" . "damien@cassou.me") :url "https://github.com/DamienCassou/vdirel")
