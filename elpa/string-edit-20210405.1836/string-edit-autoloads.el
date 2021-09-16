@@ -11,11 +11,9 @@
 
 (autoload 'string-edit-at-point "string-edit" "\
 Pop up a buffer to edit the string at point.
-This saves you from needing to manually escape characters.
+This saves you from needing to manually escape characters." t nil)
 
-\(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "string-edit" '("string-edit-" "se/")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "string-edit" '("se/" "string-edit-")))
 
 ;;;***
 
