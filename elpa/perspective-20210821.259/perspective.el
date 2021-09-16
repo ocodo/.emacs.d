@@ -6,10 +6,10 @@
 
 ;; Author: Natalie Weizenbaum <nex342@gmail.com>
 ;; URL: http://github.com/nex3/perspective-el
-;; Package-Version: 20200812.548
-;; Package-Commit: ba5e590aeed9329c52ae8906a58061c5dc242c36
+;; Package-Version: 20210821.259
+;; Package-Commit: 1c257f35ccabaa807d3a79f6daed7b6a5872d27b
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5"))
-;; Version: 2.9
+;; Version: 2.16
 ;; Created: 2008-03-05
 ;; By: Natalie Weizenbaum <nex342@gmail.com>
 ;; Keywords: workspace, convenience, frames
@@ -67,6 +67,13 @@ perspectives."
   :type '(list (string :tag "Open")
                (string :tag "Close")
                (string :tag "Divider")))
+
+(defcustom persp-modestring-short nil
+  "When t, show a shortened modeline string.
+A shortened modeline string only displays the current perspective
+instead of the full perspective list."
+  :group 'perspective-mode
+  :type 'boolean)
 
 (defcustom persp-mode-prefix-key (kbd "C-x x")
   "Prefix key to activate perspective-map."
@@ -214,6 +221,21 @@ filtering in buffer display modes like ibuffer."
 (defalias 'persp-killed-p 'persp-killed
   "Return whether the perspective CL-X has been killed.")
 
+(defvar persp-started-after-server-mode nil
+  "XXX: A nasty workaround for a strange timing bug which occurs
+  if the Emacs server was started before Perspective initialized.
+  For some reason, persp-delete-frame gets called multiple times
+  in unexpected ways. To reproduce: (0) make sure server-start is
+  called before persp-mode is turned on and comment out the use
+  of persp-started-after-server-mode, (1) get a session going
+  with a main frame, (2) switch perspectives a couple of
+  times, (3) use emacsclient -c to edit a file in a new
+  frame, (4) C-x 5 0 to kill that frame. This will cause an
+  unintended perspective switch in the primary frame, and mark
+  the previous perspective as deleted. There is also a note in
+  the *Messages* buffer. TODO: It would be good to get to the
+  bottom of this problem, rather than just paper over it.")
+
 (defvar persp-before-switch-hook nil
   "A hook that's run before `persp-switch'.
 Run with the previous perspective as `persp-curr'.")
@@ -279,6 +301,35 @@ Run with the activated perspective active.")
 (define-key perspective-map persp-mode-prefix-key 'persp-switch-last)
 (define-key perspective-map (kbd "C-s") 'persp-state-save)
 (define-key perspective-map (kbd "C-l") 'persp-state-load)
+(define-key perspective-map (kbd "`") 'persp-switch-by-number)
+
+(define-key perspective-map (kbd "1") (lambda () (interactive) (persp-switch-by-number 1)))
+(define-key perspective-map (kbd "2") (lambda () (interactive) (persp-switch-by-number 2)))
+(define-key perspective-map (kbd "3") (lambda () (interactive) (persp-switch-by-number 3)))
+(define-key perspective-map (kbd "4") (lambda () (interactive) (persp-switch-by-number 4)))
+(define-key perspective-map (kbd "5") (lambda () (interactive) (persp-switch-by-number 5)))
+(define-key perspective-map (kbd "6") (lambda () (interactive) (persp-switch-by-number 6)))
+(define-key perspective-map (kbd "7") (lambda () (interactive) (persp-switch-by-number 7)))
+(define-key perspective-map (kbd "8") (lambda () (interactive) (persp-switch-by-number 8)))
+(define-key perspective-map (kbd "9") (lambda () (interactive) (persp-switch-by-number 9)))
+(define-key perspective-map (kbd "0") (lambda () (interactive) (persp-switch-by-number 10)))
+
+(declare-function which-key-mode "which-key.el")
+(when (fboundp 'which-key-mode)
+  (require 'which-key)
+  (declare-function which-key-add-keymap-based-replacements "which-key.el")
+  (when (fboundp 'which-key-add-keymap-based-replacements)
+    (which-key-add-keymap-based-replacements perspective-map
+      "1" "switch to 1"
+      "2" "switch to 2"
+      "3" "switch to 3"
+      "4" "switch to 4"
+      "5" "switch to 5"
+      "6" "switch to 6"
+      "7" "switch to 7"
+      "8" "switch to 8"
+      "9" "switch to 9"
+      "0" "switch to 10")))
 
 (defun perspectives-hash (&optional frame)
   "Return a hash containing all perspectives in FRAME.
@@ -436,7 +487,7 @@ first."
 (defun persp-all-names (&optional not-frame)
   "Return a list of the perspective names for all frames.
 Excludes NOT-FRAME, if given."
-  (cl-reduce 'union
+  (cl-reduce 'cl-union
              (mapcar
               (lambda (frame)
                 (unless (equal frame not-frame)
@@ -537,7 +588,11 @@ For example, (persp-intersperse '(1 2 3) 'a) gives '(1 a 2 a 3)."
   "Select the clicked perspective.
 EVENT is the click event triggering this function call."
   (interactive "e")
-  (persp-switch (format "%s" (car (posn-string (event-start event))))))
+  (persp-switch (format "%s" (car (posn-string (event-start event)))))
+  ;; XXX: Force update of modestring because otherwise it's inconsistent with
+  ;; the order of perspectives maintained by persp-sort. The call to
+  ;; persp-update-modestring inside persp-switch happens too early.
+  (persp-update-modestring))
 
 (defun persp-mode-line ()
   "Return the string displayed in the modeline representing the perspectives."
@@ -552,8 +607,10 @@ Has no effect when `persp-show-modestring' is nil."
           (sep (nth 2 persp-modestring-dividers)))
       (set-frame-parameter nil 'persp--modestring
            (append open
-                   (persp-intersperse (mapcar 'persp-format-name
-                                              (persp-names)) sep)
+                   (if persp-modestring-short
+                       (list (persp-current-name))
+                     (persp-intersperse (mapcar 'persp-format-name
+                                                (persp-names)) sep))
                    close)))))
 
 (defun persp-format-name (name)
@@ -617,12 +674,30 @@ If NORECORD is non-nil, do not update the
       (set-frame-parameter nil 'persp--last (persp-curr))
       (when (null persp)
         (setq persp (persp-new name)))
-      (run-hooks 'persp-before-switch-hook)
-      (persp-activate persp)
       (unless norecord
-        (setf (persp-last-switch-time persp) (current-time)))
-      (run-hooks 'persp-switch-hook)
+        (run-hooks 'persp-before-switch-hook))
+      (persp-activate persp)
+      (when (fboundp 'persp--set-xref-marker-ring) (persp--set-xref-marker-ring))
+      (unless norecord
+        (setf (persp-last-switch-time persp) (current-time))
+        (run-hooks 'persp-switch-hook))
       name)))
+
+(defun persp-switch-by-number (num)
+  "Switch to the perspective given by NUMBER."
+  (interactive "NSwitch to perspective number: ")
+  (let* ((persps (persp-names))
+         (max-persps (length persps)))
+    (if (<= num max-persps)
+        (persp-switch (nth (- num 1) persps))
+      (message "Perspective number %s not available, only %s exist%s"
+               num
+               max-persps
+               (if (= 1 max-persps) "s" ""))))
+  ;; XXX: Have to force the modestring to update in this case, since the call
+  ;; inside persp-switch happens too early. Otherwise, it may be inconsistent
+  ;; with persp-sort.
+  (persp-update-modestring))
 
 (defun persp-activate (persp)
   "Activate the perspective given by the persp struct PERSP."
@@ -789,6 +864,7 @@ perspective and no others are killed."
     (mapc 'persp-remove-buffer (persp-current-buffers))
     (setf (persp-killed (persp-curr)) t))
   (remhash name (perspectives-hash))
+  (when (boundp 'persp--xref-marker-ring) (remhash name persp--xref-marker-ring))
   (persp-update-modestring)
   (when (and (persp-last) (equal name (persp-name (persp-last))))
     (set-frame-parameter
@@ -802,6 +878,15 @@ perspective and no others are killed."
     ;; Don't let persp-last get set to the deleted persp.
     (persp-let-frame-parameters ((persp--last (persp-last)))
       (persp-switch (persp-find-some)))))
+
+(defun persp-kill-others ()
+  "Kill all perspectives except the current one."
+  (interactive)
+  (let ((self (persp-current-name)))
+    (when (yes-or-no-p (concat "Really kill all perspectives other than `" self "'? "))
+      (cl-loop for p in (persp-names)
+               when (not (string-equal p self)) do
+               (persp-kill p)))))
 
 (defun persp-rename (name)
   "Rename the current perspective to NAME."
@@ -845,7 +930,7 @@ copied across frames."
         (let ((persp (gethash name (perspectives-hash))))
           (if persp (cl-return-from persp-all-get (persp-buffers persp))))))))
 
-(defun persp-read-buffer (prompt &optional def require-match)
+(defun persp-read-buffer (prompt &optional def require-match predicate)
   "A replacement for the built-in `read-buffer', meant to be used with `read-buffer-function'.
 Return the name of the buffer selected, only selecting from buffers
 within the current perspective.
@@ -856,7 +941,7 @@ With a prefix arg, uses the old `read-buffer' instead."
   (persp-protect
     (let ((read-buffer-function nil))
       (if current-prefix-arg
-          (read-buffer prompt def require-match)
+          (read-buffer prompt def require-match predicate)
         ;; Most of this is taken from `minibuffer-with-setup-hook',
         ;; slightly modified because it's not a macro.
         ;; The only functional difference is that the append argument
@@ -871,7 +956,7 @@ With a prefix arg, uses the old `read-buffer' instead."
           (unwind-protect
               (progn
                 (add-hook 'minibuffer-setup-hook persp-read-buffer-hook t)
-                (read-buffer prompt def require-match))
+                (read-buffer prompt def require-match predicate))
             (remove-hook 'minibuffer-setup-hook persp-read-buffer-hook)))))))
 
 (defun persp-complete-buffer ()
@@ -992,6 +1077,8 @@ named collections of buffers and window configurations."
   :keymap persp-mode-map
   (if persp-mode
       (persp-protect
+        (when (bound-and-true-p server-process)
+          (setq persp-started-after-server-mode t))
         ;; TODO: Convert to nadvice, which has been available since 24.4 and is
         ;; the earliest Emacs version Perspective supports.
         (ad-activate 'switch-to-buffer)
@@ -1000,7 +1087,7 @@ named collections of buffers and window configurations."
         (ad-activate 'switch-to-prev-buffer)
         (ad-activate 'recursive-edit)
         (ad-activate 'exit-recursive-edit)
-        (advice-add 'helm-buffer-list-1 :filter-return #'persp-buffer-list-filter)
+        (persp--helm-enable)
         (add-hook 'after-make-frame-functions 'persp-init-frame)
         (add-hook 'delete-frame-functions 'persp-delete-frame)
         (add-hook 'ido-make-buffer-list-hook 'persp-set-ido-buffers)
@@ -1008,7 +1095,7 @@ named collections of buffers and window configurations."
         (mapc 'persp-init-frame (frame-list))
         (setf (persp-current-buffers) (buffer-list))
         (run-hooks 'persp-mode-hook))
-    (advice-remove 'helm-buffer-list-1 #'persp-buffer-list-filter)
+    (persp--helm-disable)
     (ad-deactivate-regexp "^persp-.*")
     (remove-hook 'delete-frame-functions 'persp-delete-frame)
     (remove-hook 'after-make-frame-functions 'persp-init-frame)
@@ -1016,10 +1103,11 @@ named collections of buffers and window configurations."
     (setq read-buffer-function nil)
     (set-frame-parameter nil 'persp--hash nil)
     (setq global-mode-string (delete '(:eval (persp-mode-line)) global-mode-string))
-    (set-default 'header-line-format (delete '(:eval (persp-mode-line)) header-line-format))
-    (unless (delete "" header-line-format)
-      ;; need to set header-line-format to nil to completely remove the header from the buffer
-      (set-default 'header-line-format nil))))
+    (let ((default-header-line-format (default-value 'header-line-format)))
+      (set-default 'header-line-format (delete '(:eval (persp-mode-line)) default-header-line-format))
+      (unless (delete "" default-header-line-format)
+        ;; need to set header-line-format to nil to completely remove the header from the buffer
+        (set-default 'header-line-format nil)))))
 
 (defun persp-init-frame (frame)
   "Initialize the perspectives system in FRAME.
@@ -1059,15 +1147,7 @@ By default, this uses the current frame."
   "Clean up perspectives in FRAME.
 By default this uses the current frame."
   (with-selected-frame frame
-    ;; XXX: Only clean up frame perspectives when frame was _not_ created with
-    ;; emacsclient. Attempting this cleanup causes crashes for unclear reasons.
-    ;; Investigation shows that persp-delete-frame gets called multiple times in
-    ;; unexpected ways. To reproduce: (1) get a session going with a main frame,
-    ;; (2) use emacsclient -c to edit a file in a new frame, (3) C-x 5 0 to kill
-    ;; that frame.
-    ;; TODO: Try to fix this, since emacsclient -c use with perspective can
-    ;; leave dangling buffers unassociated with any perspective.
-    (unless (frame-parameter frame 'client)
+    (unless persp-started-after-server-mode
       (mapcar #'persp-kill (persp-names)))))
 
 (defun persp-make-variable-persp-local (variable)
@@ -1145,6 +1225,9 @@ perspective beginning with the given letter."
       ;; `other-buffer'.
       (get-buffer-create (persp-scratch-buffer)))))
 
+
+;;; --- perspective-aware buffer switchers
+
 ;; Buffer switching integration: useful for frameworks which enhance the
 ;; built-in completing-read (e.g., Selectrum).
 ;;;###autoload
@@ -1195,6 +1278,26 @@ PERSP-SET-IDO-BUFFERS)."
                        (buffer-name (current-buffer))))))
   (kill-buffer buffer-or-name))
 
+;; Buffer switching integration: buffer-menu.
+;;;###autoload
+(defun persp-buffer-menu (arg)
+  "Like the default C-x C-b, but filters for the current perspective's buffers."
+  (interactive "P")
+  (if (and persp-mode (null arg))
+      (switch-to-buffer
+       (list-buffers-noselect nil (seq-filter 'buffer-live-p (persp-current-buffers))))
+    (switch-to-buffer (list-buffers-noselect))))
+
+;; Buffer switching integration: list-buffers.
+;;;###autoload
+(defun persp-list-buffers (arg)
+  "Like the default C-x C-b, but filters for the current perspective's buffers."
+  (interactive "P")
+  (if (and persp-mode (null arg))
+      (display-buffer
+       (list-buffers-noselect nil (seq-filter 'buffer-live-p (persp-current-buffers))))
+    (display-buffer (list-buffers-noselect))))
+
 ;; Buffer switching integration: bs.el.
 ;;;###autoload
 (defun persp-bs-show (arg)
@@ -1238,35 +1341,41 @@ PERSP-SET-IDO-BUFFERS)."
         (ibuffer))
     (ibuffer)))
 
-(defun persp--switch-buffer-ivy-counsel-helper (arg ivy-params fallback)
+;; Buffer switching integration: Ivy.
+;;
+;; An alternative implementation, which has the drawback of not allowing a
+;; prefix argument to list all buffers:
+;;
+;; (defun persp-ivy-read-advice (args)
+;;   (append args
+;;           (list :predicate
+;;                 (lambda (b) (persp-is-current-buffer (cdr b))))))
+;; (advice-add 'ivy-read :filter-args #'persp-ivy-read-advice)
+;; (advice-remove 'ivy-read #'persp-ivy-read-advice)
+
+(defun persp--switch-buffer-ivy-counsel-helper (arg fallback)
   (unless (featurep 'ivy)
     (user-error "Ivy not loaded"))
-  (defvar ivy-switch-buffer-map)
   (declare-function ivy-read "ivy.el")
-  (declare-function ivy--switch-buffer-matcher "ivy.el")
-  (declare-function ivy--switch-buffer-action "ivy.el")
   (if (and persp-mode (null arg))
-      (apply #'ivy-read
-             (append
-              (list
-               (format "Switch to buffer (%s): " (persp-current-name))
-               (cl-remove-if #'null (mapcar #'buffer-name (persp-current-buffers)))
-               :preselect (buffer-name (persp-other-buffer (current-buffer)))
-               :keymap ivy-switch-buffer-map
-               :action #'ivy--switch-buffer-action
-               :matcher #'ivy--switch-buffer-matcher)
-              ivy-params))
+      (let ((real-ivy-read (symbol-function 'ivy-read)))
+        (cl-letf (((symbol-function 'ivy-read)
+                   (lambda (&rest args)
+                     (apply real-ivy-read
+                            (append args
+                                    (list :predicate
+                                          (lambda (b)
+                                            (persp-is-current-buffer (cdr b)))))))))
+          (funcall fallback)))
     (funcall fallback)))
 
-;; Buffer switching integration: Ivy.
 ;;;###autoload
 (defun persp-ivy-switch-buffer (arg)
   "A version of `ivy-switch-buffer' which respects perspectives."
   (interactive "P")
   (declare-function ivy-switch-buffer "ivy.el")
-  (persp--switch-buffer-ivy-counsel-helper arg nil #'ivy-switch-buffer))
+  (persp--switch-buffer-ivy-counsel-helper arg #'ivy-switch-buffer))
 
-;; Buffer switching integration: Counsel.
 ;;;###autoload
 (defun persp-counsel-switch-buffer (arg)
   "A version of `counsel-switch-buffer' which respects perspectives."
@@ -1274,13 +1383,70 @@ PERSP-SET-IDO-BUFFERS)."
   (unless (featurep 'counsel)
     (user-error "Counsel not loaded"))
   (declare-function counsel-switch-buffer "counsel.el")
-  (declare-function counsel--switch-buffer-unwind "counsel.el")
-  (declare-function counsel--switch-buffer-update-fn "counsel.el")
-  (persp--switch-buffer-ivy-counsel-helper arg
-                                           (list :caller #'counsel-switch-buffer
-                                                 :unwind #'counsel--switch-buffer-unwind
-                                                 :update-fn #'counsel--switch-buffer-update-fn)
-                                           #'counsel-switch-buffer))
+  (persp--switch-buffer-ivy-counsel-helper arg #'counsel-switch-buffer))
+
+
+;;; --- Helm integration
+
+(defun persp--helm-buffer-list-filter (bufs)
+  (if current-prefix-arg
+      bufs
+    (persp-buffer-list-filter bufs)))
+
+(defun persp--helm-remove-buffers-from-perspective (_arg)
+  (interactive)
+  (declare-function helm-marked-candidates "helm.el")
+  (cl-loop for candidate in (helm-marked-candidates) do
+           (persp-remove-buffer candidate)))
+
+(defun persp--helm-add-buffers-to-perspective (_arg)
+  (declare-function helm-marked-candidates "helm.el")
+  (cl-loop for candidate in (helm-marked-candidates) do
+           (persp-add-buffer candidate)))
+
+(defun persp--helm-activate (&rest _args)
+  (defvar helm-source-buffers-list)
+  (declare-function helm-make-source "helm-source.el")
+  (declare-function helm-add-action-to-source "helm.el")
+  ;; XXX: Ugly Helm initialization, works around the way
+  ;; helm-source-buffers-list is lazily initialized in helm-buffers.el
+  ;; helm-buffers-list and helm-mini (copypasta code).
+  (require 'helm-buffers)
+  (unless helm-source-buffers-list
+    (setq helm-source-buffers-list
+          (helm-make-source "Buffers" 'helm-source-buffers)))
+  ;; actually activate things
+  (advice-add 'helm-buffer-list-1 :filter-return #'persp--helm-buffer-list-filter)
+  (helm-add-action-to-source
+   "Perspective: Add buffer to current perspective"
+   #'persp--helm-add-buffers-to-perspective helm-source-buffers-list)
+  (helm-add-action-to-source
+   "Perspective: Remove buffer from current perspective"
+   #'persp--helm-remove-buffers-from-perspective helm-source-buffers-list)
+  ;; remove persp--helm-activate advice once it has run
+  (advice-remove 'helm-initial-setup #'persp--helm-activate))
+
+(defun persp--helm-enable ()
+  ;; We do not know if Helm has been loaded before Perspective is activated, so
+  ;; we need a way to activate Perspective-Helm integration once we know for
+  ;; certain that Helm is ready. An advice functino should do the trick, which
+  ;; will remove itself once it does its job.
+  (advice-add 'helm-initial-setup :before #'persp--helm-activate))
+
+(defun persp--helm-disable ()
+  (defvar helm-source-buffers-list)
+  (declare-function helm-delete-action-from-source "helm.el")
+  (if (not (featurep 'helm))
+      (advice-remove 'helm-initial-setup #'persp--helm-activate)
+    ;; actual cleanup if Helm-perspective integration has loaded:
+    (helm-delete-action-from-source
+     #'persp--helm-remove-buffers-from-perspective helm-source-buffers-list)
+    (helm-delete-action-from-source
+     #'persp--helm-add-buffers-to-perspective helm-source-buffers-list)
+    (advice-remove 'helm-buffer-list-1 #'persp--helm-buffer-list-filter)))
+
+
+;;; --- durability implementation (persp-state-save and persp-state-load)
 
 ;; Symbols namespaced by persp--state (internal) and persp-state (user
 ;; functions) provide functionality which allows saving perspective state on
@@ -1532,6 +1698,79 @@ restored."
   (run-hooks 'persp-state-after-load-hook))
 
 (defalias 'persp-state-restore 'persp-state-load)
+
+
+;;; --- ibuffer filter group code
+
+(with-eval-after-load 'ibuffer
+  (defvar ibuffer-filtering-alist nil)
+  (define-ibuffer-filter persp-name
+      "Toggle current view to buffers with persp name QUALIFIER."
+    (:description "persp-name"
+                  :reader (read-regexp "Filter by persp name (regexp): "))
+    (ibuffer-awhen (persp-ibuffer-name buf)
+      (if (stringp qualifier)
+          (or (string-match-p qualifier (car it))
+              (string-match-p qualifier (cdr-safe it)))
+        (equal qualifier it)))))
+
+(defun persp-ibuffer-default-group-name (persp-name)
+  "Produce an ibuffer group name string for PERSP-NAME."
+  (format "%s" persp-name))
+
+(defun persp-ibuffer-name (buf)
+  "Return a PERSP-NAME of BUF."
+  (let ((persp-names (cl-loop for persp-name in (persp-all-names)
+                              if (memq buf (persp-all-get persp-name nil))
+                              collect persp-name)))
+    (list (car persp-names))))
+
+;;;###autoload
+(defun persp-ibuffer-generate-filter-groups ()
+  "Create a set of ibuffer filter groups based on the persp name of buffers."
+  (declare-function ibuffer-remove-duplicates "ibuf-ext.el")
+  (declare-function ibuffer-push-filter "ibuf-ext.el")
+  (declare-function ibuffer-pop-filter "ibuf-ext.el")
+  (let ((persp-names (ibuffer-remove-duplicates
+                      (delq nil (mapcar 'persp-ibuffer-name (buffer-list))))))
+    (mapcar (lambda (persp-name)
+              (cons (persp-ibuffer-default-group-name (car persp-name))
+                    `((persp-name . ,persp-name))))
+            persp-names)))
+
+;;;###autoload
+(defun persp-ibuffer-set-filter-groups ()
+  "Set the current filter groups to filter by persp name."
+  (interactive)
+  (unless (featurep 'ibuffer)
+    (user-error "IBuffer not loaded"))
+  (defvar ibuffer-filter-groups)
+  (declare-function ibuffer-update "ibuffer.el")
+  (setq ibuffer-filter-groups (persp-ibuffer-generate-filter-groups))
+  (message "persp-ibuffer: groups set")
+  (let ((ibuf (get-buffer "*Ibuffer*")))
+    (when ibuf
+      (with-current-buffer ibuf
+        (pop-to-buffer ibuf)
+        (ibuffer-update nil t)))))
+
+
+;;; --- xref code
+
+;; xref is not available in Emacs 24, so be careful:
+(when (require 'xref nil t)
+
+  (defvar persp--xref-marker-ring (make-hash-table :test 'equal))
+
+  (defun persp--set-xref-marker-ring ()
+    "Set xref--marker-ring per persp."
+    (defvar xref-marker-ring-length)
+    (defvar xref--marker-ring)
+    (let ((persp-curr-name (persp-name (persp-curr))))
+      (unless (gethash persp-curr-name persp--xref-marker-ring)
+        (puthash persp-curr-name (make-ring xref-marker-ring-length)
+                 persp--xref-marker-ring))
+      (setq xref--marker-ring (gethash persp-curr-name persp--xref-marker-ring)))))
 
 
 ;;; --- done
