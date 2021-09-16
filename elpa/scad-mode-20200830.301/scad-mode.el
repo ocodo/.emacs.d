@@ -5,8 +5,8 @@
 ;; Created:    March 2010
 ;; Modified:   28 Jun 2020
 ;; Keywords:   languages
-;; Package-Version: 20200628.2256
-;; Package-Commit: fd94c4d568296711242e35f2a9f3823132b6bec6
+;; Package-Version: 20200830.301
+;; Package-Commit: 1c2aac041d0fa130e1392f7898bcc9b5eec8df58
 ;; URL:        https://raw.github.com/openscad/openscad/master/contrib/scad-mode.el
 ;; Version:    92.0
 
@@ -51,6 +51,14 @@
 (add-to-list 'auto-mode-alist '("\\.scad$" . scad-mode))
 
 (require 'cc-mode)
+
+(eval-when-compile
+  (require 'cc-langs)
+  (require 'cc-fonts)
+  (require 'cl))
+
+(eval-and-compile
+  (c-add-language 'scad-mode 'c-mode))
 
 (defcustom scad-command
   '"openscad"
@@ -183,9 +191,15 @@
           scad-keywords scad-functions scad-modules)
   "List of known words for completion.")
 
+(defcustom scad-mode-disable-c-mode-hook t
+  "When set to `T', do not run hooks of parent mode (`c-mode')."
+  :group 'scad-mode
+  :tag "SCAD Mode Disable C Mode Hook"
+  :type 'boolean)
+
 (put 'scad-mode 'c-mode-prefix "scad-")
 ;;;###autoload
-(define-derived-mode scad-mode prog-mode "SCAD"
+(define-derived-mode scad-mode c-mode "SCAD"
   "Major mode for editing OpenSCAD code.
 
 To see what version of CC Mode you are running, enter `\\[c-version]'.
@@ -197,11 +211,14 @@ Key bindings:
 \\{scad-mode-map}"
   (add-hook 'completion-at-point-functions
             'scad-completion-at-point nil 'local)
-  (c-initialize-cc-mode)
+  (when scad-mode-disable-c-mode-hook
+    (setq-local c-mode-hook nil))
+  (c-initialize-cc-mode t)
   ;; (setq local-abbrev-table scad-mode-abbrev-table
   ;; 	abbrev-mode t)
   (use-local-map scad-mode-map)
   (c-set-offset (quote cpp-macro) 0 nil)
+  (c-init-language-vars scad-mode)
   (c-basic-common-init 'scad-mode (or scad-indent-style "k&r"))
   (c-font-lock-init)
   (c-run-mode-hooks 'c-mode-common-hook 'scad-mode-hook)
