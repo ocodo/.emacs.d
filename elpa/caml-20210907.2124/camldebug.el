@@ -1,4 +1,4 @@
-;**************************************************************************
+;****************************************** -*- lexical-binding: t; -*- ***
 ;*                                                                        *
 ;*                                 OCaml                                  *
 ;*                                                                        *
@@ -73,10 +73,10 @@
  (window-system
   (make-face 'camldebug-event)
   (make-face 'camldebug-underline)
-  (if (not (face-differs-from-default-p 'camldebug-event))
-      (invert-face 'camldebug-event))
-  (if (not (face-differs-from-default-p 'camldebug-underline))
-      (set-face-underline-p 'camldebug-underline t))
+  (unless (face-differs-from-default-p 'camldebug-event)
+    (invert-face 'camldebug-event))
+  (unless (face-differs-from-default-p 'camldebug-underline)
+    (set-face-underline 'camldebug-underline t))
   (setq camldebug-overlay-event (make-overlay 1 1))
   (overlay-put camldebug-overlay-event 'face 'camldebug-event)
   (setq camldebug-overlay-under (make-overlay 1 1))
@@ -86,6 +86,8 @@
   (setq overlay-arrow-string "=>")))
 
 ;;; Camldebug mode.
+
+(defvar comint-input-sentinel)
 
 (define-derived-mode camldebug-mode comint-mode "Inferior CDB"
 
@@ -113,23 +115,22 @@ Additionally we have:
 \\[camldebug-step] advance one line in program
 C-x SPACE sets break point at current line."
 
-  (mapcar 'make-local-variable
-          '(camldebug-last-frame-displayed-p  camldebug-last-frame
-            camldebug-delete-prompt-marker camldebug-filter-function
-           camldebug-filter-accumulator paragraph-start))
+  (mapc #'make-local-variable
+        '(camldebug-last-frame-displayed-p  camldebug-last-frame
+          camldebug-delete-prompt-marker camldebug-filter-function
+          camldebug-filter-accumulator paragraph-start))
   (setq
    camldebug-last-frame nil
    camldebug-delete-prompt-marker (make-marker)
    camldebug-filter-accumulator ""
-   camldebug-filter-function 'camldebug-marker-filter
+   camldebug-filter-function #'camldebug-marker-filter
    comint-prompt-regexp camldebug-prompt-pattern
-   comint-dynamic-complete-functions (cons 'camldebug-complete
-                                           comint-dynamic-complete-functions)
    paragraph-start comint-prompt-regexp
    camldebug-last-frame-displayed-p t)
+  (add-hook 'comint-dynamic-complete-functions #'camldebug-complete nil t)
   (make-local-variable 'shell-dirtrackp)
   (setq shell-dirtrackp t)
-  (setq comint-input-sentinel 'shell-directory-tracker))
+  (setq comint-input-sentinel #'shell-directory-tracker))
 
 ;;; Keymaps.
 
@@ -205,12 +206,13 @@ representation is simply concatenated with the COMMAND."
 
 (define-key camldebug-mode-map [mouse-2] 'camldebug-mouse-display)
 
+(defvar camldebug-kill-output)
+
 (defun camldebug-kill-filter (string)
   ;gob up stupid questions :-)
   (setq camldebug-filter-accumulator
         (concat camldebug-filter-accumulator string))
-  (if (not (string-match "\\(.* \\)(y or n) "
-                         camldebug-filter-accumulator)) nil
+  (when (string-match "\\(.* \\)(y or n) " camldebug-filter-accumulator)
     (setq camldebug-kill-output
           (cons t (match-string 1 camldebug-filter-accumulator)))
     (setq camldebug-filter-accumulator ""))
@@ -226,14 +228,17 @@ representation is simply concatenated with the COMMAND."
 
 (def-camldebug "kill"   "\C-k")
 
+(defvar current-camldebug-buffer nil)
+(defvar camldebug-goto-output)
+(defvar camldebug-goto-position)
+
 (defun camldebug-kill ()
   "Kill the program."
   (interactive)
   (let ((camldebug-kill-output))
-    (save-excursion
-      (set-buffer current-camldebug-buffer)
+    (with-current-buffer current-camldebug-buffer
       (let ((proc (get-buffer-process (current-buffer)))
-            (camldebug-filter-function 'camldebug-kill-filter))
+            (camldebug-filter-function #'camldebug-kill-filter))
         (camldebug-call "kill")
         (while (not (and camldebug-kill-output
                          (zerop (length camldebug-filter-accumulator))))
@@ -248,22 +253,29 @@ representation is simply concatenated with the COMMAND."
   ;accumulate onto previous output
   (setq camldebug-filter-accumulator
         (concat camldebug-filter-accumulator string))
-  (if (not (or (string-match (concat "\\(\n\\|\\`\\)[ \t]*\\([0-9]+\\)[ \t]+"
-                                     camldebug-goto-position
-                                     "-[0-9]+[ \t]*\\(before\\).*\n")
-                             camldebug-filter-accumulator)
-               (string-match (concat "\\(\n\\|\\`\\)[ \t]*\\([0-9]+\\)"
-                                     "[ \t]+[0-9]+-"
-                                     camldebug-goto-position
-                                     "[ \t]*\\(after\\).*\n")
-                             camldebug-filter-accumulator)))
-           nil
-    (setq camldebug-goto-output
-          (match-string 2 camldebug-filter-accumulator))
+  ;;    Address  Characters        Kind      Repr.
+  ;;     14452     64-82      before/fun
+  ;;     14584    182-217      after/ret
+  ;;0:     30248     -1--1          pseudo
+  ;;0:     30076     64-82      before/fun
+  (when (or (string-match
+             (concat "\\(?:\n\\|\\`\\)[ \t]*"
+                     "\\([0-9]+\\)\\(?::[ \t]*\\([0-9]+\\)\\)?[ \t]+"
+                     camldebug-goto-position
+                     "-[0-9]+[ \t]*before.*\n")
+             camldebug-filter-accumulator)
+            (string-match
+             (concat "\\(?:\n\\|\\`\\)[ \t]*"
+                     "\\([0-9]+\\)\\(?::[ \t]*\\([0-9]+\\)\\)?[ \t]+[0-9]+-"
+                     camldebug-goto-position
+                     "[ \t]*after.*\n")
+             camldebug-filter-accumulator))
+    (let ((id (match-string 1 camldebug-filter-accumulator))
+          (pos (match-string 2 camldebug-filter-accumulator)))
+      (setq camldebug-goto-output (if pos (concat id ":" pos) id)))
     (setq camldebug-filter-accumulator
           (substring camldebug-filter-accumulator (1- (match-end 0)))))
-  (if (not (string-match comint-prompt-regexp
-                         camldebug-filter-accumulator)) nil
+  (when (string-match comint-prompt-regexp camldebug-filter-accumulator)
     (setq camldebug-goto-output (or camldebug-goto-output 'fail))
     (setq camldebug-filter-accumulator ""))
   (if (string-match "\n\\(.*\\)\\'" camldebug-filter-accumulator)
@@ -292,8 +304,9 @@ buffer, then try to obtain the time from context around point."
         (save-selected-window
           (select-window (get-buffer-window current-camldebug-buffer))
           (save-excursion
-            (if (re-search-backward "^Time : [0-9]+ - pc : [0-9]+ "
-                                    nil t (- 1 ntime))
+            (if (re-search-backward
+                 "^Time *: [0-9]+ - pc *: [0-9]+\\(?::[0-9]+\\)? "
+                 nil t (- 1 ntime))
                 (camldebug-goto nil)
               (error "I don't have %d times in my history"
                      (- 1 ntime))))))))
@@ -302,49 +315,56 @@ buffer, then try to obtain the time from context around point."
                    ((eobp) 0)
                    ((save-excursion
                       (beginning-of-line 1)
-                      (looking-at "^Time : \\([0-9]+\\) - pc : [0-9]+ "))
-                    (caml-string-to-int (match-string 1)))
-                   ((caml-string-to-int (camldebug-format-command "%e"))))))
+                      (looking-at
+                       "^Time *: \\([0-9]+\\) - pc *: [0-9]+\\(?::[0-9]+\\)? "))
+                    (string-to-number (match-string 1)))
+                   ((string-to-number (camldebug-format-command "%e"))))))
         (camldebug-call "goto" nil time)))
    (t
     (let ((module (camldebug-module-name (buffer-file-name)))
           (camldebug-goto-position (int-to-string (1- (point))))
           (camldebug-goto-output) (address))
       ;get a list of all events in the current module
-      (save-excursion
-        (set-buffer current-camldebug-buffer)
+      (with-current-buffer current-camldebug-buffer
         (let* ((proc (get-buffer-process (current-buffer)))
-               (camldebug-filter-function 'camldebug-goto-filter))
+               (camldebug-filter-function #'camldebug-goto-filter))
           (camldebug-call-1 (concat "info events " module))
           (while (not (and camldebug-goto-output
                       (zerop (length camldebug-filter-accumulator))))
             (accept-process-output proc))
           (setq address (if (eq camldebug-goto-output 'fail) nil
                           (re-search-backward
-                           (concat "^Time : \\([0-9]+\\) - pc : "
+                           (concat "^Time *: \\([0-9]+\\) - pc *: "
                                    camldebug-goto-output
                                    " - module "
-                                   module "$") nil t)
+                                   module "$")
+                           nil t)
                           (match-string 1)))))
-      (if address (camldebug-call "goto" nil (caml-string-to-int address))
+      (if address (camldebug-call "goto" nil (string-to-number address))
         (error "No time at %s at %s" module camldebug-goto-position))))))
 
+(defvar camldebug-delete-output)
+(defvar camldebug-delete-position)
+(defvar camldebug-delete-file)
 
 (defun camldebug-delete-filter (string)
   (setq camldebug-filter-accumulator
         (concat camldebug-filter-accumulator string))
-  (if (not (string-match
-            (concat "\\(\n\\|\\`\\)[ \t]*\\([0-9]+\\)[ \t]+[0-9]+[ \t]*in "
-                    (regexp-quote camldebug-delete-file)
-                    ", character "
-                    camldebug-delete-position "\n")
-                  camldebug-filter-accumulator)) nil
+  (when (string-match
+         ;; Num    Address  Where
+         ;;  1      14552  file u.ml, line 5, characters 1-34
+         ;;  1 0:     30176  file u.ml, line 5, characters 1-34
+         (concat "\\(?:\n\\|\\`\\)[ \t]*\\([0-9]+\\)[ \t]+"
+                 "[0-9]+\\(?::[ \t]*[0-9]+\\)?[ \t]+file +"
+                 (regexp-quote camldebug-delete-file)
+                 ", character "
+                 camldebug-delete-position "\n")
+         camldebug-filter-accumulator)
     (setq camldebug-delete-output
-          (match-string 2 camldebug-filter-accumulator))
+          (match-string 1 camldebug-filter-accumulator))
     (setq camldebug-filter-accumulator
           (substring camldebug-filter-accumulator (1- (match-end 0)))))
-  (if (not (string-match comint-prompt-regexp
-                         camldebug-filter-accumulator)) nil
+  (when (string-match comint-prompt-regexp camldebug-filter-accumulator)
     (setq camldebug-delete-output (or camldebug-delete-output 'fail))
     (setq camldebug-filter-accumulator ""))
   (if (string-match "\n\\(.*\\)\\'" camldebug-filter-accumulator)
@@ -372,33 +392,33 @@ around point."
    (arg
     (let ((narg (camldebug-numeric-arg arg)))
       (if (> narg 0) (camldebug-call "delete" nil narg)
-        (save-excursion
-          (set-buffer current-camldebug-buffer)
-          (if (re-search-backward "^Breakpoint [0-9]+ at [0-9]+ : file "
-                                  nil t (- 1 narg))
+        (with-current-buffer current-camldebug-buffer
+          (if (re-search-backward
+               "^Breakpoint [0-9]+ at [0-9]+\\(?::[0-9]+\\)? *: file "
+               nil t (- 1 narg))
               (camldebug-delete nil)
             (error "I don't have %d breakpoints in my history"
                      (- 1 narg)))))))
    ((eq (current-buffer) current-camldebug-buffer)
-    (let* ((bpline "^Breakpoint \\([0-9]+\\) at [0-9]+ : file ")
+    (let* ((bpline
+            "^Breakpoint \\([0-9]+\\) at [0-9]+\\(?::[0-9]+\\)? *: file ")
            (arg (cond
                  ((eobp)
                   (save-excursion (re-search-backward bpline nil t))
-                  (caml-string-to-int (match-string 1)))
+                  (string-to-number (match-string 1)))
                  ((save-excursion
                     (beginning-of-line 1)
                     (looking-at bpline))
-                  (caml-string-to-int (match-string 1)))
-                 ((caml-string-to-int (camldebug-format-command "%e"))))))
+                  (string-to-number (match-string 1)))
+                 ((string-to-number (camldebug-format-command "%e"))))))
       (camldebug-call "delete" nil arg)))
    (t
     (let ((camldebug-delete-file
            (concat (camldebug-format-command "%m") ".ml"))
           (camldebug-delete-position (camldebug-format-command "%c")))
-      (save-excursion
-        (set-buffer current-camldebug-buffer)
+      (with-current-buffer current-camldebug-buffer
         (let ((proc (get-buffer-process (current-buffer)))
-              (camldebug-filter-function 'camldebug-delete-filter)
+              (camldebug-filter-function #'camldebug-delete-filter)
               (camldebug-delete-output))
           (camldebug-call-1 "info break")
           (while (not (and camldebug-delete-output
@@ -410,21 +430,21 @@ around point."
                      camldebug-delete-file
                      camldebug-delete-position)
             (camldebug-call "delete" nil
-                            (caml-string-to-int camldebug-delete-output)))))))))
+                            (string-to-number camldebug-delete-output)))))))))
+
+(defvar camldebug-complete-list)
 
 (defun camldebug-complete-filter (string)
   (setq camldebug-filter-accumulator
         (concat camldebug-filter-accumulator string))
   (while (string-match "\\(\n\\|\\`\\)\\(.+\\)\n"
                        camldebug-filter-accumulator)
-    (setq camldebug-complete-list
-          (cons (match-string 2 camldebug-filter-accumulator)
-                camldebug-complete-list))
+    (push (match-string 2 camldebug-filter-accumulator)
+          camldebug-complete-list)
     (setq camldebug-filter-accumulator
           (substring camldebug-filter-accumulator
                      (1- (match-end 0)))))
-  (if (not (string-match comint-prompt-regexp
-                         camldebug-filter-accumulator)) nil
+  (when (string-match comint-prompt-regexp camldebug-filter-accumulator)
     (setq camldebug-complete-list
           (or camldebug-complete-list 'fail))
     (setq camldebug-filter-accumulator ""))
@@ -458,7 +478,7 @@ around point."
     (if (> (length command-word) 0)
         (setq command (substring command 0 (1- (length command)))))
 
-    (let ((camldebug-filter-function 'camldebug-complete-filter))
+    (let ((camldebug-filter-function #'camldebug-complete-filter))
       (camldebug-call-1 (concat "complete " command))
       (set-marker camldebug-delete-prompt-marker nil)
       (while (not (and camldebug-complete-list
@@ -476,9 +496,6 @@ around point."
 (define-key camldebug-mode-map "\M-?" 'comint-dynamic-list-completions)
 
 (define-key caml-mode-map "\C-x " 'camldebug-break)
-
-
-(defvar current-camldebug-buffer nil)
 
 
 ;;;###autoload
@@ -526,13 +543,14 @@ the camldebug commands `cd DIR' and `directory'."
                   camldebug-filter-accumulator))
       (setq camldebug-last-frame
             (if (char-equal ?H (aref camldebug-filter-accumulator
-                                     (1+ (1+ begin)))) nil
+                                     (1+ (1+ begin))))
+                nil
               (let ((isbefore
                      (string= "before"
                               (match-string 5 camldebug-filter-accumulator)))
-                    (startpos (caml-string-to-int
+                    (startpos (string-to-number
                                (match-string 3 camldebug-filter-accumulator)))
-                    (endpos (caml-string-to-int
+                    (endpos (string-to-number
                              (match-string 4 camldebug-filter-accumulator))))
                 (list (match-string 2 camldebug-filter-accumulator)
                       (if isbefore startpos endpos)
@@ -578,8 +596,7 @@ the camldebug commands `cd DIR' and `directory'."
           ;; since set-buffer as a temporary effect.
           ;; comint-output-filter explicitly avoids it.
           ;; in version 23, it prevents the marker to stay at end of buffer
-          ;; (save-excursion
-            (set-buffer (process-buffer proc))
+          (with-current-buffer (process-buffer proc)
             ;; If we have been so requested, delete the debugger prompt.
             (if (marker-buffer camldebug-delete-prompt-marker)
                 (progn
@@ -595,9 +612,7 @@ the camldebug commands `cd DIR' and `directory'."
                                       (>= (point) (process-mark proc))
                                       (get-buffer-window (current-buffer))))
             ;; Insert the text, moving the process-marker.
-            (comint-output-filter proc output)
-          ;; )
-          ;; this was the end of save-excursion.
+            (comint-output-filter proc output))
           ;; if save-excursion is used (comint-next-prompt 1) would be needed
           ;; to move the mark past then next prompt, but this is not as good
           ;; as solution.
@@ -666,14 +681,15 @@ Obeying it means displaying in another window the specified file and line."
 ;; and that its character CHARACTER is visible.
 ;; Put the mark on this character in that buffer.
 
+(defvar pre-display-buffer-function)
+
 (defun camldebug-display-line (true-file schar echar kind)
   (let* ((pre-display-buffer-function nil) ; screw it, put it all in one screen
          (pop-up-windows t)
          (buffer (find-file-noselect true-file))
          (window (display-buffer buffer t))
          (spos) (epos) (pos))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (save-restriction
         (widen)
         (setq spos (+ (point-min) schar))
@@ -703,8 +719,7 @@ Obeying it means displaying in another window the specified file and line."
                           (+ spos 1) epos buffer))
         (move-overlay camldebug-overlay-event (1- epos) epos buffer)
         (move-overlay camldebug-overlay-under spos (- epos 1) buffer))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (goto-char spos)
       (beginning-of-line)
       (move-marker camldebug-event-marker (point))
@@ -716,10 +731,10 @@ Obeying it means displaying in another window the specified file and line."
   (substring filename (string-match "\\([^/]*\\)\\.ml$" filename)
              (match-end 1)))
 
-;;; The camldebug-call function must do the right thing whether its
-;;; invoking keystroke is from the camldebug buffer itself (via
-;;; major-mode binding) or a caml buffer.  In the former case, we want
-;;; to supply data from camldebug-last-frame.  Here's how we do it:
+;; The camldebug-call function must do the right thing whether its
+;; invoking keystroke is from the camldebug buffer itself (via
+;; major-mode binding) or a caml buffer.  In the former case, we want
+;; to supply data from camldebug-last-frame.  Here's how we do it:
 
 (defun camldebug-format-command (str)
   (let* ((insource (not (eq (current-buffer) current-camldebug-buffer)))
@@ -775,10 +790,9 @@ representation is simply concatenated with the COMMAND."
 (defun camldebug-call-1 (command &optional fmt arg)
 
   ;; Record info on the last prompt in the buffer and its position.
-  (save-excursion
-    (set-buffer current-camldebug-buffer)
+  (with-current-buffer current-camldebug-buffer
     (goto-char (process-mark (get-buffer-process current-camldebug-buffer)))
-    (let ((pt (point)))
+    (let () ;;(pt (point))
       (beginning-of-line)
       (if (looking-at comint-prompt-regexp)
           (set-marker camldebug-delete-prompt-marker (point)))))

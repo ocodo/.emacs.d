@@ -1,4 +1,4 @@
-;**************************************************************************
+;****************************************** -*- lexical-binding: t; -*- ***
 ;*                                                                        *
 ;*                                 OCaml                                  *
 ;*                                                                        *
@@ -32,28 +32,22 @@
 ;; End of User modifiable variables
 
 
-(defvar inferior-caml-mode-map nil)
-(if inferior-caml-mode-map nil
-  (setq inferior-caml-mode-map
-        (copy-keymap comint-mode-map)))
+(defvar inferior-caml-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map comint-mode-map)
+    map))
 
 ;; Augment Caml mode, so you can process OCaml code in the source files.
 
 (defvar inferior-caml-program "ocaml"
   "*Program name for invoking an inferior OCaml from Emacs.")
 
-(defun inferior-caml-mode ()
+(define-derived-mode inferior-caml-mode comint-mode "Inferior-Caml"
   "Major mode for interacting with an inferior OCaml process.
 Runs an OCaml toplevel as a subprocess of Emacs, with I/O through an
 Emacs buffer. A history of input phrases is maintained. Phrases can
-be sent from another buffer in Caml mode.
-
-\\{inferior-caml-mode-map}"
-  (interactive)
-  (comint-mode)
+be sent from another buffer in Caml mode."
   (setq comint-prompt-regexp "^# ?")
-  (setq major-mode 'inferior-caml-mode)
-  (setq mode-name "Inferior Caml")
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "^$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
@@ -72,9 +66,11 @@ be sent from another buffer in Caml mode.
   (setq comment-start-skip "(\\*+ *")
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments nil)
-  (use-local-map inferior-caml-mode-map)
+  ;; Hook names should end in `-hook', not `-hooks'!
   (run-hooks 'inferior-caml-mode-hooks))
 
+(make-obsolete-variable 'inferior-caml-mode-hooks
+                        'inferior-caml-mode-hook "Jan 2021")
 
 (defconst inferior-caml-buffer-subname "inferior-caml")
 (defconst inferior-caml-buffer-name
@@ -83,9 +79,7 @@ be sent from another buffer in Caml mode.
 ;; for compatibility with xemacs
 
 (defun caml-sit-for (second &optional mili redisplay)
-   (if (and (boundp 'running-xemacs) running-xemacs)
-       (sit-for (if mili (+ second (* mili 0.001)) second) redisplay)
-     (sit-for second mili redisplay)))
+  (sit-for (if mili (+ second (* mili 0.001)) second) redisplay))
 
 ;; To show result of evaluation at toplevel
 
@@ -97,7 +91,8 @@ be sent from another buffer in Caml mode.
   (set-variable 'comint-output-filter-functions
         (list (function inferior-caml-signal-output))
         t))
-(add-hook 'inferior-caml-mode-hooks 'inferior-caml-mode-output-hook)
+;; FIXME: Why not put that directly in the major mode function?
+(add-hook 'inferior-caml-mode-hook #'inferior-caml-mode-output-hook)
 
 ;; To launch ocaml whenever needed
 
@@ -152,8 +147,8 @@ Input and output via buffer `*inferior-caml*'."
   (caml-run-process-if-needed)
   (display-buffer inferior-caml-buffer-name)
   ; Added by Didier to move the point of inferior-caml to end of buffer
-  (let ((buf (current-buffer))
-        (caml-buf  (get-buffer inferior-caml-buffer-name))
+  (let (;; (buf (current-buffer))
+        ;; (caml-buf  (get-buffer inferior-caml-buffer-name))
         (count 0))
     (while
         (and (< count 10)
@@ -192,16 +187,15 @@ Input and output via buffer `*inferior-caml*'."
 
 ;; jump to errors produced by ocaml compiler
 
-(defun inferior-caml-goto-error (start end)
+(defun inferior-caml-goto-error (start _end)
   "Jump to the location of the last error as indicated by inferior toplevel."
   (interactive "r")
   (let ((loc (+ start
-                (save-excursion
-                  (set-buffer (get-buffer inferior-caml-buffer-name))
+                (with-current-buffer (get-buffer inferior-caml-buffer-name)
                   (re-search-backward
                    (concat comint-prompt-regexp
                            "[ \t]*Characters[ \t]+\\([0-9]+\\)-[0-9]+:$"))
-                  (caml-string-to-int (match-string 1))))))
+                  (string-to-number (match-string 1))))))
     (goto-char loc)))
 
 
@@ -265,14 +259,14 @@ should lies."
           (cond ((re-search-forward
                   " *Characters \\([01-9][01-9]*\\)-\\([1-9][01-9]*\\):\n[^W]"
                   (point-max) t)
-                 (setq beg (caml-string-to-int (caml-match-string 1)))
-                 (setq end (caml-string-to-int (caml-match-string 2)))
+                 (setq beg (string-to-number (caml-match-string 1)))
+                 (setq end (string-to-number (caml-match-string 2)))
                  (switch-to-buffer buf)
                  (goto-char orig)
-                 (forward-byte end)
+                 (forward-char end)
                  (setq end (point))
                  (goto-char orig)
-                 (forward-byte beg)
+                 (forward-char beg)
                  (setq beg (point))
                  (setq err beg)
                  )
@@ -337,12 +331,11 @@ should lies."
 ;; waiting, i.e. may report 'No result yet'
 
 (defun caml-wait-output (&optional before after)
+  (caml-sit-for 0 (or before 1))
   (let ((c 1))
-    (caml-sit-for 0 (or before 1))
-    (let ((c 1))
-      (while (and (not inferior-caml-output) (< c 99) (caml-sit-for 0 c t))
-        (setq c (+ c 1))))
-    (caml-sit-for (or after 0) 1)))
+    (while (and (not inferior-caml-output) (< c 99) (caml-sit-for 0 c t))
+      (setq c (+ c 1))))
+  (caml-sit-for (or after 0) 1))
 
 ;; To insert the last output from caml at point
 (defun caml-insert-last-output ()

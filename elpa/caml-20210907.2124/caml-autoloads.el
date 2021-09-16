@@ -13,13 +13,6 @@
 
 ;;;***
 
-;;;### (autoloads nil "caml-emacs" "caml-emacs.el" (0 0 0 0))
-;;; Generated autoloads from caml-emacs.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "caml-emacs" '("caml-")))
-
-;;;***
-
 ;;;### (autoloads nil "caml-font" "caml-font.el" (0 0 0 0))
 ;;; Generated autoloads from caml-font.el
 
@@ -41,32 +34,10 @@
 
 ;;;***
 
-;;;### (autoloads nil "caml-hilit" "caml-hilit.el" (0 0 0 0))
-;;; Generated autoloads from caml-hilit.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "caml-hilit" '("caml-")))
-
-;;;***
-
-;;;### (autoloads nil "caml-mode-site-file" "caml-mode-site-file.el"
-;;;;;;  (0 0 0 0))
-;;; Generated autoloads from caml-mode-site-file.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "caml-mode-site-file" '("camldebug-command-name")))
-
-;;;***
-
 ;;;### (autoloads nil "caml-types" "caml-types.el" (0 0 0 0))
 ;;; Generated autoloads from caml-types.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "caml-types" '("caml-" "next-annotation")))
-
-;;;***
-
-;;;### (autoloads nil "caml-xemacs" "caml-xemacs.el" (0 0 0 0))
-;;; Generated autoloads from caml-xemacs.el
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "caml-xemacs" '("caml-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "caml-types" '("caml-")))
 
 ;;;***
 
@@ -95,8 +66,7 @@ the camldebug commands `cd DIR' and `directory'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("caml-compat.el" "caml-pkg.el") (0 0 0
-;;;;;;  0))
+;;;### (autoloads nil nil ("caml-pkg.el") (0 0 0 0))
 
 ;;;***
 

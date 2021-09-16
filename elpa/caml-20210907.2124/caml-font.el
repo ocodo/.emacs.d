@@ -1,4 +1,4 @@
-;**************************************************************************
+;****************************************** -*- lexical-binding: t; -*- ***
 ;*                                                                        *
 ;*                                 OCaml                                  *
 ;*                                                                        *
@@ -349,7 +349,7 @@
 ; It finds the nearest saved state at the left of the changed text,
 ; calls caml-font-annotate to set the 'caml-font-state and 'syntax-table
 ; properties, then returns the range that was parsed by caml-font-annotate.
-(defun caml-font-extend-after-change (beg end &optional old-len)
+(defun caml-font-extend-after-change (beg end &optional _old-len)
   (save-excursion
     (save-match-data
       (let ((caml-font-modified (buffer-modified-p))
