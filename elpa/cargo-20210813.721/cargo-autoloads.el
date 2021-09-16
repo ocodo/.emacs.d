@@ -12,16 +12,16 @@
 (autoload 'cargo-minor-mode "cargo" "\
 Cargo minor mode. Used to hold keybindings for cargo-mode.
 
-If called interactively, enable cargo minor mode if ARG is
+If called interactively, enable Cargo minor mode if ARG is
 positive, and disable it if ARG is zero or negative.  If called
 from Lisp, also enable the mode if ARG is omitted or nil, and
 toggle it if ARG is `toggle'; disable the mode otherwise.
 
-\\{cargo-minor-mode-map}
+\\{cargo-minor-mode-command-map}
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "cargo" '("cargo-minor-mode")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "cargo" '("cargo-m")))
 
 ;;;***
 

@@ -1,8 +1,8 @@
 ;;; cargo-process.el --- Cargo Process Major Mode -*-lexical-binding: t-*-
 
-;; Copyright (C) 2015  Kevin W. van Rooijen
+;; Copyright (C) 2021  Kevin W. van Rooijen
 
-;; Author: Kevin W. van Rooijen <kevin.van.rooijen@attichacker.com>
+;; Author: Kevin W. van Rooijen
 ;; Keywords: processes, tools
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -53,8 +53,8 @@
 
 (require 'compile)
 (require 'button)
-(require 'rust-mode)
 (require 'markdown-mode)
+(require 'tramp)
 
 (defgroup cargo-process nil
   "Cargo Process group."
@@ -86,6 +86,11 @@
   "Flags to be added to every cargo command when run."
   :group 'cargo-process
   :type 'string)
+
+(defcustom cargo-process--open-file-after-new nil
+  "Open the created project file after generating a new project"
+  :group 'cargo-process
+  :type 'boolean)
 
 (defvar cargo-process-mode-map
   (nconc (make-sparse-keymap) compilation-mode-map)
@@ -171,8 +176,8 @@
   "Subcommand used by `cargo-process-check'."
   :type 'string)
 
-(defcustom cargo-process--command-clippy "clippy"
-  "Subcommand used by `cargo-process-clippy'."
+(defcustom cargo-process--command-clippy "clippy -Zunstable-options"
+  "Subcommand used by `cargo-process-clippy'. Uses `-Zunstable-options` to work around https://github.com/rust-lang/rust-clippy/issues/4612."
   :type 'string)
 
 (defcustom cargo-process--command-add "add"
@@ -302,6 +307,24 @@ for error reporting."
       (json-read-from-string text)
     (error (user-error text))))
 
+(defun cargo-process--tramp-file-name-prefix (file-name)
+  "Return the TRAMP prefix for FILE-NAME.
+If FILE-NAME is not a TRAMP file, return an empty string."
+  (if (and (fboundp 'tramp-tramp-file-p)
+           (tramp-tramp-file-p file-name))
+      (let ((tramp-file-name (tramp-dissect-file-name file-name)))
+        (setf (nth 6 tramp-file-name) nil)
+        (tramp-make-tramp-file-name tramp-file-name))
+    ""))
+
+(defun cargo-process--tramp-file-local-name (file-name)
+  "Return the local component of FILE-NAME.
+If FILE-NAME is not a TRAMP file, return it unmodified."
+  (if (and (fboundp 'tramp-tramp-file-p)
+           (tramp-tramp-file-p file-name))
+      (nth 6 (tramp-dissect-file-name file-name))
+    file-name))
+
 (defun cargo-process--workspace-root ()
   "Find the workspace root using `cargo metadata`."
   (when (cargo-process--project-root)
@@ -309,11 +332,13 @@ for error reporting."
                            (concat (shell-quote-argument cargo-process--custom-path-to-bin)
                                    " metadata --format-version 1 --no-deps")))
            (metadata-json (cargo-json-read-from-string metadata-text))
-           (workspace-root (cdr (assoc 'workspace_root metadata-json))))
+           (tramp-prefix (cargo-process--tramp-file-name-prefix (cargo-process--project-root)))
+           (workspace-root (concat tramp-prefix
+                                   (cdr (assoc 'workspace_root metadata-json)))))
       workspace-root)))
 
 (defun manifest-path-argument (name)
-  (let ((manifest-filename (cargo-process--project-root "Cargo.toml")))
+  (let ((manifest-filename (cargo-process--tramp-file-local-name (cargo-process--project-root "Cargo.toml"))))
     (when (and manifest-filename
                (not (member name cargo-process--no-manifest-commands)))
       (concat "--manifest-path " (shell-quote-argument manifest-filename)))))
@@ -394,7 +419,12 @@ Meant to be run as a `compilation-filter-hook'."
   "Return the current test."
   (save-excursion
     (unless (cargo-process--defun-at-point-p)
-      (rust-beginning-of-defun))
+      (cond ((fboundp 'rust-beginning-of-defun)
+             (rust-beginning-of-defun))
+            ((fboundp 'rustic-beginning-of-defun)
+             (rustic-beginning-of-defun))
+            (t (user-error "%s needs either rust-mode or rustic-mode"
+                           this-command))))
     (beginning-of-line)
     (search-forward "fn ")
     (let* ((line (buffer-substring-no-properties (point)
@@ -502,14 +532,27 @@ NAME is the name of your application.
 If BIN is t then create a binary application, otherwise a library.
 Cargo: Create a new cargo project."
   (interactive "sProject name: ")
-  (let ((bin (if (or bin
-                     (y-or-n-p "Create Bin Project? "))
-                 " --bin"
-                 " --lib")))
-    (cargo-process--start "New" (concat cargo-process--command-new
-                                        " "
-                                        name
-                                        bin))))
+  (let* ((bin (if (or bin
+                      (y-or-n-p "Create Bin Project? "))
+                  " --bin"
+                " --lib"))
+         (command
+          (concat cargo-process--command-new " " name bin))
+         (process
+          (cargo-process--start "New" command)))
+    (set-process-sentinel
+     process
+     (lambda (_process _event)
+       (let* ((project-root (cargo-process--project-root))
+              (default-directory (or project-root default-directory)))
+         (cond
+          ((and cargo-process--open-file-after-new
+                (string= " --bin" bin))
+           (find-file (format "%s/src/main.rs" name)))
+
+          ((and cargo-process--open-file-after-new
+                (string= " --lib" bin))
+           (find-file (format "%s/src/lib.rs" name)))))))))
 
 ;;;###autoload
 (defun cargo-process-init (directory &optional bin)
@@ -537,7 +580,7 @@ DIRECTORY is created if necessary."
                                      event
                                      (expand-file-name "Cargo.toml" directory))))))
 
-(defun cargo-process--open-manifest (process event manifest-path)
+(defun cargo-process--open-manifest (_process event manifest-path)
   "Open the manifest file when process ends."
   (when (equal event "finished\n")
     (find-file manifest-path)))
@@ -710,9 +753,11 @@ Cargo: Upgrade dependencies as specified in the local manifest file"
     (if deplist
         (let* ((all (when (or all
                               (y-or-n-p "Upgrade all crates? "))
-                      "--all"))
+                      "--workspace"))
                (crates (when (not all)
-                         (completing-read "Crate(s) to upgrade: " deplist nil 'confirm))))
+                         (or crates
+                             (completing-read "Crate(s) to upgrade: "
+                                              deplist nil 'confirm)))))
           (cargo-process--start "Upgrade" (concat cargo-process--command-upgrade
                                                   " "
                                                   all
