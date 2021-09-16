@@ -73,7 +73,7 @@ current candidate ARG times.
 (let ((loads (get 'easy-kill-extras 'custom-loads))) (if (member '"easy-kill-extras" loads) nil (put 'easy-kill-extras 'custom-loads (cons '"easy-kill-extras" loads))))
 
 (defadvice easy-mark (around per-thing activate) "\
-Enable `easy-mark-word' and `easy-mark-sexp'." (let ((easy-mark-try-things (pcase this-command ((\` easy-mark-word) (if (bound-and-true-p subword-mode) (quote (subword)) (quote (word)))) ((\` easy-mark-sexp) (quote (sexp))) ((\` easy-mark-to-char) (quote (string-to-char-forward))) ((\` easy-mark-up-to-char) (quote (string-up-to-char-forward))) (_ easy-mark-try-things)))) ad-do-it))
+Enable `easy-mark-word' and `easy-mark-sexp'." (let ((easy-mark-try-things (pcase this-command (`easy-mark-word (if (bound-and-true-p subword-mode) '(subword) '(word))) (`easy-mark-sexp '(sexp)) (`easy-mark-to-char '(string-to-char-forward)) (`easy-mark-up-to-char '(string-up-to-char-forward)) (_ easy-mark-try-things)))) ad-do-it))
 
 (autoload 'easy-mark-word "easy-kill-extras" "\
 Start easy-mark with a word selected.
@@ -156,6 +156,13 @@ Start easy-mark with string-up-to-char-forward.
  (autoload 'easy-kill-on-string-up-to-char-backward "easy-kill-extras")
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "easy-kill-to-char" '("easy-kill-defun-string-to-char")))
+
+;;;***
+
+;;;### (autoloads nil "extra-things" "extra-things.el" (0 0 0 0))
+;;; Generated autoloads from extra-things.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "extra-things" '("angles" "beginning-op-WORD" "bquoted-string" "brackets" "curlies" "define-" "dquoted-string" "end-op-WORD" "extra-things--" "pair-thing-limit" "parentheses" "quoted-string" "squoted-string")))
 
 ;;;***
 
