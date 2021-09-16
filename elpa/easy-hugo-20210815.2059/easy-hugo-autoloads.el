@@ -107,6 +107,9 @@ Cancel timer that google-cloud-storage-deploy after the specified number of minu
 (autoload 'easy-hugo-ag "easy-hugo" "\
 Search for blog article with `counsel-ag' or `helm-ag'." t nil)
 
+(autoload 'easy-hugo-rg "easy-hugo" "\
+Search for blog article with `counsel-rg' or `consult-ripgrep'." t nil)
+
 (autoload 'easy-hugo-open-config "easy-hugo" "\
 Open Hugo's config file." t nil)
 

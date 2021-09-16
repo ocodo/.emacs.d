@@ -1,12 +1,12 @@
 ;;; easy-hugo.el --- Write blogs made with hugo by markdown or org-mode -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2020 by Masashi Miyaura
+;; Copyright (C) 2017-2021 by Masashi Miyaura
 
 ;; Author: Masashi Miyaura
 ;; URL: https://github.com/masasam/emacs-easy-hugo
-;; Package-Version: 20200811.842
-;; Package-Commit: cc4ba71c07dd8b3a66c996e7b31fa7e3e9870ce2
-;; Version: 3.9.47
+;; Package-Version: 20210815.2059
+;; Package-Commit: be19464f1e4487414a29650b7dc46e984d3f73cf
+;; Version: 3.9.55
 ;; Package-Requires: ((emacs "25.1") (popup "0.5.3") (request "0.3.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -58,12 +58,22 @@
   :group 'easy-hugo
   :type 'string)
 
+(defcustom easy-hugo-server-flags2 ""
+  "Additional flags to pass to hugo server."
+  :group 'easy-hugo
+  :type 'string)
+
 (defcustom easy-hugo-rsync-flags "-rtpl"
   "Additional flags for rsync."
   :group 'easy-hugo
   :type 'string)
 
 (defcustom easy-hugo-server-value ""
+  "Additional value to pass to hugo server."
+  :group 'easy-hugo
+  :type 'string)
+
+(defcustom easy-hugo-server-value2 ""
   "Additional value to pass to hugo server."
   :group 'easy-hugo
   :type 'string)
@@ -405,6 +415,14 @@ Report an error if hugo is not installed, or if `easy-hugo-basedir' is unset."
   "Macros to eval variables of BODY from `easy-hugo-bloglist' at BLOG."
   `(cdr (assoc ',body
 	       (nth ,blog easy-hugo-bloglist))))
+
+(defmacro easy-hugo-ignore-error (condition &rest body)
+  "Execute BODY; if the error CONDITION occurs, return nil.
+Otherwise, return result of last form in BODY.
+
+CONDITION can also be a list of error conditions."
+  (declare (debug t) (indent 1))
+  `(condition-case nil (progn ,@body) (,condition nil)))
 
 ;;;###autoload
 (defun easy-hugo-article ()
@@ -862,7 +880,7 @@ Automatically select the deployment destination from init.el."
      "\n#+DATE: " datetimezone
      "\n#+PUBLISHDATE: " datetimezone
      "\n#+DRAFT: nil"
-     "\n#+TAGS: nil, nil"
+     "\n#+TAGS[]: nil, nil"
      "\n#+DESCRIPTION: Short description"
      "\n\n")))
 
@@ -883,8 +901,7 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
 	      easy-hugo-html-extension))
      (when (file-exists-p (file-truename filename))
        (error "%s already exists!" filename))
-     (if (and (null easy-hugo-org-header)
-	      (<= 0.25 (easy-hugo--version)))
+     (if (null easy-hugo-org-header)
 	 (call-process easy-hugo-bin nil "*hugo*" t "new"
 		       (file-relative-name filename
 					   (expand-file-name "content" easy-hugo-basedir)))
@@ -900,20 +917,11 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
      (when (get-buffer "*hugo*")
        (kill-buffer "*hugo*"))
      (find-file filename)
-     (when (or easy-hugo-org-header
-	       (and (> 0.25 (easy-hugo--version))
-		    (string-equal file-ext "org")))
+     (when (and easy-hugo-org-header
+	       (string-equal file-ext "org"))
        (insert (easy-hugo--org-headers (file-name-base post-file))))
      (goto-char (point-max))
      (save-buffer))))
-
-(defun easy-hugo--version ()
-  "Return the version of hugo."
-  (let ((source (split-string
-		 (with-temp-buffer
-		   (shell-command-to-string (concat easy-hugo-bin " version")))
-		 " ")))
-    (string-to-number (substring (nth 4 source) 1))))
 
 ;;;###autoload
 (defun easy-hugo-preview ()
@@ -923,12 +931,9 @@ POST-FILE needs to have and extension '.md' or '.org' or '.ad' or '.rst' or '.mm
    (if (process-live-p easy-hugo--server-process)
        (easy-hugo--preview-open)
      (progn
-       (if (<= 0.25 (easy-hugo--version))
-	   (setq easy-hugo--server-process
+       (setq easy-hugo--server-process
 		 (start-process "hugo-server"
-				easy-hugo--preview-buffer easy-hugo-bin "server" "--navigateToChanged" easy-hugo-server-flags easy-hugo-server-value))
-	 (setq easy-hugo--server-process
-	       (start-process "hugo-server" easy-hugo--preview-buffer easy-hugo-bin "server" easy-hugo-server-flags easy-hugo-server-value)))
+				easy-hugo--preview-buffer easy-hugo-bin "server" "--navigateToChanged" easy-hugo-server-flags easy-hugo-server-value easy-hugo-server-flags2 easy-hugo-server-value2))
        (while easy-hugo--preview-loop
 	 (if (equal (easy-hugo--preview-status easy-hugo-preview-url) "200")
 	     (progn
@@ -1092,6 +1097,14 @@ to the server."
     (delete-process easy-hugo--server-process))
   (when (get-buffer easy-hugo--preview-buffer)
     (kill-buffer easy-hugo--preview-buffer)))
+
+(defun easy-hugo--version ()
+    "Return the version of hugo."
+    (let ((source (split-string
+		           (with-temp-buffer
+		             (shell-command-to-string (concat easy-hugo-bin " version")))
+		           " ")))
+      (string-to-number (substring (nth 1 source) 1))))
 
 ;;;###autoload
 (defun easy-hugo-current-time ()
@@ -1341,6 +1354,18 @@ to the server."
      (if (require 'helm-ag nil t)
 	 (helm-ag (expand-file-name easy-hugo-postdir easy-hugo-basedir))
        (error "'counsel' or 'helm-ag' is not installed")))))
+
+;;;###autoload
+(defun easy-hugo-rg ()
+  "Search for blog article with `counsel-rg' or `consult-ripgrep'."
+  (interactive)
+  (easy-hugo-with-env
+   (let ((dir (expand-file-name easy-hugo-postdir easy-hugo-basedir)))
+     (if (require 'counsel nil t)
+         (counsel-rg nil dir)
+       (if (require 'consult nil t)
+           (consult-ripgrep dir nil)
+         (error "'counsel' or 'consult' is not installed"))))))
 
 ;;;###autoload
 (defun easy-hugo-open-config ()
@@ -2253,8 +2278,6 @@ output directories whose names match REGEXP."
 (defun easy-hugo-draft-list ()
   "Drafts list mode of `easy-hugo'."
   (easy-hugo-with-env
-   (when (> 0.25 (easy-hugo--version))
-     (error "'List draft' requires hugo 0.25 or higher"))
    (let ((source (split-string
 		  (with-temp-buffer
 		    (let ((ret (call-process-shell-command (concat easy-hugo-bin " list drafts") nil t)))
@@ -2344,14 +2367,15 @@ output directories whose names match REGEXP."
        (insert (concat (car lists) "\n"))
        (pop lists))
      (goto-char easy-hugo--cursor)
-     (if easy-hugo--refresh
+     (easy-hugo-ignore-error
+      (if easy-hugo--refresh
 	 (progn
 	   (when (< (line-number-at-pos) easy-hugo--unmovable-line)
 	     (goto-char (point-min))
 	     (forward-line (- easy-hugo--unmovable-line 1)))
 	   (beginning-of-line)
 	   (forward-char easy-hugo--forward-char))
-       (forward-char easy-hugo--forward-char))
+       (forward-char easy-hugo--forward-char)))
      (easy-hugo-mode)
      (when easy-hugo-emacspeak
        (easy-hugo-emacspeak-filename)))))
@@ -2363,6 +2387,8 @@ output directories whose names match REGEXP."
   (easy-hugo-with-env
    (unless (file-directory-p (expand-file-name easy-hugo-postdir easy-hugo-basedir))
      (error "%s%s does not exist!" easy-hugo-basedir easy-hugo-postdir))
+   (when (> 0.25 (easy-hugo--version))
+     (message "Please install hugo 0.25 or higher version."))
    (setq easy-hugo--mode-buffer (get-buffer-create easy-hugo--buffer-name))
    (setq easy-hugo--draft-list nil)
    (switch-to-buffer easy-hugo--mode-buffer)
@@ -2445,14 +2471,15 @@ output directories whose names match REGEXP."
 	   (insert (concat (car lists) "\n"))
 	   (pop lists))
 	 (goto-char easy-hugo--cursor)
-	 (if easy-hugo--refresh
-	     (progn
-	       (when (< (line-number-at-pos) easy-hugo--unmovable-line)
-		 (goto-char (point-min))
-		 (forward-line (- easy-hugo--unmovable-line 1)))
-	       (beginning-of-line)
-	       (forward-char easy-hugo--forward-char))
-	   (forward-char easy-hugo--forward-char))
+	 (easy-hugo-ignore-error
+             (if easy-hugo--refresh
+		 (progn
+	           (when (< (line-number-at-pos) easy-hugo--unmovable-line)
+		     (goto-char (point-min))
+		     (forward-line (- easy-hugo--unmovable-line 1)))
+	           (beginning-of-line)
+	           (forward-char easy-hugo--forward-char))
+	       (forward-char easy-hugo--forward-char)))
 	 (easy-hugo-mode)
 	 (when easy-hugo-emacspeak
 	   (easy-hugo-emacspeak-filename)))))))
