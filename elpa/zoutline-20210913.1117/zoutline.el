@@ -4,8 +4,8 @@
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>
 ;; URL: https://github.com/abo-abo/zoutline
-;; Package-Version: 20190520.1819
-;; Package-Commit: 63756846f8540b6faf89d885438186e4fe1c7d8a
+;; Package-Version: 20210913.1117
+;; Package-Commit: d678b0ea805dd18c18746455c70ea68e51422c1d
 ;; Version: 0.2.0
 ;; Keywords: outline
 
@@ -88,7 +88,21 @@ Return nil if moved 0 times."
       (point))))
 
 (defun zo-left (arg)
-  (outline-up-heading arg))
+  "Move left up to ARG levels.
+Return the amount of levels moved."
+  (outline-back-to-heading)
+  (let ((start-level (funcall outline-level))
+        (res 0))
+    (unless (<= start-level 1)
+      (while (and (> start-level 1) (> arg 0) (not (bobp)))
+        (let ((level start-level))
+          (while (not (or (< level start-level) (bobp)))
+            (outline-previous-visible-heading 1)
+            (setq level (funcall outline-level)))
+          (setq start-level level))
+        (cl-incf res)
+        (cl-decf arg))
+      res)))
 
 (defun zo-right-once ()
   (let ((pt (point))
@@ -171,6 +185,47 @@ Return nil if moved 0 times."
              (point))))
       (error
        (cons (point-min) (point-max))))))
+
+(defun zo-goto-headings (headings)
+  "Goto the last item in HEADINGS and set the match data.
+Each subsequent heading in HEADINGS is nested under the previous one.
+Insert any that doesn't exist."
+  (let ((level 1))
+    (goto-char (point-min))
+    (dolist (heading headings)
+      (let* ((stars (make-string level ?*))
+             (line (concat stars " " heading)))
+        (unless (search-forward line nil t)
+          (goto-char (point-max))
+          (while (and (bolp) (eolp)) (delete-char -1))
+          (insert "\n" stars " " heading))
+        (cl-incf level)))
+    (set-match-data
+     (list (line-beginning-position) (line-end-position)))))
+
+(defun zo-hide-heading (heading)
+  "Search for HEADING and hide it.
+When HEADING is 'current, hide the current heading."
+  (save-excursion
+    (when (or (eq heading 'current)
+              (progn
+                (goto-char (point-min))
+                (re-search-forward (concat "^\\*+ " (regexp-quote heading)) nil t)))
+      (outline-flag-subtree t))))
+
+(defun zo-fold-heading (heading)
+  "Search for HEADING and fold it into contents.
+When HEADING is 'current, fold the current heading."
+  (save-excursion
+    (when (or (eq heading 'current)
+              (progn
+                (goto-char (point-min))
+                (re-search-forward (concat "^\\*+ " (regexp-quote heading)) nil t)))
+      (let ((bnd (zo-bnd-subtree)))
+        (outline-flag-region (car bnd) (cdr bnd) t)
+        (org-cycle-internal-local)
+        (when (eq (char-before (cdr bnd)) 10)
+          (outline-flag-region (- (cdr bnd) 1) (cdr bnd) nil))))))
 
 (provide 'zoutline)
 
