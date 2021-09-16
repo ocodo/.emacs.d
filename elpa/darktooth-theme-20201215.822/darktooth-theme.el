@@ -4,8 +4,8 @@
 
 ;; Authors: Jason Milkins <jasonm23@gmail.com>
 ;; URL: http://github.com/emacsfodder/emacs-theme-darktooth
-;; Package-Version: 20190412.142
-;; Package-Commit: 5cc7fbfb08d2f1a33b85eac92b6450407b915119
+;; Package-Version: 20201215.822
+;; Package-Commit: ec03b30ee7f43f89ca4c382bb3fe4ee560c028a8
 ;; Version: 0.3.10
 
 ;; Package-Requires: ((autothemer "0.2"))
@@ -171,6 +171,14 @@
   (font-lock-type-face                               (:foreground darktooth-lightblue4))
   (font-lock-warning-face                            (:foreground darktooth-neutral_red :bold t))
 
+  ;; MODE SUPPORT tab-bar-mode
+  (tab-bar (:foreground darktooth-light0 :background darktooth-dark0))
+  (tab-bar-tab (:foreground darktooth-light0 :background darktooth-dark0))
+  
+  ;; MODE SUPPORT tab-line-mode
+  (tab-line (:foreground darktooth-light0 :background darktooth-dark0))
+  (tab-bar-tab-inactive (:foreground darktooth-light0 :background darktooth-dark0))
+  
   ;; MODE SUPPORT: which-key
   (which-key-key-face                        (:inherit 'font-lock-variable-name-face))
 
