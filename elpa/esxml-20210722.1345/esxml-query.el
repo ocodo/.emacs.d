@@ -4,7 +4,7 @@
 
 ;; Author: Vasilij Schneidermann <mail@vasilij.de>
 ;; Maintainer: Vasilij Schneidermann
-;; Version: 0.1.0
+;; Version: 0.1.1
 ;; Keywords: data, lisp
 ;; Package-Requires: ((cl-lib "0.1"))
 ;;
@@ -81,13 +81,13 @@
   (let* ((h "[0-9a-f]")
          (nl "\n\\|\r\n\\|\r\\|\f")
          (nonascii "[\200-\U0010ffff]")
-         (unicode (format "\\%s\\{1,6\\}[ \t\r\n\f]?" h))
-         (escape (format "\\(?:%s\\)\\|\\[ -~\200-\U0010ffff]" unicode))
+         (unicode (format "\\\\%s\\{1,6\\}[ \t\r\n\f]?" h))
+         (escape (format "\\(?:%s\\)\\|\\\\[ -~\200-\U0010ffff]" unicode))
          (nmstart (format "[a-z_]\\|%s\\|\\(?:%s\\)" nonascii escape))
          (nmchar (format "[a-z0-9_-]\\|%s\\|\\(?:%s\\)" nonascii escape))
          (num "[0-9]+\\|[0-9]*\\.[0-9]+")
-         (string1 (format "\"\\(?:[\t !#$%%&(-~]\\|\\(?:%s\\)\\|\'\\|%s\\|\\(?:%s\\)\\)*\"" nl nonascii escape))
-         (string2 (format "'\\(?:[\t !#$%%&(-~]\\|\\(?:%s\\)\\|\"\\|%s\\|\\(?:%s\\)\\)*'" nl nonascii escape))
+         (string1 (format "\"\\(?:[\t !#$%%&(-~]\\|\\\\\\(?:%s\\)\\|'\\|%s\\|\\(?:%s\\)\\)*\"" nl nonascii escape))
+         (string2 (format "'\\(?:[\t !#$%%&(-~]\\|\\\\\\(?:%s\\)\\|\"\\|%s\\|\\(?:%s\\)\\)*'" nl nonascii escape))
          (ident (format "[-]?\\(?:%s\\)\\(?:%s\\)*" nmstart nmchar))
          (unit (format "[-]?\\(?:%s\\)\\(?:%s\\)+" nmstart nmchar))
          (name (format "\\(?:%s\\)+" nmchar)))
@@ -181,6 +181,84 @@
 ;;   FUNCTION whitespace* [ css-expression whitespace* ]+ ')';
 ;; css-expression:
 ;;   '+' | '-' | DIMENSION | NUMBER | STRING | IDENT
+
+(defun esxml-query-css-escape (string)
+  "Returns escaped version of STRING for use in selectors.
+The logic used here corresponds to the CSS.escape API as
+specified in https://drafts.csswg.org/cssom/#the-css.escape()-method."
+  (let (chars)
+    (dotimes (i (length string))
+      (let* ((char (aref string i))
+             (unprintablep (or (and (>= char ?\u0001) (<= char ?\u001f))
+                               (= char ?\u007f)))
+             (nonasciip (>= char ?\u0080))
+             (digitp (and (>= char ?\u0030) (<= char ?\u0039)))
+             (upperp (and (>= char ?\u0041) (<= char ?\u005a)))
+             (lowerp (and (>= char ?\u0061) (<= char ?\u007a))))
+        (cond
+         ((= char ?\u0000)
+          (push ?\ufffd chars))
+         (unprintablep
+          (dolist (char (string-to-list (format "\\%x " char)))
+            (push char chars)))
+         ((and (= i 0) digitp)
+          (dolist (char (string-to-list (format "\\%x " char)))
+            (push char chars)))
+         ((and (= i 1) digitp (= (aref string 0) ?-))
+          (dolist (char (string-to-list (format "\\%x " char)))
+            (push char chars)))
+         ((and (= i 0) (= char ?-) (= (length string) 1))
+          (push ?\\ chars)
+          (push char chars))
+         ((or nonasciip (= char ?-) (= char ?_) digitp upperp lowerp)
+          (push char chars))
+         (t
+          (push ?\\ chars)
+          (push char chars)))))
+    (concat (nreverse chars))))
+
+(defun esxml--parse-css-identifier (string)
+  ;; https://www.w3.org/TR/css-syntax-3/#consume-string-token
+  (let* ((code-points (string-to-list string))
+         chars
+         token)
+    (while code-points
+      (let ((char (pop code-points)))
+        (if (= char ?\\)
+            (let ((char (pop code-points)))
+              (cond
+               ((not char))
+               ((= char ?\n))
+               ((or (and (>= char ?0) (<= char ?9))
+                    (and (>= char ?a) (<= char ?f))
+                    (and (>= char ?A) (<= char ?F)))
+                (let ((i 0)
+                      (hex-chars (list char)))
+                  (while (and (< i 5) code-points)
+                    (let ((char (car code-points)))
+                      (if (or (and (>= char ?0) (<= char ?9))
+                              (and (>= char ?a) (<= char ?f))
+                              (and (>= char ?A) (<= char ?F)))
+                          (push (pop code-points) hex-chars)
+                        (setq i 5)))
+                    (setq i (1+ i)))
+                  (let ((char (car code-points)))
+                    (when (and char (= char ?\s))
+                      (pop code-points)))
+                  (let* ((hex-token (concat (nreverse hex-chars)))
+                         (code-point (string-to-number hex-token 16)))
+                    (if (or (zerop code-point)
+                            (and (>= code-point ?\ud800) (<= code-point ?\udfff))
+                            (> code-point ?\U0010ffff))
+                        (push ?\ufffd chars)
+                      (push code-point chars)))))
+               (t ; unspecified: non-hex digit
+                (push char chars))))
+          (push char chars))))
+    (concat (nreverse chars))))
+
+(defun esxml--parse-css-string-literal (string)
+  (esxml--parse-css-identifier (substring string 1 -1)))
 
 (defmacro esxml--with-parse-shorthands (&rest body)
   `(cl-macrolet ((peek () '(car esxml--token-stream))
@@ -294,7 +372,7 @@ argument."
      (cond
       ((eq (car token) 'ident)
        (next)
-       (cons 'tag (intern (cdr token))))
+       (cons 'tag (intern (esxml--parse-css-identifier (cdr token)))))
       ((eq (car token) 'asterisk)
        (next)
        '(wildcard))
@@ -328,7 +406,7 @@ argument."
        (let ((name (esxml--parse-css-attrib-name)))
          (when (not name)
            (error "Expected attribute name"))
-         (push (cons 'name name) result)
+         (push (cons 'name (esxml--parse-css-identifier name)) result)
          (when (not (accept 'rbracket))
            (let ((match (esxml--parse-css-attrib-match)))
              (when (not match)
@@ -374,10 +452,10 @@ argument."
      (cond
       ((eq (car token) 'ident)
        (next)
-       (cdr token))
+       (esxml--parse-css-identifier (cdr token)))
       ((eq (car token) 'string)
        (next)
-       (substring (cdr token) 1 -1))
+       (esxml--parse-css-string-literal (cdr token)))
       (t nil)))))
 
 (defun esxml--parse-css-pseudo ()
@@ -392,12 +470,12 @@ argument."
              (if (eq type 'pseudo-class)
                  (let ((value (car functional))
                        (args (cdr functional)))
-                   (push (cons 'name value) result)
+                   (push (cons 'name (esxml--parse-css-identifier value)) result)
                    (push (cons 'args args) result))
                (error "Pseudo-elements may not have arguments"))
            (let ((value (accept 'ident)))
              (if value
-                 (push (cons 'name value) result)
+                 (push (cons 'name (esxml--parse-css-identifier value)) result)
                (error "Expected function or identifier")))))
        (cons type (nreverse result))))))
 
@@ -435,16 +513,16 @@ argument."
        '(operator . -))
       ((eq (car token) 'dimension)
        (next)
-       (cons 'dimension (cdr token)))
+       (cons 'dimension (esxml--parse-css-identifier (cdr token))))
       ((eq (car token) 'number)
        (next)
        (cons 'number (string-to-number (cdr token))))
       ((eq (car token) 'string)
        (next)
-       (cons 'string (substring (cdr token) 1 -1)))
+       (cons 'string (esxml--parse-css-string-literal (cdr token))))
       ((eq (car token) 'ident)
        (next)
-       (cons 'ident (cdr token)))
+       (cons 'ident (esxml--parse-css-identifier (cdr token))))
       (t nil)))))
 
 
@@ -685,7 +763,7 @@ list of the nodes or nil if none found."
     (setq root (esxml--decorate-tree root))
     (let (result)
       (while selector
-        (setq result (append result (esxml--query (pop selector) root))))
+        (setq result (nconc result (esxml--query (pop selector) root))))
       (setq result (cl-sort result '< :key 'esxml--retrieve-decoration))
       (setq result (cl-delete-duplicates result :test '=
                                          :key 'esxml--retrieve-decoration))

@@ -3,8 +3,9 @@
 
 ;; Author: Evan Izaksonas-Smith <izak0002 at umn dot edu>
 ;; Maintainer: Evan Izaksonas-Smith
+;; URL: https://github.com/tali713/esxml
 ;; Created: 15th August 2012
-;; Version: 0.3.4
+;; Version: 0.3.7
 ;; Keywords: tools, lisp, comm
 ;; Description: A library for easily generating XML/XHTML in elisp
 ;;
@@ -44,7 +45,7 @@
 ;; resolve these issues.
 ;;
 ;;; Code:
-(require 'cl)
+(require 'cl-lib)
 (require 'xml)
 (require 'pcase)
 
@@ -77,7 +78,7 @@ An esxml attribute is a cons of the form (symbol . string)"
   "Converts from cons cell to attribute pair.  Not intended for
 general use."
   (pcase-let ((`(,car . ,cdr) attr))
-    (check-type cdr string)
+    (cl-check-type cdr string)
     (concat (symbol-name car)
             "="
             (prin1-to-string cdr))))
@@ -87,11 +88,11 @@ general use."
 
 See: `attrp'"
   (and (listp attrs)
-       (every (lambda (attr)
-                (and (consp attr)
-                     (symbolp (car attr))
-                     (stringp (cdr attr))))
-              attrs)))
+       (cl-every (lambda (attr)
+                   (and (consp attr)
+                        (symbolp (car attr))
+                        (stringp (cdr attr))))
+                 attrs)))
 
 (defun esxml-validate-form (esxml)
   "A fast esxml validator.  Will error on invalid subparts making
@@ -100,8 +101,8 @@ it suitable for hindsight testing."
         ((< (length esxml) 2)
          (error "%s is too short to be a valid esxml expression" esxml))
         (t (pcase-let ((`(,tag ,attrs . ,body) esxml))
-             (check-type tag symbol)
-             (check-type attrs attrs)
+             (cl-check-type tag symbol)
+             (cl-check-type attrs attrs)
              (mapcar 'esxml-validate-form body)))))
 
 ;; While the following could certainly have been written using format,
@@ -117,16 +118,20 @@ it suitable for hindsight testing."
 ;; represented as a string, non dynamic portions of the page may be
 ;; precached quite easily.
 (defun esxml--to-xml-recursive (esxml)
-  (if (stringp esxml) esxml
-    (pcase-let ((`(,tag ,attrs . ,body) esxml))
-      ;; code goes here to catch invalid data.
-      (concat "<" (symbol-name tag)
-              (when attrs
-                (concat " " (mapconcat 'esxml--convert-pair attrs " ")))
-              (if body
-                  (concat ">" (mapconcat 'esxml--to-xml-recursive body "")
-                          "</" (symbol-name tag) ">")
-                "/>")))))
+  (pcase esxml
+    ((pred stringp)
+     esxml)
+    (`(comment nil ,body)
+     (concat "<!--" body "-->"))
+    (`(,tag ,attrs . ,body)
+     ;; code goes here to catch invalid data.
+     (concat "<" (symbol-name tag)
+             (when attrs
+               (concat " " (mapconcat 'esxml--convert-pair attrs " ")))
+             (if body
+                 (concat ">" (mapconcat 'esxml--to-xml-recursive body "")
+                         "</" (symbol-name tag) ">")
+               "/>")))))
 
 (defun esxml-to-xml (esxml)
   "This translates an esxml expression, i.e. that which is
@@ -163,26 +168,29 @@ STRING: if the esxml expression is a string it is returned
   "This translates an esxml expresion as `esxml-to-xml' but
 indents it for ease of human readability, it is neccesarrily
 slower and will produce longer output."
-  (cond ((stringp esxml) esxml)
-        ((and (listp esxml)
-              (> (length esxml) 1))
-         (pcase-let ((`(,tag ,attrs . ,body) esxml))
-           (check-type tag symbol)
-           (check-type attrs attrs)
-           (concat "<" (symbol-name tag)
-                   (when attrs
-                     (concat " " (mapconcat 'esxml--convert-pair attrs " ")))
-                   (if body
-                       (concat ">" (if (every 'stringp body)
-                                       (mapconcat 'identity body " ")
-                                     (concat "\n"
-                                             (replace-regexp-in-string
-                                              "^" "  "
-                                              (mapconcat 'pp-esxml-to-xml body "\n"))
-                                             "\n"))
-                               "</" (symbol-name tag) ">")
-                     "/>"))))
-        (t (error "%s is not a valid esxml expression" esxml))))
+  (pcase esxml
+    ((pred stringp)
+     esxml)
+    (`(comment nil ,body)
+     (concat "<!--" body "-->"))
+    (`(,tag ,attrs . ,body)
+     (cl-check-type tag symbol)
+     (cl-check-type attrs attrs)
+     (concat "<" (symbol-name tag)
+             (when attrs
+               (concat " " (mapconcat 'esxml--convert-pair attrs " ")))
+             (if body
+                 (concat ">" (if (cl-every 'stringp body)
+                                 (mapconcat 'identity body " ")
+                               (concat "\n"
+                                       (replace-regexp-in-string
+                                        "^" "  "
+                                        (mapconcat 'pp-esxml-to-xml body "\n"))
+                                       "\n"))
+                         "</" (symbol-name tag) ">")
+               "/>")))
+    (_
+     (error "%s is not a valid esxml expression" esxml))))
 
 (defun sxml-to-esxml (sxml)
   "Translates sxml to esxml so the common standard can be used.
@@ -190,9 +198,9 @@ See: http://okmij.org/ftp/Scheme/SXML.html."
   (pcase sxml
     (`(,tag (@ . ,attrs) . ,body)
      `(,tag ,(mapcar (lambda (attr)
-                       (cons (first attr)
-                             (or (second attr)
-                                 (prin1-to-string (first attr)))))
+                       (cons (car attr)
+                             (or (cadr attr)
+                                 (prin1-to-string (car attr)))))
                      attrs)
             ,@(mapcar 'sxml-to-esxml body)))
     (`(,tag . ,body)
@@ -250,9 +258,9 @@ recurse below a match."
 ;; taken from kv
 (defmacro esxml-destructuring-mapcar (args sexp seq)
   (declare (indent 2))
-  (let ((entry (make-symbol)))
+  (let ((entry (make-symbol "entry")))
     `(mapcar (lambda (,entry)
-               (destructuring-bind ,args ,entry ,sexp))
+               (cl-destructuring-bind ,args ,entry ,sexp))
              ,seq)))
 
 (provide 'esxml)

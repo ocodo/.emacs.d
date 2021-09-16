@@ -9,7 +9,7 @@
 ;;;### (autoloads nil "esxml" "esxml.el" (0 0 0 0))
 ;;; Generated autoloads from esxml.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "esxml" '("esxml-" "xml-to-esxml" "string-trim-whitespace" "sxml-to-" "pp-esxml-to-xml" "attr")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "esxml" '("attr" "esxml-" "pp-esxml-to-xml" "string-trim-whitespace" "sxml-to-" "xml-to-esxml")))
 
 ;;;***
 
