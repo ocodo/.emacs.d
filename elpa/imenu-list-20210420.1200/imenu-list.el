@@ -1,13 +1,13 @@
 ;;; imenu-list.el --- Show imenu entries in a separate buffer
 
-;; Copyright (C) 2015-2017 Bar Magal & Contributors
+;; Copyright (C) 2015-2021 Bar Magal & Contributors
 
 ;; Author: Bar Magal (2015)
-;; Version: 0.8
-;; Package-Version: 20190115.2130
-;; Package-Commit: 46008738f8fef578a763c308cf6695e5b4d4aa77
+;; Version: 0.9
+;; Package-Version: 20210420.1200
+;; Package-Commit: 76f2335ee6f2f066d87fe4e4729219d70c9bc70d
 ;; Homepage: https://github.com/bmag/imenu-list
-;; Package-Requires: ((cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -47,13 +47,15 @@
 
 (require 'imenu)
 (require 'cl-lib)
+(require 'hideshow)
 
 (defconst imenu-list-buffer-name "*Ilist*"
   "Name of the buffer that is used to display imenu entries.")
 
 (defvar imenu-list--imenu-entries nil
-  "A copy of the imenu entries of the buffer we want to display in the
-imenu-list buffer.")
+  "Currently used imenu entires.
+This is a copy of the imenu entries of the buffer we want to
+display in the imenu-list buffer.")
 
 (defvar imenu-list--line-entries nil
   "List of imenu entries displayed in the imenu-list buffer.
@@ -73,6 +75,20 @@ Used to avoid updating if the point didn't move.")
   "Variables for `imenu-list' package."
   :group 'imenu)
 
+(defcustom imenu-list-persist-when-imenu-index-unavailable t
+  "Whether or not to keep the old index if the new index is missing.
+This option controls whether imenu-list will persist the entries
+of the last current buffer during an attempt to update it from a
+buffer that has no Imenu index.  Some users find this behavior
+convenient for jumping back and forth between different buffers
+when paired with window-purpose's x-code-1 configuration.
+
+If you kill buffers often, set this to nil so x-code-1 will clear
+the entries when focusing on a buffer that does not have an Imenu
+index."
+  :group 'imenu-list
+  :type 'boolean)
+
 (defcustom imenu-list-mode-line-format
   '("%e" mode-line-front-space mode-line-mule-info mode-line-client
     mode-line-modified mode-line-remote mode-line-frame-identification
@@ -82,11 +98,20 @@ Used to avoid updating if the point didn't move.")
   "Local mode-line format for the imenu-list buffer.
 This is the local value of `mode-line-format' to use in the imenu-list
 buffer.  See `mode-line-format' for allowed values."
-  :group 'imenu-list)
+  :group 'imenu-list
+  :type 'sexp)
 
 (defcustom imenu-list-focus-after-activation nil
-  "Non-nil to select the imenu-list window automatically when
+  "Whether or not to select imenu-list window after activation.
+Non-nil to select the imenu-list window automatically when
 `imenu-list-minor-mode' is activated."
+  :group 'imenu-list
+  :type 'boolean)
+
+(defcustom imenu-list-update-current-entry t
+  "Whether or not `imenu-list-update' shows the current entry.
+If non-nil, imenu-list shows the current entry on the menu
+automatically during update."
   :group 'imenu-list
   :type 'boolean)
 
@@ -241,8 +266,7 @@ See `hs-minor-mode' for information on what is hide/show."
                                           (car entry))
                        'follow-link t
                        'action ;; #'imenu-list--action-goto-entry
-                       #'imenu-list--action-toggle-hs
-                       )
+                       #'imenu-list--action-toggle-hs)
         (insert "\n"))
     (insert (imenu-list--depth-string depth))
     (insert-button (format "%s" (car entry))
@@ -259,7 +283,7 @@ DEPTH is the depth of the code block were the entries are written.
 Each entry is inserted in its own line.
 Each entry is appended to `imenu-list--line-entries' as well."
   (dolist (entry index-alist)
-    (setq imenu-list--line-entries (append imenu-list--line-entries (list entry)))
+    (setq imenu-list--line-entries (cons entry imenu-list--line-entries))
     (imenu-list--insert-entry entry depth)
     (when (imenu--subalist-p entry)
       (imenu-list--insert-entries-internal (cdr entry) (1+ depth)))))
@@ -271,11 +295,11 @@ Each entry is inserted in its own line.
 Each entry is appended to `imenu-list--line-entries' as well
  (`imenu-list--line-entries' is cleared in the beginning of this
 function)."
-  (read-only-mode -1)
-  (erase-buffer)
-  (setq imenu-list--line-entries nil)
-  (imenu-list--insert-entries-internal imenu-list--imenu-entries 0)
-  (read-only-mode 1))
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (setq imenu-list--line-entries nil)
+    (imenu-list--insert-entries-internal imenu-list--imenu-entries 0)
+    (setq imenu-list--line-entries (nreverse imenu-list--line-entries))))
 
 
 ;;; goto entries
@@ -292,24 +316,37 @@ buffer, or in other words: this hook is ran by both
   "Find in `imenu-list--line-entries' the entry in the current line."
   (nth (1- (line-number-at-pos)) imenu-list--line-entries))
 
+(defun imenu-list--goto-entry (entry)
+  "Jump to ENTRY in the original buffer."
+  (pop-to-buffer imenu-list--displayed-buffer)
+  (imenu entry)
+  (run-hooks 'imenu-list-after-jump-hook)
+  (imenu-list--show-current-entry))
+
 (defun imenu-list-goto-entry ()
   "Switch to the original buffer and display the entry under point."
   (interactive)
-  (let ((entry (imenu-list--find-entry)))
-    (pop-to-buffer imenu-list--displayed-buffer)
-    (imenu entry)
-    (run-hooks 'imenu-list-after-jump-hook)
-    (imenu-list--show-current-entry)))
+  (imenu-list--goto-entry (imenu-list--find-entry)))
 
 (defun imenu-list-display-entry ()
-  "Display in original buffer the entry under point."
+  "Display the symbol under `point' in the original buffer."
+  (interactive)
+  (save-selected-window
+    (imenu-list-goto-entry)))
+
+(defun imenu-list-ret-dwim ()
+  "Jump to or toggle the entry at `point'."
   (interactive)
   (let ((entry (imenu-list--find-entry)))
-    (save-selected-window
-      (pop-to-buffer imenu-list--displayed-buffer)
-      (imenu entry)
-      (run-hooks 'imenu-list-after-jump-hook)
-      (imenu-list--show-current-entry))))
+    (if (imenu--subalist-p entry)
+        (hs-toggle-hiding)
+      (imenu-list--goto-entry entry))))
+
+(defun imenu-list-display-dwim ()
+  "Display or toggle the entry at `point'."
+  (interactive)
+  (save-selected-window
+    (imenu-list-ret-dwim)))
 
 (defalias 'imenu-list-<=
   (if (ignore-errors (<= 1 2 3))
@@ -317,6 +354,21 @@ buffer, or in other words: this hook is ran by both
     #'(lambda (x y z)
         "Return t if X <= Y and Y <= Z."
         (and (<= x y) (<= y z)))))
+
+;; hide false-positive byte-compile warning. We only use these functions if
+;; eglot is loaded.
+(declare-function eglot--lsp-position-to-point "eglot")
+(declare-function eglot-managed-p "eglot")
+
+(defun imenu-list--translate-eglot-position (pos)
+  "Get real position of position object POS created by eglot."
+  ;; when Eglot is in charge of Imenu, then the index is created by `eglot-imenu', with a fallback to
+  ;; `imenu-default-create-index-function' when `eglot-imenu' returns nil. If POS is an array, it means
+  ;; it was created by `eglot-imenu' and we need to extract its position. Otherwise, it was created by
+  ;; `imenu-default-create-index-function' and we should return it as-is.
+  (if (arrayp pos)
+      (eglot--lsp-position-to-point (plist-get (plist-get (aref pos 0) :range) :start) t)
+    pos))
 
 (defun imenu-list-position-translator ()
   "Get the correct position translator function for the current buffer.
@@ -339,6 +391,8 @@ continue with the regular logic to find a translator function."
              (bound-and-true-p semantic-mode)))
     ;; semantic uses overlays, return overlay's start as position
     #'overlay-start)
+   ((and (fboundp #'eglot-managed-p) (eglot-managed-p))
+    #'imenu-list--translate-eglot-position)
    ;; default - return position as is
    (t #'identity)))
 
@@ -384,8 +438,8 @@ Either a positive integer (number of rows/columns) or a percentage."
 
 (defcustom imenu-list-position 'right
   "Position of the imenu-list buffer.
-Either 'right, 'left, 'above or 'below. This value is passed directly to
-`split-window'."
+Either 'right, 'left, 'above or 'below.  This value is passed
+directly to `split-window'."
   :group 'imenu-list
   :type '(choice (const above)
                  (const below)
@@ -394,7 +448,7 @@ Either 'right, 'left, 'above or 'below. This value is passed directly to
 
 (defcustom imenu-list-auto-resize nil
   "If non-nil, auto-resize window after updating the imenu-list buffer.
-Resizing the width works only for emacs 24.4 and newer.  Resizing the
+Resizing the width works only for Emacs 24.4 and newer.  Resizing the
 height doesn't suffer that limitation."
   :group 'imenu-list
   :type 'boolean)
@@ -442,6 +496,9 @@ See `purpose-special-action-sequences' for a description of _PURPOSE,
 BUFFER and _ALIST."
   (string-equal (buffer-name buffer) imenu-list-buffer-name))
 
+;; hide false-positive byte-compile warning
+(defvar purpose-special-action-sequences)
+
 (defun imenu-list-install-purpose-display ()
   "Install imenu-list display settings for window-purpose.
 Install entry for imenu-list in `purpose-special-action-sequences'."
@@ -466,56 +523,60 @@ If it doesn't exist, create it."
           buffer))))
 
 (defun imenu-list-resize-window ()
-  (let ((fit-window-to-buffer-horizontally t))
-    (mapc #'fit-window-to-buffer
-          (get-buffer-window-list (imenu-list-get-buffer-create)))))
+  "Resize imenu-list window according to its content."
+  (when imenu-list--line-entries
+    (let ((fit-window-to-buffer-horizontally t))
+      (mapc #'fit-window-to-buffer
+            (get-buffer-window-list (imenu-list-get-buffer-create))))))
 
-(defun imenu-list-update (&optional raise-imenu-errors force-update)
+(defun imenu-list-update (&optional force-update)
   "Update the imenu-list buffer.
 If the imenu-list buffer doesn't exist, create it.
-If RAISE-IMENU-ERRORS is non-nil, any errors encountered while trying to
-create the index will be raised.  Otherwise, such errors will be printed
-instead.
-When RAISE-IMENU-ERRORS is nil, then the return value indicates if an
-error has occured.  If the return value is nil, then there was no error.
-Oherwise `imenu-list-update' will return the error that has occured, as
- (ERROR-SYMBOL . SIGNAL-DATA).
 If FORCE-UPDATE is non-nil, the imenu-list buffer is updated even if the
 imenu entries did not change since the last update."
   (catch 'index-failure
-      (let ((old-entries imenu-list--imenu-entries)
-            (location (point-marker)))
-        ;; don't update if `point' didn't move - fixes issue #11
-        (unless (and (null force-update)
-                     imenu-list--last-location
-                     (marker-buffer imenu-list--last-location)
-                     (= location imenu-list--last-location))
-          (setq imenu-list--last-location location)
-          (if raise-imenu-errors
-              (imenu-list-collect-entries)
-            (condition-case err
-                (imenu-list-collect-entries)
-              (error
-               (message "imenu-list: couldn't create index because of error: %S" err)
-               (throw 'index-failure err))))
-          (when (or force-update
-                    ;; check if Ilist buffer is alive, in case it was killed
-                    ;; since last update
-                    (null (get-buffer imenu-list-buffer-name))
-                    (not (equal old-entries imenu-list--imenu-entries)))
-            (with-current-buffer (imenu-list-get-buffer-create)
-              (imenu-list-insert-entries)))
-          (imenu-list--show-current-entry)
-          (when imenu-list-auto-resize
-            (imenu-list-resize-window))
-          (run-hooks 'imenu-list-update-hook)
-          nil))))
+    (let ((old-entries imenu-list--imenu-entries)
+          (location (point-marker)))
+      ;; don't update if `point' didn't move - fixes issue #11
+      (unless (and (null force-update)
+                   imenu-list--last-location
+                   (marker-buffer imenu-list--last-location)
+                   (= location imenu-list--last-location))
+        (setq imenu-list--last-location location)
+        (condition-case err
+            (imenu-list-collect-entries)
+          (imenu-unavailable (if imenu-list-persist-when-imenu-index-unavailable
+                                 (throw 'index-failure nil)
+                               (imenu-list-clear))))
+        (when (or force-update
+                  ;; check if Ilist buffer is alive, in case it was killed
+                  ;; since last update
+                  (null (get-buffer imenu-list-buffer-name))
+                  (not (equal old-entries imenu-list--imenu-entries)))
+          (with-current-buffer (imenu-list-get-buffer-create)
+            (imenu-list-insert-entries)))
+        (when imenu-list-update-current-entry
+          (imenu-list--show-current-entry))
+        (when imenu-list-auto-resize
+          (imenu-list-resize-window))
+        (run-hooks 'imenu-list-update-hook)
+        nil))))
+
+(defun imenu-list-clear ()
+  "Clear the imenu-list buffer."
+  (let ((imenu-buffer (get-buffer imenu-list-buffer-name)))
+    (when imenu-buffer
+      (setq imenu-list--imenu-entries nil
+            imenu-list--line-entries nil)
+      (with-current-buffer imenu-buffer
+        (let ((inhibit-read-only t))
+          (erase-buffer))))))
 
 (defun imenu-list-refresh ()
   "Refresh imenu-list buffer."
   (interactive)
   (with-current-buffer imenu-list--displayed-buffer
-    (imenu-list-update nil t)))
+    (imenu-list-update t)))
 
 (defun imenu-list-show ()
   "Show the imenu-list buffer.
@@ -545,6 +606,9 @@ If the imenu-list buffer doesn't exist, create it."
   (imenu-list-update)
   (imenu-list-show))
 
+;; hide false-positive byte-compile warning
+(defvar imenu-list-minor-mode)
+
 (defun imenu-list-quit-window ()
   "Disable `imenu-list-minor-mode' and hide the imenu-list buffer.
 If `imenu-list-minor-mode' is already disabled, just call `quit-window'."
@@ -559,8 +623,8 @@ If `imenu-list-minor-mode' is already disabled, just call `quit-window'."
 
 (defvar imenu-list-major-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") #'imenu-list-goto-entry)
-    (define-key map (kbd "SPC") #'imenu-list-display-entry)
+    (define-key map (kbd "RET") #'imenu-list-ret-dwim)
+    (define-key map (kbd "SPC") #'imenu-list-display-dwim)
     (define-key map (kbd "n") #'next-line)
     (define-key map (kbd "p") #'previous-line)
     (define-key map (kbd "TAB") #'hs-toggle-hiding)
@@ -627,19 +691,34 @@ ARG is ignored."
            (when imenu-list--timer (imenu-list-start-timer)))))
 
 (defun imenu-list-start-timer ()
+  "Start timer to auto-update imenu-list index and window."
   (imenu-list-stop-timer)
   (setq imenu-list--timer
         (run-with-idle-timer imenu-list-idle-update-delay t
-                             #'imenu-list-update-safe)))
+                             #'imenu-list-update)))
 
 (defun imenu-list-stop-timer ()
+  "Stop timer to auto-update imenu-list index and window."
   (when imenu-list--timer
     (cancel-timer imenu-list--timer)
     (setq imenu-list--timer nil)))
 
-(defun imenu-list-update-safe ()
-  "Call `imenu-list-update', return nil if an error occurs."
-  (ignore-errors (imenu-list-update t)))
+(defcustom imenu-list-auto-update t
+  "Whether imenu-list should automatically update its index.
+If non-nil, imenu-list automatically updates the entries of its
+index every `imenu-list-idle-update-delay' seconds.  When
+updating this value from Lisp code, you should call
+`imenu-list-start-timer' or `imenu-list-stop-timer' explicitly
+afterwards."
+  :group 'imenu-list
+  :type 'boolean
+  :set (lambda (sym val)
+         (prog1 (set-default sym val)
+           (if (and val (bound-and-true-p imenu-list-mode))
+               (imenu-list-start-timer)
+             (imenu-list-stop-timer)))))
+
+(define-obsolete-function-alias 'imenu-list-update-safe 'imenu-list-update "imenu-list 0.10")
 
 ;;;###autoload
 (define-minor-mode imenu-list-minor-mode
@@ -647,13 +726,14 @@ ARG is ignored."
   (if imenu-list-minor-mode
       (progn
         (imenu-list-get-buffer-create)
-        (imenu-list-start-timer)
+        (when imenu-list-auto-update
+          (imenu-list-start-timer))
         (let ((orig-buffer (current-buffer)))
           (if imenu-list-focus-after-activation
               (imenu-list-show)
             (imenu-list-show-noselect))
           (with-current-buffer orig-buffer
-            (imenu-list-update nil t))))
+            (imenu-list-update t))))
     (imenu-list-stop-timer)
     (ignore-errors (quit-windows-on imenu-list-buffer-name))
     ;; make sure *Ilist* is buried even if it wasn't shown in any window
