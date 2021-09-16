@@ -1,12 +1,12 @@
 ;;; rubocop.el --- An Emacs interface for RuboCop -*- lexical-binding: t -*-
 
-;; Copyright © 2011-2017 Bozhidar Batsov
+;; Copyright © 2011-2021 Bozhidar Batsov
 
 ;; Author: Bozhidar Batsov
-;; URL: https://github.com/bbatsov/rubocop-emacs
-;; Package-Version: 20190326.1424
-;; Package-Commit: 03bf15558a6eb65e4f74000cab29412efd46660e
-;; Version: 0.5.0
+;; URL: https://github.com/rubocop/rubocop-emacs
+;; Package-Version: 20210309.1241
+;; Package-Commit: f5fd18aa810c3d3269188cbbd731ddc09006f8f5
+;; Version: 0.7.0-snapshot
 ;; Keywords: project, convenience
 ;; Package-Requires: ((emacs "24"))
 
@@ -32,7 +32,8 @@
 ;;; Commentary:
 ;;
 ;; This library allows the user to easily invoke RuboCop to get feedback
-;; about stylistic issues in Ruby code.
+;; about stylistic issues in Ruby code.  It also gives access to RuboCop
+;; auto-correction functionality.
 ;;
 ;;; Code:
 
@@ -43,7 +44,7 @@
   :group 'tools
   :group 'convenience
   :prefix "rubocop-"
-  :link '(url-link :tag "GitHub" "https://github.com/bbatsov/rubocop-emacs"))
+  :link '(url-link :tag "GitHub" "https://github.com/rubocop/rubocop-emacs"))
 
 (defcustom rubocop-project-root-files
   '(".projectile" ".git" ".hg" ".bzr" "_darcs" "Gemfile")
@@ -60,6 +61,13 @@
   "The command used to run RuboCop's autocorrection."
   :type 'string)
 
+(defcustom rubocop-format-command
+  "rubocop -x --format emacs"
+  "The command used to run RuboCop's code formatting.
+It's basically auto-correction limited to layout cops."
+  :type 'string
+  :package-version '(rubocop . "0.6.0"))
+
 (defcustom rubocop-extensions
   '()
   "A list of extensions to be loaded by RuboCop."
@@ -73,12 +81,25 @@
 (defcustom rubocop-autocorrect-on-save nil
   "Runs `rubocop-autocorrect-current-file' automatically on save."
   :group 'rubocop
-  :type 'boolean)
+  :type 'boolean
+  :package-version '(rubocop . "0.6.0"))
+
+(defcustom rubocop-format-on-save nil
+  "Runs `rubocop-format-current-file' automatically on save."
+  :group 'rubocop
+  :type 'boolean
+  :package-version '(rubocop . "0.7.0"))
 
 (defcustom rubocop-prefer-system-executable nil
   "Runs rubocop with the system executable even if inside a bundled project."
   :group 'rubocop
   :type 'boolean)
+
+(defcustom rubocop-run-in-chroot nil
+  "Runs rubocop inside a chroot via schroot setting the cwd to the project's root."
+  :group 'rubocop
+  :type 'boolean
+  :package-version '(rubocop . "0.7.0"))
 
 (defun rubocop-local-file-name (file-name)
   "Retrieve local filename if FILE-NAME is opened via TRAMP."
@@ -123,6 +144,7 @@ When NO-ERROR is non-nil returns nil instead of raise an error."
   "Build the full command to be run based on COMMAND and PATH.
 The command will be prefixed with `bundle exec` if RuboCop is bundled."
   (concat
+   (if rubocop-run-in-chroot (format "schroot -d %s -- " (rubocop-project-root)))
    (if (and (not rubocop-prefer-system-executable) (rubocop-bundled-p)) "bundle exec " "")
    command
    (rubocop-build-requires)
@@ -156,6 +178,12 @@ Alternatively prompt user for directory."
   (rubocop-autocorrect-directory (rubocop-project-root)))
 
 ;;;###autoload
+(defun rubocop-format-project ()
+  "Run format on current project."
+  (interactive)
+  (rubocop-format-directory (rubocop-project-root)))
+
+;;;###autoload
 (defun rubocop-check-directory (&optional directory)
   "Run check on DIRECTORY if present.
 Alternatively prompt user for directory."
@@ -168,6 +196,12 @@ Alternatively prompt user for directory."
 Alternatively prompt user for directory."
   (interactive)
   (rubocop--dir-command rubocop-autocorrect-command directory))
+
+(defun rubocop-format-directory (&optional directory)
+  "Run format on DIRECTORY if present.
+Alternatively prompt user for directory."
+  (interactive)
+  (rubocop--dir-command rubocop-format-command directory))
 
 (defun rubocop--file-command (command)
   "Run COMMAND on currently visited file."
@@ -195,8 +229,22 @@ Alternatively prompt user for directory."
   (rubocop--file-command rubocop-autocorrect-command))
 
 (defun rubocop-autocorrect-current-file-silent ()
-  (if rubocop-autocorrect-on-save
-      (save-window-excursion (rubocop-autocorrect-current-file))))
+  "This command is used by the minor mode to auto-correct on save.
+See also `rubocop-autocorrect-on-save'."
+  (when rubocop-autocorrect-on-save
+    (save-window-excursion (rubocop-autocorrect-current-file))))
+
+;;;###autoload
+(defun rubocop-format-current-file ()
+  "Run format on current file."
+  (interactive)
+  (rubocop--file-command rubocop-format-command))
+
+(defun rubocop-format-current-file-silent ()
+  "This command is used by the minor mode to format on save.
+See also `rubocop-format-on-save' and `rubocop-autocorrect-on-save'."
+  (when (and rubocop-format-on-save (not rubocop-autocorrect-on-save))
+    (save-window-excursion (rubocop-format-current-file))))
 
 (defun rubocop-bundled-p ()
   "Check if RuboCop has been bundled."
@@ -221,6 +269,9 @@ Alternatively prompt user for directory."
       (define-key prefix-map (kbd "P") #'rubocop-autocorrect-project)
       (define-key prefix-map (kbd "D") #'rubocop-autocorrect-directory)
       (define-key prefix-map (kbd "F") #'rubocop-autocorrect-current-file)
+      (define-key prefix-map (kbd "X") #'rubocop-format-project)
+      (define-key prefix-map (kbd "y") #'rubocop-format-directory)
+      (define-key prefix-map (kbd "x") #'rubocop-format-current-file)
 
       (define-key map rubocop-keymap-prefix prefix-map))
     map)
@@ -232,9 +283,14 @@ Alternatively prompt user for directory."
   :lighter " RuboCop"
   :keymap rubocop-mode-map
   :group 'rubocop
-  (cond
-   (rubocop-mode (add-hook 'before-save-hook 'rubocop-autocorrect-current-file-silent nil t))
-   (t (remove-hook 'before-save-hook 'rubocop-autocorrect-current-file-silent t))))
+  (if rubocop-mode
+      ;; on mode enable
+      (progn
+        (add-hook 'before-save-hook 'rubocop-autocorrect-current-file-silent nil t)
+        (add-hook 'before-save-hook 'rubocop-format-current-file-silent nil t))
+    ;; on mode disable
+    (remove-hook 'before-save-hook 'rubocop-autocorrect-current-file-silent t)
+    (remove-hook 'before-save-hook 'rubocop-format-current-file-silent t)))
 
 (provide 'rubocop)
 

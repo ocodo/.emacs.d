@@ -15,6 +15,9 @@ Run check on current project." t nil)
 (autoload 'rubocop-autocorrect-project "rubocop" "\
 Run autocorrect on current project." t nil)
 
+(autoload 'rubocop-format-project "rubocop" "\
+Run format on current project." t nil)
+
 (autoload 'rubocop-check-directory "rubocop" "\
 Run check on DIRECTORY if present.
 Alternatively prompt user for directory.
@@ -32,6 +35,9 @@ Run check on current file." t nil)
 
 (autoload 'rubocop-autocorrect-current-file "rubocop" "\
 Run autocorrect on current file." t nil)
+
+(autoload 'rubocop-format-current-file "rubocop" "\
+Run format on current file." t nil)
 
 (autoload 'rubocop-mode "rubocop" "\
 Minor mode to interface with RuboCop.
