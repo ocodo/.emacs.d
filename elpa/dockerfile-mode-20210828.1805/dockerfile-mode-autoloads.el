@@ -30,7 +30,9 @@ A major mode to edit Dockerfiles.
 
 \(fn)" t nil)
 
-(add-to-list 'auto-mode-alist '("Dockerfile\\(?:\\..*\\)?\\'" . dockerfile-mode))
+(add-to-list 'auto-mode-alist '("/Dockerfile\\(?:\\.[^/\\]*\\)?\\'" . dockerfile-mode))
+
+(add-to-list 'auto-mode-alist '("\\.dockerfile\\'" . dockerfile-mode))
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "dockerfile-mode" '("dockerfile-")))
 

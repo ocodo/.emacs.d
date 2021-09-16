@@ -1,10 +1,13 @@
 ;;; dockerfile-mode.el --- Major mode for editing Docker's Dockerfiles -*- lexical-binding: t -*-
 
 ;; Copyright (c) 2013 Spotify AB
-;; Package-Requires: ((emacs "24") (s "1.12"))
-;; Package-Version: 20200106.2126
-;; Package-Commit: d31f7685ebc5832d957e25070a930aa42984327d
+;; Package-Requires: ((emacs "24"))
+;; Package-Version: 20210828.1805
+;; Package-Commit: 628315e2e4ab2f269548126444234caa057b2c75
 ;; Homepage: https://github.com/spotify/dockerfile-mode
+;; URL: https://github.com/spotify/dockerfile-mode
+;; Version: 1.5
+;; Keywords: docker
 ;;
 ;; Licensed under the Apache License, Version 2.0 (the "License"); you may not
 ;; use this file except in compliance with the License. You may obtain a copy of
@@ -28,7 +31,6 @@
 
 (require 'sh-script)
 (require 'rx)
-(require 's)
 
 
 (declare-function cygwin-convert-file-name-to-windows "cygw32.c" (file &optional absolute-p))
@@ -39,13 +41,8 @@
   :prefix "dockerfile-"
   :group 'languages)
 
-(defcustom dockerfile-mode-hook nil
-  "*Hook called by `dockerfile-mode'."
-  :type 'hook
-  :group 'dockerfile)
-
 (defcustom dockerfile-mode-command "docker"
-  "Which binary to use to build images"
+  "Which binary to use to build images."
   :group 'dockerfile
   :type 'string)
 
@@ -60,6 +57,20 @@
 Each element of the list will be passed as a separate
  --build-arg to the docker build command."
   :type '(repeat string)
+  :group 'dockerfile)
+
+(defcustom dockerfile-use-buildkit nil
+  "Use Docker buildkit for building images?
+
+This is the new buildsystem for docker, and in time it will replace the old one
+but for now it has to be explicitly enabled to work.
+It is supported from docker 18.09"
+  :type 'boolean)
+
+(defcustom dockerfile-indent-offset (or standard-indent 2)
+  "Dockerfile number of columns for margin-changing functions to indent."
+  :type 'integer
+  :safe #'integerp
   :group 'dockerfile)
 
 (defface dockerfile-image-name
@@ -125,7 +136,7 @@ Each element of the list will be passed as a separate
   "Indent lines in a Dockerfile.
 
 Lines beginning with a keyword are ignored, and any others are
-indented by one `tab-width'."
+indented by one `dockerfile-indent-offset'."
   (unless (member (get-text-property (point-at-bol) 'face)
                   '(font-lock-comment-delimiter-face font-lock-keyword-face))
     (save-excursion
@@ -134,7 +145,7 @@ indented by one `tab-width'."
       (unless (equal (point) (point-at-eol)) ; Ignore empty lines.
         ;; Delete existing whitespace.
         (delete-char (- (point-at-bol) (point)))
-        (indent-to tab-width)))))
+        (indent-to dockerfile-indent-offset)))))
 
 (defun dockerfile-build-arg-string ()
   "Create a --build-arg string for each element in `dockerfile-build-args'."
@@ -146,17 +157,19 @@ indented by one `tab-width'."
 If in Cygwin environment, uses Cygwin specific function to convert the
 file name.  Otherwise, uses Emacs' standard conversion function."
   (if (fboundp 'cygwin-convert-file-name-to-windows)
-      (s-replace "\\" "\\\\" (cygwin-convert-file-name-to-windows file))
+      (replace-regexp-in-string
+       (rx "\\") "\\\\" (cygwin-convert-file-name-to-windows file) t t)
     (convert-standard-filename file)))
 
 (defun dockerfile-tag-string (image-name)
   "Return a --tag shell-quoted IMAGE-NAME string or an empty string if image-name is blank."
     (if (string= image-name "") "" (format "--tag %s " (shell-quote-argument image-name))))
 
+(define-obsolete-variable-alias 'docker-image-name 'dockerfile-image-name "2017-10-22")
+
 (defvar dockerfile-image-name nil
   "Name of the dockerfile currently being used.
 This can be set in file or directory-local variables.")
-(define-obsolete-variable-alias 'docker-image-name 'dockerfile-image-name)
 
 (defvar dockerfile-image-name-history nil
   "History of image names read by `dockerfile-read-image-name'.")
@@ -178,14 +191,19 @@ The build string will be of the format:
   (save-buffer)
     (compilation-start
         (format
-            "%s%s build %s %s %s -f %s %s"
+            "%s%s%s build %s %s %s -f %s %s"
+            (if dockerfile-use-buildkit "DOCKER_BUILDKIT=1 " "")
             (if dockerfile-use-sudo "sudo " "")
             dockerfile-mode-command
             (if no-cache "--no-cache" "")
             (dockerfile-tag-string image-name)
             (dockerfile-build-arg-string)
-            (shell-quote-argument (dockerfile-standard-filename (buffer-file-name)))
-            (shell-quote-argument (dockerfile-standard-filename default-directory)))
+            (shell-quote-argument (dockerfile-standard-filename
+				   (or (file-remote-p (buffer-file-name) 'localname)
+				       (buffer-file-name))))
+            (shell-quote-argument (dockerfile-standard-filename
+				   (or (file-remote-p default-directory 'localname)
+				       default-directory))))
     nil
     (lambda (_) (format "*docker-build-output: %s *" image-name))))
 
@@ -228,7 +246,11 @@ returned, otherwise the base image name is used."
   (set (make-local-variable 'indent-line-function) #'dockerfile-indent-line-function))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("Dockerfile\\(?:\\..*\\)?\\'" . dockerfile-mode))
+(add-to-list 'auto-mode-alist '("/Dockerfile\\(?:\\.[^/\\]*\\)?\\'" .
+                                dockerfile-mode))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.dockerfile\\'" . dockerfile-mode))
 
 (provide 'dockerfile-mode)
 
