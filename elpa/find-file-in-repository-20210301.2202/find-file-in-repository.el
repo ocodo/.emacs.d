@@ -4,8 +4,8 @@
 
 ;; Author: Samuel Hoffstaetter <samuel@hoffstaetter.com>
 ;; Keywords: files, convenience, repository, project, source control
-;; Package-Version: 20190404.828
-;; Package-Commit: b44d78682082270dc6b59cdc911333d0d3e7edaa
+;; Package-Version: 20210301.2202
+;; Package-Commit: 10f5bd919ce35691addc5ce0d281597a46813a79
 ;; URL: https://github.com/hoffstaetter/find-file-in-repository
 ;; Version: 1.3
 
@@ -39,6 +39,10 @@
 ;; This library currently has support for:
 ;;     git, mercurial, darcs, bazaar, monotone, svn
 ;;
+;; By default ido completion is used if ido is enabled. Completion
+;; method can be customized via `ffir-completion' variable. Possible
+;; values are nil (default), 'find-file, 'ido and 'ivy.
+;;
 ;; Contributions for support of other repository types are welcome.
 ;; Please send a pull request to
 ;; https://github.com/hoffstaetter/find-file-in-repository and I will
@@ -49,17 +53,38 @@
 
 ;;; Code:
 
-(defun ffir-shell-command (command file-separator working-dir)                                                                                                        
-  "Executes 'command' and returns the list of printed files in                                                                                                        
-   the form '((short/file/name . full/path/to/file) ...). The                                                                                                         
-   'file-separator' character is used to split the file names                                                                                                         
-   printed by the shell command and is usually set to \\n or \\0"                                                                                                     
-  (let* ((default-directory working-dir)                                                                                                                              
-         (command-output (shell-command-to-string command))                                                                                                           
-         (files (delete "" (split-string command-output file-separator))))                                                                                            
-    (mapcar (lambda (file)                                                                                                                                            
-              (cons file (expand-file-name file working-dir)))                                                                                                        
-            files))) 
+(defgroup find-file-in-repository nil
+  "Find file in repository."
+  :group 'convenience)
+
+(defcustom ffir-completion nil
+  "Completion framework. Options are nil, find-file, ido and ivy."
+  :type 'symbol
+  :group 'find-file-in-repository)
+
+(defcustom ffir-git-use-recurse-submodules nil
+  "Whether to use --recurse-submodules for git ls-files. Git currently doesn't support combinding this option with --others (show untracked files)"
+  :type 'boolean
+  :safe 'booleanp
+  :group 'find-file-in-repository)
+
+(defcustom ffir-prompt "Find file in repository: "
+  "Prompt to display."
+  :type 'string
+  :safe 'stringp
+  :group 'find-file-in-repository)
+
+(defun ffir-shell-command (command file-separator working-dir)
+  "Executes 'command' and returns the list of printed files in
+   the form '((short/file/name . full/path/to/file) ...). The
+   'file-separator' character is used to split the file names
+   printed by the shell command and is usually set to \\n or \\0"
+  (let* ((default-directory working-dir)
+         (command-output (shell-command-to-string command))
+         (files (delete "" (split-string command-output file-separator))))
+    (mapcar (lambda (file)
+              (cons file (expand-file-name file working-dir)))
+            files)))
 
 (defun ffir-locate-dominating-file (file name)
   "Identical to 'locate-dominating-file' on modern Emacs. We
@@ -116,7 +141,9 @@
 (defvar ffir-repository-types
   `((".git"   . ,(lambda (dir)
                    (ffir-shell-command
-                    "git ls-files -zco --exclude-standard"     "\0" dir)))
+                    (if ffir-git-use-recurse-submodules
+                        "git ls-files --recurse-submodules -zc --exclude-standard"
+                      "git ls-files -zco --exclude-standard")                       "\0" dir)))
     (".hg"    . ,(lambda (dir)
                    (ffir-shell-command "hg locate -0"          "\0" dir)))
     ("_darcs" . ,(lambda (dir)
@@ -143,11 +170,28 @@
   (define-key ido-completion-map (kbd "C-x C-f") 'ido-fallback-command)
   (define-key ido-completion-map (kbd "C-x f") 'ido-fallback-command))
 
+(defun ffip-ivy-fallback-command ()
+  (interactive)
+  (ivy-quit-and-run (command-execute (ffir-default-find-file-command))))
+
+(defun ffir-ivy-make-keymap ()
+  "Create a map with fallback bindings to ido keymap while ffir is active."
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-x C-f") 'ffip-ivy-fallback-command)
+    (define-key map (kbd "C-x f") 'ffip-ivy-fallback-command)
+    map))
+
+(defun ffir-find-file (file-list)
+  "Actually find file to open, using completing-read."
+  (let ((file (completing-read ffir-prompt
+                        (mapcar 'car file-list))))
+    (find-file (cdr (assoc file file-list)))))
+
 (defun ffir-ido-find-file (file-list)
   "Actually find file to open, using ido."
   (add-hook 'ido-setup-hook 'ffir-ido-setup)
   (unwind-protect
-      (let* ((file (ido-completing-read "Find file in repository: "
+      (let* ((file (ido-completing-read ffir-prompt
                                         (mapcar 'car file-list)))
              (path (or (cdr (assoc file file-list)) file)))
         (cond
@@ -155,11 +199,28 @@
          ((eq ido-exit 'fallback) (ido-find-file))))
     (remove-hook 'ido-setup-hook 'ffir-ido-setup)))
 
-(defun ffir-find-file (file-list)
-  "Actually find file to open, without using ido."
-  (let ((file (completing-read "Find file in repository: "
-                               (mapcar 'car file-list))))
-    (find-file (cdr (assoc file file-list)))))
+(defun ffir-ivy-find-file (file-list)
+  "Actually find file to open, using ivy."
+  (let* ((file (ivy-read ffir-prompt
+                         (mapcar 'car file-list)
+                         :keymap (ffir-ivy-make-keymap)))
+               (path (or (cdr (assoc file file-list)) file)))
+         (when file (find-file path))))
+
+(defun ffir-default-find-file (file-list)
+  "Actually find file to open, taking into account ffir-completion."
+  (let ((find-file
+         (cond ((eq ffir-completion 'find-file) 'ffir-find-file)
+               ((eq ffir-completion 'ido) 'ffir-ido-find-file)
+               ((eq ffir-completion 'ivy) 'ffir-ivy-find-file)
+               ((if (and (boundp 'ido-mode) ido-mode)
+                    'ffir-ido-find-file 'ffir-find-file)))))
+    (funcall find-file file-list)))
+
+(defun ffir-default-find-file-command ()
+  (cond ((eq ffir-completion 'find-file) 'find-file)
+        ((eq ffir-completion 'ido) 'ido-find-file)
+        ((if (and (boundp 'ido-mode) ido-mode) 'ido-find-file 'find-file))))
 
 ;;;###autoload
 (defun find-file-in-repository ()
@@ -185,11 +246,9 @@
                (file-list (funcall (ffir-directory-contains-which-file
                                     ffir-repository-types repo-directory)
                                    repo-directory)))
-          (funcall (ffir-when-ido 'ffir-ido-find-file 'ffir-find-file)
-                   file-list))
+          (ffir-default-find-file file-list))
       ;; fall back on regular find-file when no repository can be found
-      (let ((find-file (ffir-when-ido 'ido-find-file 'find-file)))
-        (command-execute find-file)))))
+      (command-execute (ffir-default-find-file-command)))))
 
 ;;;###autoload
 (defalias 'ffir 'find-file-in-repository)

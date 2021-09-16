@@ -23,7 +23,7 @@ find-file-in-repository will autocomplete all files in the
 
 (put 'ffir-avoid-HOME-repository 'safe-local-variable 'booleanp)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "find-file-in-repository" '("ffir-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "find-file-in-repository" '("ffi")))
 
 ;;;***
 
