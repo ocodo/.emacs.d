@@ -8,11 +8,12 @@
 ;;         Dmitry Gutov <dgutov@yandex.ru>
 ;;         Kyle Hargraves <pd@krh.me>
 ;; URL: http://github.com/nonsequitur/inf-ruby
-;; Package-Version: 20200730.1456
-;; Package-Commit: 9f0f79ff459c7c417e8931ca020db121e24b45b5
+;; Package-Version: 20210607.2336
+;; Package-Commit: 03dd9c9d4e3f94f5519a786804d3ef9d3a09ef9f
 ;; Created: 8 April 1998
 ;; Keywords: languages ruby
 ;; Version: 2.5.2
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -104,13 +105,17 @@ returns a string."
   :group 'inf-ruby)
 
 (defun inf-ruby--irb-command ()
-  (let ((command "irb --prompt default --noreadline -r irb/completion"))
-    (when (inf-ruby--irb-needs-nomultiline-p)
-      (setq command (concat command " --nomultiline")))
+  (let ((command "irb --prompt default -r irb/completion"))
+    (if (inf-ruby--irb-needs-nomultiline-p)
+        (setq command (concat command " --nomultiline"))
+      (setq command (concat command "  --noreadline")))
     command))
 
-(defun inf-ruby--irb-needs-nomultiline-p ()
-  (let* ((output (shell-command-to-string "irb -v"))
+(defun inf-ruby--irb-needs-nomultiline-p (&optional with-bundler)
+  (let* ((output (shell-command-to-string
+                  (concat
+                   (when with-bundler "bundle exec ")
+                   "irb -v")))
          (fields (split-string output "[ (]")))
     (if (equal (car fields) "irb")
         (version<= "1.2.0" (nth 1 fields))
@@ -125,6 +130,12 @@ Currently only affects Rails and Hanami consoles."
   :type '(choice
           (const ask :tag "Ask the user")
           (string :tag "Environment name")))
+
+(defcustom inf-ruby-reuse-older-buffers t
+  "When non-nil, `run-ruby-new' will try to reuse the buffer left
+over by a previous Ruby process, as long as it was launched in
+the same directory and used the same base name."
+  :type 'boolean)
 
 (defconst inf-ruby-prompt-format
   (concat
@@ -331,13 +342,15 @@ The following commands are available:
     (and current-dir
          (inf-ruby-buffer-in-directory current-dir))))
 
-(defun inf-ruby-buffer-in-directory (dir)
+(defun inf-ruby-buffer-in-directory (dir &optional impl-name)
   (setq dir (expand-file-name dir))
   (catch 'buffer
     (dolist (buffer inf-ruby-buffers)
       (when (buffer-live-p buffer)
         (with-current-buffer buffer
-          (when (string= (expand-file-name default-directory) dir)
+          (when (and (string= (expand-file-name default-directory) dir)
+                     (or (not impl-name)
+                         (equal impl-name inf-ruby-buffer-impl-name)))
             (throw 'buffer buffer)))))))
 
 ;;;###autoload
@@ -390,7 +403,7 @@ Type \\[describe-mode] in the process buffer for the list of commands."
        inf-ruby-buffer)))
 
 (defun run-ruby-new (command &optional name)
-  "Create a new inferior Ruby process in a new buffer.
+  "Create a new inferior Ruby process in a new or existing buffer.
 
 COMMAND is the command to call. NAME will be used for the name of
 the buffer, defaults to \"ruby\"."
@@ -403,12 +416,13 @@ the buffer, defaults to \"ruby\"."
     (setenv "PAGER" (executable-find "cat"))
     (set-buffer (apply 'make-comint-in-buffer
                        name
-                       (generate-new-buffer-name (format "*%s*" name))
+                       (inf-ruby-choose-buffer-name name)
                        (car commandlist)
                        nil (cdr commandlist)))
     (inf-ruby-mode)
     (ruby-remember-ruby-buffer buffer)
-    (push (current-buffer) inf-ruby-buffers)
+    (unless (memq (current-buffer) inf-ruby-buffers)
+      (push (current-buffer) inf-ruby-buffers))
     (setq inf-ruby-buffer-impl-name name
           inf-ruby-buffer-command command))
 
@@ -416,6 +430,15 @@ the buffer, defaults to \"ruby\"."
     (setq inf-ruby-buffer (current-buffer)))
 
   (pop-to-buffer (current-buffer)))
+
+(defun inf-ruby-choose-buffer-name (name)
+  "Return the name of a suitable buffer or generate a unique one."
+  (let ((buffer (and inf-ruby-reuse-older-buffers
+                     (inf-ruby-buffer-in-directory default-directory
+                                                   name))))
+    (if buffer
+        (buffer-name buffer)
+      (generate-new-buffer-name (format "*%s*" name)))))
 
 (defun run-ruby-or-pop-to-buffer (command &optional name buffer)
   (if (not (and buffer
@@ -451,7 +474,7 @@ Must not contain ruby meta characters.")
 
 (defconst ruby-eval-separator "")
 
-(defun ruby-send-region (start end &optional print)
+(defun ruby-send-region (start end &optional print prefix suffix line-adjust)
   "Send the current region to the inferior Ruby process."
   (interactive "r\nP")
   (let (term (file (or buffer-file-name (buffer-name))) line)
@@ -471,10 +494,16 @@ Must not contain ruby meta characters.")
         (goto-char m)
         (insert ruby-eval-separator "\n")
         (set-marker m (point))))
+    (if line-adjust
+	(setq line (+ line line-adjust)))
     (comint-send-string (inf-ruby-proc) (format "eval <<'%s', %s, %S, %d\n"
                                                 term inf-ruby-eval-binding
                                                 file line))
+    (if prefix
+	(comint-send-string (inf-ruby-proc) prefix))
     (comint-send-region (inf-ruby-proc) start end)
+    (if suffix
+	(comint-send-string (inf-ruby-proc) suffix))
     (comint-send-string (inf-ruby-proc) (concat "\n" term "\n"))
     (when print (ruby-print-result))))
 
@@ -503,10 +532,28 @@ Must not contain ruby meta characters.")
   "Send the current definition to the inferior Ruby process."
   (interactive)
   (save-excursion
-    (end-of-defun)
-    (let ((end (point)))
-      (ruby-beginning-of-defun)
-      (ruby-send-region (point) end))))
+    (let ((orig-start (point))
+          (adjust-lineno 0)
+          prefix suffix defun-start)
+      (save-excursion
+        (end-of-line)
+        (ruby-beginning-of-defun)
+        (setq defun-start (point))
+        (unless (ruby-block-contains-point orig-start)
+          (error "Point is not within a definition"))
+        (while (and (ignore-errors (backward-up-list) t)
+                    (looking-at "\\s-*\\(class\\|module\\)\\s-"))
+          (let ((line (buffer-substring-no-properties
+                       (line-beginning-position)
+                       (1+ (line-end-position)))))
+            (if prefix
+                (setq prefix (concat line prefix)
+                      suffix (concat suffix "end\n"))
+              (setq prefix line
+                    suffix "end\n"))
+            (setq adjust-lineno (1- adjust-lineno)))))
+      (end-of-defun)
+      (ruby-send-region defun-start (point) nil prefix suffix adjust-lineno))))
 
 (defun ruby-send-last-sexp (&optional print)
   "Send the previous sexp to the inferior Ruby process."
@@ -765,7 +812,7 @@ Otherwise, just toggle read-only status."
         (set (make-local-variable 'compilation-error-regexp-alist) errors)
         (when proc
           (set-process-filter proc filter)))
-    (toggle-read-only)))
+    (read-only-mode)))
 
 ;;;###autoload
 (defun inf-ruby-switch-setup ()
@@ -919,8 +966,9 @@ Gemfile, it should use the `gemspec' instruction."
   (interactive (list (inf-ruby-console-read-directory 'gem)))
   (let* ((default-directory (file-name-as-directory dir))
          (gemspec (car (file-expand-wildcards "*.gemspec")))
+         (with-bundler (file-exists-p "Gemfile"))
          (base-command
-          (if (file-exists-p "Gemfile")
+          (if with-bundler
               (if (inf-ruby-file-contents-match gemspec "\\$LOAD_PATH")
                   "bundle exec irb"
                 "bundle exec irb -I lib")
@@ -946,7 +994,7 @@ Gemfile, it should use the `gemspec' instruction."
                  (concat " -r " (file-name-sans-extension file)))
                files
                ""))))
-    (when (inf-ruby--irb-needs-nomultiline-p)
+    (when (inf-ruby--irb-needs-nomultiline-p with-bundler)
       (setq base-command (concat base-command " --nomultiline")))
     (inf-ruby-console-run
      (concat base-command args
