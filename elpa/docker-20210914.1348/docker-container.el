@@ -155,6 +155,28 @@ and FLIP is a boolean to specify the sort order."
          (default-directory (format "%s%s" file-prefix container-address)))
     (shell (docker-generate-new-buffer "shell" default-directory))))
 
+;;;###autoload
+(defun docker-container-shell-env (container &optional read-shell)
+  "Open `shell' in CONTAINER with the environment variable set
+and default directory set to workdir. When READ-SHELL is not
+nil, ask the user for it."
+  (interactive (list
+                (docker-container-read-name)
+                current-prefix-arg))
+  (let* ((shell-file-name (docker-container--read-shell read-shell))
+         (container-address (format "docker:%s:" container))
+         (file-prefix (let ((prefix (file-remote-p default-directory)))
+                        (if prefix
+                            (format "%s|" (s-chop-suffix ":" prefix))
+                          "/")))
+         (container-config (cdr (assq 'Config (aref (json-read-from-string (docker-run-docker "inspect" container)) 0))))
+         (container-workdir (cdr (assq 'WorkingDir container-config)))
+         (container-env (cdr (assq 'Env container-config)))
+         (default-directory (format "%s%s%s" file-prefix container-address container-workdir))
+         ;; process-environment doesn't work with tramp if you call this function more than one per emacs session
+         (tramp-remote-process-environment (append container-env nil)))
+    (shell (docker-generate-new-buffer "shell" default-directory))))
+
 (defun docker-container-cp-from-selection (container-path host-path)
   "Run \"docker cp\" from CONTAINER-PATH to HOST-PATH for selected container."
   (interactive "sContainer path: \nFHost path: ")
@@ -205,6 +227,13 @@ and FLIP is a boolean to specify the sort order."
   (--each (docker-utils-get-marked-items-ids)
     (docker-container-shell it prefix)))
 
+(defun docker-container-shell-env-selection (prefix)
+  "Run `docker-container-shell-env' on the containers selection."
+  (interactive "P")
+  (docker-utils-ensure-items)
+  (--each (docker-utils-get-marked-items-ids)
+    (docker-container-shell-env it prefix)))
+
 (defun docker-container-unpause-selection ()
   "Run `docker-container-unpause' on the containers selection."
   (interactive)
@@ -240,12 +269,6 @@ and FLIP is a boolean to specify the sort order."
   [:description docker-utils-generic-actions-heading
    ("d" "Open directory" docker-container-find-directory-selection)
    ("f" "Open file" docker-container-find-file-selection)])
-
-(docker-utils-transient-define-prefix docker-container-inspect ()
-  "Transient for inspecting containers."
-  :man-page "docker-container-inspect"
-  [:description docker-utils-generic-actions-heading
-   ("I" "Inspect" docker-utils-generic-action-with-buffer:json)])
 
 (docker-utils-transient-define-prefix docker-container-kill ()
   "Transient for kill signaling containers"
@@ -311,6 +334,7 @@ and FLIP is a boolean to specify the sort order."
   "Transient for doing M-x `shell'/`eshell' to containers."
   [:description docker-utils-generic-actions-heading
    ("b" "Shell" docker-container-shell-selection)
+   ("B" "Shell with env" docker-container-shell-env-selection)
    ("e" "Eshell" docker-container-eshell-selection)])
 
 (docker-utils-transient-define-prefix docker-container-start ()
@@ -332,7 +356,7 @@ and FLIP is a boolean to specify the sort order."
   ["Docker containers help"
    ("C" "Copy"       docker-container-cp)
    ("D" "Remove"     docker-container-rm)
-   ("I" "Inspect"    docker-container-inspect)
+   ("I" "Inspect"    docker-utils-inspect)
    ("K" "Kill"       docker-container-kill)
    ("L" "Logs"       docker-container-logs)
    ("O" "Stop"       docker-container-stop)
@@ -351,7 +375,7 @@ and FLIP is a boolean to specify the sort order."
     (define-key map "?" 'docker-container-help)
     (define-key map "C" 'docker-container-cp)
     (define-key map "D" 'docker-container-rm)
-    (define-key map "I" 'docker-container-inspect)
+    (define-key map "I" 'docker-utils-inspect)
     (define-key map "K" 'docker-container-kill)
     (define-key map "L" 'docker-container-logs)
     (define-key map "O" 'docker-container-stop)

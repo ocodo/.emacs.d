@@ -102,7 +102,7 @@
 
 (defun docker-compose-read-compose-file (prompt &optional initial-input _history)
   "Wrapper around `read-file-name'."
-  (read-file-name prompt nil nil t initial-input (apply-partially 'string-match ".*\\.yml")))
+  (read-file-name prompt nil nil t initial-input (apply-partially 'string-match ".*\\.yml\\|.*\\.yaml")))
 
 (defun docker-compose-make-buffer-name (action args)
   "Make a buffer name based on ACTION and ARGS."
@@ -290,6 +290,7 @@
    ("d" "Detach" "-d")
    ("f" "Force recreate" "--force-recreate")
    ("n" "No deps" "--no-deps")
+   ("q" "Quiet pull" "--quiet-pull")
    ("r" "Remove orphans" "--remove-orphans")
    ("t" "Timeout" "--timeout " transient-read-number-N0)]
   ["Actions"

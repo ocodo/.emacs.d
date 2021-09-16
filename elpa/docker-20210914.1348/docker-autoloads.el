@@ -47,6 +47,13 @@ Open `shell' in CONTAINER.  When READ-SHELL is not nil, ask the user for it.
 
 \(fn CONTAINER &optional READ-SHELL)" t nil)
 
+(autoload 'docker-container-shell-env "docker-container" "\
+Open `shell' in CONTAINER with the environment variable set
+and default directory set to workdir. When READ-SHELL is not
+nil, ask the user for it.
+
+\(fn CONTAINER &optional READ-SHELL)" t nil)
+
 (autoload 'docker-containers "docker-container" "\
 List docker containers." t nil)
 
@@ -72,7 +79,7 @@ Pull the image named NAME.  If ALL is set, use \"-a\".
 (autoload 'docker-images "docker-image" "\
 List docker images." t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "docker-image" '("docker-image-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "docker-image" '("docker-")))
 
 ;;;***
 

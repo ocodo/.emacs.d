@@ -51,6 +51,26 @@ and FLIP is a boolean to specify the sort order."
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
 
+(defcustom docker-run-default-args
+  '("-i" "-t" "--rm")
+  "Default infix args used when docker run is invoked.
+
+Note this can be overriden for specific images using
+`docker-image-run-custom-args'."
+  :group 'docker-run
+  :type '(repeat string))
+
+(defcustom docker-image-run-custom-args
+  nil
+  "List which can be used to customize the default arguments for docker run.
+
+Its elements should be of the form (REGEX ARGS) where
+REGEX is a (string) regular expression and ARGS is a list of strings
+corresponding to arguments.
+
+Also note if you do not specify `docker-run-default-args', they will be ignored."
+  :type '(repeat (list string (repeat string))))
+
 (defun docker-image-parse (line)
   "Convert a LINE from \"docker image ls\" to a `tabulated-list-entries' entry."
   (condition-case nil
@@ -86,7 +106,8 @@ and FLIP is a boolean to specify the sort order."
 (defun docker-image-pull-one (name &optional all)
   "Pull the image named NAME.  If ALL is set, use \"-a\"."
   (interactive (list (docker-image-read-name) current-prefix-arg))
-  (docker-run-docker "pull" (when all "-a ") name))
+  (docker-run-docker "pull" (when all "-a ") name)
+  (tablist-revert))
 
 (defun docker-image-run-selection (command)
   "Run \"docker image run\" with COMMAND on the images selection."
@@ -103,12 +124,6 @@ and FLIP is a boolean to specify the sort order."
   (--each (docker-utils-get-marked-items-ids)
     (docker-run-docker "tag" it (read-string (format "Tag for %s: " it))))
   (tablist-revert))
-
-(docker-utils-transient-define-prefix docker-image-inspect ()
-  "Transient for inspecting images."
-  :man-page "docker-image-inspect"
-  [:description docker-utils-generic-actions-heading
-   ("I" "Inspect" docker-utils-generic-action-with-buffer:json)])
 
 (defun docker-image-ls-arguments ()
   "Return the latest used arguments in the `docker-image-ls' transient."
@@ -149,10 +164,24 @@ and FLIP is a boolean to specify the sort order."
   [:description docker-utils-generic-actions-heading
    ("D" "Remove" docker-utils-generic-action)])
 
+(defclass docker-run-prefix (transient-prefix) nil)
+
+(cl-defmethod transient-init-value ((obj docker-run-prefix))
+  (oset obj value
+        (let* ((images (tablist-get-marked-items))
+               (matched-args (let ((repo-name (caar images)))
+                               (if repo-name
+                                   (--first (string-match (car it) repo-name)
+                                            docker-image-run-custom-args)
+                                 nil))))
+          (if matched-args
+              (cadr matched-args)
+            docker-run-default-args))))
+
 (docker-utils-transient-define-prefix docker-image-run ()
   "Transient for running images."
   :man-page "docker-image-run"
-  :value '("-i" "-t" "--rm")
+  :class 'docker-run-prefix
   ["Arguments"
    ("D" "With display" "-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY")
    ("M" "Mount volume" "--mount=" read-string)
@@ -180,7 +209,7 @@ and FLIP is a boolean to specify the sort order."
   ["Docker images help"
    ("D" "Remove"  docker-image-rm)
    ("F" "Pull"    docker-image-pull)
-   ("I" "Inspect" docker-image-inspect)
+   ("I" "Inspect" docker-utils-inspect)
    ("P" "Push"    docker-image-push)
    ("R" "Run"     docker-image-run)
    ("T" "Tag"     docker-image-tag-selection)
@@ -191,7 +220,7 @@ and FLIP is a boolean to specify the sort order."
     (define-key map "?" 'docker-image-help)
     (define-key map "D" 'docker-image-rm)
     (define-key map "F" 'docker-image-pull)
-    (define-key map "I" 'docker-image-inspect)
+    (define-key map "I" 'docker-utils-inspect)
     (define-key map "P" 'docker-image-push)
     (define-key map "R" 'docker-image-run)
     (define-key map "T" 'docker-image-tag-selection)

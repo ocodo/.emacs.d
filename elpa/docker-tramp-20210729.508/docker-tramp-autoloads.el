@@ -21,14 +21,10 @@ Default list of (FUNCTION FILE) pairs to be examined for docker method.")
 Method to connect docker containers.")
 
 (autoload 'docker-tramp-cleanup "docker-tramp" "\
-Cleanup TRAMP cache for docker method.
-
-\(fn)" t nil)
+Cleanup TRAMP cache for docker method." t nil)
 
 (autoload 'docker-tramp-add-method "docker-tramp" "\
-Add docker tramp method.
-
-\(fn)" nil nil)
+Add docker tramp method." nil nil)
 
 (eval-after-load 'tramp '(progn (docker-tramp-add-method) (tramp-set-completion-function docker-tramp-method docker-tramp-completion-function-alist)))
 
