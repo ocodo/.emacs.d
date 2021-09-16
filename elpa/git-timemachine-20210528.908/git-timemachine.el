@@ -4,8 +4,8 @@
 
 ;; Author: Peter Stiernström <peter@stiernstrom.se>
 ;; Version: 4.12
-;; Package-Version: 20200603.701
-;; Package-Commit: 8d675750e921a047707fcdc36d84f8439b19a907
+;; Package-Version: 20210528.908
+;; Package-Commit: 3381797bcbf906b18dff654a2361032d2d01b4a3
 ;; URL: https://gitlab.com/pidu/git-timemachine
 ;; Keywords: vc
 ;; Package-Requires: ((emacs "24.3") (transient "0.1.0"))
@@ -242,6 +242,8 @@ When passed a GIT-BRANCH, lists revisions from that branch."
       (when git-timemachine-show-minibuffer-details
 	(git-timemachine--show-minibuffer-details revision))
       (git-timemachine--erm-workaround))))
+
+(declare-function erm-reset-buffer "ext:enh-ruby-mode")
 
 (defun git-timemachine--erm-workaround ()
   "Workaround for enhanced ruby mode not detecting revision change."
