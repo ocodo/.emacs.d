@@ -40,7 +40,7 @@
 When CONDITION is non-nil, the breakpoint will be hit when
 CONDITION is true."
   (let* ((brk (indium-breakpoint-create :condition (or condition ""))))
-    (map-put indium-breakpoint--local-breakpoints brk (current-buffer))
+    (setf (map-elt indium-breakpoint--local-breakpoints brk nil #'equal) (current-buffer))
     (indium-breakpoint--add-overlay brk)
     (when (indium-client-process-live-p)
       (indium-client-add-breakpoint brk))))
@@ -214,11 +214,11 @@ overlay."
       (when-let ((brk (overlay-get ov 'indium-breakpoint)))
 	(funcall fn brk ov)))))
 
-(when (and (fboundp 'define-fringe-bitmap) (display-images-p))
+(when (fboundp 'define-fringe-bitmap)
   (define-fringe-bitmap 'indium-breakpoint-resolved
     "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
   (define-fringe-bitmap 'indium-breakpoint-unresolved
-  "\x3c\x42\x81\x81\x81\x81\x42\x3c"))
+    "\x3c\x42\x81\x81\x81\x81\x42\x3c"))
 
 (provide 'indium-breakpoint)
 ;;; indium-breakpoint.el ends here

@@ -34,6 +34,10 @@
 (declare-function indium-debugger-get-scopes-properties "indium-debugger.el" (scope callback))
 (declare-function indium-debugger-get-buffer-create "indium-debugger.el" ())
 
+(eval-when-compile
+  (when (version< emacs-version "27.1")
+    (defalias 'seq-contains-p 'seq-contains)))
+
 (defun indium-debugger-litable-setup-buffer ()
   "Render locals in the current buffer."
   (indium-debugger-get-scopes-properties
@@ -126,7 +130,7 @@ Ignore if the object name of NODE is not in the current scope."
           (ov (indium-debugger-litable--get-overlay-at-pos))
           (contents (string-trim (indium-render-property-to-string property)))
 	  (name (indium-property-name property)))
-      (unless (seq-contains (overlay-get ov 'indium-properties) name)
+      (unless (seq-contains-p (overlay-get ov 'indium-properties) name)
         ;; The overlay is already used to display exception details, so do not
         ;; append anything to it.
         (unless (overlay-get ov 'indium-exception-description)

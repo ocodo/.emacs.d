@@ -149,6 +149,14 @@ Once the client is connected, run the hook `indium-client-connected-hook'."
                       (lambda (&rest _)
 			(run-hooks 'indium-client-connected-hook))))
 
+(defun indium-client-disconnect (&optional callback)
+  "Disconnect from the runtime, but do not stop the indium process.
+
+When non-nil, evaluate CALLBACK with the result."
+  (indium-client-send `((type . "connection")
+                        (payload . ((action . "disconnect"))))
+                      callback))
+
 (defun indium-client-evaluate (expression &optional frame callback)
   "Evaluate EXPRESSION in the context of FRAME.
 
@@ -312,7 +320,7 @@ If has the following keys:
   url		url of the message origin
   line		line number in the resource that generated this message
   result 	object to be logged."
-  (map-put payload 'result (indium-remote-object-from-alist
+  (setf (map-elt payload 'result nil #'equal) (indium-remote-object-from-alist
 			    (map-elt payload 'result)))
   (run-hook-with-args 'indium-client-log-hook
 		      payload))
@@ -337,8 +345,7 @@ PAYLOAD is an alist with the details of the notification."
 (defun indium-client--convert-path (path)
   "Convert PATH to a system path that the server component understands."
   (when (eq system-type 'windows-nt)
-    (setq path (replace-regexp-in-string "/" "\\" path nil t))
-    (setq path (replace-regexp-in-string "^\\([a-z]\\):" #'capitalize path)))
+    (setq path (replace-regexp-in-string "/" "\\" path nil t)))
   path)
 
 (provide 'indium-client)
