@@ -131,7 +131,22 @@ Select filename you want to open." t nil)
 (autoload 'easy-hugo "easy-hugo" "\
 Easy hugo mode." t nil)
 
+(autoload 'easy-hugo-enable-menu "easy-hugo" "\
+Enable transient menu for easy-hugo-mode." t nil)
+
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "easy-hugo" '("easy-hugo-")))
+
+;;;***
+
+;;;### (autoloads nil "easy-hugo-transient" "easy-hugo-transient.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from easy-hugo-transient.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "easy-hugo-transient" '("easy-hugo-menu--header")))
+
+;;;***
+
+;;;### (autoloads nil nil ("easy-hugo-pkg.el") (0 0 0 0))
 
 ;;;***
 
