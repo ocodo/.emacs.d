@@ -1,8 +1,8 @@
-(define-package "kaolin-themes" "20210814.1741" "A set of eye pleasing themes"
+(define-package "kaolin-themes" "20210928.958" "A set of eye pleasing themes"
   '((emacs "25.1")
     (autothemer "0.2.2")
     (cl-lib "0.6"))
-  :commit "716aae7e64637e1a7fdeed8ef5b278512b8076f9" :authors
+  :commit "69b4695dd3bce88aa3352fc390ea6ef298b15f09" :authors
   '(("Ogden Webb" . "ogdenwebb@gmail.com"))
   :maintainer
   '("Ogden Webb" . "ogdenwebb@gmail.com")

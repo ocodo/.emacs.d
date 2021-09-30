@@ -1324,6 +1324,12 @@
     (popup-menu-selection-face (:background tooltip-hl-bg :foreground tooltip-hl-fg :bold bold))
     (popup-tip-face            (:background tooltip-hl-bg :foreground fg1 :bold bold))
 
+    ;; from-menu
+    (frog-menu-posframe-background-face (:background tooltip-bg))
+    (frog-menu-border                   (:background bg4))
+    (frog-menu-prompt-face              (:foreground prompt))
+    (frog-menu-action-keybinding-face   (:foreground keysym :bold bold))
+
     ;; Terminal
     (term               (:background bg1 :foreground fg1))
     (term-color-black   (:foreground kaolin-black))
@@ -1399,6 +1405,7 @@
     (org-meta-line                 (:inherit 'org-document-info-keyword))
     (org-block                     (:background bg2 :foreground fg2))
     (org-block-begin-line          (:background bg2 :foreground comment :height 0.9))
+    ;; (org-block-end-line            (:inherit 'org-block-begin-line :overline nil :underline (:style 'line :color bg4)))
     (org-block-end-line            (:inherit 'org-block-begin-line))
     (org-list-dt                   (:inherit 'org-checkbox))
     (org-document-title            (:foreground builtin :bold bold :height 1.1))
@@ -1695,6 +1702,14 @@
 
     ;; Counsel
     (counsel-key-binding (:foreground keysym))
+
+    ;; counsel-css
+    (counsel-css-selector-depth-face-1 (:foreground kaolin-yellow))
+    (counsel-css-selector-depth-face-2 (:foreground kaolin-green))
+    (counsel-css-selector-depth-face-3 (:foreground kaolin-cyan))
+    (counsel-css-selector-depth-face-4 (:foreground kaolin-blue))
+    (counsel-css-selector-depth-face-5 (:foreground kaolin-magenta))
+    (counsel-css-selector-depth-face-6 (:foreground kaolin-navy))
 
     ;; Swiper
     (swiper-match-face-1 (:background bg2 :foreground ivy1))
