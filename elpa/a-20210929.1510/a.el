@@ -1,13 +1,13 @@
 ;;; a.el --- Associative data structure functions   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017  Arne Brasseur
+;; Copyright (C) 2017-2021  Arne Brasseur
 
 ;; Author: Arne Brasseur <arne@arnebrasseur.net>
 ;; URL: https://github.com/plexus/a.el
-;; Package-Version: 20201203.1927
-;; Package-Commit: 3d341eb7813ee02b00ab28e11c915295bfd4b5a7
+;; Package-Version: 20210929.1510
+;; Package-Commit: 9ad2d18252b729174fe22ed0b2b7670c88f60c31
 ;; Keywords: lisp
-;; Version: 0.1.1
+;; Version: 1.0.0
 ;; Package-Requires: ((emacs "25"))
 
 ;; This file is not part of GNU Emacs.
@@ -47,7 +47,8 @@
 (defun a-associative-p (obj)
   (or (not obj)
       (hash-table-p obj)
-      (and (consp obj) (consp (car obj)))))
+      (and (consp obj)
+           (consp (car obj)))))
 
 (defalias 'a-associative? 'a-associative-p)
 
@@ -211,7 +212,14 @@ Anything that isn't associative or a sequence is compared with
         (when (eq (a-count a) (a-count b))
           (cl-block nil
             (seq-doseq (k (a-keys a))
-              (when (not (a-equal (a-get a k) (a-get b k)))
+              (when (not (and
+                          (a-has-key b k)
+                          (a-equal (a-get a k) (a-get b k))))
+                (cl-return nil)))
+            (seq-doseq (k (a-keys b))
+              (when (not (and
+                          (a-has-key a k)
+                          (a-equal (a-get a k) (a-get b k))))
                 (cl-return nil)))
             t))))
    ((and (sequencep a) (sequencep b))
@@ -345,4 +353,5 @@ association lists will be created."
                          args)))))
 
 (provide 'a)
+
 ;;; a.el ends here
