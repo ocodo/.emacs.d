@@ -5,8 +5,8 @@
 
 ;; Author: Alexey Kutepov <reximkut@gmail.com>
 ;; URL: http://github.com/rexim/gruber-darker-theme
-;; Package-Version: 20200227.2238
-;; Package-Commit: 7f95ce96079eb22b9214435ed25c5af98f60b482
+;; Package-Version: 20210921.1408
+;; Package-Commit: 091515cee37e586f2028d1226f5ec40e2080f2f9
 ;; Version: 0.6
 
 ;; Permission is hereby granted, free of charge, to any person
@@ -263,6 +263,10 @@
    `(highlight ((t (:background ,gruber-darker-bg+1 :foreground nil))))
    `(highlight-current-line-face ((t ,(list :background gruber-darker-bg+1
                                             :foreground nil))))
+
+   ;; line numbers
+   `(line-number ((t (:inherit default :foreground ,gruber-darker-bg+4))))
+   `(line-number-current-line ((t (:inherit line-number :foreground ,gruber-darker-yellow))))
 
    ;; Linum
    `(linum ((t `(list :foreground gruber-darker-quartz
