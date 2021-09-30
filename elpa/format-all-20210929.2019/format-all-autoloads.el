@@ -74,7 +74,7 @@ or zero, and enabled otherwise.
 
 \(fn &optional ARG)" t nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "format-all" '("atsfmt" "auctex" "beautysh" "black" "brittany" "bsrefmt" "buildifier" "cabal-fmt" "cmake-format" "crystal" "dartfmt" "define-format-all-formatter" "dfmt" "dhall" "dockfmt" "elm-format" "emacs-" "fantomas" "fish-indent" "fprettify" "gawk" "gleam" "hindent" "html-tidy" "istyle-verilog" "jsonnetfmt" "ktlint" "latexindent" "ledger-mode" "lua-fmt" "mix-format" "nix" "ocp-indent" "ormolu" "perltidy" "pgformatter" "prettier" "pur" "rescript" "scalafmt" "shfmt" "snakefmt" "sqlformat" "swiftformat" "terraform-fmt" "v-fmt" "yapf")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "format-all" '("atsfmt" "auctex" "beautysh" "black" "brittany" "bsrefmt" "buildifier" "cabal-fmt" "cmake-format" "crystal" "dart" "define-format-all-formatter" "dfmt" "dhall" "dockfmt" "elm-format" "emacs-" "fantomas" "fish-indent" "fprettify" "gawk" "gleam" "hindent" "html-tidy" "istyle-verilog" "jsonnetfmt" "ktlint" "latexindent" "ledger-mode" "lua-fmt" "mix-format" "nix" "ocp-indent" "ormolu" "perltidy" "pgformatter" "prettier" "pur" "rescript" "scalafmt" "shfmt" "snakefmt" "sqlformat" "swiftformat" "terraform-fmt" "v-fmt" "yapf")))
 
 ;;;***
 

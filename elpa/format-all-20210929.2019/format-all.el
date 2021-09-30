@@ -2,8 +2,8 @@
 
 ;; Author: Lassi Kortela <lassi@lassi.io>
 ;; URL: https://github.com/lassik/emacs-format-all-the-code
-;; Package-Version: 20210824.1659
-;; Package-Commit: 06d4d9ee6dd79941d26798cc9754b9c9be87e932
+;; Package-Version: 20210929.2019
+;; Package-Commit: 772beb9acc3152cce10767ebba545c7af52b76e4
 ;; Version: 0.5.0
 ;; Package-Requires: ((emacs "24.4") (inheritenv "0.1") (language-id "0.16"))
 ;; Keywords: languages util
@@ -39,7 +39,7 @@
 ;; - CSS/Less/SCSS (prettier)
 ;; - Cuda (clang-format)
 ;; - D (dfmt)
-;; - Dart (dartfmt)
+;; - Dart (dartfmt, dart-format)
 ;; - Dhall (dhall format)
 ;; - Dockerfile (dockfmt)
 ;; - Elixir (mix format)
@@ -131,7 +131,7 @@
     ("CSS" prettier)
     ("Cuda" clang-format)
     ("D" dfmt)
-    ("Dart" dartfmt)
+    ("Dart" dart-format)
     ("Dhall" dhall)
     ("Dockerfile" dockfmt)
     ("Elixir" mix-format)
@@ -738,6 +738,14 @@ Consult the existing formatters for examples of BODY."
     (when (buffer-file-name)
       (list "--stdin-name" (buffer-file-name))))))
 
+(define-format-all-formatter dart-format
+  (:executable "dart")
+  (:install (macos "brew tap dart-lang/dart && brew install dart"))
+  (:languages "Dart")
+  (:features)
+  (:format
+   (format-all--buffer-easy executable "format" "--output" "show")))
+
 (define-format-all-formatter dfmt
   (:executable "dfmt")
   (:install (macos "brew install dfmt"))
@@ -1140,6 +1148,7 @@ Consult the existing formatters for examples of BODY."
    (format-all--buffer-hard-ruby
     "standard" '(0 1) nil nil
     executable
+    "--stderr"
     "--fix"
     "--stdin" (or (buffer-file-name) (buffer-name)))))
 
