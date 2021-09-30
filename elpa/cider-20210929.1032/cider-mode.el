@@ -483,6 +483,14 @@ As it stands Emacs fires these events on <mouse-8> and <mouse-9> on 'x' and
   :group 'cider
   :version '(cider . "1.2.0"))
 
+(defcustom cider-xref-fn-depth -90
+  "The depth to use when adding the CIDER xref function to the relevant hook.
+By convention this is a number between -100 and 100, lower numbers indicating a
+higher precedence."
+  :type 'integer
+  :group 'cider
+  :version '(cider . "1.2.0"))
+
 (defconst cider-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-d") 'cider-doc-map)
@@ -1040,9 +1048,9 @@ property."
   "Minor mode for REPL interaction from a Clojure buffer.
 
 \\{cider-mode-map}"
-  nil
-  cider-mode-line
-  cider-mode-map
+  :init-value nil
+  :lighter cider-mode-line
+  :keymap cider-mode-map
   (if cider-mode
       (progn
         (setq-local sesman-system 'CIDER)
@@ -1063,7 +1071,7 @@ property."
           (setq-local clojure-get-indent-function #'cider--get-symbol-indent))
         (setq-local clojure-expected-ns-function #'cider-expected-ns)
         (when cider-use-xref
-          (add-hook 'xref-backend-functions #'cider--xref-backend nil 'local))
+          (add-hook 'xref-backend-functions #'cider--xref-backend cider-xref-fn-depth 'local))
         (setq next-error-function #'cider-jump-to-compilation-error))
     ;; Mode cleanup
     (mapc #'kill-local-variable '(completion-at-point-functions
