@@ -5,8 +5,8 @@
 ;; Authors: Jason Pellerin
 ;;          crystal-lang-tools
 ;; URL: https://github.com/crystal-lang-tools/emacs-crystal-mode
-;; Package-Version: 20201228.1539
-;; Package-Commit: 15998140b0a4172cd4b4d14d0377fba96a8917fc
+;; Package-Version: 20210929.1521
+;; Package-Commit: 3e37f282af06a8b82d266b2d7a7863f3df2ffc3b
 ;; Created: Tue Jun 23 2015
 ;; Keywords: languages crystal
 ;; Version: 0.2.0
@@ -94,12 +94,8 @@
   (regexp-opt crystal-block-mid-keywords)
   "Regexp to match where the indentation gets shallower in middle of block statements.")
 
-(defconst crystal-block-op-keywords
-  '("and" "or" "not")
-  "Regexp to match boolean keywords.")
-
 (defconst crystal-block-hanging-re
-  (regexp-opt (append crystal-modifier-beg-keywords crystal-block-op-keywords))
+  (regexp-opt crystal-modifier-beg-keywords)
   "Regexp to match hanging block modifiers.")
 
 (defconst crystal-block-end-re "\\_<end\\_>")
@@ -498,6 +494,7 @@ It is used when `crystal-encoding-magic-comment-style' is set to `custom'."
 
          (cases (b-stmt "then" stmts)
                 (cases "when" cases)
+                (cases "in" cases)
                 (stmts "else" stmts))
 
          (ielsei-macro (stmts) (stmts "{%else%}" stmts))
@@ -506,9 +503,8 @@ It is used when `crystal-encoding-magic-comment-style' is set to `custom'."
          (ielsei-nest-macro (stmts) (stmts "\{%else%}" stmts))
          (if-nest-macro-body (ielsei-nest-macro) (if-nest-macro-body "\{%elsif%}" if-nest-macro-body)))
 
-       '((nonassoc "in") (assoc ";") (right " @ ")
-         (assoc ",") (right "="))
-      '((assoc "when"))
+      '((assoc ";") (right " @ ") (assoc ",") (right "="))
+      '((assoc "when") (assoc "in"))
       '((assoc "elsif"))
       '((assoc "{%elsif%}"))
       '((assoc "\{%elsif%}"))
@@ -606,8 +602,8 @@ It is used when `crystal-encoding-magic-comment-style' is set to `custom'."
    (save-excursion
      (goto-char pos)
      (or (and (eq (char-syntax (char-after)) ?w)
-              (not (looking-at (regexp-opt '("unless" "if" "while" "until" "or"
-                                             "else" "elsif" "do" "end" "and")
+              (not (looking-at (regexp-opt '("unless" "if" "while" "until"
+                                             "else" "elsif" "do" "end")
                                            'symbols))))
          (memq (car (syntax-after pos)) '(7 15))
          (looking-at "[([]\\|[-+!~]\\sw\\|:\\(?:\\sw\\|\\s.\\)")))))
@@ -833,7 +829,7 @@ It is used when `crystal-encoding-magic-comment-style' is set to `custom'."
                 crystal-indent-level)))
 
       ((smie-rule-parent-p "def" "begin" "do" "module" "lib" "enum" "union"
-                           "while" "until" "unless" "if" "then" "elsif" "else" "when"
+                           "while" "until" "unless" "if" "then" "elsif" "else" "when" "in"
                            "macro" "class" "struct" "annotation"
                            "{%if%}" "{%for%}" "{%elsif%}" "{%else%}" "{%unless%}" "{%begin%}"
                            "\{%if%}" "\{%for%}" "\{%elsif%}" "\{%else%}" "\{%unless%}" "\{%begin%}"
@@ -905,7 +901,7 @@ It is used when `crystal-encoding-magic-comment-style' is set to `custom'."
                       `"{%else%}" `"{%elsif%}" `"\{%else%}" `"\{%elsif%}"))
      (smie-rule-parent))
 
-    (`(:before . "when")
+    (`(:before . ,(or `"when" `"in"))
      ;; Align to the previous `when', but look up the virtual
      ;; indentation of `case'.
      (if (smie-rule-sibling-p) 0 (smie-rule-parent)))
@@ -1190,7 +1186,6 @@ Can be one of `heredoc', `modifier', `expr-qstr', `expr-re'. `macro-cmd'"
                  (cond
                   ((looking-at (regexp-opt
                                 (append crystal-block-beg-keywords
-                                        crystal-block-op-keywords
                                         crystal-block-mid-keywords)
                                 'words))
                    (goto-char (match-end 0))
@@ -2096,8 +2091,8 @@ It will be properly highlighted even when the call omits parens.")
      "\\|[?:] "
      ;; Control flow keywords and operators following bol or whitespace.
      "\\|\\(?:^\\|\\s \\)"
-     (regexp-opt '("if" "elsif" "unless" "while" "until" "when" "and"
-                   "or" "not" "&&" "||"))
+     (regexp-opt '("if" "elsif" "unless" "while" "until" "when"
+                   "&&" "||"))
      ;; Method name from the list.
      "\\|\\_<"
      (regexp-opt crystal-syntax-methods-before-regexp)
@@ -2302,7 +2297,6 @@ See `font-lock-syntax-table'.")
        crystal-font-lock-keyword-beg-re
        (regexp-opt
         '("alias"
-          "and"
           "begin"
           "break"
           "case"
@@ -2325,9 +2319,7 @@ See `font-lock-syntax-table'.")
           "module"
           "annotation"
           "next"
-          "not"
           "of"
-          "or"
           "redo"
           "rescue"
           "retry"
@@ -2367,7 +2359,9 @@ See `font-lock-syntax-table'.")
           "loop"
           "open"
           "p"
+          "p!"
           "pp"
+          "pp!"
           "print"
           "printf"
           "putc"
@@ -2383,7 +2377,9 @@ See `font-lock-syntax-table'.")
           "alias_method"
           "attr"
           "property"
+          "property?"
           "getter"
+          "getter?"
           "setter"
           "define_method"
           "extend"
