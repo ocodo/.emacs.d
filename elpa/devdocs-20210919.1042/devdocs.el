@@ -4,8 +4,8 @@
 
 ;; Author: Augusto Stoffel <arstoffel@gmail.com>
 ;; Keywords: help
-;; Package-Version: 20210904.1759
-;; Package-Commit: df9cec79ed6e7147a71fcad84835b928375047a7
+;; Package-Version: 20210919.1042
+;; Package-Commit: a3177fde9ed48c1b1bc0a17f0e08338dc3f67e37
 ;; URL: https://github.com/astoff/devdocs.el
 ;; Package-Requires: ((emacs "27.1"))
 ;; Version: 0.2
@@ -266,8 +266,8 @@ This is an alist containing `entries', `pages' and `types'."
 (defvar devdocs-header-line
   '(:eval (let-alist (car devdocs--stack)
             (concat (devdocs--doc-title .doc)
-                    devdocs-separator .type
-                    devdocs-separator .name))))
+                    (and .type devdocs-separator) .type
+                    (and .name devdocs-separator) .name))))
 
 (define-derived-mode devdocs-mode special-mode "DevDocs"
   "Major mode for viewing DevDocs documents."
@@ -318,12 +318,31 @@ with the order of appearance in the text."
   (interactive "p")
   (devdocs-next-entry (- count)))
 
+(defun devdocs-next-page (count)
+  "Go forward COUNT pages in this document."
+  (interactive "p")
+  (let-alist (car devdocs--stack)
+    (let* ((pages (alist-get 'pages (devdocs--index .doc)))
+           (page (+ count (seq-position pages (devdocs--path-file .path))))
+           (path (or (ignore-error 'args-out-of-range (seq-elt pages page))
+                     (user-error (if (< count 0) "No previous page" "No next page")))))
+      (devdocs--render `((doc . ,.doc)
+                         (path . ,path)
+                         (name . ,(format "%s/%s" (1+ page) (length pages))))))))
+
+(defun devdocs-previous-page (count)
+  "Go backward COUNT entries in this document."
+  (interactive "p")
+  (devdocs-next-page (- count)))
+
 (let ((map devdocs-mode-map))
   (define-key map [tab] 'forward-button)
   (define-key map [backtab] 'backward-button)
   (define-key map "i" 'devdocs-lookup)
   (define-key map "p" 'devdocs-previous-entry)
   (define-key map "n" 'devdocs-next-entry)
+  (define-key map "[" 'devdocs-previous-page)
+  (define-key map "]" 'devdocs-next-page)
   (define-key map "l" 'devdocs-go-back)
   (define-key map "r" 'devdocs-go-forward)
   (define-key map "." 'devdocs-goto-target))
@@ -497,6 +516,16 @@ If INITIAL-INPUT is not nil, insert it into the minibuffer."
     (with-selected-window (display-buffer buffer)
       (devdocs-goto-target)
       (recenter 0))))
+
+;;;###autoload
+(defun devdocs-peruse (doc)
+  "Read a document from the first page."
+  (interactive (list (devdocs--read-document "Peruse documentation: ")))
+  (let ((pages (alist-get 'pages (devdocs--index doc))))
+    (pop-to-buffer
+     (devdocs--render `((path . ,(seq-first pages))
+                        (doc . ,doc)
+                        (name . ,(format "%s/%s" 1 (length pages))))))))
 
 ;;; Compatibility with the old devdocs package
 

@@ -36,6 +36,11 @@ If INITIAL-INPUT is not nil, insert it into the minibuffer.
 
 \(fn &optional ASK-DOCS INITIAL-INPUT)" t nil)
 
+(autoload 'devdocs-peruse "devdocs" "\
+Read a document from the first page.
+
+\(fn DOC)" t nil)
+
 (autoload 'devdocs-search "devdocs" "\
 Search for QUERY in the DevDocs website.
 
