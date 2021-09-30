@@ -1,6 +1,6 @@
-(define-package "kotlin-mode" "20210831.1802" "Major mode for kotlin"
+(define-package "kotlin-mode" "20210917.1911" "Major mode for kotlin"
   '((emacs "24.3"))
-  :commit "876cc27dc105979a0b59782141785f8e172891e8" :authors
+  :commit "3e0c34087ba4965a8bf08d3f27325f0a1e631bfb" :authors
   '(("Shodai Yokoyama" . "quantumcars@gmail.com"))
   :maintainer
   '("Shodai Yokoyama" . "quantumcars@gmail.com")
