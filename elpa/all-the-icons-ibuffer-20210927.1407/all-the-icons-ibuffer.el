@@ -5,8 +5,8 @@
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; Homepage: https://github.com/seagle0128/all-the-icons-ibuffer
 ;; Version: 1.3.1
-;; Package-Version: 20210727.808
-;; Package-Commit: 165f1702f6f49f4fc2fb15534ede141102657aef
+;; Package-Version: 20210927.1407
+;; Package-Commit: f689582a413ba5bb722067ea470829819e1f1131
 ;; Package-Requires: ((emacs "24.4") (all-the-icons "2.2.0"))
 ;; Keywords: convenience, icons, ibuffer
 
@@ -61,6 +61,21 @@
 (defface all-the-icons-ibuffer-dir-face
   '((t (:inherit font-lock-doc-face)))
   "Face used for the directory icon."
+  :group 'all-the-icons-ibuffer)
+
+(defface all-the-icons-ibuffer-size-face
+  '((t (:inherit font-lock-comment-face)))
+  "Face used for the size."
+  :group 'all-the-icons-ibuffer)
+
+(defface all-the-icons-ibuffer-mode-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face used for the major mode."
+  :group 'all-the-icons-ibuffer)
+
+(defface all-the-icons-ibuffer-file-face
+  '((t (:inherit font-lock-comment-face)))
+  "Face used for the filename/process."
   :group 'all-the-icons-ibuffer)
 
 (defcustom all-the-icons-ibuffer-icon t
@@ -166,7 +181,7 @@ See `ibuffer-formats' for details."
 (define-ibuffer-column size-h
   (:name "Size"
    :inline t
-   :props ('font-lock-face 'font-lock-comment-face)
+   :props ('font-lock-face 'all-the-icons-ibuffer-size-face)
    :header-mouse-map ibuffer-size-header-map
    :summarizer
    (lambda (column-strings)
@@ -188,7 +203,7 @@ See `ibuffer-formats' for details."
   (:name "Mode"
    :inline t
    :header-mouse-map ibuffer-mode-header-map
-   :props ('font-lock-face 'font-lock-keyword-face
+   :props ('font-lock-face 'all-the-icons-ibuffer-mode-face
                            'mouse-face 'highlight
 	                       'keymap ibuffer-mode-name-map
 	                       'help-echo "mouse-2: filter by this mode"))
@@ -196,7 +211,7 @@ See `ibuffer-formats' for details."
 
 (define-ibuffer-column filename-and-process+
   (:name "Filename/Process"
-   :props ('font-lock-face 'completions-annotations)
+   :props ('font-lock-face 'all-the-icons-ibuffer-file-face)
    :header-mouse-map ibuffer-filename/process-header-map
    :summarizer
    (lambda (strings)
