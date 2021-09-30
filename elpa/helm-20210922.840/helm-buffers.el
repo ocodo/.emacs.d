@@ -459,7 +459,7 @@ The list is reordered with `helm-buffer-list-reorder-fn'."
     (helm-acond ((assq major-mode helm-buffer--pretty-names)
                  (cdr it))
                 ((stringp mode-name) mode-name)
-                (t (format-mode-line mode-name)))))
+                (t (format-mode-line mode-name nil nil (get-buffer buf))))))
 
 (defun helm-buffer--details (buffer &optional details)
   (require 'dired)
@@ -1124,7 +1124,8 @@ Can be used by any source that list buffers."
   (interactive)
   (with-helm-alive-p
     (let ((filter-attrs (helm-get-attr 'filtered-candidate-transformer
-                                   helm-source-buffers-list)))
+                                   helm-source-buffers-list))
+          (sel          (helm-get-selection)))
       (if (memq 'helm-shadow-boring-buffers filter-attrs)
           (helm-set-attr 'filtered-candidate-transformer
                         (cons 'helm-skip-boring-buffers
@@ -1136,7 +1137,7 @@ Can be used by any source that list buffers."
                             (remove 'helm-skip-boring-buffers
                                     filter-attrs))
                       helm-source-buffers-list))
-      (helm-force-update))))
+      (helm-force-update (helm-buffers--quote-truncated-buffer sel)))))
 (put 'helm-buffers-toggle-show-hidden-buffers 'helm-only t)
 
 (defun helm-buffers-browse-project (buf)

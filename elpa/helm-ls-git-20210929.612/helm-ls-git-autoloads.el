@@ -9,7 +9,27 @@
 ;;;### (autoloads nil "helm-ls-git" "helm-ls-git.el" (0 0 0 0))
 ;;; Generated autoloads from helm-ls-git.el
 
-(autoload 'helm-ls-git-ls "helm-ls-git" "\
+(add-to-list 'auto-mode-alist '("/COMMIT_EDITMSG$" . helm-ls-git-commit-mode))
+
+(autoload 'helm-ls-git-commit-mode "helm-ls-git" "\
+Mode to edit COMMIT_EDITMSG files.
+
+Commands:
+\\{helm-ls-git-commit-mode-map}
+
+\(fn)" t nil)
+
+(add-to-list 'auto-mode-alist '("/git-rebase-todo$" . helm-ls-git-rebase-todo-mode))
+
+(autoload 'helm-ls-git-rebase-todo-mode "helm-ls-git" "\
+Major Mode to edit git-rebase-todo files when using git rebase -i.
+
+Commands:
+\\{helm-ls-git-rebase-todo-mode-map}
+
+\(fn)" t nil)
+
+(autoload 'helm-ls-git "helm-ls-git" "\
 
 
 \(fn &optional ARG)" t nil)
