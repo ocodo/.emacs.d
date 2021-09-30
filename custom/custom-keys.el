@@ -64,6 +64,7 @@
      ("s-o"          . find-file)
      ("s-n"          . new-untitled-buffer)
      ("M-s-c"        . switch-to-message-buffer)
+     ("C-s-r"        . reload-current-chrome-tab-osx)
      ;; ("M-s-m"        . select-common-mode) -- TODO
      ("s-8"          . rotate-window)
      ("s-7"          . rotate-layout)
