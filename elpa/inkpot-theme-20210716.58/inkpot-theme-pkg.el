@@ -1,2 +1,0 @@
-;;; Generated package description from inkpot-theme.el  -*- no-byte-compile: t -*-
-(define-package "inkpot-theme" "20210716.58" "port of vim's inkpot theme" 'nil :commit "c3683aa99c738eb46cf310ba23162dbb315a5ac5" :authors '(("Sarah Iovan" . "sarah@hwaetageek.com") ("Campbell Barton" . "ideasman42@gmail.com")) :maintainer '("Sarah Iovan" . "sarah@hwaetageek.com") :keywords '("color" "theme") :url "https://gitlab.com/ideasman42/emacs-inkpot-theme")
