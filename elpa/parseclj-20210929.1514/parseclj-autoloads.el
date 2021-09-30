@@ -13,6 +13,14 @@
 
 ;;;***
 
+;;;### (autoloads nil "parseclj-alist" "parseclj-alist.el" (0 0 0
+;;;;;;  0))
+;;; Generated autoloads from parseclj-alist.el
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "parseclj-alist" '("parseclj-")))
+
+;;;***
+
 ;;;### (autoloads nil "parseclj-ast" "parseclj-ast.el" (0 0 0 0))
 ;;; Generated autoloads from parseclj-ast.el
 

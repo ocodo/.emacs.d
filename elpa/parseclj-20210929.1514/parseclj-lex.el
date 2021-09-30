@@ -1,6 +1,6 @@
 ;;; parseclj-lex.el --- Clojure/EDN Lexer
 
-;; Copyright (C) 2017-2018  Arne Brasseur
+;; Copyright (C) 2017-2021  Arne Brasseur
 
 ;; Author: Arne Brasseur <arne@arnebrasseur.net>
 
@@ -27,8 +27,11 @@
 
 ;;; Code:
 
+(require 'parseclj-alist)
+
 (defvar parseclj-lex--leaf-tokens '(:whitespace
                                     :comment
+                                    :symbolic-value
                                     :number
                                     :nil
                                     :true
@@ -73,7 +76,7 @@ Tokens at a mimimum have these attributes
 - POS: the position in the input, starts from 1 (like point)
 
 Other ATTRIBUTES can be given as a flat list of key-value pairs."
-  (apply 'a-list :token-type type :form form :pos pos attributes))
+  (apply #'parseclj-alist :token-type type :form form :pos pos attributes))
 
 (defun parseclj-lex-error-token (pos &optional error-type)
   "Create a lexer error token starting at POS.
@@ -169,8 +172,8 @@ S goes through three transformations:
     (:symbol (intern (alist-get :form token)))
     (:keyword (intern (alist-get :form token)))
     (:string (parseclj-lex--string-value (alist-get :form token)))
-    (:character (parseclj-lex--character-value (alist-get :form token)))))
-
+    (:character (parseclj-lex--character-value (alist-get :form token)))
+    (:symbolic-value (intern (substring (alist-get :form token) 2)))))
 
 ;; Stream tokenization
 
@@ -515,6 +518,10 @@ See `parseclj-lex-token'."
            ((equal char ?=)
             (right-char)
             (parseclj-lex-token :eval "#=" pos))
+           ((equal char ?#)
+            (right-char)
+            (let ((sym (parseclj-lex-get-symbol-at-point (point))))
+              (parseclj-lex-token :symbolic-value (concat "##" sym) pos)))
            ((equal char ?\")
             (parseclj-lex-regex))
            ((equal char ?:)
@@ -529,6 +536,9 @@ See `parseclj-lex-token'."
            ((parseclj-lex-symbol-start-p char t)
             (right-char)
             (parseclj-lex-token :tag (concat "#" (parseclj-lex-get-symbol-at-point (1+ pos))) pos))
+           ((equal char ?!) ;; shebang
+            (left-char)
+            (parseclj-lex-comment))
            (t
             (while (not (or (parseclj-lex-at-whitespace-p)
                             (parseclj-lex-at-eof-p)))
