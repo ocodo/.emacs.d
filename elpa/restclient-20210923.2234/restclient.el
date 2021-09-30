@@ -6,8 +6,8 @@
 ;; Maintainer: Pavel Kurnosov <pashky@gmail.com>
 ;; Created: 01 Apr 2012
 ;; Keywords: http
-;; Package-Version: 20210813.841
-;; Package-Commit: 176d9cb6552f04d98c33e29fc673862bdf3bca03
+;; Package-Version: 20210923.2234
+;; Package-Commit: 94d2e8421fa14d0e3307d70e1d1e2db9d43b2f95
 
 ;; This file is not part of GNU Emacs.
 ;; This file is public domain software. Do what you want.
@@ -67,6 +67,11 @@
   "An association list mapping content types to buffer modes"
   :group 'restclient
   :type '(alist :key-type string :value-type symbol))
+
+(defcustom restclient-response-body-only nil
+  "When parsing response, only return its body."
+  :group 'restclient
+  :type 'boolean)
 
 (defgroup restclient-faces nil
   "Faces used in Restclient Mode"
@@ -320,11 +325,12 @@
 
           (goto-char (point-max))
           (or (eq (point) (point-min)) (insert "\n"))
-          (let ((hstart (point)))
-            (insert method " " url "\n" headers)
-            (insert (format "Request duration: %fs\n" (float-time (time-subtract restclient-request-time-end restclient-request-time-start))))
-            (unless (member guessed-mode '(image-mode text-mode))
-              (comment-region hstart (point)))))))))
+	  (unless restclient-response-body-only
+            (let ((hstart (point)))
+              (insert method " " url "\n" headers)
+              (insert (format "Request duration: %fs\n" (float-time (time-subtract restclient-request-time-end restclient-request-time-start))))
+              (unless (member guessed-mode '(image-mode text-mode))
+		(comment-region hstart (point))))))))))
 
 (defun restclient-prettify-json-unicode ()
   (save-excursion
