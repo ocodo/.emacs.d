@@ -2972,12 +2972,24 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
       (pop copy))
     (apply 'concat pieces)))
 
+(defun company--common-or-matches (value)
+  (let ((matches (company-call-backend 'match value)))
+    (when (and matches
+               company-common
+               (listp matches)
+               (= 1 (length matches))
+               (= 0 (caar matches))
+               (> (string-width company-common) (cdar matches)))
+      (setq matches nil))
+    (when (integerp matches)
+      (setq matches `((0 . ,matches))))
+    (or matches
+        (and company-common `((0 . ,(string-width company-common))))
+        nil)))
+
 (defun company-fill-propertize (value annotation width selected left right)
   (let* ((margin (length left))
-         (common (or (company-call-backend 'match value)
-                     (if company-common
-                         (string-width company-common)
-                       0)))
+         (common (company--common-or-matches value))
          (_ (setq value (company-reformat (company--pre-render value))
                   annotation (and annotation (company--pre-render annotation t))))
          (ann-ralign company-tooltip-align-annotations)
@@ -3016,7 +3028,7 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
                               t line))
     (cl-loop
      with width = (- width (length right))
-     for (comp-beg . comp-end) in (if (integerp common) `((0 . ,common)) common)
+     for (comp-beg . comp-end) in common
      for inline-beg = (+ margin comp-beg)
      for inline-end = (min (+ margin comp-end) width)
      when (< inline-beg width)
@@ -3600,11 +3612,17 @@ Delay is determined by `company-tooltip-idle-delay'."
 (defun company-preview-show-at-point (pos completion)
   (company-preview-hide)
 
-  (setq completion (copy-sequence (company--pre-render completion)))
-  (add-face-text-property 0 (length completion) 'company-preview
-                          nil completion)
-  (add-face-text-property 0 (length company-common) 'company-preview-common
-                          nil completion)
+  (let* ((company-common (and company-common
+                              (string-prefix-p company-prefix company-common)
+                              company-common))
+         (common (company--common-or-matches completion)))
+    (setq completion (copy-sequence (company--pre-render completion)))
+    (add-face-text-property 0 (length completion) 'company-preview
+                            nil completion)
+
+    (cl-loop for (beg . end) in common
+             do (add-face-text-property beg end 'company-preview-common
+                                        nil completion))
 
     ;; Add search string
     (and (string-match (funcall company-search-regexp-function
@@ -3614,7 +3632,9 @@ Delay is determined by `company-tooltip-idle-delay'."
            (add-face-text-property mbeg mend 'company-preview-search
                                    nil completion)))
 
-    (setq completion (company-strip-prefix completion))
+    (setq completion (if company-common
+                         (company-strip-prefix completion)
+                       completion))
 
     (and (equal pos (point))
          (not (equal completion ""))
@@ -3637,7 +3657,7 @@ Delay is determined by `company-tooltip-idle-delay'."
       (let ((ov company-preview-overlay))
         (overlay-put ov (if ptf-workaround 'display 'after-string)
                      completion)
-        (overlay-put ov 'window (selected-window)))))
+        (overlay-put ov 'window (selected-window))))))
 
 (defun company-preview-hide ()
   (when company-preview-overlay
