@@ -3,8 +3,8 @@
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; Maintainer: Titus von der Malsburg <malsburg@posteo.de>
 ;; URL: https://github.com/tmalsburg/helm-bibtex
-;; Package-Version: 20210908.1205
-;; Package-Commit: b85662081de98077f13f1a9fac03764702325d28
+;; Package-Version: 20210927.1205
+;; Package-Commit: bb47f355b0da8518aa3fb516019120c14c8747c9
 ;; Version: 1.0.1
 ;; Package-Requires: ((bibtex-completion "1.0.0") (ivy "0.13.0") (cl-lib "0.5"))
 
@@ -107,7 +107,7 @@
   (let* ((width (- (frame-width) 2))
 	 (idx (get-text-property 1 'idx candidate))
 	 (entry (cdr (nth idx (ivy-state-collection ivy-last)))))
-    (s-concat (if (s-starts-with-p ivy-mark-prefix candidate) ivy-mark-prefix " ")
+    (s-concat (if (s-starts-with-p ivy-mark-prefix candidate) ivy-mark-prefix "")
 	      (bibtex-completion-format-entry entry width))))
 
 (defmacro ivy-bibtex-ivify-action (action name)

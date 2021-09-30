@@ -6,9 +6,9 @@
 ;;         Naoya Yamashita <conao3@gmail.com>
 ;; Maintainer: Feng Shu <tumashu@163.com>
 ;; URL: https://github.com/tumashu/ivy-posframe
-;; Package-Version: 20210609.1053
-;; Package-Commit: 9c8382823392d5e64fb4879055e43ab4a029e62a
-;; Version: 0.6.1
+;; Package-Version: 20210922.24
+;; Package-Commit: b4a522b7f81d49e7664f90a4f9ff1c2def08a3a9
+;; Version: 0.6.2
 ;; Keywords: abbrev, convenience, matching, ivy
 ;; Package-Requires: ((emacs "26.0") (posframe "1.0.0") (ivy "0.13.0"))
 
@@ -294,7 +294,11 @@ This variable is useful for `ivy-posframe-read-action' .")
 
 (defun ivy-posframe-hidehandler (_)
   "Hidehandler used by ivy-posframe."
-  (not (minibufferp)))
+  (and (not (minibufferp))
+       ;; Note: when run ivy-avy, buffer will be temp changed, make
+       ;; sure do not autohide posframe at this situation.
+       ;; More detail: https://github.com/tumashu/ivy-posframe/issues/114
+       (not (equal (current-buffer) (window-buffer (ivy-posframe--window))))))
 
 (defun ivy-posframe-get-size ()
   "The default functon used by `ivy-posframe-size-function'."
