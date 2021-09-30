@@ -126,6 +126,67 @@ Execute BODY in a buffer named with the help of NAME."
       (js-mode)
       (view-mode))))
 
+(defun docker-utils-human-size-predicate (a b)
+  "Sort A and B by image size."
+  (let* ((a-size (elt (cadr a) 4))
+         (b-size (elt (cadr b) 4)))
+    (< (docker-utils-human-size-to-bytes a-size) (docker-utils-human-size-to-bytes b-size))))
+
+(defun docker-utils-columns-list-format (columns-spec)
+  "Convert COLUMNS-SPEC (a list of plists) to 'tabulated-list-format', i.e. a vector of (name width bool)."
+  (seq-into
+   (--map (list (plist-get it :name) (plist-get it :width) (or (plist-get it :sort) t)) columns-spec)
+   'vector))
+
+(defun docker-utils-make-format-string (id-template column-spec)
+  "Make the format string to pass to docker-ls commands.
+
+ID-TEMPLATE is the Go template used to extract the property that
+identifies the object (usually its id).
+COLUMN-SPEC is the value of docker-X-columns."
+  (let* ((templates (--map (plist-get it :template) column-spec))
+         (delimited (string-join templates ",")))
+    (format "[%s,%s]" id-template delimited)))
+
+(defun docker-utils-parse (column-specs line)
+  "Convert a LINE from \"docker ls\" to a `tabulated-list-entries' entry.
+
+LINE is expected to be a JSON formatted array, and COLUMN-SPECS is the relevant
+defcustom (e.g. `docker-image-columns`) used to apply any custom format functions."
+  (condition-case nil
+      (let* ((data (json-read-from-string line)))
+        ;; apply format function, if any
+        (--each-indexed
+            column-specs
+          (let ((fmt-fn (plist-get it :format))
+                (data-index (+ it-index 1)))
+            (when fmt-fn (aset data data-index (apply fmt-fn (list (aref data data-index)))))))
+
+        (list (aref data 0) (seq-drop data 1)))
+    (json-readtable-error
+     (error "Could not read following string as json:\n%s" line))))
+
+(defun docker-utils-columns-setter (sym new-value)
+  "Convert NEW-VALUE into a list of plists, then assign to SYM.
+
+If NEW-VALUE already looks like a list of plists, no conversion is performed and
+ NEW-VALUE is assigned to SYM unchanged.  This is expected to be used as the
+value of :set in a defcustom."
+  (let ((is-plist (plist-member (car new-value) :name))
+        (new-value-plist (--map
+                          (-interleave '(:name :width :template :sort :format) it)
+                          new-value)))
+    (set sym (if is-plist new-value new-value-plist))))
+
+(defun docker-utils-columns-getter (sym)
+  "Convert the value of SYM for displaying in the customization menu.
+
+Just strips the plist symbols and returns only values.
+This has no effect on the actual value of the variable."
+  (--map
+   (-map (-partial #'plist-get it) '(:name :width :template :sort :format))
+   (symbol-value sym)))
+
 (provide 'docker-utils)
 
 ;;; docker-utils.el ends here

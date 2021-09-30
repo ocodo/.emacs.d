@@ -36,6 +36,12 @@
   "Docker images customization group."
   :group 'docker)
 
+(defconst docker-image-id-template
+  "{{if (eq \\\"<none>\\\" .Repository .Tag)}}{{ json .ID }}{{else}}\\\"{{ .Repository }}:{{ .Tag }}\\\"{{end}}"
+  "This Go template defines what will be passed to transient commands.
+
+The default value uses Repository:Tag unless either is <none>, then it uses Id.")
+
 (defcustom docker-image-default-sort-key '("Repository" . nil)
   "Sort key for docker images.
 
@@ -43,13 +49,38 @@ This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
   :group 'docker-image
-  :type '(cons (choice (const "Repository")
-                       (const "Tag")
-                       (const "Id")
-                       (const "Created")
-                       (const "Size"))
+  :type '(cons (string :tag "Column Name"
+                       :validate (lambda (widget)
+                                   (unless (--any-p (equal (plist-get it :name) (widget-value widget)) docker-image-columns)
+                                     (widget-put widget :error "Default Sort Key must match a column name")
+                                     widget)))
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
+
+(defcustom docker-image-columns
+  '((:name "Repository" :width 30 :template "{{json .Repository}}" :sort nil :format nil)
+    (:name "Tag" :width 20 :template "{{ json .Tag }}" :sort nil :format nil)
+    (:name "Id" :width 16 :template "{{ json .ID }}" :sort nil :format nil)
+    (:name "Created" :width 24 :template "{{ json .CreatedAt }}" :sort nil :format (lambda (x) (format-time-string "%F %T" (date-to-time x))))
+    (:name "Size" :width 10 :template "{{ json .Size }}" :sort docker-utils-human-size-predicate :format nil))
+  "Column specification for docker images.
+
+The order of entries defines the displayed column order.
+'Template' is the Go template passed to docker-image-ls to create the column
+data.   It should return a string delimited with double quotes.
+'Sort function' is a binary predicate that should return true when the first
+argument should be sorted before the second.
+'Format function' is a function from string to string that transforms the
+displayed values in the column."
+  :group 'docker-image
+  :set 'docker-utils-columns-setter
+  :get 'docker-utils-columns-getter
+  :type '(repeat (list :tag "Column"
+                       (string :tag "Name")
+                       (integer :tag "Width")
+                       (string :tag "Template")
+                       (sexp :tag "Sort function")
+                       (sexp :tag "Format function"))))
 
 (defcustom docker-run-default-args
   '("-i" "-t" "--rm")
@@ -71,22 +102,12 @@ corresponding to arguments.
 Also note if you do not specify `docker-run-default-args', they will be ignored."
   :type '(repeat (list string (repeat string))))
 
-(defun docker-image-parse (line)
-  "Convert a LINE from \"docker image ls\" to a `tabulated-list-entries' entry."
-  (condition-case nil
-      (let* ((data (json-read-from-string line))
-             (name (format "%s:%s" (aref data 0) (aref data 1))))
-        (aset data 3 (format-time-string "%F %T" (date-to-time (aref data 3))))
-        (list (if (s-contains? "<none>" name) (aref data 2) name) data))
-    (json-readtable-error
-     (error "Could not read following string as json:\n%s" line))))
-
 (defun docker-image-entries ()
   "Return the docker images data for `tabulated-list-entries'."
-  (let* ((fmt "[{{json .Repository}},{{json .Tag}},{{json .ID}},{{json .CreatedAt}},{{json .Size}}]")
+  (let* ((fmt (docker-utils-make-format-string docker-image-id-template docker-image-columns))
          (data (docker-run-docker "image ls" (docker-image-ls-arguments) (format "--format=\"%s\"" fmt)))
          (lines (s-split "\n" data t)))
-    (-map #'docker-image-parse lines)))
+    (-map (-partial #'docker-utils-parse docker-image-columns) lines)))
 
 (defun docker-image-refresh ()
   "Refresh the images list."
@@ -95,12 +116,6 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
 (defun docker-image-read-name ()
   "Read an image name."
   (completing-read "Image: " (-map #'car (docker-image-entries))))
-
-(defun docker-image-human-size-predicate (a b)
-  "Sort A and B by image size."
-  (let* ((a-size (elt (cadr a) 4))
-         (b-size (elt (cadr b) 4)))
-    (< (docker-utils-human-size-to-bytes a-size) (docker-utils-human-size-to-bytes b-size))))
 
 ;;;###autoload
 (defun docker-image-pull-one (name &optional all)
@@ -238,7 +253,7 @@ Also note if you do not specify `docker-run-default-args', they will be ignored.
 
 (define-derived-mode docker-image-mode tabulated-list-mode "Images Menu"
   "Major mode for handling a list of docker images."
-  (setq tabulated-list-format [("Repository" 30 t)("Tag" 20 t)("Id" 16 t)("Created" 23 t)("Size" 10 docker-image-human-size-predicate)])
+  (setq tabulated-list-format (docker-utils-columns-list-format docker-image-columns))
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key docker-image-default-sort-key)
   (add-hook 'tabulated-list-revert-hook 'docker-image-refresh nil t)
