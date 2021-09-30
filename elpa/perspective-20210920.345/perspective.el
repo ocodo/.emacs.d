@@ -6,10 +6,10 @@
 
 ;; Author: Natalie Weizenbaum <nex342@gmail.com>
 ;; URL: http://github.com/nex3/perspective-el
-;; Package-Version: 20210821.259
-;; Package-Commit: 1c257f35ccabaa807d3a79f6daed7b6a5872d27b
+;; Package-Version: 20210920.345
+;; Package-Commit: acad4fb2cfe27feb0ecbe07e51c364bfa5ea4f47
 ;; Package-Requires: ((emacs "24.4") (cl-lib "0.5"))
-;; Version: 2.16
+;; Version: 2.17
 ;; Created: 2008-03-05
 ;; By: Natalie Weizenbaum <nex342@gmail.com>
 ;; Keywords: workspace, convenience, frames
@@ -667,6 +667,11 @@ perspective's local variables are set.
 If NORECORD is non-nil, do not update the
 `persp-last-switch-time' for the switched perspective."
   (interactive "i")
+  ;; TODO: See https://github.com/nex3/perspective-el/issues/163 for the source
+  ;; of this workaround. It would be good to investigate exactly why recursive
+  ;; minibuffers break Perspective.
+  (when (> (minibuffer-depth) 0)
+    (user-error "Perspective operations in recursive minibuffers not supported"))
   (unless (persp-valid-name-p name)
     (setq name (persp-prompt (and (persp-last) (persp-name (persp-last))))))
   (if (and (persp-curr) (equal name (persp-current-name))) name
