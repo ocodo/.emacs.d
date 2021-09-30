@@ -5,8 +5,8 @@
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; Homepage: https://github.com/seagle0128/all-the-icons-ivy-rich
 ;; Version: 1.6.4
-;; Package-Version: 20210823.1544
-;; Package-Commit: 09b887c01aeb33d715a1f8269f45c38594614d93
+;; Package-Version: 20210927.1411
+;; Package-Commit: 8c0cd543c8d79cf223216b3f44ac3a4b0695c484
 ;; Package-Requires: ((emacs "25.1") (ivy-rich "0.1.0") (all-the-icons "2.2.0"))
 ;; Keywords: convenience, icons, ivy
 
@@ -661,6 +661,12 @@ It respects `all-the-icons-color-icons'."
       (ivy-rich-switch-buffer-major-mode (:width 18 :face all-the-icons-ivy-rich-major-mode-face))
       (ivy-rich-switch-buffer-project (:width 0.12 :face all-the-icons-ivy-rich-project-face))
       (ivy-rich-switch-buffer-path (:width (lambda (x) (ivy-rich-switch-buffer-shorten-path x (ivy-rich-minibuffer-width 0.3))) :face all-the-icons-ivy-rich-path-face)))
+     :delimiter "\t")
+
+    lsp-ivy-workspace-folders-remove
+    (:columns
+     ((all-the-icons-ivy-rich-dir-icon)
+      (all-the-icons-ivy-rich-project-name (:width 0.4)))
      :delimiter "\t")
 
     treemacs-projectile

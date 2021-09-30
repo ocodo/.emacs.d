@@ -1,0 +1,2 @@
+;;; Generated package description from all-the-icons-ivy-rich.el  -*- no-byte-compile: t -*-
+(define-package "all-the-icons-ivy-rich" "20210927.1411" "Better experience with icons for ivy" '((emacs "25.1") (ivy-rich "0.1.0") (all-the-icons "2.2.0")) :commit "8c0cd543c8d79cf223216b3f44ac3a4b0695c484" :authors '(("Vincent Zhang" . "seagle0128@gmail.com")) :maintainer '("Vincent Zhang" . "seagle0128@gmail.com") :keywords '("convenience" "icons" "ivy") :url "https://github.com/seagle0128/all-the-icons-ivy-rich")
