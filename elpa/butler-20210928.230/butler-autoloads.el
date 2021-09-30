@@ -10,11 +10,9 @@
 ;;; Generated autoloads from butler.el
 
 (autoload 'butler-status "butler" "\
-Shows the butler status buffer which displays the status of the configured CI server
+Shows the butler status buffer which displays the status of the configured CI server" t nil)
 
-\(fn)" t nil)
-
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "butler" '("butler-" "draw-" "generate-progress-string" "hide-butler-job" "trigger-butler-job" "find-current-" "parse-jobs" "refresh-butler-status")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "butler" '("butler-" "draw-" "find-current-" "generate-progress-string" "hide-butler-job" "parse-jobs" "refresh-butler-status" "trigger-butler-job")))
 
 ;;;***
 
@@ -22,7 +20,7 @@ Shows the butler status buffer which displays the status of the configured CI se
 ;;;;;;  0))
 ;;; Generated autoloads from butler-servers.el
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "butler-servers" '("generate-basic-auth" "get-" "parse-authinfo-file" "prepare-servers" "butler-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "butler-servers" '("butler-" "generate-basic-auth" "get-" "parse-authinfo-file" "prepare-servers")))
 
 ;;;***
 
