@@ -1,7 +1,7 @@
-(define-package "swift-mode" "20210810.757" "Major-mode for Apple's Swift programming language"
+(define-package "swift-mode" "20210925.430" "Major-mode for Apple's Swift programming language"
   '((emacs "24.4")
     (seq "2.3"))
-  :commit "800efe2910e0a8517ac720c8bd0e0714fef142eb" :keywords
+  :commit "4ec7c7328d0f09bf323c8be2db3be248bf30827a" :keywords
   '("languages" "swift")
   :url "https://github.com/swift-emacs/swift-mode")
 ;; Local Variables:

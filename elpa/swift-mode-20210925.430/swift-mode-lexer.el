@@ -431,10 +431,36 @@ Return nil otherwise."
        ;; Suppress implicit semicolon around keywords that cannot start or end
        ;; statements.
        (member (swift-mode:token:text previous-token)
-               '("some" "inout" "in" "where"))
+               '("some" "inout" "in" "where" "isolated"))
        (member (swift-mode:token:text next-token)
-               '("some" "inout" "throws" "rethrows" "async" "in" "where")))
+               '("some" "inout" "throws" "rethrows" "in" "where"
+                 "isolated")))
       nil)
+
+     ;; Before async
+     ;;
+     ;; Examples:
+     ;;
+     ;; func foo() async throws -> Void
+     ;; foo { () async throws -> void in }
+     ;; let f: () async throws -> Void = g
+     ;; get async throws {}
+     ;; async let x = foo()
+     ;;
+     ;; Suppresses implicit semicolon if and only if before let.
+     ;;
+     ;; Example:
+     ;;
+     ;; let a = f as (Int, Int)
+     ;;   async -> Int
+     ;; let b = t as (Int, Int)
+     ;; async
+     ;; let c = 1
+     ((equal (swift-mode:token:text next-token) "async")
+      (equal (swift-mode:token:text (save-excursion
+                                      (swift-mode:forward-token-simple)
+                                      (swift-mode:forward-token-simple)))
+             "let"))
 
      ;; Inserts semicolon before open curly bracket.
      ;;
@@ -458,7 +484,7 @@ Return nil otherwise."
               '("indirect" "convenience" "dynamic" "final" "infix" "lazy"
                 "mutating" "nonmutating" "optional" "override" "postfix"
                 "prefix" "required" "static" "unowned" "weak" "internal"
-                "private" "public" "open" "fileprivate"))
+                "private" "public" "open" "fileprivate" "nonisolated"))
       nil)
 
      ;; internal(set) private(set) public(set) open(set) fileprivate(set)
@@ -491,7 +517,7 @@ Return nil otherwise."
               '("indirect" "convenience" "dynamic" "final" "infix" "lazy"
                 "mutating" "nonmutating" "optional" "override" "postfix"
                 "prefix" "required" "static" "unowned" "weak" "internal"
-                "private" "public" "open" "fileprivate"))
+                "private" "public" "open" "fileprivate" "nonisolated"))
       t)
 
      ;; Inserts implicit semicolon around keywords that forms single keyword
