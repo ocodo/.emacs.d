@@ -29,3 +29,5 @@ var
 /eshell/history
 
 company-stats-cache.el
+transient/
+.mc-lists.el
