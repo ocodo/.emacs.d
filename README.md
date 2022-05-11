@@ -1,3 +1,5 @@
+# PLEASE NOTE - NO LONGER IN USE - DOOM EMACS recommended.
+
 **(for use with Emacs 25.x)**
 
 # Quick start guide...
